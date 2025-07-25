@@ -1,0 +1,4 @@
+2025-07-25T08:29:42.567Z [info]: This is a sample log message for testing purposes.
+2025-07-25T08:29:42.580Z [error]: This is a sample error message for testing purposes.
+2025-07-25T08:29:42.580Z [warn]: This is a sample warning message for testing purposes.
+2025-07-25T08:29:42.581Z [info]: This is a child logger message with userId for testing purposes.
