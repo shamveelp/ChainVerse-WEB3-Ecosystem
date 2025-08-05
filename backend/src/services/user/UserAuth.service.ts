@@ -61,18 +61,20 @@ export class UserAuthService implements IUserAuthService {
 
   public async loginUser(email: string, password: string, ) {
     const user = await this.userRepository.findByEmail(email)
+    
     if (!user) {
       throw new CustomError("User not found", StatusCode.NOT_FOUND)
     }
     if (!user.password) throw new Error("User has no password");
     if (user.isBanned) throw new Error("This user is banned")
-
-    const isMatch = await bcrypt.compare(password, user.password)
-    if (!isMatch) {
-      throw new CustomError("Invalid password", StatusCode.UNAUTHORIZED)
-    }
-    const accessToken = this.jwtService.generateAccessToken(user._id.toString(), user.role)
-    const refreshToken = this.jwtService.generateRefreshToken(user._id.toString(), user.role)
+      
+      const isMatch = await bcrypt.compare(password, user.password)
+      if (!isMatch) {
+        throw new CustomError("Invalid password", StatusCode.UNAUTHORIZED)
+      }
+      const accessToken = this.jwtService.generateAccessToken(user._id.toString(), user.role)
+      const refreshToken = this.jwtService.generateRefreshToken(user._id.toString(), user.role)
+      // console.log(refreshToken, "ithaanu");
     return { user, accessToken, refreshToken }
   }
 

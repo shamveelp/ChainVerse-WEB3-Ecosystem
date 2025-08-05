@@ -19,6 +19,8 @@ export class JwtService implements IJwtService {
     if (!JWT_ACCESS_SECRET) {
       throw new CustomError("JWT_ACCESS_SECRET is not defined", StatusCode.INTERNAL_SERVER_ERROR)
     }
+    console.log(role);
+    
     return jwt.sign({ id, role }, JWT_ACCESS_SECRET, { expiresIn: "15m" })
   }
 

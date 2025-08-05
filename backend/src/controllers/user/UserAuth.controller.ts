@@ -35,7 +35,7 @@ export class UserAuthController implements IUserAuthController {
       const otpResponse = await this.otpService.requestOtp(email,'user');
       res
         .status(StatusCode.OK)
-        .json({ message: "OTP sent successfully", data: otpResponse });
+        .json({ success:true,message: "OTP sent successfully", data: otpResponse });
     } catch (error: any) {
       res
         .status(StatusCode.BAD_REQUEST)
@@ -52,7 +52,7 @@ export class UserAuthController implements IUserAuthController {
         await this.userAuthService.registerUser(name, email, password);
         //Set cookies
       this.jwtService.setTokens(res, accessToken, refreshToken);
-      res.status(StatusCode.CREATED).json({ user });
+      res.status(StatusCode.CREATED).json({ success: true,user });
     } catch (error) {
       res.status(StatusCode.BAD_REQUEST).json({ error: error });
       logger.error("Error verifying OTP", error);

@@ -1,64 +1,135 @@
-import API from "@/lib/axios"
-import logger from "@/utils/logger";
-import { StatusCode } from "@/utils/statusCodes";
-
+import API from "@/lib/api-client"
 
 export const login = async (email: string, password: string) => {
-    try {
-        const response = await API.post("/api/user/login", { email, password });
-        if(response?.status >= StatusCode.OK && response?.status < StatusCode.MULTIPLE_CHOICES) {
-            return response.data;
-        }
-        throw new Error(response?.data?.error || "Login Failed");
-    } catch (error: any) {
-        logger.error("Login error:", error);
-        throw new Error(error.response?.data?.error || error.message || 'Login failed: Unable to connect to the server');
+  try {
+    const response = await API.post("/api/user/login", { email, password })
+    return {
+      success: true,
+      user: response.data.user,
+      token: response.data.accessToken || response.data.token,
     }
+  } catch (error: any) {
+    console.error("Login error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Login failed",
+    }
+  }
 }
 
 export const signup = async (name: string, email: string, password: string, otp: string) => {
-    return await API.post("/api/user/signup", { 
-        name,
-        email, 
-        password,
-        otp, 
-    }, { withCredentials: true });
+  try {
+    const response = await API.post("/api/user/verify-otp", {
+      name,
+      email,
+      password,
+      otp,
+    })
+    return {
+      success: true,
+      user: response.data.user,
+      token: response.data.accessToken || response.data.token,
+    }
+  } catch (error: any) {
+    console.error("Signup error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Signup failed",
+    }
+  }
 }
 
-export const resendOtp = async (email: string) => {
-    return await API.post("/api/user/resend-otp", { email });
-}
-
-export const logout = async () => {
-    await API.post("/api/user/logout");
+export const requestOtp = async (email: string) => {
+  try {
+    const response = await API.post("/api/user/request-otp", { email })
+    return {
+      success: response.data.success || true,
+      message: response.data.message,
+    }
+  } catch (error: any) {
+    console.error("Request OTP error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to request OTP",
+    }
+  }
 }
 
 export const forgotPassword = async (email: string) => {
-    const res = await API.post("/api/user/forgot-password", { email });
-    return res.data;
+  try {
+    const response = await API.post("/api/user/forgot-password", { email })
+    return {
+      success: true,
+      message: response.data.message,
+    }
+  } catch (error: any) {
+    console.error("Forgot password error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error:
+        error.response?.data?.error || error.response?.data?.message || error.message || "Failed to send reset code",
+    }
+  }
 }
 
-export const verifyForgotPasswordOtp = async (otp: string, email: string) => {
-    await API.post("/api/user/verify-forgot-password-otp", { otp, email });
+export const verifyForgotPasswordOtp = async (email: string, otp: string) => {
+  try {
+    const response = await API.post("/api/user/verify-forgot-password-otp", { email, otp })
+    return {
+      success: true,
+      message: response.data.message,
+    }
+  } catch (error: any) {
+    console.error("Verify forgot password OTP error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Invalid OTP",
+    }
+  }
 }
 
 export const resetPassword = async (email: string, newPassword: string) => {
-    await API.post("/api/user/reset-password", { email, newPassword  });
+  try {
+    const response = await API.post("/api/user/reset-password", { email, newPassword })
+    return {
+      success: true,
+      message: response.data.message,
+    }
+  } catch (error: any) {
+    console.error("Reset password error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Password reset failed",
+    }
+  }
 }
 
-
-
-// Admin Auths
-
-export const adminLogin = async (email: string, password: string) => {
-    const response = await API.post("/api/admin/login", { email, password });
-    return response.data;
+export const logout = async () => {
+  try {
+    await API.post("/api/user/logout")
+    return { success: true }
+  } catch (error: any) {
+    console.error("Logout error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Logout failed",
+    }
+  }
 }
 
-export const adminLogout = async () => {
-    await API.post("/api/admin/logout");
+export const googleLogin = async (credential: string) => {
+  try {
+    const response = await API.post("/api/user/google-login", { token: credential })
+    return {
+      success: true,
+      user: response.data.user,
+      token: response.data.accessToken || response.data.token,
+    }
+  } catch (error: any) {
+    console.error("Google login error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Google login failed",
+    }
+  }
 }
-
-
-
-

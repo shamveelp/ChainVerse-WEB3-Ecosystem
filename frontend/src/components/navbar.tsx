@@ -14,27 +14,18 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
-import { useAuth } from "@/contexts/AuthContext" // Changed import to useAuth from AuthContext
+import { useSelector } from "react-redux"
+import type { RootState } from "@/redux/store"
+import { useAuthActions } from "@/lib/auth-actions" // New hook for auth actions
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
-  const { user, isLoading, logout } = useAuth() // Uses the useAuth hook
+  const { user, loading } = useSelector((state: RootState) => state.userAuth) // Get user and loading state from Redux
+  const { logout } = useAuthActions() // Use the new auth actions hook
   const { toast } = useToast()
 
   const handleLogout = async () => {
-    try {
-      await logout()
-      toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out",
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to logout",
-        variant: "destructive",
-      })
-    }
+    await logout()
   }
 
   return (
@@ -100,7 +91,7 @@ export default function Navbar() {
           </div>
           {/* Desktop Auth Buttons / User Menu */}
           <div className="hidden md:block">
-            {isLoading ? (
+            {loading ? (
               <div className="w-8 h-8 bg-slate-700 rounded-full animate-pulse"></div>
             ) : user ? (
               <DropdownMenu>

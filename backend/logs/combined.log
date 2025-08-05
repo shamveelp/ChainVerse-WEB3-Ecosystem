@@ -466,3 +466,52 @@
 2025-08-03T14:24:57.099Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
 2025-08-05T14:23:01.550Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/
 2025-08-05T14:23:24.378Z [info]: MongoDB connected: localhost
+2025-08-05T14:38:59.115Z [info]: MongoDB connected: localhost
+2025-08-05T19:33:53.312Z [error]: Error requesting OTP Email is already registered, Please Login
+2025-08-05T19:34:30.559Z [info]: Generated OTP: 628893 for email: anshifpotten007@gmail.com
+2025-08-05T19:35:14.756Z [info]: Generated OTP: 480617 for email: anshifpotten007@gmail.com
+2025-08-05T19:37:24.846Z [error]: Error logging in Invalid password
+2025-08-05T19:37:43.831Z [error]: Error logging in Invalid password
+2025-08-05T19:37:57.210Z [info]: Generated OTP: 935627 for forgot password request for email: arshadpottengattu007@gmail.com
+2025-08-05T19:37:59.395Z [info]: Generated OTP: 535627 for forgot password request for email: arshadpottengattu007@gmail.com
+2025-08-05T19:41:46.147Z [info]: Generated OTP: 872949 for email: anshif@gmail.com
+2025-08-05T19:43:36.486Z [info]: Generated OTP: 927500 for email: anshif@gmail.com
+2025-08-05T19:43:58.779Z [error]: Error logging in User not found
+2025-08-05T19:44:48.584Z [info]: Generated OTP: 870752 for email: fgnhgf@gmail.com
+2025-08-05T19:44:52.775Z [info]: Generated OTP: 278905 for email: fgnhgf@gmail.com
+2025-08-05T19:45:39.790Z [info]: Generated OTP: 604706 for email: fgnhgf@gmail.com
+2025-08-05T19:47:02.616Z [info]: Generated OTP: 674041 for email: fgnhgf@gmail.com
+2025-08-05T19:47:38.102Z [info]: Generated OTP: 230884 for email: eeeee@gmail.com
+2025-08-05T19:47:49.888Z [info]: Generated OTP: 305187 for email: eeeee@gmail.com
+2025-08-05T19:48:51.248Z [info]: MongoDB connected: localhost
+2025-08-05T19:52:03.615Z [info]: MongoDB connected: localhost
+2025-08-05T19:52:05.130Z [info]: Generated OTP: 393347 for email: eeeee@gmail.com
+2025-08-05T19:53:54.332Z [info]: Generated OTP: 963729 for email: eeeee@gmail.com
+2025-08-05T19:54:48.456Z [info]: Generated OTP: 931411 for email: eeeee@gmail.com
+2025-08-05T19:55:19.881Z [info]: Generated OTP: 675418 for email: eeeee@gmail.com
+2025-08-05T19:56:08.095Z [info]: Generated OTP: 185021 for email: eeeee@gmail.com
+2025-08-05T20:00:18.435Z [info]: MongoDB connected: localhost
+2025-08-05T20:00:28.074Z [info]: Generated OTP: 744983 for email: eeeee@gmail.com
+2025-08-05T20:01:50.927Z [info]: MongoDB connected: localhost
+2025-08-05T20:03:09.799Z [info]: Generated OTP: 748467 for email: eeeee@gmail.com
+2025-08-05T20:09:11.827Z [error]: Error logging in Invalid password
+2025-08-05T20:09:12.034Z [error]: Error logging in Invalid password
+2025-08-05T20:09:26.106Z [error]: Error logging in Invalid password
+2025-08-05T20:09:26.249Z [error]: Error logging in Invalid password
+2025-08-05T20:18:30.532Z [info]: MongoDB connected: localhost
+2025-08-05T20:19:07.079Z [info]: MongoDB connected: localhost
+2025-08-05T20:19:26.052Z [info]: MongoDB connected: localhost
+2025-08-05T20:19:55.893Z [info]: MongoDB connected: localhost
+2025-08-05T20:20:35.538Z [info]: MongoDB connected: localhost
+2025-08-05T20:21:52.755Z [info]: MongoDB connected: localhost
+2025-08-05T20:22:37.409Z [info]: MongoDB connected: localhost
+2025-08-05T20:22:43.563Z [info]: MongoDB connected: localhost
+2025-08-05T20:23:13.978Z [info]: MongoDB connected: localhost
+2025-08-05T20:23:54.241Z [info]: MongoDB connected: localhost
+2025-08-05T20:26:41.405Z [info]: MongoDB connected: localhost
+2025-08-05T21:03:23.731Z [info]: Generated OTP: 293414 for email: eeeee@gmail.com
+2025-08-05T21:03:29.786Z [info]: Generated OTP: 917240 for email: eeeee@gmail.com
+2025-08-05T22:06:30.949Z [info]: Generated OTP: 401752 for email: hellobro@gmail.com
+2025-08-05T22:06:49.728Z [info]: Generated OTP: 439895 for email: hellobro@gmail.com
+2025-08-05T22:07:47.900Z [info]: Generated OTP: 473991 for email: hellobro@gmail.com
+2025-08-05T22:08:15.971Z [info]: Generated OTP: 424955 for email: hellobro@gmail.com
