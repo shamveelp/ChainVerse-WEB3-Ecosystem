@@ -1,50 +1,61 @@
-import { IUser, UserModel } from "../models/user.models";
+import { UserModel, IUser } from "../models/user.models";
 import { IUserRepository } from "../core/interfaces/repositories/IUserRepository";
-import { injectable } from "inversify";
 
-
-@injectable()
 export class UserRepository implements IUserRepository {
-    
-    async createUser(data: Partial<IUser>): Promise<IUser> {
-        return await UserModel.create(data);
+  async createUser(data: Partial<IUser>) {
+    return await UserModel.create(data);
+  }
+
+  async findByEmail(email: string) {
+    return await UserModel.findOne({ email }).exec();
+  }
+
+  async findAll(skip: number, limit: number) {
+    return await UserModel.find()
+      .skip(skip)
+      .limit(limit)
+      .select("name email phone isVerified isBanned role goals motivationLevel equipment assignedTrainer gymId isPrivate streak xp achievements createdAt");
+  }
+   async findUsers(page: number, limit: number, search: string) {
+    const query: any = {};
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } }
+      ];
     }
 
-    async findUserByEmail(email: string): Promise<IUser | null> {
-        return await UserModel.findOne({email}).exec();
-    }
+    const skip = (page - 1) * limit;
 
-    async findAll (skip: number, limit: number): Promise<IUser[]> {
-        return await UserModel.find().skip(skip).limit(limit).exec();
-    }
+    const [users, total] = await Promise.all([
+      UserModel.find(query)
+        .skip(skip)
+        .limit(limit)
+        .select("name email phone role isVerified isBanned createdAt")
+        .lean(),
+      UserModel.countDocuments(query)
+    ]);
 
-    async count(): Promise<number> {
-        return await UserModel.countDocuments().exec();
-    }
+    return {
+      users,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    };
+  }
 
-    async updateUser(id: string, updateData: Partial<IUser>): Promise<void> {
-        await UserModel.findByIdAndUpdate(id, updateData).exec()
-    }
+  async count() {
+    return await UserModel.countDocuments();
+  }
 
-    async updateStatus(id: string, isPrivate: boolean): Promise<IUser | null> {
-        return await UserModel.findByIdAndUpdate(id, { isPrivate }, { new: true }).exec();
-    }
+  async updateUser(id: string, update: Partial<IUser>) {
+    await UserModel.findByIdAndUpdate(id, { $set: update })
+  }
 
-    async findById(id: string): Promise<IUser | null> {
-        return await UserModel.findById(id).exec();
-    }
-
-//     async findByEmail(email: string): Promise<IUser | null> {
-//     return await UserModel.find((user) => user.email === email) || null
-//   }
-
-
-
-
-
+async updateStatus(id: string, updateData: Partial<IUser>) {
+  return await UserModel.findByIdAndUpdate(id, updateData, { new: true });
 }
-
-
-
-
-
+  async findById(id: string) {
+    return UserModel.findById(id).select("-password");
+  }
+}

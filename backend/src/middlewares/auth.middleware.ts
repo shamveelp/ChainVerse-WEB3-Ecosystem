@@ -1,7 +1,9 @@
-import type { Request, Response, NextFunction } from "express"
+import type { Request, Response, NextFunction, RequestHandler } from "express"
 import jwt from "jsonwebtoken"
 import { StatusCode } from "../enums/statusCode.enum"
 import { CustomError } from "../utils/CustomError" // Import CustomError
+import { JwtService } from "../utils/jwt"
+
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET
 
@@ -9,27 +11,42 @@ interface AuthRequest extends Request {
   userId?: string
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const token = req.cookies.accessToken
-  if (!token) {
-    return res.status(StatusCode.UNAUTHORIZED).json({ error: "Not Authorized: No access token" })
-  }
-  try {
-    if (!JWT_ACCESS_SECRET) {
-      throw new CustomError("JWT_ACCESS_SECRET is not defined", StatusCode.INTERNAL_SERVER_ERROR)
+export const roleMiddleware = (allowedRoles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user as {id: string; role: string};
+      if(!user) {
+        res.status(StatusCode.UNAUTHORIZED).json({error:"Not Authenticated"})
+        return
+      }
+      if(!allowedRoles.includes(user.role)) {
+        res.status(StatusCode.FORBIDDEN).json({error: `You've already logged in as ${user.role}`});
+        return
+      }
+      next()
+    } catch (error) {
+      
     }
-    const decoded = jwt.verify(token, JWT_ACCESS_SECRET) as { id: string }
-    req.userId = decoded.id
-    next()
-  } catch (error: any) {
-    // Handle specific JWT errors
-    if (error.name === "TokenExpiredError") {
-      return res.status(StatusCode.UNAUTHORIZED).json({ error: "Access token expired" })
-    }
-    if (error.name === "JsonWebTokenError") {
-      return res.status(StatusCode.UNAUTHORIZED).json({ error: "Invalid access token" })
-    }
-    // Handle CustomError or other unexpected errors
-    res.status(error.statusCode || StatusCode.UNAUTHORIZED).json({ error: error.message || "Authentication failed" })
   }
 }
+
+export const authMiddleware:RequestHandler = (req, res, next) => {
+  try {
+    const token = req.cookies.accessToken;
+    if (!token) {
+       res.status(StatusCode.UNAUTHORIZED).json({ error: "No token provided" });
+       return
+    }
+
+    const decoded = JwtService.verifyToken(token) as {
+      id: string;
+      role: string;
+    };
+
+    req.user = { id: decoded.id, role: decoded.role };
+    next();
+  } catch {
+     res.status(StatusCode.UNAUTHORIZED).json({ error: "Invalid token" });
+     return
+  }
+};

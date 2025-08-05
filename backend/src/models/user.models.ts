@@ -8,12 +8,12 @@ export interface IUser extends Document {
     name: string;
     email: string;
     password: string;
-    phone: string;
+    phone?: string;
     googleId: string | null;
     refferalCode: string;
     refferedBy: ObjectId | null;
     profilePic: string;
-    role: string;
+    role: 'user';
     totalPoints: number;
     isBlocked: boolean;
     isBanned: boolean;
@@ -43,7 +43,7 @@ const UserSchema: Schema<IUser> = new Schema({
     totalPoints: { type: Number, default: 0 },
     isBlocked: { type: Boolean, default: false },
     isBanned: { type: Boolean, default: false },
-    role: {type: String, enum:['user', 'admin'], default: 'user'},
+    role: {type: String, enum:['user'], default: 'user'},
     isEmailVerified: { type: Boolean, default: false },
     isGoogleUser: { type: Boolean, default: false }, // Added to schema
     dailyCheckin:{

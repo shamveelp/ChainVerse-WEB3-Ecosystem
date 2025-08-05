@@ -8,6 +8,7 @@ export enum StatusCodes {
     CONFLICT = 409,
     UNPROCESSABLE_ENTITY = 422,
     INTERNAL_SERVER_ERROR = 500,
+    SERVER_ERROR = 500,
 }
 
 export enum HttpStatus {

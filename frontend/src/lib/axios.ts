@@ -1,39 +1,41 @@
-import axios from 'axios';
-import { useAuthStore } from '@/stores/userAuthStore';
-const { logout } = useAuthStore.getState();
-import logger from '@/utils/logger';
 import { StatusCode } from '@/utils/statusCodes';
+import axios from 'axios';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
-
-export const api = axios.create({
-    baseURL: BACKEND_URL,
+const api = axios.create({
+    baseURL: API_URL,
     withCredentials: true,
     headers: {
-        "Content-Type": "application/json"
+        'Content-Type': 'application/json'
     }
-});
+})
 
-// api.interceptors.request.use((config) => {
-//     return config;
-// },
-//     (error) => {
-//         logger.error("Coming from interceptors", error.message)
-//         return Promise.reject(error)
-//     }
-// )
 
-// api.interceptors.response.use(
-//     (res) => res,
-//     (error) => {
-//         logger.error("Coming from interceptors", error.response)
-//         if (error?.response?.status === StatusCode.UNAUTHORIZED || error?.response?.status === StatusCode.FORBIDDEN) {
-//             logout()
-//             logger.info("Working this line")
+api.interceptors.response.use(
+    response => response,
+    async error => {
+        const originalRequest = error.config;
+        if (
+            error.response && 
+            error.response.status === StatusCode.UNAUTHORIZED &&
+            !originalRequest._retry && 
+            originalRequest.url !== '/user/refresh-token'
+        ) {
+            originalRequest._retry = true;
+            try {
+                const response = await api.post('/user/refresh-token', 
+                    {}, 
+                    { withCredentials: true});
+                return api(originalRequest);
+                } catch (refreshError) {
+                    return Promise.reject(refreshError);
+            }   
+        }
+        return Promise.reject(error);
+    }
+)
 
-//         }
-//     }
-// )
 
+export default api;
 

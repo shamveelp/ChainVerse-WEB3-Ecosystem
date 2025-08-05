@@ -6,12 +6,15 @@ import { TYPES } from "../core/types/types";
 import {IMailService} from "../core/interfaces/services/IMailService";
 import {sendOtpHtml} from "../utils/sendEmail";
 import logger from "../utils/logger";
+import { IAdminRepository } from "../core/interfaces/repositories/IAdminRepository";
 
 
 @injectable()
 export class OtpService implements IOTPService {
     constructor(
         @inject(TYPES.IUserRepository) private userRepository: IUserRepository,
+        @inject(TYPES.IAdminRepository) private adminRepository: IAdminRepository,
+        // @inject(TYPES.IUserRepository) private communityAdminRepository: IUserRepository,
         @inject(TYPES.IOtpRepository) private otpRepository: IOtpRepository,
         @inject(TYPES.IMailService) private mailService: IMailService
     ) { }
@@ -20,11 +23,26 @@ export class OtpService implements IOTPService {
         return Math.floor(100000 + Math.random() * 900000).toString();
     }
 
-    async requestOtp(email: string) {
-        const existinguser = await this.userRepository.findUserByEmail(email);
-        if(existinguser) {
-            throw new Error("User already exists");
+    private getRepoByRole(role: 'user' | 'admin' | 'communityAdmin') {
+        switch(role) {
+            case 'user':
+                return this.userRepository;
+            case 'admin':
+                return this.adminRepository;
+            // case 'communityAdmin':
+            //     return this.communityAdminRepository;
+            default:
+                throw new Error("Invalid role");
         }
+    }
+
+    async requestOtp(email: string, role: 'user' | 'admin' | 'communityAdmin') {
+        const repo = this.getRepoByRole(role)
+        const existinguser = await repo.findByEmail(email);
+        if(existinguser) {
+            throw new Error("Email is already registered, Please Login");
+        }
+
 
         const otp = this.generateOtp();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
@@ -40,10 +58,11 @@ export class OtpService implements IOTPService {
     }
 
 
-    async requestForgotPasswordOtp(email: string) {
-        const existingUser = await this.userRepository.findUserByEmail(email);
+    async requestForgotPasswordOtp(email: string, role:'user' | 'admin' | 'communityAdmin') {
+        const repo = this.getRepoByRole(role)
+        const existingUser = await repo.findByEmail(email);
         if (!existingUser) {
-            throw new Error("User not found");
+            throw new Error("Email not found");
         }
 
         const otp = this.generateOtp();
@@ -73,8 +92,12 @@ export class OtpService implements IOTPService {
             throw new Error("Invalid OTP");
         }
 
-        await this.otpRepository.deleteOtp(record._id);
+        await this.otpRepository.deleteOtp(record._id.toString());
         return true;
+    }
+
+    async clearOtp(email:string){
+        await this.otpRepository.deleteOtp(email)
     }
 
 

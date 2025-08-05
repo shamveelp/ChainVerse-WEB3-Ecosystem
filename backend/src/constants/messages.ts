@@ -1,39 +1,27 @@
-export const MESSAGES = {
-    SUCCESS: {
-        USER_REGISTERED: 'User registered successfully. Please verify your email.',
-        USER_LOGGED_IN: 'User logged in successfully',
-        USER_LOGGED_OUT: 'User logged out successfully',
-        OTP_SENT: 'OTP sent to your email',
-        OTP_VERIFIED: 'OTP verified successfully',
-        PASSWORD_RESET: 'Password reset successfully',
-        ADMIN_LOGGED_IN: 'Admin logged in successfully',
-        ADMIN_LOGGED_OUT: 'Admin logged out successfully',
-    },
-    ERROR: {
-        USER_NOT_FOUND: 'User not found',
-        USER_ALREADY_EXISTS: 'User already exists',
-        INVALID_CREDENTIALS: 'Invalid email or password',
-        INVALID_OTP: 'Invalid or expired OTP',
-        OTP_EXPIRED: 'OTP has expired',
-        EMAIL_NOT_VERIFIED: 'Please verify your email first',
-        UNAUTHORIZED: 'Unauthorized access',
-        FORBIDDEN: 'Access forbidden',
-        INTERNAL_SERVER_ERROR: 'Internal server error',
-        VALIDATION_ERROR: 'Validation error',
-        TOKEN_EXPIRED: 'Token has expired',
-        INVALID_TOKEN: 'Invalid token',
-        ADMIN_NOT_FOUND: 'Admin not found',
-        ADMIN_INACTIVE: 'Admin account is inactive',
-    },
-    VALIDATION: {
-        EMAIL_REQUIRED: 'Email is required',
-        EMAIL_INVALID: 'Please provide a valid email',
-        PASSWORD_REQUIRED: 'Password is required',
-        PASSWORD_MIN_LENGTH: 'Password must be at least 8 characters',
-        PASSWORD_MISMATCH: 'Passwords do not match',
-        FIRST_NAME_REQUIRED: 'First name is required',
-        LAST_NAME_REQUIRED: 'Last name is required',
-        OTP_REQUIRED: 'OTP is required',
-        OTP_LENGTH: 'OTP must be 6 digits',
-    }
-};
+export enum SuccessMessages {
+    USER_REGISTERED = "User registered successfully",
+    USER_LOGGED_IN = "User logged in successfully",
+    USER_LOGGED_OUT = "User logged out successfully",
+    EMAIL_VERIFIED = "Email verified successfully",
+    OTP_SENT = "OTP sent successfully",
+    PASSWORD_RESET = "Password reset successfully",
+    ADMIN_LOGGED_IN = "Admin logged in successfully",
+    ADMIN_LOGGED_OUT = "Admin logged out successfully"
+}
+
+export enum ErrorMessages {
+    USER_ALREADY_EXISTS = "User already exists",
+    INVALID_CREDENTIALS = "Invalid credentials",
+    USER_NOT_FOUND = "User not found",
+    INVALID_OTP = "Invalid or expired OTP",
+    EMAIL_NOT_VERIFIED = "Email not verified",
+    USER_BLOCKED = "User is blocked",
+    USER_BANNED = "User is banned",
+    INVALID_TOKEN = "Invalid token",
+    TOKEN_EXPIRED = "Token expired",
+    ADMIN_NOT_FOUND = "Admin not found",
+    ADMIN_INACTIVE = "Admin account is inactive",
+    SERVER_ERROR = "Internal server error",
+    VALIDATION_ERROR = "Validation error",
+    UNAUTHORIZED = "Unauthorized access"
+}
