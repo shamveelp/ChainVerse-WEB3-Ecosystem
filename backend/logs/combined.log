@@ -566,3 +566,21 @@
 2025-08-06T12:48:37.686Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
 2025-08-06T12:49:11.513Z [info]: Admin logged in successfully
 2025-08-06T12:59:01.877Z [info]: Admin logged in successfully
+2025-08-06T13:34:02.256Z [info]: User logged out successfully
+2025-08-06T13:34:26.942Z [error]: Error logging in User not found
+2025-08-06T13:34:32.632Z [error]: Error logging in User not found
+2025-08-06T13:35:16.303Z [info]: Generated OTP: 392866 for email: jackiechan00789@gmail.com
+2025-08-06T15:06:33.607Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T15:33:06.383Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T15:34:05.833Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T15:34:24.348Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T15:34:57.009Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T15:36:31.973Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T15:39:06.267Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T15:42:06.147Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T15:43:21.791Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T15:50:48.693Z [info]: User logged out successfully
+2025-08-06T15:51:32.014Z [info]: User logged out successfully
+2025-08-06T15:51:40.956Z [error]: Error logging in This user is banned
+2025-08-06T15:51:43.651Z [error]: Error logging in This user is banned
+2025-08-06T15:51:44.312Z [error]: Error logging in This user is banned

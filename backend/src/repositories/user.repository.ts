@@ -14,7 +14,7 @@ export class UserRepository implements IUserRepository {
     return await UserModel.find()
       .skip(skip)
       .limit(limit)
-      .select("name email phone isVerified isBanned role goals motivationLevel equipment assignedTrainer gymId isPrivate streak xp achievements createdAt");
+      .select("name email phone isEmailVerified isBanned role username followersCount followingCount dailyCheckin.streak totalPoints profilePic createdAt");
   }
    async findUsers(page: number, limit: number, search: string) {
     const query: any = {};
@@ -31,7 +31,7 @@ export class UserRepository implements IUserRepository {
       UserModel.find(query)
         .skip(skip)
         .limit(limit)
-        .select("name email phone role isVerified isBanned createdAt")
+        .select("name email phone username role isEmailVerified isBanned createdAt")
         .lean(),
       UserModel.countDocuments(query)
     ]);

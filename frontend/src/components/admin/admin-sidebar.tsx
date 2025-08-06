@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { useSelector, useDispatch } from "react-redux"
 import { BarChart3, Calendar, Home, Package, Settings, ShoppingCart, Users, FileText, ChevronUp, LogOut, User, Coins, TrendingUp, Shield, Wallet, Activity, Database, Zap } from 'lucide-react'
 import {
@@ -43,7 +44,7 @@ const menuItems = [
   },
   {
     title: "Wallets",
-    url: "/admin/wallets",
+    url: "/admin/wallet-management",
     icon: Wallet,
     badge: "1.2K",
   },
@@ -88,7 +89,7 @@ export function AppSidebar() {
                     tooltip={item.title}
                     className=" text-white hover:bg-slate-800/50 hover:text-cyan-400 data-[active=true]:bg-gradient-to-r data-[active=true]:from-cyan-500/20 data-[active=true]:to-purple-500/20 data-[active=true]:text-cyan-400 data-[active=true]:border-r-2 data-[active=true]:border-cyan-400"
                   >
-                    <a href={item.url} className="flex items-center gap-3 w-full">
+                    <Link href={item.url} className="flex items-center gap-3 w-full">
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                       {item.badge && (
@@ -96,10 +97,11 @@ export function AppSidebar() {
                           {item.badge}
                         </Badge>
                       )}
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

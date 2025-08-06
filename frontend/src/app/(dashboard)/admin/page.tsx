@@ -6,51 +6,52 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import type { RootState } from "@/redux/store"
 
-// Web3 themed stats data
-const stats = [
-  {
-    title: "Total Users",
-    value: "12,847",
-    change: "+12.5%",
-    changeType: "increase",
-    icon: Users,
-    color: "from-cyan-400 to-blue-500"
-  },
-  {
-    title: "Active Wallets",
-    value: "8,234",
-    change: "+8.2%",
-    changeType: "increase",
-    icon: Wallet,
-    color: "from-green-400 to-emerald-500"
-  },
-  {
-    title: "Total Volume",
-    value: "$2.4M",
-    change: "+23.1%",
-    changeType: "increase",
-    icon: DollarSign,
-    color: "from-purple-400 to-pink-500"
-  },
-  {
-    title: "Network Health",
-    value: "99.9%",
-    change: "+0.1%",
-    changeType: "increase",
-    icon: Shield,
-    color: "from-orange-400 to-red-500"
-  }
-]
-
-const recentTransactions = [
-  { hash: "0x1a2b3c...", type: "Transfer", amount: "1,250 CHAIN", status: "confirmed", time: "2 min ago" },
-  { hash: "0x4d5e6f...", type: "Swap", amount: "500 ETH", status: "pending", time: "5 min ago" },
-  { hash: "0x7g8h9i...", type: "Stake", amount: "10,000 CHAIN", status: "confirmed", time: "8 min ago" },
-  { hash: "0xj1k2l3...", type: "Bridge", amount: "2,500 USDC", status: "confirmed", time: "12 min ago" },
-]
-
 export default function AdminDashboard() {
   const { admin } = useSelector((state: RootState) => state.adminAuth)
+  const { totalUsers, activeUsers, bannedUsers, lastUpdated } = useSelector((state: RootState) => state.adminStats)
+
+  // Web3 themed stats data with real data from Redux
+  const stats = [
+    {
+      title: "Total Users",
+      value: totalUsers.toLocaleString(),
+      change: "+12.5%",
+      changeType: "increase",
+      icon: Users,
+      color: "from-cyan-400 to-blue-500"
+    },
+    {
+      title: "Active Wallets",
+      value: activeUsers.toLocaleString(),
+      change: "+8.2%",
+      changeType: "increase",
+      icon: Wallet,
+      color: "from-green-400 to-emerald-500"
+    },
+    {
+      title: "Total Volume",
+      value: "$2.4M",
+      change: "+23.1%",
+      changeType: "increase",
+      icon: DollarSign,
+      color: "from-purple-400 to-pink-500"
+    },
+    {
+      title: "Network Health",
+      value: "99.9%",
+      change: "+0.1%",
+      changeType: "increase",
+      icon: Shield,
+      color: "from-orange-400 to-red-500"
+    }
+  ]
+
+  const recentTransactions = [
+    { hash: "0x1a2b3c...", type: "Transfer", amount: "1,250 CHAIN", status: "confirmed", time: "2 min ago" },
+    { hash: "0x4d5e6f...", type: "Swap", amount: "500 ETH", status: "pending", time: "5 min ago" },
+    { hash: "0x7g8h9i...", type: "Stake", amount: "10,000 CHAIN", status: "confirmed", time: "8 min ago" },
+    { hash: "0xj1k2l3...", type: "Bridge", amount: "2,500 USDC", status: "confirmed", time: "12 min ago" },
+  ]
 
   return (
     <div className="space-y-6">
@@ -59,11 +60,16 @@ export default function AdminDashboard() {
         <div className="space-y-2">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-600 bg-clip-text text-transparent flex items-center gap-3">
             <Zap className="h-8 w-8 text-cyan-400" />
-            ChainVerse - Admin Dashboard
+            Admin Dashboard
           </h1>
           <p className="text-slate-400 text-lg">
             Welcome back, <span className="text-cyan-400 font-semibold">{admin?.name || 'Administrator'}</span>. Network status: Optimal
           </p>
+          {lastUpdated && (
+            <p className="text-xs text-slate-500">
+              Last updated: {new Date(lastUpdated).toLocaleString()}
+            </p>
+          )}
         </div>
       </div>
 
@@ -163,25 +169,23 @@ export default function AdminDashboard() {
         <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg text-white flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-yellow-400" />
-              Token Distribution
+              <Users className="h-5 w-5 text-cyan-400" />
+              User Statistics
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-400">CHAIN Token</span>
-                <span className="text-sm font-semibold text-white">45.2%</span>
-              </div>
-              <div className="w-full bg-slate-800 rounded-full h-2">
-                <div className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full" style={{width: '45.2%'}}></div>
+                <span className="text-sm text-slate-400">Total Users</span>
+                <span className="text-sm font-semibold text-white">{totalUsers.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-400">Staked</span>
-                <span className="text-sm font-semibold text-white">32.8%</span>
+                <span className="text-sm text-slate-400">Active Users</span>
+                <span className="text-sm font-semibold text-green-400">{activeUsers.toLocaleString()}</span>
               </div>
-              <div className="w-full bg-slate-800 rounded-full h-2">
-                <div className="bg-gradient-to-r from-purple-400 to-pink-500 h-2 rounded-full" style={{width: '32.8%'}}></div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-400">Banned Users</span>
+                <span className="text-sm font-semibold text-red-400">{bannedUsers.toLocaleString()}</span>
               </div>
             </div>
           </CardContent>

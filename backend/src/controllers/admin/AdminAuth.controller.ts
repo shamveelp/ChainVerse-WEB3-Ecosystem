@@ -42,6 +42,7 @@ export class AdminAuthController implements IAdminAuthController {
         const search = String(req.query.search) || '';
 
         const users = await this.userAuthService.getAllUsers(page, limit, search);
+        // console.log(users)
         res.status(StatusCodes.OK).json({users});
     } catch (error: any) {
         logger.error("Get all users error:", error);
