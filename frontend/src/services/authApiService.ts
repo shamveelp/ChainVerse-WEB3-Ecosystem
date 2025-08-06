@@ -133,3 +133,32 @@ export const googleLogin = async (credential: string) => {
     }
   }
 }
+
+
+
+
+// Admin Auth
+
+export const adminLogin = async (email: string, password: string) => {
+  try {
+    const response = await API.post("/api/admin/login", { email, password })
+    return response.data
+  } catch (error: any) {
+    console.error("Admin login error:", error.response?.data || error.message)
+    throw error
+  }
+}
+
+export const adminLogout = async () => {
+  try {
+    await API.post("/api/admin/logout")
+    return { success: true }
+  } catch (error: any) {
+    console.error("Admin logout error:", error.response?.data || error.message)
+    throw error
+  }
+}
+
+
+
+

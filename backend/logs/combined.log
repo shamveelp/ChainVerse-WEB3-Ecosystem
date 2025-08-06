@@ -515,3 +515,54 @@
 2025-08-05T22:06:49.728Z [info]: Generated OTP: 439895 for email: hellobro@gmail.com
 2025-08-05T22:07:47.900Z [info]: Generated OTP: 473991 for email: hellobro@gmail.com
 2025-08-05T22:08:15.971Z [info]: Generated OTP: 424955 for email: hellobro@gmail.com
+2025-08-05T22:15:49.396Z [info]: Generated OTP: 878106 for email: hellobro@gmail.com
+2025-08-05T22:15:49.532Z [error]: Error requesting OTP Mail Delivery Failed
+2025-08-05T22:16:06.756Z [info]: Generated OTP: 731510 for email: hellobro@gmail.com
+2025-08-05T22:21:30.563Z [info]: Generated OTP: 918691 for email: hellobro@gmail.com
+2025-08-05T22:21:30.659Z [error]: Error requesting OTP Mail Delivery Failed
+2025-08-05T22:21:34.807Z [info]: Generated OTP: 312203 for email: hellobro@gmail.com
+2025-08-05T22:25:15.505Z [info]: Generated OTP: 360834 for email: hellobro@gmail.com
+2025-08-05T22:29:29.456Z [info]: Generated OTP: 791639 for email: hellobro@gmail.com
+2025-08-05T22:32:58.365Z [info]: Generated OTP: 983012 for email: hellobro@gmail.com
+2025-08-05T22:34:03.474Z [info]: Generated OTP: 523581 for email: hellobro@gmail.com
+2025-08-05T22:35:10.530Z [error]: Error requesting OTP Email is already registered, Please Login
+2025-08-05T22:35:14.696Z [error]: Error requesting OTP Email is already registered, Please Login
+2025-08-05T22:36:13.456Z [info]: Generated OTP: 608363 for email: revefef@gmail.com
+2025-08-05T22:36:27.860Z [info]: Generated OTP: 798258 for email: revefef@gmail.com
+2025-08-05T22:37:09.921Z [info]: Generated OTP: 842292 for email: shamveeltiger19@gmail.com
+2025-08-05T22:37:37.849Z [info]: Generated OTP: 216113 for email: shamveeltiger19@gmail.com
+2025-08-05T22:38:42.880Z [info]: Generated OTP: 185001 for email: airdropmastermalayalam@gmail.com
+2025-08-05T22:38:49.766Z [info]: Generated OTP: 252530 for email: airdropmastermalayalam@gmail.com
+2025-08-05T22:38:57.123Z [info]: Generated OTP: 499754 for email: airdropmastermalayalam@gmail.com
+2025-08-05T22:39:15.994Z [info]: Generated OTP: 826398 for email: airdropmastermalayalam@gmail.com
+2025-08-05T22:39:41.549Z [info]: Generated OTP: 658511 for email: airdropmastermalayalam@gmail.com
+2025-08-05T22:48:22.736Z [info]: Generated OTP: 494003 for email: hellobro123@gmail.com
+2025-08-05T22:48:22.900Z [error]: Error requesting OTP Mail Delivery Failed
+2025-08-05T22:48:26.334Z [info]: Generated OTP: 176391 for email: hellobro123@gmail.com
+2025-08-05T22:49:15.958Z [info]: User logged out successfully
+2025-08-05T22:59:09.948Z [info]: Generated OTP: 549361 for email: jackermon@gmail.com
+2025-08-05T23:02:01.358Z [info]: User logged out successfully
+2025-08-05T23:03:32.203Z [info]: User logged out successfully
+2025-08-05T23:03:45.381Z [info]: Generated OTP: 206568 for forgot password request for email: jackermon@gmail.com
+2025-08-05T23:04:42.356Z [info]: Generated OTP: 693614 for forgot password request for email: jackermon@gmail.com
+2025-08-05T23:05:58.157Z [error]: Error logging in Invalid password
+2025-08-06T06:09:19.434Z [info]: MongoDB connected: localhost
+2025-08-06T07:45:05.200Z [info]: MongoDB connected: localhost
+2025-08-06T07:47:53.707Z [info]: MongoDB connected: localhost
+2025-08-06T07:48:14.327Z [info]: MongoDB connected: localhost
+2025-08-06T11:00:45.461Z [info]: MongoDB connected: localhost
+2025-08-06T11:02:28.194Z [info]: MongoDB connected: localhost
+2025-08-06T11:04:44.455Z [info]: MongoDB connected: localhost
+2025-08-06T11:08:57.636Z [info]: MongoDB connected: localhost
+2025-08-06T11:10:01.483Z [info]: MongoDB connected: localhost
+2025-08-06T11:10:09.383Z [info]: MongoDB connected: localhost
+2025-08-06T11:10:26.813Z [info]: MongoDB connected: localhost
+2025-08-06T11:58:34.992Z [info]: MongoDB connected: localhost
+2025-08-06T12:40:35.855Z [error]: Admin login error: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-08-06T12:43:51.122Z [error]: Admin login error: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-08-06T12:44:52.868Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-08-06T12:47:00.694Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/
+2025-08-06T12:48:22.439Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T12:48:37.686Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T12:49:11.513Z [info]: Admin logged in successfully
+2025-08-06T12:59:01.877Z [info]: Admin logged in successfully

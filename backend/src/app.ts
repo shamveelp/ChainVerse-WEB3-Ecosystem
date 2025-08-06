@@ -4,6 +4,7 @@ import adminRoutes from './routes/admin.routes';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+// import { initAdmin } from './createAdmin/initAdmin';
 
 dotenv.config();
 
@@ -21,5 +22,7 @@ app.use(express.json());
 // Routes
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
+
+// initAdmin()
 
 export default app;

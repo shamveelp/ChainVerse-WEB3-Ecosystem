@@ -56,7 +56,7 @@ export default function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-slate-800 border-blue-800/30">
                   <DropdownMenuItem className="text-gray-300 hover:text-blue-400 hover:bg-slate-700">
-                    <Link href="/swap">Swap</Link>
+                    <Link href="/user/trade/swap">Swap</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-gray-300 hover:text-blue-400 hover:bg-slate-700">
                     <Link href="/bridge">Bridge</Link>
