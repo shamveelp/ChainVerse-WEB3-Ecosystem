@@ -39,7 +39,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 banner
             } = req.body;
 
-            // Check if email already has a request
+            
             const existingRequest = await this.communityRequestRepo.findByEmail(email);
             if (existingRequest) {
                 res.status(StatusCode.BAD_REQUEST).json({
@@ -49,7 +49,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 return;
             }
 
-            // Create community request
+            
             const communityRequest = await this.communityRequestRepo.create({
                 communityName,
                 email,
@@ -85,7 +85,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const { email, password } = req.body;
 
-            // Check if community request exists and is pending
+            
             const communityRequest = await this.communityRequestRepo.findByEmail(email);
             if (!communityRequest) {
                 res.status(StatusCode.NOT_FOUND).json({
@@ -95,7 +95,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 return;
             }
 
-            // Check if community admin already exists
+            
             const existingAdmin = await this.commAdminRepo.findByEmail(email);
             if (existingAdmin) {
                 res.status(StatusCode.BAD_REQUEST).json({
@@ -105,7 +105,6 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 return;
             }
 
-            // Create community admin account
             await this.commAdminAuthService.registerCommunityAdmin({
                 email,
                 password,
@@ -113,7 +112,6 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 role: 'communityAdmin'
             });
 
-            // Generate OTP for verification
             await this.otpService.requestOtp(email, 'communityAdmin');
 
             res.status(StatusCode.OK).json({

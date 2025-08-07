@@ -28,7 +28,6 @@ export const useCommunityAdminAuthActions = () => {
         router.push('/malare/')
       } else {
         if (result.status === 401) {
-          // Handle different error cases
           if (result.error?.includes('under review')) {
             dispatch(setApplicationStatus('pending'))
           } else if (result.error?.includes('rejected')) {

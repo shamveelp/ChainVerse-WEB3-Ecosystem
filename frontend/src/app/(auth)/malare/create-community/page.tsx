@@ -60,7 +60,6 @@ export default function CreateCommunityPage() {
       let logoUrl = ''
       let bannerUrl = ''
 
-      // Upload images to Cloudinary
       if (formData.logo) {
         logoUrl = await uploadToCloudinary(formData.logo, 'community-logos')
       }
@@ -69,7 +68,6 @@ export default function CreateCommunityPage() {
         bannerUrl = await uploadToCloudinary(formData.banner, 'community-banners')
       }
 
-      // Prepare application data
       const applicationData = {
         communityName: formData.communityName,
         email: formData.email,
@@ -87,7 +85,6 @@ export default function CreateCommunityPage() {
       const result = await submitCommunityApplication(applicationData)
       
       if (result.success) {
-        // Store data in Redux for next steps
         dispatch(setTempEmail(formData.email))
         dispatch(setTempApplicationData(applicationData))
         
@@ -456,7 +453,7 @@ export default function CreateCommunityPage() {
                       className="hidden" 
                       accept="image/*"
                       onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'banner')}
-                      onClick={(e) => (e.target.files as any) = null}
+                      onClick={(e:any) => (e.target.files as any) = null}
                     />
                   </div>
                 </div>

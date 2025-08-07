@@ -22,4 +22,5 @@ export interface IUserAuthService {
     updateData: Partial<IUser>
   ): Promise<IUser | null>;
   getUserById(id: string): Promise<IUser | null>;
+  
 }

@@ -42,7 +42,7 @@ export class AdminAuthController implements IAdminAuthController {
   async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
         const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 5;
+        const limit = Number(req.query.limit) || 15;
         const search = String(req.query.search) || '';
 
         const users = await this.userAuthService.getAllUsers(page, limit, search);

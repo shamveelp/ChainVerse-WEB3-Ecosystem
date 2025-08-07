@@ -22,7 +22,6 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
             throw new Error("Invalid credentials");
         }
 
-        // Check if community admin is approved
         const communityRequest = await this.communityRequestRepo.findByEmail(email);
         if (!communityRequest) {
             throw new Error("No application found");
@@ -45,7 +44,6 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
             throw new Error("Invalid credentials");
         }
 
-        // Update last login
         await this.communityAdminRepo.updateCommunityAdmin(
             communityAdmin._id.toString(), 
             { lastLogin: new Date() }
@@ -92,7 +90,6 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
             throw new Error("Community request not found");
         }
 
-        // Create community
         const community = new CommunityModel({
             communityName: request.communityName,
             email: request.email,
@@ -112,7 +109,6 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
         const savedCommunity = await community.save();
 
-        // Find the community admin and link to community
         const communityAdmin = await this.communityAdminRepo.findByEmail(request.email);
         if (communityAdmin) {
             await this.communityAdminRepo.updateCommunityAdmin(
@@ -120,7 +116,6 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
                 { communityId: savedCommunity._id }
             );
 
-            // Add community admin to community
             savedCommunity.communityAdmins.push(communityAdmin._id);
             await savedCommunity.save();
         }

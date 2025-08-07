@@ -157,14 +157,6 @@ export function RegisterForm() {
           <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
         </div>
 
-        <Button
-          type="button"
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white h-12"
-          onClick={() => toast({ title: "Coming Soon", description: "Wallet integration coming soon!" })}
-        >
-          <Wallet className="mr-2 h-5 w-5" />
-          Connect Wallet
-        </Button>
 
         <div className="relative">
           <Separator className="bg-slate-700" />

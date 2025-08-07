@@ -49,23 +49,31 @@ export function useAuthActions() {
     try {
       const response = await authApiService.googleLogin(credential)
       if (response.success && response.user && response.token) {
-        dispatch(reduxLogin({ user: response.user, token: response.token }))
+        dispatch(
+          reduxLogin({
+            user: response.user,
+            token: response.token,
+          }),
+        )
         toast({
           title: "Google Login Successful",
           description: "Welcome back to ChainVerse!",
         })
         router.push("/")
-        return true
       } else {
-        throw new Error(response.error || "Could not authenticate with Google.")
+        toast({
+          title: "Google Login Failed",
+          description: response.error || "An unknown error occurred during Google login.",
+          variant: "destructive",
+        })
       }
-    } catch (error: any) {
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || "Google login failed"
       toast({
-        title: "Google Login Error",
-        description: error.message || "An unexpected error occurred.",
+        title: "Google Login Failed",
+        description: errorMessage,
         variant: "destructive",
       })
-      return false
     } finally {
       dispatch(setLoading(false))
     }
@@ -146,7 +154,7 @@ export function useAuthActions() {
         // Store email in Redux
         dispatch(setTempEmail(email))
         // Clear any existing user data since this is forgot password
-        dispatch(setTempUserData(null))
+        dispatch(setTempUserData({name:'', email: '', password: ''}))
 
         toast({
           title: "Reset Code Sent",

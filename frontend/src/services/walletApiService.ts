@@ -10,7 +10,6 @@ export interface WalletConnection {
   }
 }
 
-// Declare ethereum type for window
 declare global {
   interface Window {
     ethereum?: {
@@ -23,7 +22,6 @@ declare global {
   }
 }
 
-// Debug function to check MetaMask status
 export const debugMetaMask = () => {
   console.log('=== MetaMask Debug Info ===')
   console.log('window.ethereum exists:', !!window.ethereum)

@@ -11,7 +11,6 @@ import { Search, Eye, ChevronLeft, ChevronRight, Loader2, Users, Wallet, Shield,
 import { getUsers, getUserById } from "@/services/adminApiService"
 import { setTotalUsers, setActiveUsers, setBannedUsers } from "@/redux/slices/adminStatistics" 
 
-// Update the interface to match your backend user model
 interface IUser {
   _id: string
   username?: string
@@ -37,7 +36,6 @@ interface IUser {
   followingCount?: number
   createdAt: Date
   updatedAt: Date
-  xp?: number
 }
 
 export default function UserManagement() {
@@ -49,11 +47,10 @@ export default function UserManagement() {
   const [total, setTotal] = useState(0)
   const [searchQuery, setSearchQuery] = useState("")
   const [searchInput, setSearchInput] = useState("")
-  const usersPerPage = 7
+  const usersPerPage = 15
   const router = useRouter()
   const dispatch = useDispatch() 
 
-  // Update the fetchUsers function to handle your backend response
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true)
@@ -103,7 +100,7 @@ export default function UserManagement() {
   const handleViewUser = async (userId: string) => {
     try {
       const user = await getUserById(userId)
-      router.push(`/admin/users/${userId}`)
+      router.push(`/admin/user-management/${userId}`)
     } catch (err) {
       console.error("Failed to fetch user details", err)
     }
@@ -269,7 +266,7 @@ export default function UserManagement() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
                               <Zap className="h-3 w-3 text-yellow-400" />
-                              <span className="text-sm text-slate-300">{user.totalPoints || user.xp || 0} Points</span>
+                              <span className="text-sm text-slate-300">{user.totalPoints  || 0} Points</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Activity className="h-3 w-3 text-cyan-400" />

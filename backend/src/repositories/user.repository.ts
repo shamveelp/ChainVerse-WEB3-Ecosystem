@@ -29,6 +29,7 @@ export class UserRepository implements IUserRepository {
 
     const [users, total] = await Promise.all([
       UserModel.find(query)
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .select("name email phone username role isEmailVerified isBanned createdAt")

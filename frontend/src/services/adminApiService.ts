@@ -1,6 +1,6 @@
 import API from "@/lib/axios"
 
-export const getUsers = async (page: number, limit: number = 7, search: string = "") => {
+export const getUsers = async (page: number, limit: number = 15, search: string = "") => {
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
