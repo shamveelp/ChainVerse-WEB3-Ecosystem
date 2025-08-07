@@ -7,9 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Mail, ArrowLeft, Home, Shield, CheckCircle } from 'lucide-react'
+import { forgotPassword } from '@/services/communityAdminApiService'
+import { useToast } from '@/hooks/use-toast'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
@@ -17,11 +20,25 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    // Simulate sending email
-    setTimeout(() => {
-      setLoading(false)
+    setSent(false) // Reset sent state on new submission
+
+    const result = await forgotPassword(email)
+
+    if (result.success) {
       setSent(true)
-    }, 2000)
+      localStorage.setItem('forgotPasswordEmail', email); // Store email for next steps
+      toast({
+        title: "Success",
+        description: result.message,
+      })
+    } else {
+      toast({
+        title: "Error",
+        description: result.error,
+        variant: "destructive",
+      })
+    }
+    setLoading(false)
   }
 
   return (
@@ -32,7 +49,6 @@ export default function ForgotPasswordPage() {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-red-600/10 to-red-800/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-red-500/5 to-red-700/5 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
-
       {/* Back Button */}
       <div className="absolute top-6 left-6 z-50">
         <Button
@@ -44,7 +60,6 @@ export default function ForgotPasswordPage() {
           Home
         </Button>
       </div>
-
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
         <Card className="w-full max-w-md bg-black/80 backdrop-blur-xl border-red-800/30 shadow-2xl shadow-red-900/20">
@@ -58,13 +73,12 @@ export default function ForgotPasswordPage() {
               {sent ? 'Check Your Email' : 'Reset Password'}
             </CardTitle>
             <p className="text-gray-400">
-              {sent 
+              {sent
                 ? 'We\'ve sent a password reset link to your email address'
                 : 'Enter your email address and we\'ll send you a link to reset your password'
               }
             </p>
           </CardHeader>
-
           <CardContent className="space-y-6">
             {!sent ? (
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -83,7 +97,6 @@ export default function ForgotPasswordPage() {
                     />
                   </div>
                 </div>
-
                 <Button
                   type="submit"
                   disabled={loading}
@@ -106,20 +119,18 @@ export default function ForgotPasswordPage() {
                     <CheckCircle className="h-10 w-10 text-green-400" />
                   </div>
                   <p className="text-gray-300">
-                    If an account with <span className="text-red-400 font-semibold">{email}</span> exists, 
+                    If an account with <span className="text-red-400 font-semibold">{email}</span> exists,
                     you'll receive a password reset link shortly.
                   </p>
                 </div>
-                
                 <Button
-                  onClick={() => router.push('/verify-otp')}
+                  onClick={() => router.push('/malare/verify-otp')}
                   className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white py-3 font-semibold rounded-xl shadow-lg shadow-red-900/30 hover:shadow-red-800/40 transition-all duration-300 transform hover:scale-[1.02]"
                 >
                   Continue to Verification
                 </Button>
               </div>
             )}
-
             <div className="text-center pt-4 border-t border-red-800/30">
               <Button
                 variant="link"

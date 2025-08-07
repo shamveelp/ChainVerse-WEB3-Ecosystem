@@ -6,7 +6,9 @@ import CommunityAdminModel from "../models/communityAdmin.model";
 @injectable()
 export class CommunityAdminRepository implements ICommunityAdminRepository {
     async findByEmail(email: string): Promise<ICommunityAdmin | null> {
+        console.log(email)
         return await CommunityAdminModel.findOne({ email }).exec();
+
     }
 
     async createCommunityAdmin(data: Partial<ICommunityAdmin>): Promise<ICommunityAdmin> {

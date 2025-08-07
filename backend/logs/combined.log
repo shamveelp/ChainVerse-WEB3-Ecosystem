@@ -752,3 +752,28 @@
 2025-08-07T09:33:29.341Z [error]: Error logging in User not found
 2025-08-07T09:34:00.652Z [info]: Generated OTP: 432527 for email: newboyamapoyil@gmail.com
 2025-08-07T09:34:31.988Z [info]: User logged out successfully
+2025-08-07T10:52:08.786Z [info]: Community application created for email: bscphysicsdegree@gmail.com
+2025-08-07T10:52:25.676Z [info]: Generated OTP: 555546 for email: bscphysicsdegree@gmail.com
+2025-08-07T10:52:29.271Z [info]: Password set for community admin: bscphysicsdegree@gmail.com
+2025-08-07T10:53:04.053Z [info]: OTP verified for community admin: bscphysicsdegree@gmail.com
+2025-08-07T10:53:57.180Z [error]: Community admin login error: Your application is under review
+2025-08-07T10:54:15.882Z [error]: Community admin login error: Your application is under review
+2025-08-07T10:54:48.607Z [info]: Community created from request: 68948558bb6102a12fad0707
+2025-08-07T10:54:48.609Z [info]: Community request approved: 68948558bb6102a12fad0707
+2025-08-07T10:54:58.813Z [info]: Community admin logged in: bscphysicsdegree@gmail.com
+2025-08-07T11:00:35.297Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-07T11:20:14.665Z [error]: Forgot password error: Email not found
+2025-08-07T11:20:41.411Z [info]: Admin logged in successfully
+2025-08-07T11:21:02.156Z [error]: Forgot password error: Email not found
+2025-08-07T11:25:32.517Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-07T11:25:34.877Z [error]: Forgot password error: Email not found
+2025-08-07T11:26:41.747Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-07T11:26:44.324Z [error]: Forgot password error: Email not found
+2025-08-07T11:26:48.422Z [error]: Forgot password error: Email not found
+2025-08-07T11:26:59.211Z [error]: Forgot password error: Email not found
+2025-08-07T11:27:26.562Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-07T11:27:29.878Z [info]: Generated OTP: 378957 for forgot password request for email: bscphysicsdegree@gmail.com
+2025-08-07T11:27:34.243Z [info]: Forgot password OTP sent to: bscphysicsdegree@gmail.com
+2025-08-07T11:28:22.564Z [info]: Forgot password OTP verified for: bscphysicsdegree@gmail.com
+2025-08-07T11:28:46.380Z [info]: Password reset successful for community admin: bscphysicsdegree@gmail.com
+2025-08-07T11:28:46.386Z [info]: Password reset successful for: bscphysicsdegree@gmail.com

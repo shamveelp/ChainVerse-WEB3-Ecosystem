@@ -39,6 +39,8 @@ export class AdminAuthController implements IAdminAuthController {
     }
   }
 
+  
+
   async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
         const page = Number(req.query.page) || 1;

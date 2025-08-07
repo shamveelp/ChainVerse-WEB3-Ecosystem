@@ -1,31 +1,85 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, EyeOff, Lock, Home, CheckCircle } from 'lucide-react'
+import { resetPassword } from '@/services/communityAdminApiService' // Assuming this path is correct
+import { useToast } from '@/hooks/use-toast'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState<string | null>(null); // State to hold the email
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem('forgotPasswordEmail');
+    if (storedEmail) {
+      setEmail(storedEmail);
+    } else {
+      // If no email is found, redirect back to forgot password page
+      router.push('/malare/forgot-password');
+      toast({
+        title: "Error",
+        description: "Please enter your email to reset password first.",
+        variant: "destructive",
+      });
+    }
+  }, [router, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (password !== confirmPassword) return
-    
+    if (password !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (password.length < 8) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!email) {
+      toast({
+        title: "Error",
+        description: "Email not found. Please go back to the forgot password page.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true)
-    // Simulate password reset
-    setTimeout(() => {
-      setLoading(false)
-      router.push('/login')
-    }, 2000)
+    const result = await resetPassword(email, password)
+
+    if (result.success) {
+      toast({
+        title: "Success",
+        description: result.message,
+      })
+      localStorage.removeItem('forgotPasswordEmail'); // Clear email after successful reset
+      router.push('/malare/login')
+    } else {
+      toast({
+        title: "Error",
+        description: result.error,
+        variant: "destructive",
+      })
+    }
+    setLoading(false)
   }
 
   const passwordsMatch = password === confirmPassword
@@ -39,7 +93,6 @@ export default function ResetPasswordPage() {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-red-600/10 to-red-800/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-red-500/5 to-red-700/5 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
-
       {/* Back Button */}
       <div className="absolute top-6 left-6 z-50">
         <Button
@@ -51,7 +104,6 @@ export default function ResetPasswordPage() {
           Home
         </Button>
       </div>
-
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
         <Card className="w-full max-w-md bg-black/80 backdrop-blur-xl border-red-800/30 shadow-2xl shadow-red-900/20">
@@ -68,7 +120,6 @@ export default function ResetPasswordPage() {
               Create a new password for your account
             </p>
           </CardHeader>
-
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
@@ -96,7 +147,6 @@ export default function ResetPasswordPage() {
                   <p className="text-red-400 text-sm">Password must be at least 8 characters</p>
                 )}
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-red-400 font-medium">Confirm Password</Label>
                 <div className="relative">
@@ -128,10 +178,9 @@ export default function ResetPasswordPage() {
                   </p>
                 )}
               </div>
-
               <Button
                 type="submit"
-                disabled={loading || !isValid}
+                disabled={loading || !isValid || !email}
                 className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white py-3 font-semibold rounded-xl shadow-lg shadow-red-900/30 hover:shadow-red-800/40 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (

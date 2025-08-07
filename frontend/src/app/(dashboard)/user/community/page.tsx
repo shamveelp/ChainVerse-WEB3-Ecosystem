@@ -109,7 +109,7 @@ export default function CommunityPage() {
   }
 
   const handleCreateCommunity = () => {
-    router.push('/malare/create-community')
+    router.push('/malare/get-started')
   }
 
   if (!mounted) {

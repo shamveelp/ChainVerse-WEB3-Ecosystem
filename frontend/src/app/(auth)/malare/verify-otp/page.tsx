@@ -6,29 +6,45 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Shield, Home, ArrowLeft, RefreshCw } from 'lucide-react'
+import { verifyForgotPasswordOtp, forgotPassword } from '@/services/communityAdminApiService'
+import { useToast } from '@/hooks/use-toast'
 
 export default function VerifyOTPPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
   const [timer, setTimer] = useState(60)
+  const [email, setEmail] = useState<string | null>(null); // State to hold the email
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
+    const storedEmail = localStorage.getItem('forgotPasswordEmail');
+    if (storedEmail) {
+      setEmail(storedEmail);
+    } else {
+      // If no email is found, redirect back to forgot password page
+      router.push('/forgot-password');
+      toast({
+        title: "Error",
+        description: "Please enter your email to reset password first.",
+        variant: "destructive",
+      });
+    }
+
     if (timer > 0) {
       const interval = setInterval(() => setTimer(timer - 1), 1000)
       return () => clearInterval(interval)
     }
-  }, [timer])
+  }, [timer, router, toast])
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) return
-    
+
     const newOtp = [...otp]
     newOtp[index] = value
     setOtp(newOtp)
-
     // Auto-focus next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus()
@@ -43,23 +59,63 @@ export default function VerifyOTPPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (otp.some(digit => !digit)) return
-    
+    const fullOtp = otp.join('');
+    if (!email || fullOtp.length !== 6) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid 6-digit OTP.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true)
-    // Simulate verification
-    setTimeout(() => {
-      setLoading(false)
-      router.push('/reset-password')
-    }, 2000)
+    const result = await verifyForgotPasswordOtp(email, fullOtp)
+
+    if (result.success) {
+      toast({
+        title: "Success",
+        description: result.message,
+      })
+      router.push('/malare/reset-password')
+    } else {
+      toast({
+        title: "Error",
+        description: result.error,
+        variant: "destructive",
+      })
+    }
+    setLoading(false)
   }
 
   const handleResend = async () => {
+    if (!email) {
+      toast({
+        title: "Error",
+        description: "Email not found. Please go back to the forgot password page.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setResending(true)
-    setTimer(60)
-    // Simulate resending
-    setTimeout(() => {
-      setResending(false)
-    }, 2000)
+    setTimer(60) // Reset timer on resend
+
+    const result = await forgotPassword(email)
+
+    if (result.success) {
+      toast({
+        title: "Success",
+        description: result.message,
+      })
+    } else {
+      toast({
+        title: "Error",
+        description: result.error,
+        variant: "destructive",
+      })
+    }
+    setResending(false)
   }
 
   return (
@@ -70,7 +126,6 @@ export default function VerifyOTPPage() {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-red-600/10 to-red-800/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-red-500/5 to-red-700/5 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
-
       {/* Back Button */}
       <div className="absolute top-6 left-6 z-50">
         <Button
@@ -82,7 +137,6 @@ export default function VerifyOTPPage() {
           Home
         </Button>
       </div>
-
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
         <Card className="w-full max-w-md bg-black/80 backdrop-blur-xl border-red-800/30 shadow-2xl shadow-red-900/20">
@@ -96,10 +150,9 @@ export default function VerifyOTPPage() {
               Verify OTP
             </CardTitle>
             <p className="text-gray-400">
-              Enter the 6-digit code sent to your email address
+              Enter the 6-digit code sent to your email address {email && <span className="font-semibold text-red-400">{email}</span>}
             </p>
           </CardHeader>
-
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="flex gap-3 justify-center">
@@ -117,10 +170,9 @@ export default function VerifyOTPPage() {
                   />
                 ))}
               </div>
-
               <Button
                 type="submit"
-                disabled={loading || otp.some(digit => !digit)}
+                disabled={loading || otp.some(digit => !digit) || !email}
                 className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white py-3 font-semibold rounded-xl shadow-lg shadow-red-900/30 hover:shadow-red-800/40 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
@@ -133,7 +185,6 @@ export default function VerifyOTPPage() {
                 )}
               </Button>
             </form>
-
             <div className="text-center space-y-4">
               <p className="text-gray-400 text-sm">
                 Didn't receive the code?
@@ -146,7 +197,7 @@ export default function VerifyOTPPage() {
                 <Button
                   variant="link"
                   onClick={handleResend}
-                  disabled={resending}
+                  disabled={resending || !email}
                   className="text-red-400 hover:text-red-300 p-0 h-auto"
                 >
                   {resending ? (
@@ -160,7 +211,6 @@ export default function VerifyOTPPage() {
                 </Button>
               )}
             </div>
-
             <div className="text-center pt-4 border-t border-red-800/30">
               <Button
                 variant="link"

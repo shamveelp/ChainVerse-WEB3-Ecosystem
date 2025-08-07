@@ -180,3 +180,11 @@
 2025-08-07T09:32:29.476Z [error]: Error logging in with Google jwt.split is not a function
 2025-08-07T09:33:26.997Z [error]: Error logging in User not found
 2025-08-07T09:33:29.341Z [error]: Error logging in User not found
+2025-08-07T10:53:57.180Z [error]: Community admin login error: Your application is under review
+2025-08-07T10:54:15.882Z [error]: Community admin login error: Your application is under review
+2025-08-07T11:20:14.665Z [error]: Forgot password error: Email not found
+2025-08-07T11:21:02.156Z [error]: Forgot password error: Email not found
+2025-08-07T11:25:34.877Z [error]: Forgot password error: Email not found
+2025-08-07T11:26:44.324Z [error]: Forgot password error: Email not found
+2025-08-07T11:26:48.422Z [error]: Forgot password error: Email not found
+2025-08-07T11:26:59.211Z [error]: Forgot password error: Email not found

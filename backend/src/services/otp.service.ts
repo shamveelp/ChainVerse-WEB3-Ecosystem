@@ -7,6 +7,7 @@ import {IMailService} from "../core/interfaces/services/IMailService";
 import {sendOtpHtml} from "../utils/sendEmail";
 import logger from "../utils/logger";
 import { IAdminRepository } from "../core/interfaces/repositories/IAdminRepository";
+import { ICommunityAdminRepository } from "../core/interfaces/repositories/ICommunityAdminRepository";
 
 
 @injectable()
@@ -14,7 +15,7 @@ export class OtpService implements IOTPService {
     constructor(
         @inject(TYPES.IUserRepository) private userRepository: IUserRepository,
         @inject(TYPES.IAdminRepository) private adminRepository: IAdminRepository,
-        @inject(TYPES.IUserRepository) private communityAdminRepository: IUserRepository,
+        @inject(TYPES.ICommunityAdminRepository) private communityAdminRepository: ICommunityAdminRepository,
         @inject(TYPES.IOtpRepository) private otpRepository: IOtpRepository,
         @inject(TYPES.IMailService) private mailService: IMailService
     ) { }
