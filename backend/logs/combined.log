@@ -584,3 +584,148 @@
 2025-08-06T15:51:40.956Z [error]: Error logging in This user is banned
 2025-08-06T15:51:43.651Z [error]: Error logging in This user is banned
 2025-08-06T15:51:44.312Z [error]: Error logging in This user is banned
+2025-08-06T16:24:08.693Z [info]: Admin logged in successfully
+2025-08-06T17:24:53.321Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T17:25:10.511Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T17:28:15.721Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T17:28:35.944Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T17:29:00.964Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T17:29:19.002Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T17:29:42.227Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T17:29:50.466Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T17:29:56.608Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T17:30:20.512Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T17:31:46.527Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T17:43:18.862Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T17:43:39.421Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T17:44:22.493Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T17:44:43.976Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T17:45:13.559Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T17:45:37.971Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T17:45:52.637Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T17:47:29.164Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T17:47:46.590Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T17:48:04.263Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T17:59:29.433Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:00:36.569Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:01:12.052Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:01:18.697Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:04:25.191Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:04:37.370Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:04:59.846Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:05:17.795Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:05:59.729Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:06:25.719Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:06:40.438Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:06:54.774Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:07:32.381Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:07:41.216Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:08:39.257Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:09:00.536Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:09:15.650Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:09:42.057Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:09:48.381Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:09:59.606Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:10:18.217Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:14:58.658Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:16:20.523Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:16:29.312Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:16:48.719Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:17:17.382Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:19:26.347Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:19:57.398Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:20:42.289Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:21:20.442Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:21:55.425Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:22:06.724Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:22:19.599Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:24:24.732Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:24:31.862Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:24:46.483Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:24:55.879Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:25:15.623Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T18:25:24.703Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:25:57.404Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T18:26:15.163Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T18:48:23.917Z [info]: User logged out successfully
+2025-08-06T19:32:53.944Z [info]: User logged out successfully
+2025-08-06T20:11:03.873Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:12:05.045Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:33:58.598Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T20:35:00.212Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:39:32.138Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T20:45:43.426Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T20:46:37.589Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:47:11.854Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T20:47:32.609Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T20:48:26.557Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:48:46.904Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T20:49:00.957Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:49:09.118Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:49:51.756Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:50:40.708Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T20:51:35.932Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T20:52:41.882Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T20:53:00.765Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:54:02.059Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:54:30.621Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:57:34.821Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T20:57:48.134Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T20:58:02.573Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T20:58:35.182Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T20:59:05.775Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T20:59:27.465Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T21:00:04.558Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T21:00:31.425Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T21:00:47.623Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T21:01:22.143Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T21:01:45.123Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T21:01:53.226Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T21:02:07.335Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T21:02:43.411Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T21:10:14.037Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T21:10:36.137Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T21:10:55.310Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T21:11:15.945Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T21:11:26.998Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T21:11:46.822Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T21:12:05.445Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T21:12:14.139Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T21:12:47.528Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T21:13:08.267Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T21:13:20.268Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T21:13:56.686Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T21:35:30.926Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T21:36:21.164Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T21:36:59.748Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T21:37:47.159Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T21:45:08.838Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T22:15:10.508Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T23:38:14.093Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T23:38:39.521Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T23:42:39.969Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T23:43:14.129Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-06T23:43:21.184Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-06T23:44:03.833Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-06T23:44:35.453Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-07T03:46:12.315Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-07T03:46:51.313Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-07T03:47:59.414Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-07T03:48:38.778Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-07T03:49:33.928Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-07T03:50:06.343Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-07T03:50:24.248Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-07T03:50:46.202Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-07T03:51:18.138Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-07T03:51:41.922Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-07T04:32:50.326Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-07T04:54:57.569Z [info]: Community application created for email: clownsart385@gmail.com
+2025-08-07T04:55:14.196Z [info]: Generated OTP: 101327 for email: clownsart385@gmail.com
+2025-08-07T04:55:18.314Z [info]: Password set for community admin: clownsart385@gmail.com
+2025-08-07T04:55:34.226Z [info]: OTP verified for community admin: clownsart385@gmail.com
+2025-08-07T04:59:27.172Z [info]: Admin logged in successfully
+2025-08-07T05:03:04.819Z [info]: Community created from request: 689431a1a857c774bc6eeaee
+2025-08-07T05:03:05.324Z [info]: Community request approved: 689431a1a857c774bc6eeaee
+2025-08-07T05:07:57.241Z [info]: Community admin logged in: clownsart385@gmail.com
+2025-08-07T05:11:44.567Z [info]: Community admin logged in: clownsart385@gmail.com
+2025-08-07T05:41:08.259Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net

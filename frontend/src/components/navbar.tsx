@@ -76,7 +76,7 @@ export default function Navbar() {
                 NFT
               </Link>
               <Link
-                href="/community"
+                href="/user/community"
                 className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium transition-colors"
               >
                 Community

@@ -4,7 +4,7 @@ import { injectable } from "inversify"
 import dotenv from "dotenv"
 import { CustomError } from "../utils/CustomError"
 import { StatusCode } from "../enums/statusCode.enum"
-import { IJwtService } from "../core/interfaces/services/user/IJwtService"
+import { IJwtService } from "../core/interfaces/services/IJwtService"
 
 dotenv.config()
 

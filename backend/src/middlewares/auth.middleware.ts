@@ -11,6 +11,13 @@ interface AuthRequest extends Request {
   userId?: string
 }
 
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    role: string;
+  };
+}
+
 export const roleMiddleware = (allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -49,4 +56,17 @@ export const authMiddleware:RequestHandler = (req, res, next) => {
      res.status(StatusCode.UNAUTHORIZED).json({ error: "Invalid token" });
      return
   }
+};
+
+
+export const communityAdminAuthMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  authMiddleware(req, res, () => {
+    if (req.user?.role !== 'communityAdmin') {
+      return res.status(StatusCode.FORBIDDEN).json({
+        success: false,
+        message: "Community admin access required"
+      });
+    }
+    next();
+  });
 };

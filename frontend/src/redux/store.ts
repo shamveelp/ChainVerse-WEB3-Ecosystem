@@ -4,6 +4,8 @@ import { combineReducers } from "@reduxjs/toolkit"
 import userAuthReducer from "./slices/userAuthSlice"
 import adminAuthReducer from "./slices/adminAuthSlice"
 import adminStatsReducer from "./slices/adminStatistics"
+import communityAdminAuthReducer from "./slices/communityAdminAuthSlice"
+import walletReducer from "./slices/walletSlice"
 
 // Create a function to get storage that works on both client and server
 const createNoopStorage = () => {
@@ -26,13 +28,15 @@ const storage = typeof window !== "undefined" ? require("redux-persist/lib/stora
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["userAuth","adminAuth","adminStats"],
+  whitelist: ["userAuth","adminAuth","adminStats","communityAdminAuth","wallet"],
 }
 
 const rootReducer = combineReducers({
   userAuth: userAuthReducer,
   adminAuth: adminAuthReducer,
-  adminStats: adminStatsReducer
+  adminStats: adminStatsReducer,
+  communityAdminAuth: communityAdminAuthReducer,
+  wallet:walletReducer
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
@@ -49,3 +53,4 @@ export const store = configureStore({
 
 export const persistor = persistStore(store)
 export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch

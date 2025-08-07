@@ -8,7 +8,7 @@ import { JwtService } from "../../utils/jwt";
 import { IUser } from "../../models/user.models";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/CustomError";
-import { IJwtService } from "../../core/interfaces/services/user/IJwtService";
+import { IJwtService } from "../../core/interfaces/services/IJwtService";
 
 @injectable()
 export class UserAuthService implements IUserAuthService {

@@ -12,7 +12,7 @@ import { OAuth2Client } from "google-auth-library";
 import dotenv from 'dotenv'
 import { OAuthClient } from "../../utils/OAuthClient";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
-import { IJwtService } from "../../core/interfaces/services/user/IJwtService";
+import { IJwtService } from "../../core/interfaces/services/IJwtService";
 dotenv.config()
 
 @injectable()

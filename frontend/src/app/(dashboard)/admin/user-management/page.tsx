@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useDispatch } from "react-redux" // Add this import
+import { useDispatch } from "react-redux" 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Search, Eye, ChevronLeft, ChevronRight, Loader2, Users, Wallet, Shield, Zap, Activity } from 'lucide-react'
 import { getUsers, getUserById } from "@/services/adminApiService"
-import { setTotalUsers, setActiveUsers, setBannedUsers } from "@/redux/slices/adminStatistics" // Add this import
+import { setTotalUsers, setActiveUsers, setBannedUsers } from "@/redux/slices/adminStatistics" 
 
 // Update the interface to match your backend user model
 interface IUser {
@@ -51,7 +51,7 @@ export default function UserManagement() {
   const [searchInput, setSearchInput] = useState("")
   const usersPerPage = 7
   const router = useRouter()
-  const dispatch = useDispatch() // Add this line
+  const dispatch = useDispatch() 
 
   // Update the fetchUsers function to handle your backend response
   useEffect(() => {

@@ -24,6 +24,14 @@ export const TYPES = {
     IMailService: Symbol.for("IMailService"),
     MailService: Symbol.for("MailService"),
     IRedisClient: Symbol.for("IRedisClient"),
+    ICommunityAdminAuthController: Symbol.for("ICommunityAdminAuthController"),
+    CommunityAdminAuthController: Symbol.for("CommunityAdminAuthController"),
+    ICommunityAdminAuthService: Symbol.for("ICommunityAdminAuthService"),
+    CommunityAdminAuthService: Symbol.for("CommunityAdminAuthService"),
+    ICommunityAdminRepository: Symbol.for("ICommunityAdminRepository"),
+    CommunityAdminRepository: Symbol.for("CommunityAdminRepository"),
+    ICommunityRequestRepository: Symbol.for("ICommunityRequestRepository"),
+
 
 
 

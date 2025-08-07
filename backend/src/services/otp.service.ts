@@ -14,7 +14,7 @@ export class OtpService implements IOTPService {
     constructor(
         @inject(TYPES.IUserRepository) private userRepository: IUserRepository,
         @inject(TYPES.IAdminRepository) private adminRepository: IAdminRepository,
-        // @inject(TYPES.IUserRepository) private communityAdminRepository: IUserRepository,
+        @inject(TYPES.IUserRepository) private communityAdminRepository: IUserRepository,
         @inject(TYPES.IOtpRepository) private otpRepository: IOtpRepository,
         @inject(TYPES.IMailService) private mailService: IMailService
     ) { }
@@ -29,8 +29,8 @@ export class OtpService implements IOTPService {
                 return this.userRepository;
             case 'admin':
                 return this.adminRepository;
-            // case 'communityAdmin':
-            //     return this.communityAdminRepository;
+            case 'communityAdmin':
+                return this.communityAdminRepository;
             default:
                 throw new Error("Invalid role");
         }

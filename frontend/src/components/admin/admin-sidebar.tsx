@@ -40,13 +40,37 @@ const menuItems = [
     title: "Users",
     url: "/admin/user-management",
     icon: Users,
-    badge: "2.8K",
+    // badge: "2.8K",
+  },
+  {
+    title: "Community Requests",
+    url: "/admin/community-requests",
+    icon: Database,
+    // badge: "1.2K",
   },
   {
     title: "Wallets",
     url: "/admin/wallet-management",
     icon: Wallet,
-    badge: "1.2K",
+    // badge: "1.2K",
+  },
+  {
+    title: "Coins",
+    url: "/admin/coins",
+    icon: Coins,
+    // badge: "1.2K",
+  },
+  {
+    title: "NFTs",
+    url: "/admin/coins",
+    icon: FileText,
+    // badge: "1.2K",
+  },
+  {
+    title: "Quests",
+    url: "/admin/coins",
+    icon: Calendar,
+    // badge: "1.2K",
   },
 ]
 

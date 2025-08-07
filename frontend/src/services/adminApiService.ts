@@ -32,3 +32,58 @@ export const updateUserPoints = async (userId: string, points: number) => {
   const res = await API.patch(`/api/admin/users/${userId}/points`, { points })
   return res.data
 }
+
+
+
+export const getAllCommunityRequests = async (page: number = 1, limit: number = 10, search: string = '') => {
+  try {
+    const response = await API.get(`/api/admin/community-requests?page=${page}&limit=${limit}&search=${search}`)
+    return {
+      success: true,
+      data: response.data.data || response.data,
+      total: response.data.total,
+      page: response.data.page,
+      limit: response.data.limit
+    }
+  } catch (error: any) {
+    console.error("Get community requests error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Failed to fetch community requests",
+    }
+  }
+}
+
+export const approveCommunityRequest = async (requestId: string) => {
+  try {
+    const response = await API.patch(`/api/admin/community-requests/${requestId}/approve`)
+    return {
+      success: true,
+      message: response.data.message,
+      request: response.data.request
+    }
+  } catch (error: any) {
+    console.error("Approve community request error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Failed to approve request",
+    }
+  }
+}
+
+export const rejectCommunityRequest = async (requestId: string, reason: string) => {
+  try {
+    const response = await API.patch(`/api/admin/community-requests/${requestId}/reject`, { reason })
+    return {
+      success: true,
+      message: response.data.message,
+      request: response.data.request
+    }
+  } catch (error: any) {
+    console.error("Reject community request error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Failed to reject request",
+    }
+  }
+}

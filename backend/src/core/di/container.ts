@@ -21,13 +21,21 @@ import type { IOtpRepository } from "../interfaces/repositories/IOtpRepository"
 import { OtpRepository } from "../../repositories/otp.repository"
 import type { IMailService } from "../interfaces/services/IMailService"
 import { MailService } from "../../services/mail.service"
-import { IJwtService } from "../interfaces/services/user/IJwtService"
+import { IJwtService } from "../interfaces/services/IJwtService"
 import { AdminAuthController } from "../../controllers/admin/AdminAuth.controller"
 import { IAdminAuthController } from "../interfaces/controllers/admin/IAuthAdmin.controllers"
 import { IAdminAuthService } from "../interfaces/services/admin/IAdminAuthService"
 import { AdminAuthService } from "../../services/admin/AdminAuth.service"
 import { IAdminRepository } from "../interfaces/repositories/IAdminRepository"
 import { AdminRepository } from "../../repositories/admin.repository"
+import { ICommunityAdminAuthController } from "../interfaces/controllers/communityAdmin/ICommunityAdminAuth.controller"
+import { CommunityAdminAuthController } from "../../controllers/communityAdmin/CommunityAdminAuth.controller"
+import { ICommunityAdminAuthService } from "../interfaces/services/communityAdmin/ICommunityAdminAuthService"
+import { CommunityAdminAuthService } from "../../services/communityAdmin/CommunityAdminAuth.service"
+import { ICommunityAdminRepository } from "../interfaces/repositories/ICommunityAdminRepository"
+import { CommunityAdminRepository } from "../../repositories/communityAdmin.repository"
+import { ICommunityRequestRepository } from "../interfaces/repositories/ICommunityRequestRepository"
+import { CommunityRequestRepository } from "../../repositories/communityRequest.repository"
 // import { IRedisClient } from "../../config/redis" // Commented out as per your code
 // import redisClient from "../../config/redis" // Commented out as per your code
 
@@ -67,6 +75,14 @@ container.bind<AdminAuthController>(TYPES.AdminAuthController).to(AdminAuthContr
 container.bind<IAdminAuthController>(TYPES.IAdminAuthController).to(AdminAuthController)
 container.bind<IAdminAuthService>(TYPES.IAdminAuthService).to(AdminAuthService)
 container.bind<IAdminRepository>(TYPES.IAdminRepository).to(AdminRepository)
+
+
+// Community Admin
+container.bind<ICommunityAdminAuthController>(TYPES.ICommunityAdminAuthController).to(CommunityAdminAuthController)
+container.bind<CommunityAdminAuthController>(TYPES.CommunityAdminAuthController).to(CommunityAdminAuthController)
+container.bind<ICommunityAdminAuthService>(TYPES.ICommunityAdminAuthService).to(CommunityAdminAuthService)
+container.bind<ICommunityAdminRepository>(TYPES.ICommunityAdminRepository).to(CommunityAdminRepository)
+container.bind<ICommunityRequestRepository>(TYPES.ICommunityRequestRepository).to(CommunityRequestRepository)
 
 
 export default container

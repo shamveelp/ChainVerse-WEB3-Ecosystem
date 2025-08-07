@@ -7,15 +7,19 @@ import { StatusCodes } from "../../constants/statusCodes";
 import { SuccessMessages, ErrorMessages } from "../../constants/messages";
 import logger from "../../utils/logger";
 import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuthService";
-import { IJwtService } from "../../core/interfaces/services/user/IJwtService";
+import { IJwtService } from "../../core/interfaces/services/IJwtService";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { ICommunityRequestRepository } from "../../core/interfaces/repositories/ICommunityRequestRepository";
+import { ICommunityAdminAuthService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminAuthService";
 
 @injectable()
 export class AdminAuthController implements IAdminAuthController {
   constructor(
     @inject(TYPES.IAdminAuthService) private adminAuthService: IAdminAuthService,
     @inject(TYPES.IUserAuthService) private userAuthService: IUserAuthService,
-    @inject(TYPES.IJwtService) private jwtService: IJwtService
+    @inject(TYPES.IJwtService) private jwtService: IJwtService,
+    @inject(TYPES.ICommunityRequestRepository) private communityRequestRepo: ICommunityRequestRepository,
+    @inject(TYPES.ICommunityAdminAuthService) private communityAdminAuthService: ICommunityAdminAuthService,
   ) {}
 
   async login(req: Request, res: Response) {
@@ -89,6 +93,89 @@ export class AdminAuthController implements IAdminAuthController {
   logout(req: Request, res: Response) {
     this.jwtService.clearTokens(res)
   }
+
+
+   // Community Admin Management
+  async getAllCommunityRequests(req: Request, res: Response): Promise<void> {
+    try {
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      const search = String(req.query.search) || '';
+      
+      const requests = await this.communityRequestRepo.findAll(page, limit, search);
+      res.status(StatusCode.OK).json(requests);
+    } catch (error: any) {
+      logger.error("Get community requests error:", error);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: error.message || "Failed to fetch community requests"
+      });
+    }
+  }
+
+  async approveCommunityRequest(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      
+      // Update request status to approved
+      const updatedRequest = await this.communityRequestRepo.updateStatus(id, 'approved');
+      if (!updatedRequest) {
+        res.status(StatusCode.NOT_FOUND).json({
+          success: false,
+          message: "Community request not found"
+        });
+        return;
+      }
+
+      // Create community from request
+      await this.communityAdminAuthService.createCommunityFromRequest(id);
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Community request approved successfully",
+        request: updatedRequest
+      });
+
+      logger.info(`Community request approved: ${id}`);
+    } catch (error: any) {
+      logger.error("Approve community request error:", error);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: error.message || "Failed to approve community request"
+      });
+    }
+  }
+
+  async rejectCommunityRequest(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+
+      const updatedRequest = await this.communityRequestRepo.updateStatus(id, 'rejected');
+      if (!updatedRequest) {
+        res.status(StatusCode.NOT_FOUND).json({
+          success: false,
+          message: "Community request not found"
+        });
+        return;
+      }
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Community request rejected successfully",
+        request: updatedRequest
+      });
+
+      logger.info(`Community request rejected: ${id}, reason: ${reason}`);
+    } catch (error: any) {
+      logger.error("Reject community request error:", error);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: error.message || "Failed to reject community request"
+      });
+    }
+  }
+
 
  
 }
