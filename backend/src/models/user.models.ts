@@ -17,6 +17,7 @@ export interface IUser extends Document {
     totalPoints: number;
     isBlocked: boolean;
     isBanned: boolean;
+    tokenVersion?: number;
     isEmailVerified: boolean;
     isGoogleUser: boolean;
     dailyCheckin:{
@@ -43,6 +44,7 @@ const UserSchema: Schema<IUser> = new Schema({
     totalPoints: { type: Number, default: 0 },
     isBlocked: { type: Boolean, default: false },
     isBanned: { type: Boolean, default: false },
+    tokenVersion: { type: Number, default: 0 },
     role: {type: String, enum:['user'], default: 'user'},
     isEmailVerified: { type: Boolean, default: false },
     isGoogleUser: { type: Boolean, default: false }, // Added to schema

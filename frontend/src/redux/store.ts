@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit"
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist"
 import { combineReducers } from "@reduxjs/toolkit"
 import userAuthReducer from "./slices/userAuthSlice"
+import userProfileReducer from "./slices/userProfileSlice"
 import adminAuthReducer from "./slices/adminAuthSlice"
 import adminStatsReducer from "./slices/adminStatistics"
 import communityAdminAuthReducer from "./slices/communityAdminAuthSlice"
@@ -28,11 +29,12 @@ const storage = typeof window !== "undefined" ? require("redux-persist/lib/stora
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["userAuth","adminAuth","adminStats","communityAdminAuth","wallet"],
+  whitelist: ["userAuth","userProfile","adminAuth","adminStats","communityAdminAuth","wallet"],
 }
 
 const rootReducer = combineReducers({
   userAuth: userAuthReducer,
+  userProfile: userProfileReducer,
   adminAuth: adminAuthReducer,
   adminStats: adminStatsReducer,
   communityAdminAuth: communityAdminAuthReducer,

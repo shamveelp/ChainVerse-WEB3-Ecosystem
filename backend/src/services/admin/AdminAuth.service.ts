@@ -27,8 +27,8 @@ export class AdminAuthService implements IAdminAuthService {
 
       const adminId = (admin._id)
 
-      const accessToken = this.jwtService.generateAccessToken(adminId, admin.role)
-      const refreshToken = this.jwtService.generateRefreshToken(adminId, admin.role)
+      const accessToken = this.jwtService.generateAccessToken(adminId, admin.role, admin.tokenVersion ?? 0);
+      const refreshToken = this.jwtService.generateRefreshToken(adminId, admin.role, admin.tokenVersion ?? 0);
 
       return {
         admin: {

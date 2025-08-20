@@ -54,10 +54,8 @@ export function ForgotPasswordForm() {
     dispatch(setLoading(true))
 
     try {
-      // Call API directly like your friend's code
       const response = await API.post("/api/user/forgot-password", { email })
 
-      // Store email in Redux and clear user data
       dispatch(setTempEmail(email))
       dispatch(setTempUserData(null))
 
@@ -66,11 +64,9 @@ export function ForgotPasswordForm() {
         description: "Please check your email for the password reset code",
       })
 
-      // Set cooldown
       setIsCooldown(true)
       setTimeout(() => setIsCooldown(false), 30 * 1000)
 
-      // Navigate to OTP verification
       router.push("/user/verify-otp")
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message

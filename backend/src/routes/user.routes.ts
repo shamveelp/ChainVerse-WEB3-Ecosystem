@@ -3,10 +3,12 @@ import container from '../core/di/container';
 import { UserAuthController } from '../controllers/user/UserAuth.controller';
 import { TYPES } from '../core/types/types';
 import { authMiddleware } from '../middlewares/auth.middleware';
+import { UserProfileController } from '../controllers/user/UserProfile.controller';
 
 const router = Router();
 
 const userAuthController = container.get<UserAuthController>(TYPES.IUserAuthController);
+const userProfileController = container.get<UserProfileController>(TYPES.IUserProfileController);
 
 
 // Auth
@@ -22,5 +24,9 @@ router.post("/reset-password", userAuthController.resetPassword.bind(userAuthCon
 router.post("/google-login", userAuthController.googleLogin.bind(userAuthController))
 
 
+// Profile routes (protected)
+router.get("/profile", authMiddleware, (req, res) => userProfileController.getProfile(req as any, res));
+router.put("/profile", authMiddleware, (req, res) => userProfileController.updateProfile(req as any, res));
+router.post("/check-username", authMiddleware, (req, res) => userProfileController.checkUsername(req as any, res));
 
 export default router;

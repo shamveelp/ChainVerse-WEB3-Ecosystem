@@ -777,3 +777,127 @@
 2025-08-07T11:28:22.564Z [info]: Forgot password OTP verified for: bscphysicsdegree@gmail.com
 2025-08-07T11:28:46.380Z [info]: Password reset successful for community admin: bscphysicsdegree@gmail.com
 2025-08-07T11:28:46.386Z [info]: Password reset successful for: bscphysicsdegree@gmail.com
+2025-08-07T12:37:28.002Z [info]: User logged out successfully
+2025-08-07T12:39:28.012Z [error]: Error requesting OTP 8C010000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:40:10.712Z [error]: Error requesting OTP 8C010000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:41:31.786Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/
+2025-08-07T12:42:32.055Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-07T12:42:54.359Z [error]: Error logging in User not found
+2025-08-07T12:43:56.667Z [info]: Generated OTP: 279276 for email: shamveelp007@gmail.com
+2025-08-07T12:44:41.766Z [error]: Error verifying OTP Invalid OTP
+2025-08-07T12:47:32.451Z [error]: Get community requests error: getaddrinfo ENOTFOUND ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-07T12:47:35.017Z [error]: Get community requests error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:47:36.080Z [error]: Get community requests error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:47:46.698Z [error]: Get all users error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:47:56.079Z [error]: Get community requests error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:48:05.929Z [error]: Get all users error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:50:26.137Z [error]: Create community error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:51:04.568Z [error]: Create community error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:53:15.237Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-07T12:53:38.341Z [info]: Community application created for email: shamveelp007@gmail.com
+2025-08-07T12:53:50.052Z [error]: Set password error: Email is already registered, Please Login
+2025-08-07T12:54:52.007Z [error]: Community admin login error: Invalid credentials
+2025-08-07T12:54:55.161Z [info]: Community admin logged in: bscphysicsdegree@gmail.com
+2025-08-11T06:28:07.503Z [info]: MongoDB connected: ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-11T06:31:49.642Z [info]: Generated OTP: 245462 for email: ironman0089@gmail.com
+2025-08-11T06:36:17.116Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-11T06:38:27.028Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-11T06:38:50.188Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-11T06:39:11.621Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-11T06:39:28.495Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-11T06:39:49.768Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-11T06:40:25.711Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-11T06:41:01.295Z [info]: MongoDB connected: ac-ptht5ti-shard-00-01.go29sde.mongodb.net
+2025-08-12T04:49:57.681Z [info]: MongoDB connected: ac-ptht5ti-shard-00-00.go29sde.mongodb.net
+2025-08-12T07:37:41.867Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/
+2025-08-12T11:03:37.424Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-08-12T11:04:55.147Z [info]: MongoDB connected: localhost
+2025-08-12T11:56:31.381Z [info]: User logged out successfully
+2025-08-12T12:00:14.419Z [info]: Generated OTP: 673572 for email: nijaswilson@gmail.com
+2025-08-12T12:04:49.653Z [info]: MongoDB connected: localhost
+2025-08-12T12:05:05.655Z [info]: MongoDB connected: localhost
+2025-08-12T12:05:34.375Z [info]: MongoDB connected: localhost
+2025-08-12T12:05:56.620Z [info]: MongoDB connected: localhost
+2025-08-12T12:06:31.493Z [info]: MongoDB connected: localhost
+2025-08-12T12:07:48.586Z [info]: MongoDB connected: localhost
+2025-08-12T12:10:51.244Z [info]: MongoDB connected: localhost
+2025-08-12T12:12:44.671Z [info]: MongoDB connected: localhost
+2025-08-12T12:13:37.237Z [info]: MongoDB connected: localhost
+2025-08-12T12:15:33.535Z [info]: MongoDB connected: localhost
+2025-08-12T12:20:37.924Z [info]: MongoDB connected: localhost
+2025-08-12T12:31:30.102Z [info]: MongoDB connected: localhost
+2025-08-12T12:32:01.254Z [info]: MongoDB connected: localhost
+2025-08-12T12:34:13.522Z [info]: MongoDB connected: localhost
+2025-08-12T12:34:47.811Z [info]: MongoDB connected: localhost
+2025-08-12T12:35:22.277Z [info]: MongoDB connected: localhost
+2025-08-12T12:35:50.339Z [info]: MongoDB connected: localhost
+2025-08-12T12:36:14.333Z [info]: MongoDB connected: localhost
+2025-08-12T12:36:50.393Z [info]: MongoDB connected: localhost
+2025-08-12T12:37:07.582Z [info]: MongoDB connected: localhost
+2025-08-12T12:37:41.067Z [info]: MongoDB connected: localhost
+2025-08-12T12:37:52.474Z [info]: MongoDB connected: localhost
+2025-08-12T12:38:24.712Z [info]: MongoDB connected: localhost
+2025-08-12T12:45:14.980Z [info]: MongoDB connected: localhost
+2025-08-12T14:06:23.890Z [info]: MongoDB connected: localhost
+2025-08-12T14:07:10.520Z [info]: MongoDB connected: localhost
+2025-08-12T14:07:44.269Z [info]: MongoDB connected: localhost
+2025-08-12T14:08:33.560Z [info]: MongoDB connected: localhost
+2025-08-12T14:08:55.708Z [info]: MongoDB connected: localhost
+2025-08-12T14:09:08.765Z [info]: MongoDB connected: localhost
+2025-08-12T14:11:16.661Z [info]: MongoDB connected: localhost
+2025-08-12T14:11:55.017Z [info]: MongoDB connected: localhost
+2025-08-12T14:12:31.923Z [info]: MongoDB connected: localhost
+2025-08-12T15:26:26.164Z [info]: MongoDB connected: localhost
+2025-08-12T15:27:58.199Z [info]: MongoDB connected: localhost
+2025-08-12T19:40:33.132Z [info]: MongoDB connected: localhost
+2025-08-12T19:41:58.788Z [info]: MongoDB connected: localhost
+2025-08-12T19:43:33.052Z [info]: MongoDB connected: localhost
+2025-08-12T19:49:54.593Z [info]: MongoDB connected: localhost
+2025-08-12T19:50:37.583Z [info]: MongoDB connected: localhost
+2025-08-12T19:51:58.273Z [info]: MongoDB connected: localhost
+2025-08-12T19:56:37.841Z [info]: MongoDB connected: localhost
+2025-08-12T20:04:39.456Z [info]: User logged out successfully
+2025-08-13T05:45:23.991Z [info]: MongoDB connected: localhost
+2025-08-13T08:45:59.725Z [info]: MongoDB connected: localhost
+2025-08-13T08:46:51.136Z [info]: MongoDB connected: localhost
+2025-08-13T13:34:30.091Z [info]: MongoDB connected: localhost
+2025-08-13T13:34:55.064Z [info]: Admin logged in successfully
+2025-08-13T13:44:02.729Z [info]: MongoDB connected: localhost
+2025-08-13T14:00:07.060Z [info]: MongoDB connected: localhost
+2025-08-13T14:01:07.691Z [info]: MongoDB connected: localhost
+2025-08-13T14:01:38.483Z [info]: MongoDB connected: localhost
+2025-08-13T14:01:52.200Z [info]: MongoDB connected: localhost
+2025-08-13T14:02:18.552Z [info]: MongoDB connected: localhost
+2025-08-19T11:13:47.452Z [info]: MongoDB connected: localhost
+2025-08-19T11:19:42.963Z [info]: Generated OTP: 734321 for email: norman@gmail.com
+2025-08-19T11:22:23.730Z [info]: Community application created for email: communityhhh@gmail.com
+2025-08-19T11:22:47.113Z [error]: Set password error: Email is already registered, Please Login
+2025-08-19T11:24:05.905Z [info]: Admin logged in successfully
+2025-08-19T11:24:29.375Z [info]: Community created from request: 68a45e6f4036f0bf08f33b78
+2025-08-19T11:24:29.377Z [info]: Community request approved: 68a45e6f4036f0bf08f33b78
+2025-08-19T13:35:13.545Z [info]: MongoDB connected: localhost
+2025-08-19T13:44:08.208Z [info]: MongoDB connected: localhost
+2025-08-19T13:44:15.843Z [info]: User logged out successfully
+2025-08-19T13:44:32.403Z [error]: Error logging in Invalid password
+2025-08-20T03:38:28.309Z [info]: MongoDB connected: localhost
+2025-08-20T03:41:06.821Z [info]: Generated OTP: 325896 for email: nadeerep07@gmail.com
+2025-08-20T03:41:26.749Z [error]: Error verifying OTP Invalid OTP
+2025-08-20T03:46:09.494Z [info]: User logged out successfully
+2025-08-20T03:57:20.643Z [info]: Generated OTP: 369890 for email: nadeerep07@gmail.com
+2025-08-20T03:59:50.808Z [info]: User logged out successfully
+2025-08-20T04:00:32.575Z [info]: Generated OTP: 379912 for forgot password request for email: norman@gmail.com
+2025-08-20T04:02:04.165Z [info]: User logged out successfully
+2025-08-20T04:02:10.384Z [info]: Generated OTP: 492939 for forgot password request for email: norman@gmail.com
+2025-08-20T04:02:18.876Z [error]: Error verifying forgot password OTP Invalid OTP
+2025-08-20T04:03:17.789Z [info]: Generated OTP: 526650 for forgot password request for email: norman@gmail.com
+2025-08-20T04:03:30.264Z [error]: Error verifying forgot password OTP Invalid OTP
+2025-08-20T04:21:58.719Z [info]: MongoDB connected: localhost

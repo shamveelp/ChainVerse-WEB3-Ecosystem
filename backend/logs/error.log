@@ -188,3 +188,34 @@
 2025-08-07T11:26:44.324Z [error]: Forgot password error: Email not found
 2025-08-07T11:26:48.422Z [error]: Forgot password error: Email not found
 2025-08-07T11:26:59.211Z [error]: Forgot password error: Email not found
+2025-08-07T12:39:28.012Z [error]: Error requesting OTP 8C010000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:40:10.712Z [error]: Error requesting OTP 8C010000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:41:31.786Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/
+2025-08-07T12:42:54.359Z [error]: Error logging in User not found
+2025-08-07T12:44:41.766Z [error]: Error verifying OTP Invalid OTP
+2025-08-07T12:47:32.451Z [error]: Get community requests error: getaddrinfo ENOTFOUND ac-ptht5ti-shard-00-02.go29sde.mongodb.net
+2025-08-07T12:47:35.017Z [error]: Get community requests error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:47:36.080Z [error]: Get community requests error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:47:46.698Z [error]: Get all users error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:47:56.079Z [error]: Get community requests error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:48:05.929Z [error]: Get all users error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:50:26.137Z [error]: Create community error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:51:04.568Z [error]: Create community error: 4C150000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:c:\ws\deps\openssl\openssl\ssl\record\rec_layer_s3.c:1605:SSL alert number 80
+
+2025-08-07T12:53:50.052Z [error]: Set password error: Email is already registered, Please Login
+2025-08-07T12:54:52.007Z [error]: Community admin login error: Invalid credentials
+2025-08-12T07:37:41.867Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/
+2025-08-12T11:03:37.424Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-08-19T11:22:47.113Z [error]: Set password error: Email is already registered, Please Login
+2025-08-19T13:44:32.403Z [error]: Error logging in Invalid password
+2025-08-20T03:41:26.749Z [error]: Error verifying OTP Invalid OTP
+2025-08-20T04:02:18.876Z [error]: Error verifying forgot password OTP Invalid OTP
+2025-08-20T04:03:30.264Z [error]: Error verifying forgot password OTP Invalid OTP

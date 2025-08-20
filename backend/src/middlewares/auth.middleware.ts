@@ -3,6 +3,11 @@ import jwt from "jsonwebtoken"
 import { StatusCode } from "../enums/statusCode.enum"
 import { CustomError } from "../utils/CustomError" // Import CustomError
 import { JwtService } from "../utils/jwt"
+import logger from "../utils/logger"
+import { IUserRepository } from "../core/interfaces/repositories/IUserRepository"
+import { TYPES } from "../core/types/types"
+import container from "../core/di/container"
+import { IAdminRepository } from "../core/interfaces/repositories/IAdminRepository"
 
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET
@@ -11,52 +16,84 @@ interface AuthRequest extends Request {
   userId?: string
 }
 
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     role: string;
   };
 }
 
-export const roleMiddleware = (allowedRoles: string[]) => {
+export const roleMIddleware = (allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = req.user as {id: string; role: string};
-      if(!user) {
-        res.status(StatusCode.UNAUTHORIZED).json({error:"Not Authenticated"})
-        return
+      const user = req.user as { id: string; role: string } | undefined;
+
+      if (!user) {
+        return res.status(StatusCode.UNAUTHORIZED).json({ error: "User not authenticated" });
       }
-      if(!allowedRoles.includes(user.role)) {
-        res.status(StatusCode.FORBIDDEN).json({error: `You've already logged in as ${user.role}`});
-        return
+
+      if (!allowedRoles.includes(user.role)) {
+        return res.status(StatusCode.FORBIDDEN).json({ error: "Access denied" });
       }
-      next()
+
+      next();
     } catch (error) {
-      
+      logger.error("Role middleware error:", error);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ error: "Internal server error" });
     }
+    
   }
 }
 
-export const authMiddleware:RequestHandler = (req, res, next) => {
+// Type guard to check if request is authenticated
+export const isAuthenticatedRequest = (req: Request): req is AuthenticatedRequest => {
+  return 'user' in req && req.user !== undefined;
+};
+
+
+export const authMiddleware: RequestHandler = async (req, res, next) => {
   try {
-    const token = req.cookies.accessToken;
+    const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
+
     if (!token) {
-       res.status(StatusCode.UNAUTHORIZED).json({ error: "No token provided" });
-       return
+      return res.status(StatusCode.UNAUTHORIZED).json({ message: "Access token is required" });
     }
 
     const decoded = JwtService.verifyToken(token) as {
       id: string;
       role: string;
-    };
+      tokenVersion: number;
+    }
 
-    req.user = { id: decoded.id, role: decoded.role };
+    const userRepo = container.get<IUserRepository>(TYPES.IUserRepository);
+    const adminRepo = container.get<IAdminRepository>(TYPES.IAdminRepository);
+
+    let account: any;
+    switch (decoded.role) {
+      case 'user': account = await userRepo.findById(decoded.id); break;
+      case 'admin': account = await adminRepo.findById(decoded.id); break;
+    }
+
+    if (!account || decoded.tokenVersion !== account.tokenVersion) {
+      return res.status(StatusCode.UNAUTHORIZED).json({ message: "Invalid or expired token" });
+    } 
+
+    if(account.isBanned) {
+      res.status(StatusCode.FORBIDDEN).json({ message: "Account is banned" });
+      return;
+    }
+
+    req.user = {
+      id: decoded.id,
+      role: decoded.role
+    }
     next();
-  } catch {
-     res.status(StatusCode.UNAUTHORIZED).json({ error: "Invalid token" });
-     return
+  } catch (error) {
+    logger.error("Authentication middleware error:", error);
+    res.status(StatusCode.UNAUTHORIZED).json({ message: "Internal server error" });
   }
-};
+}
+
 
 
 export const communityAdminAuthMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

@@ -9,21 +9,20 @@ import { JwtService } from "../../utils/jwt";
 import logger from "../../utils/logger";
 import { IRedisClient } from "../../config/redis";
 import { OAuth2Client } from "google-auth-library";
-import dotenv from 'dotenv'
 import { OAuthClient } from "../../utils/OAuthClient";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import { IJwtService } from "../../core/interfaces/services/IJwtService";
-dotenv.config()
+import passport from "passport";
+
 
 @injectable()
 export class UserAuthController implements IUserAuthController {
   private googleClient: OAuth2Client
   constructor(
-    @inject(TYPES.IUserAuthService) private userAuthService: IUserAuthService,
-    @inject(TYPES.IOtpService) private otpService: IOTPService,
-    @inject(TYPES.IJwtService) private jwtService: IJwtService,
-    @inject(TYPES.OAuthClient) private oauthClient: OAuth2Client,
-    @inject(TYPES.IUserRepository) private userRepo: IUserRepository,
+    @inject(TYPES.IUserAuthService) private _userAuthService: IUserAuthService,
+    @inject(TYPES.IOtpService) private _otpService: IOTPService,
+    @inject(TYPES.IJwtService) private _jwtService: IJwtService,
+    @inject(TYPES.OAuthClient) private _oauthClient: OAuth2Client,
   ) {
     this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
   }
@@ -32,7 +31,7 @@ export class UserAuthController implements IUserAuthController {
   requestOtp = async (req: Request, res: Response) => {
     try {
       const { email } = req.body;
-      const otpResponse = await this.otpService.requestOtp(email,'user');
+      const otpResponse = await this._otpService.requestOtp(email,'user');
       res
         .status(StatusCode.OK)
         .json({ success:true,message: "OTP sent successfully", data: otpResponse });
@@ -47,11 +46,11 @@ export class UserAuthController implements IUserAuthController {
   verifyOtp = async (req: Request, res: Response) => {
     try {
       const { email, otp, name, password } = req.body;
-      const isVerified = await this.otpService.verifyOtp(email, otp);
+      const isVerified = await this._otpService.verifyOtp(email, otp);
       const { user, accessToken, refreshToken } =
-        await this.userAuthService.registerUser(name, email, password);
+        await this._userAuthService.registerUser(name, email, password);
         //Set cookies
-      this.jwtService.setTokens(res, accessToken, refreshToken);
+      this._jwtService.setTokens(res, accessToken, refreshToken);
       res.status(StatusCode.CREATED).json({ success: true,user });
     } catch (error) {
       res.status(StatusCode.BAD_REQUEST).json({ error: error });
@@ -62,7 +61,7 @@ export class UserAuthController implements IUserAuthController {
   forgotPassword = async (req: Request, res: Response) => {
     try {
       const { email } = req.body
-      await this.otpService.requestForgotPasswordOtp(email,'user') 
+      await this._otpService.requestForgotPasswordOtp(email,'user') 
       res.status(StatusCode.OK).json({ message: "OTP sent successfully" }) 
     } catch (error: any) {
       res
@@ -75,7 +74,7 @@ export class UserAuthController implements IUserAuthController {
   verifyForgotPasswordOtp = async (req: Request, res: Response) => {
     try {
       const { email, otp } = req.body 
-      await this.otpService.verifyOtp(email, otp)
+      await this._otpService.verifyOtp(email, otp)
       res.status(StatusCode.OK).json({ message: "Forgot Password OTP verified successfully"})
     } catch (error: any) {
       res
@@ -88,7 +87,7 @@ export class UserAuthController implements IUserAuthController {
   resetPassword = async (req: Request, res: Response) => {
     try {
       const { email, newPassword } = req.body
-      await this.userAuthService.resetPassword(email, newPassword)
+      await this._userAuthService.resetPassword(email, newPassword)
       res.status(StatusCode.OK).json({ message: "Password reset successfully" })
     } catch (error: any) {
       res.status(StatusCode.BAD_REQUEST).json({ error: error.message })
@@ -99,9 +98,9 @@ export class UserAuthController implements IUserAuthController {
   login = async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
-      const { user, accessToken, refreshToken } = await this.userAuthService.loginUser(email, password);
+      const { user, accessToken, refreshToken } = await this._userAuthService.loginUser(email, password);
 
-      this.jwtService.setTokens(res, accessToken, refreshToken);
+      this._jwtService.setTokens(res, accessToken, refreshToken);
       res.status(StatusCode.OK).json({ user });
     } catch (error:any) {
       res.status(StatusCode.UNAUTHORIZED).json({ error: error.message });
@@ -112,7 +111,7 @@ export class UserAuthController implements IUserAuthController {
   resendOtp = async(req: Request, res: Response) => {
       try {
         const { email } = req.body;
-        await this.otpService.requestOtp(email,'user')
+        await this._otpService.requestOtp(email,'user')
         res.status(StatusCode.OK).json({ message: "OTP resent successfully" })
       } catch (error:any) {
         res.status(StatusCode.BAD_REQUEST).json({ error: error.message })
@@ -128,10 +127,10 @@ export class UserAuthController implements IUserAuthController {
         .json({ message: "Refresh token is required" });
     }
 
-    const decoded = this.jwtService.verifyRefreshToken(refreshToken) as { id: string, role: string };
-    const accessToken = this.jwtService.generateAccessToken(decoded.id, decoded.role);
-    const newRefreshToken = this.jwtService.generateRefreshToken(decoded.id, decoded.role);
-    this.jwtService.setTokens(res, accessToken, newRefreshToken);
+    const decoded = this._jwtService.verifyRefreshToken(refreshToken) as { id: string, role: string, tokenVersion?: number };
+    const accessToken = this._jwtService.generateAccessToken(decoded.id, decoded.role, decoded.tokenVersion ?? 0);
+    const newRefreshToken = this._jwtService.generateRefreshToken(decoded.id, decoded.role, decoded.tokenVersion ?? 0);
+    this._jwtService.setTokens(res, accessToken, newRefreshToken);
     
     return res.status(StatusCode.OK).json({ accessToken, refreshToken: newRefreshToken });
   } catch (error) {
@@ -141,48 +140,42 @@ export class UserAuthController implements IUserAuthController {
 };
 
 
-googleLogin = async (req: Request, res: Response) => {
-  try {
-    const { token } = req.body;
-
-    if(!token || typeof token !== "string") {
-      res.status(StatusCode.BAD_REQUEST).json({ error: "Invalid Google token" });
-      return
-    }
-
-    const ticket = await this.oauthClient.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID!,
-    })
-
-    const payload = ticket.getPayload();
-    if(!payload?.email) {
-      res.status(StatusCode.BAD_REQUEST).json({ error: "Google Auth Failed" });
-      return
-    }
-
-    const email = payload.email;
-    const name = payload.name || "Google User";
-
-    let user = await this.userRepo.findByEmail(email);
-    if(!user) {
-      user = await this.userRepo.createUser({
-        name,
-        email,
-        password:""
-      });
-    }
-
-    res.status(StatusCode.OK).json({ user });
-  } catch (error:any) {
-    logger.error("Error logging in with Google", error);
-    res.status(StatusCode.BAD_REQUEST).json({ error: error.message });
+ googleLogin = async (req: Request, res: Response) => {
+  const { idToken } = req.body;
+  if(!idToken) {
+    res.status(StatusCode.BAD_REQUEST).json({ message: "Id token is required" });
+    return;
   }
-}
+  try {
+    const { user, accessToken, refreshToken } = await this._userAuthService.loginWithGoogle(idToken)
+    this._jwtService.setTokens(res, accessToken, refreshToken);
+    res.status(StatusCode.OK).json({ user });
+  } catch (error) {
+    res.status(StatusCode.BAD_REQUEST).json({ error: error || "Login Failed" });
+    logger.error("Error logging in with Google", error);
+  }
+ }
+
+ googleCallback = (req: Request, res: Response) => {
+  passport.authenticate('google', { session: false }, async (error, user, info) => {
+    if (error || !user) {
+      return res.redirect("http://localhost:3000/signup?error=auth_failed")
+    }
+    try {
+      const { accessToken, refreshToken } = await this._userAuthService.loginWithGoogle(user);
+      this._jwtService.setTokens(res, accessToken, refreshToken);
+      res.redirect(`http://localhost:3000/callback?token=${accessToken}`);
+    } catch (error: any) {
+      res.redirect(`http://localhost:3000/signup?error=${encodeURIComponent(error.message)}`);
+    }
+  })(req, res);
+ }
+
+
 
   logout = async (req: Request, res: Response) => {
     try {
-      this.jwtService.clearTokens(res);
+      this._jwtService.clearTokens(res);
       logger.info("User logged out successfully");
       res.status(StatusCode.OK).json({ message: "Logged out successfully" });
     } catch (error) {

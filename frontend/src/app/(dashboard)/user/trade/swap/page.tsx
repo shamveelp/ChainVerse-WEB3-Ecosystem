@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowUpDown, Wallet } from 'lucide-react'
 import axios from 'axios'
-import Navbar from "@/components/navbar"
+import Navbar from "@/components/home/navbar"
 
 declare global {
   interface Window {

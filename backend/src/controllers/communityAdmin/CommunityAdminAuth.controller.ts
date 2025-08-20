@@ -9,9 +9,7 @@ import { ICommunityAdminAuthService } from "../../core/interfaces/services/commu
 import { IOTPService } from "../../core/interfaces/services/IOtpService";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { ICommunityRequestRepository } from "../../core/interfaces/repositories/ICommunityRequestRepository";
-import dotenv from 'dotenv';
 
-dotenv.config();
 
 @injectable()
 export class CommunityAdminAuthController implements ICommunityAdminAuthController {
@@ -165,11 +163,13 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             
             const accessToken = this.jwtService.generateAccessToken(
                 communityAdmin!._id.toString(), 
-                'communityAdmin'
+                'communityAdmin',
+                communityAdmin!.tokenVersion ?? 0
             );
             const refreshToken = this.jwtService.generateRefreshToken(
                 communityAdmin!._id.toString(), 
-                'communityAdmin'
+                'communityAdmin',
+                communityAdmin!.tokenVersion ?? 0
             );
 
             this.jwtService.setTokens(res, accessToken, refreshToken);

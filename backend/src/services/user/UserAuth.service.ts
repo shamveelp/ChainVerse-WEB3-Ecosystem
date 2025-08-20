@@ -1,6 +1,6 @@
 import { injectable, inject } from "inversify";
 import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuthService";
-import { IBaseRepository } from "../../core/interfaces/repositories/IBaseRepository";
+import { IBaseRepository } from "../../core/interfaces/repositories/iBase.repository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import { TYPES } from "../../core/types/types";
 import bcrypt from "bcrypt";
@@ -9,13 +9,21 @@ import { IUser } from "../../models/user.models";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/CustomError";
 import { IJwtService } from "../../core/interfaces/services/IJwtService";
+import { OAuth2Client } from "google-auth-library";
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+const JWT_ACCESS_SECRET = process.env.JWT_ACCESS;
 
 @injectable()
 export class UserAuthService implements IUserAuthService {
+  private _googleClient: OAuth2Client;
   constructor(
     @inject(TYPES.IUserRepository) private userRepository: IUserRepository,
     @inject(TYPES.IJwtService) private jwtService: IJwtService
-  ) { }
+  ) { 
+    this.userRepository = userRepository;
+    this._googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  }
 
   public async registerUser( name: string, email: string, password: string) {
     const existingUser = await this.userRepository.findByEmail(email);
@@ -38,10 +46,10 @@ export class UserAuthService implements IUserAuthService {
     const user = await this.userRepository.createUser(userData);
 
     const accessToken = this.jwtService.generateAccessToken(
-      user._id.toString(), user.role
+      user._id.toString(), user.role, user.tokenVersion ?? 0
     );
     const refreshToken = this.jwtService.generateRefreshToken(
-      user._id.toString(), user.role
+      user._id.toString(), user.role,  user.tokenVersion ?? 0
     );
 
     return { user, accessToken, refreshToken };
@@ -72,8 +80,8 @@ export class UserAuthService implements IUserAuthService {
       if (!isMatch) {
         throw new CustomError("Invalid password", StatusCode.UNAUTHORIZED)
       }
-      const accessToken = this.jwtService.generateAccessToken(user._id.toString(), user.role)
-      const refreshToken = this.jwtService.generateRefreshToken(user._id.toString(), user.role)
+      const accessToken = this.jwtService.generateAccessToken(user._id.toString(), user.role, user.tokenVersion ?? 0)
+      const refreshToken = this.jwtService.generateRefreshToken(user._id.toString(), user.role, user.tokenVersion ?? 0)
       // console.log(refreshToken, "ithaanu");
     return { user, accessToken, refreshToken }
   }
@@ -90,6 +98,47 @@ export class UserAuthService implements IUserAuthService {
     return await this.userRepository.updateStatus(id, updateData);
   }
 
+
+  async loginWithGoogle(idToken: string): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
+    const ticket = await this._googleClient.verifyIdToken({
+      idToken,
+      audience: GOOGLE_CLIENT_ID,
+    })
+    const payload = ticket.getPayload();
+    if (!payload) {
+      throw new CustomError("Invalid Google ID token", StatusCode.UNAUTHORIZED);
+    }
+
+    const { sub: googleId, email, name } = payload;
+
+    if(!googleId || !email) {
+      throw new CustomError("Google ID or email is missing", StatusCode.BAD_REQUEST);
+    }
+
+    let user = await this.userRepository.findByGoogleId(googleId);
+    if (!user) {
+      user = await this.userRepository.findByEmail(email);
+    }
+
+    if (!user) {
+      const username = email.split("@")[0] + Math.floor(Math.random() * 1000);
+      user = await this.userRepository.createUser({
+        name,
+        email,
+        googleId,
+        username,
+        isGoogleUser: true,
+        isEmailVerified: true, // Assuming Google login verifies email
+      });
+    } else if (!user.googleId) {
+      throw new CustomError("User exists but not registered with Google", StatusCode.BAD_REQUEST);
+    }
+
+    const accessToken = this.jwtService.generateAccessToken(user._id.toString(), user.role, user.tokenVersion?? 0);
+    const refreshToken = this.jwtService.generateRefreshToken(user._id.toString(), user.role, user.tokenVersion?? 0);
+
+    return { user, accessToken, refreshToken };
+  }
 
   
 

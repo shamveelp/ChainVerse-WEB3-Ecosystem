@@ -76,10 +76,10 @@ export default function NFTSection() {
                 <CardContent className="p-4">
                   <div className="aspect-square bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg mb-3 flex items-center justify-center">
                     <Image
-                      src={`/placeholder.svg?height=150&width=150&query=NFT artwork ${item}`}
+                      src={`/giffy.gif`}
                       alt={`NFT ${item}`}
-                      width={150}
-                      height={150}
+                      width={300}
+                      height={300}
                       className="rounded-lg"
                     />
                   </div>

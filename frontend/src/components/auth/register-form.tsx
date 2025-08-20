@@ -48,7 +48,6 @@ export function RegisterForm() {
   }
 
   const passwordValidation = (password: string): boolean => {
-    // At least 8 chars, one uppercase, one lowercase, one number, one special char
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
     return regex.test(password)
   }
@@ -102,10 +101,8 @@ export function RegisterForm() {
     dispatch(setLoading(true))
 
     try {
-      // Call the API directly like your friend's code
       await API.post("/api/user/request-otp", { email: formData.email })
 
-      // Store data in Redux (equivalent to navigate state)
       dispatch(
         setTempUserData({
           name: formData.name,
@@ -120,7 +117,6 @@ export function RegisterForm() {
         description: "Please check your email for the verification code",
       })
 
-      // Navigate to verify-otp page
       router.push("/user/verify-otp")
     } catch (err: any) {
       toast({

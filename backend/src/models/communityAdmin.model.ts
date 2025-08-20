@@ -10,6 +10,7 @@ export interface ICommunityAdmin extends Document {
     name: string;
     role: "communityAdmin";
     isActive: boolean;
+    tokenVersion?: number;
     lastLogin: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -24,6 +25,7 @@ const CommunityAdminSchema: Schema<ICommunityAdmin> = new Schema({
     name: { type: String },
     role: { type: String, enum: ['communityAdmin'], default: 'communityAdmin' },
     isActive: { type: Boolean, default: true },
+    tokenVersion: { type: Number, default: 0 },
     lastLogin: { type: Date, default: null },
     }, {
     timestamps: true

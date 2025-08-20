@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import ClientLayout from "./clientLayout"
+import { ThemeProvider } from "@/components/theme-provider"
 
 
 export const metadata: Metadata = {
@@ -16,7 +17,14 @@ export default function RootLayout({
   return (
     <ClientLayout>
 
-      {children}
+      <ThemeProvider
+          attribute="class"
+          defaultTheme="dark" // Default to dark theme as per hero section background
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
 
     </ClientLayout>
   )

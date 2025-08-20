@@ -1,20 +1,22 @@
 
-import Navbar from "@/components/navbar"
-import HeroSection from "@/components/hero-section"
-import MovingMessages from "@/components/moving-messages"
-import NFTSection from "@/components/nft-section"
-import SocialSection from "@/components/social-section"
-import Footer from "@/components/footer"
+import Navbar from "@/components/home/navbar"
+import HeroSection from "@/components/home/hero-section"
+import MovingMessages from "@/components/home/moving-messages"
+import NFTSection from "@/components/home/nft-section"
+import SocialSection from "@/components/home/social-section"
+import Footer from "@/components/home/footer"
+// import MarketSection from "@/components/home/market-section"
 
 
 
 export default function HomePage() {
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main>
+      <main className="flex-1">
         <HeroSection />
+        {/* <MarketSection /> */}
         <MovingMessages />
         <NFTSection />
         <SocialSection />

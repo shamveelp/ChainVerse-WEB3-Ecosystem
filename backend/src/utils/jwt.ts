@@ -1,12 +1,11 @@
 import jwt from "jsonwebtoken"
 import type { Response } from "express"
 import { injectable } from "inversify"
-import dotenv from "dotenv"
 import { CustomError } from "../utils/CustomError"
 import { StatusCode } from "../enums/statusCode.enum"
 import { IJwtService } from "../core/interfaces/services/IJwtService"
 
-dotenv.config()
+
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET
@@ -15,20 +14,20 @@ const JWT_RESET_SECRET = process.env.JWT_RESET_SECRET // Secret for both initial
 @injectable()
 export class JwtService implements IJwtService {
 
-  generateAccessToken(id: string, role: string): string {
+  generateAccessToken(id: string, role: string, tokenVersion: number): string {
     if (!JWT_ACCESS_SECRET) {
       throw new CustomError("JWT_ACCESS_SECRET is not defined", StatusCode.INTERNAL_SERVER_ERROR)
     }
     console.log(role);
     
-    return jwt.sign({ id, role }, JWT_ACCESS_SECRET, { expiresIn: "15m" })
+    return jwt.sign({ id, role, tokenVersion }, JWT_ACCESS_SECRET, { expiresIn: "15m" })
   }
 
-  generateRefreshToken(id: string, role: string): string {
+  generateRefreshToken(id: string, role: string, tokenVersion: number): string {
     if (!JWT_REFRESH_SECRET) {
       throw new CustomError("JWT_REFRESH_SECRET is not defined", StatusCode.INTERNAL_SERVER_ERROR)
     }
-    return jwt.sign({ id, role }, JWT_REFRESH_SECRET, { expiresIn: "7d" })
+    return jwt.sign({ id, role, tokenVersion }, JWT_REFRESH_SECRET, { expiresIn: "7d" })
   }
 
   static verifyToken(token: string): any {

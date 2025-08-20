@@ -32,7 +32,7 @@ export function ResetPasswordForm() {
         description: "Please restart the password reset process",
         variant: "destructive",
       })
-      router.push("/user/forgot-password")
+      router.push("/user/login")
       return
     }
   }, [tempEmail, router, toast])
@@ -91,7 +91,6 @@ export function ResetPasswordForm() {
     dispatch(setLoading(true))
 
     try {
-      // Call API directly like your friend's code
       await API.post("/api/user/reset-password", {
         email: tempEmail,
         newPassword: password,

@@ -31,7 +31,13 @@ export const TYPES = {
     ICommunityAdminRepository: Symbol.for("ICommunityAdminRepository"),
     CommunityAdminRepository: Symbol.for("CommunityAdminRepository"),
     ICommunityRequestRepository: Symbol.for("ICommunityRequestRepository"),
-
+    UserProfileController: Symbol.for("UserProfileController"),
+    IUserProfileController: Symbol.for("IUserProfileController"),
+    IUserService: Symbol.for("IUserService"),
+    UserService: Symbol.for("UserService"),
+    
+    
+    
 
 
 

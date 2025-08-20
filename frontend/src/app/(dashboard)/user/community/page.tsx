@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Users, MessageCircle, Heart, Share2, TrendingUp, Zap, Crown, Plus, LogIn, Shield, Sparkles, Activity, Calendar, Eye, ThumbsUp, Star } from 'lucide-react'
 import type { RootState } from "@/redux/store"
-import Navbar from "@/components/navbar"
+import Navbar from "@/components/home/navbar"
 
 // Mock community posts data
 const communityPosts = [

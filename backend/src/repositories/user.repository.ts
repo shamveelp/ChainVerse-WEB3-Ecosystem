@@ -10,6 +10,14 @@ export class UserRepository implements IUserRepository {
     return await UserModel.findOne({ email }).exec();
   }
 
+  async findByUsername(username: string) {
+    return await UserModel.findOne({ username }).exec();
+  }
+
+  async findByGoogleId(googleId: string) {
+    return await UserModel.findOne({ googleId }).exec();
+  }
+
   async findAll(skip: number, limit: number) {
     return await UserModel.find()
       .skip(skip)
@@ -57,6 +65,6 @@ async updateStatus(id: string, updateData: Partial<IUser>) {
   return await UserModel.findByIdAndUpdate(id, updateData, { new: true });
 }
   async findById(id: string) {
-    return UserModel.findById(id).select("-password");
+    return UserModel.findById(id).select("-password").lean();
   }
 }

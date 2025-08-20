@@ -8,6 +8,7 @@ export interface IAdmin extends Document {
     name: string;
     role: "admin";
     isActive: boolean;
+    tokenVersion?: number;
     lastLogin: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -19,6 +20,7 @@ const AdminSchema: Schema<IAdmin> = new Schema({
     name: { type: String, required: true },
     role: { type: String, enum: ['admin'], default: 'admin' },
     isActive: { type: Boolean, default: true },
+    tokenVersion: { type: Number, default: 0 },
     lastLogin: { type: Date, default: null },
 }, {
     timestamps: true

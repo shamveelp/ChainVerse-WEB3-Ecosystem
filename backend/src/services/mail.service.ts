@@ -1,8 +1,7 @@
 import { inject, injectable } from "inversify";
 import { IMailService } from "../core/interfaces/services/IMailService";
 import { MailUtil } from "../utils/mail.util";
-import dotenv from "dotenv";
-dotenv.config();
+
 
 
 @injectable()

@@ -8,8 +8,8 @@ export interface JwtPayload {
 }
 
 export interface IJwtService {
-    generateAccessToken(id: string, role: string): string;
-    generateRefreshToken(id: string, role: string): string;
+    generateAccessToken(id: string, role: string, tokenVersion: number): string;
+    generateRefreshToken(id: string, role: string, tokenVersion: number): string;
     verifyRefreshToken(token: string): any;
     setTokens(res: Response, accessToken: string, refreshToken: string): void;
     setAccessToken(res: Response, accessToken: string): void;

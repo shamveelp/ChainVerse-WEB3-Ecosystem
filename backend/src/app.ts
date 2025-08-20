@@ -2,12 +2,12 @@ import express from 'express';
 import userRoutes from './routes/user.routes';
 import adminRoutes from './routes/admin.routes';
 import communityAdminRoutes from './routes/communityAdmin.routes';
-import dotenv from 'dotenv';
+// import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-// import { initAdmin } from './createAdmin/initAdmin';
+import { initAdmin } from './createAdmin/initAdmin';
 
-dotenv.config();
+// dotenv.config();
 
 const app = express();
 

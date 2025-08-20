@@ -23,7 +23,6 @@ export function VerifyOtpForm() {
   const { loading, tempEmail, tempUserData } = useSelector((state: RootState) => state.userAuth)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Determine the type of OTP verification
   const verificationType = tempUserData ? "register" : "forgot-password"
 
   useEffect(() => {
@@ -37,7 +36,6 @@ export function VerifyOtpForm() {
       return
     }
 
-    // Countdown timer for resend
     if (resendDisabled) {
       const timer = setInterval(() => {
         setCountdown((prev) => {
@@ -70,7 +68,6 @@ export function VerifyOtpForm() {
 
     try {
       if (verificationType === "register" && tempUserData) {
-        // Call signup API like your friend's code
         const response = await API.post("/api/user/verify-otp", {
           name: tempUserData.name,
           email: tempUserData.email,
@@ -78,7 +75,6 @@ export function VerifyOtpForm() {
           otp: otp,
         })
 
-        // Dispatch user data to redux
         dispatch(reduxLogin({ user: response.data.user, token: response.data.token || response.data.accessToken }))
 
         toast({

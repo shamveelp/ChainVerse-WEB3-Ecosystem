@@ -16,7 +16,7 @@ import { login as reduxLogin } from "@/redux/slices/userAuthSlice"
 import { useAuthActions } from "@/lib/auth-actions"
 import { useSelector } from "react-redux"
 import type { RootState } from "@/redux/store"
-import { setLoading } from "@/redux/slices/userAuthSlice" // Import setLoading
+import { setLoading } from "@/redux/slices/userAuthSlice" 
 
 interface LoginData {
   email: string
@@ -61,7 +61,7 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrors({}) // Clear previous errors
+    setErrors({}) 
 
     if (!validateForm()) {
       return
@@ -70,13 +70,11 @@ export function LoginForm() {
     dispatch(setLoading(true))
 
     try {
-      // Call API directly like your friend's code
       const response = await API.post("/api/user/login", {
         email: formData.email,
         password: formData.password,
       })
 
-      // Dispatch user data to redux
       dispatch(
         reduxLogin({
           user: response.data.user,

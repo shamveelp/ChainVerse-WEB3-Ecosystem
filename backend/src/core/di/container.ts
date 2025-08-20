@@ -36,6 +36,10 @@ import { ICommunityAdminRepository } from "../interfaces/repositories/ICommunity
 import { CommunityAdminRepository } from "../../repositories/communityAdmin.repository"
 import { ICommunityRequestRepository } from "../interfaces/repositories/ICommunityRequestRepository"
 import { CommunityRequestRepository } from "../../repositories/communityRequest.repository"
+import { IUserProfileController } from "../interfaces/controllers/user/IUserProfile.controller"
+import { UserProfileController } from "../../controllers/user/UserProfile.controller"
+import { IUserService } from "../interfaces/services/user/IUserService"
+import { UserService } from "../../services/user/User.service"
 // import { IRedisClient } from "../../config/redis" // Commented out as per your code
 // import redisClient from "../../config/redis" // Commented out as per your code
 
@@ -70,6 +74,9 @@ container.bind<IMailService>(TYPES.IMailService).to(MailService)
 container.bind<IJwtService>(TYPES.IJwtService).to(JwtService)
 
 
+
+
+
 // Admin
 container.bind<AdminAuthController>(TYPES.AdminAuthController).to(AdminAuthController)
 container.bind<IAdminAuthController>(TYPES.IAdminAuthController).to(AdminAuthController)
@@ -83,6 +90,10 @@ container.bind<CommunityAdminAuthController>(TYPES.CommunityAdminAuthController)
 container.bind<ICommunityAdminAuthService>(TYPES.ICommunityAdminAuthService).to(CommunityAdminAuthService)
 container.bind<ICommunityAdminRepository>(TYPES.ICommunityAdminRepository).to(CommunityAdminRepository)
 container.bind<ICommunityRequestRepository>(TYPES.ICommunityRequestRepository).to(CommunityRequestRepository)
+
+
+container.bind<IUserProfileController>(TYPES.IUserProfileController).to(UserProfileController)
+container.bind<IUserService>(TYPES.IUserService).to(UserService)
 
 
 export default container
