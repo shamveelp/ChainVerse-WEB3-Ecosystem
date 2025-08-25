@@ -90,6 +90,7 @@ export function LoginForm() {
       router.push("/")
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || "Login failed"
+      console.log("Login error:", err)
       toast({
         title: "Login Failed",
         description: errorMessage,

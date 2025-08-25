@@ -3,36 +3,36 @@ import { injectable, inject } from "inversify";
 import { IAdminAuthController } from "../../core/interfaces/controllers/admin/IAuthAdmin.controllers";
 import { IAdminAuthService } from "../../core/interfaces/services/admin/IAdminAuthService";
 import { TYPES } from "../../core/types/types";
-import { StatusCodes } from "../../constants/statusCodes";
-import { SuccessMessages, ErrorMessages } from "../../constants/messages";
 import logger from "../../utils/logger";
 import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuthService";
 import { IJwtService } from "../../core/interfaces/services/IJwtService";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { ICommunityRequestRepository } from "../../core/interfaces/repositories/ICommunityRequestRepository";
 import { ICommunityAdminAuthService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminAuthService";
+import { ErrorMessages } from "../../enums/messages.enum";
+
 
 @injectable()
 export class AdminAuthController implements IAdminAuthController {
   constructor(
-    @inject(TYPES.IAdminAuthService) private adminAuthService: IAdminAuthService,
-    @inject(TYPES.IUserAuthService) private userAuthService: IUserAuthService,
-    @inject(TYPES.IJwtService) private jwtService: IJwtService,
-    @inject(TYPES.ICommunityRequestRepository) private communityRequestRepo: ICommunityRequestRepository,
-    @inject(TYPES.ICommunityAdminAuthService) private communityAdminAuthService: ICommunityAdminAuthService,
+    @inject(TYPES.IAdminAuthService) private _adminAuthService: IAdminAuthService,
+    @inject(TYPES.IUserAuthService) private _userAuthService: IUserAuthService,
+    @inject(TYPES.IJwtService) private _jwtService: IJwtService,
+    @inject(TYPES.ICommunityRequestRepository) private _communityRequestRepo: ICommunityRequestRepository,
+    @inject(TYPES.ICommunityAdminAuthService) private _communityAdminAuthService: ICommunityAdminAuthService,
   ) {}
 
   async login(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
-      const { accessToken, refreshToken, admin } = await this.adminAuthService.login(email,password);
+      const { accessToken, refreshToken, admin } = await this._adminAuthService.login(email,password);
         //Set Cookies
-      this.jwtService.setTokens(res, accessToken, refreshToken);
-      res.status(StatusCodes.OK).json({ admin })
+      this._jwtService.setTokens(res, accessToken, refreshToken);
+      res.status(StatusCode.OK).json({ admin })
       logger.info("Admin logged in successfully");
     } catch (error: any) {
       logger.error("Admin login error:", error);
-      res.status(StatusCodes.UNAUTHORIZED).json({
+      res.status(StatusCode.UNAUTHORIZED).json({
         success: false,
         message: error.message || ErrorMessages.SERVER_ERROR,
       });
@@ -47,12 +47,12 @@ export class AdminAuthController implements IAdminAuthController {
         const limit = Number(req.query.limit) || 15;
         const search = String(req.query.search) || '';
 
-        const users = await this.userAuthService.getAllUsers(page, limit, search);
+        const users = await this._userAuthService.getAllUsers(page, limit, search);
         // console.log(users)
-        res.status(StatusCodes.OK).json({users});
+        res.status(StatusCode.OK).json({users});
     } catch (error: any) {
         logger.error("Get all users error:", error);
-        res.status(StatusCodes.BAD_REQUEST).json({
+        res.status(StatusCode.BAD_REQUEST).json({
             success: false,
             message: error.message || ErrorMessages.SERVER_ERROR,
         });
@@ -62,7 +62,7 @@ export class AdminAuthController implements IAdminAuthController {
   async getUserById(req: Request, res: Response): Promise<void> {
     try {
       const id = req.params.id;
-      const user = await this.userAuthService.getUserById(id);
+      const user = await this._userAuthService.getUserById(id);
       if (!user) {
         res.status(StatusCode.NOT_FOUND).json({ message: "User not found" });
         return;
@@ -79,7 +79,7 @@ export class AdminAuthController implements IAdminAuthController {
         const { id } = req.params;
         const { isBanned } = req.body;
 
-        const updatedUser = await this.userAuthService.updateUserStatus(id, { isBanned });
+        const updatedUser = await this._userAuthService.updateUserStatus(id, { isBanned });
 
         if (!updatedUser) {
             res.status(StatusCode.BAD_REQUEST).json({ message: "User not found" });
@@ -93,7 +93,7 @@ export class AdminAuthController implements IAdminAuthController {
   }
 
   logout(req: Request, res: Response) {
-    this.jwtService.clearTokens(res)
+    this._jwtService.clearTokens(res)
   }
 
 
@@ -104,7 +104,7 @@ export class AdminAuthController implements IAdminAuthController {
       const limit = Number(req.query.limit) || 10;
       const search = String(req.query.search) || '';
       
-      const requests = await this.communityRequestRepo.findAll(page, limit, search);
+      const requests = await this._communityRequestRepo.findAll(page, limit, search);
       res.status(StatusCode.OK).json(requests);
     } catch (error: any) {
       logger.error("Get community requests error:", error);
@@ -120,7 +120,7 @@ export class AdminAuthController implements IAdminAuthController {
       const { id } = req.params;
       
       // Update request status to approved
-      const updatedRequest = await this.communityRequestRepo.updateStatus(id, 'approved');
+      const updatedRequest = await this._communityRequestRepo.updateStatus(id, 'approved');
       if (!updatedRequest) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
@@ -130,7 +130,7 @@ export class AdminAuthController implements IAdminAuthController {
       }
 
       // Create community from request
-      await this.communityAdminAuthService.createCommunityFromRequest(id);
+      await this._communityAdminAuthService.createCommunityFromRequest(id);
 
       res.status(StatusCode.OK).json({
         success: true,
@@ -153,7 +153,7 @@ export class AdminAuthController implements IAdminAuthController {
       const { id } = req.params;
       const { reason } = req.body;
 
-      const updatedRequest = await this.communityRequestRepo.updateStatus(id, 'rejected');
+      const updatedRequest = await this._communityRequestRepo.updateStatus(id, 'rejected');
       if (!updatedRequest) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,

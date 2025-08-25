@@ -1,14 +1,14 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
+import type React from "react"
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
 import { useProfile } from "@/hooks/useProfile"
-import { Edit2, Upload, Check, X, Loader2, AlertCircle, Camera } from "lucide-react"
+import { Edit2, Check, X, Loader2, Camera } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function EditProfileModal() {
@@ -38,268 +38,204 @@ export default function EditProfileModal() {
     }
   }, [profile])
 
-  const handleUsernameChange = (value: string) => {
-    setFormData(prev => ({ ...prev, username: value }))
-    
-    // Clear existing timeout
-    if (usernameTimeout) {
-      clearTimeout(usernameTimeout)
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+
+    if (field === "username") {
+      if (usernameTimeout) {
+        clearTimeout(usernameTimeout)
+      }
+
+      const timeout = setTimeout(() => {
+        checkUsername(value)
+      }, 500)
+
+      setUsernameTimeout(timeout)
     }
-    
-    // Set new timeout for username check
-    const timeout = setTimeout(() => {
-      checkUsername(value)
-    }, 500)
-    
-    setUsernameTimeout(timeout)
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        alert("Image size should be less than 5MB")
+        return
+      }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert("File size must be less than 5MB")
-      return
+      setImageFile(file)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
     }
-
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file")
-      return
-    }
-
-    setImageFile(file)
-    
-    // Create preview
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setImagePreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(file)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    let updatedData = { ...formData }
-    
-    try {
-      // Upload image if changed
-      if (imageFile) {
-        setUploadingImage(true)
-        const imageUrl = await uploadProfileImage(imageFile)
-        updatedData.profilePic = imageUrl
+
+    let profilePicUrl = formData.profilePic
+
+    // Upload image if a new one was selected
+    if (imageFile) {
+      setUploadingImage(true)
+      try {
+        profilePicUrl = await uploadProfileImage(imageFile)
+      } catch (error) {
+        setUploadingImage(false)
+        return
       }
-      
-      const success = await updateUserProfile(updatedData)
-      if (success) {
-        setOpen(false)
-        setImageFile(null)
-      }
-    } catch (error) {
-      // Error handling is done in the hook
-    } finally {
       setUploadingImage(false)
     }
+
+    const success = await updateUserProfile({
+      ...formData,
+      profilePic: profilePicUrl,
+    })
+
+    if (success) {
+      setOpen(false)
+      setImageFile(null)
+    }
   }
 
-  const getUsernameValidationIcon = () => {
+  const getUsernameStatus = () => {
+    if (!formData.username || formData.username.length < 3) {
+      return { status: "neutral", message: "Username must be at least 3 characters" }
+    }
+
+    if (profile && formData.username === profile.username) {
+      return { status: "current", message: "Current username" }
+    }
+
     if (usernameCheck.checking) {
-      return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+      return { status: "checking", message: "Checking availability..." }
     }
-    
-    if (usernameCheck.available === true) {
-      return <Check className="h-4 w-4 text-green-500" />
+
+    if (usernameCheck.lastChecked === formData.username) {
+      return usernameCheck.available
+        ? { status: "available", message: "Username is available" }
+        : { status: "taken", message: "Username is already taken" }
     }
-    
-    if (usernameCheck.available === false) {
-      return <X className="h-4 w-4 text-red-500" />
-    }
-    
-    return null
+
+    return { status: "neutral", message: "" }
   }
 
-  const getUsernameValidationMessage = () => {
-    if (usernameCheck.checking) {
-      return "Checking availability..."
-    }
-    
-    if (usernameCheck.available === true) {
-      return "Username is available"
-    }
-    
-    if (usernameCheck.available === false) {
-      return "Username is not available"
-    }
-    
-    return ""
-  }
-
-  const isFormValid = () => {
-    return (
-      formData.name.trim().length >= 2 &&
-      formData.username.trim().length >= 3 &&
-      (usernameCheck.available === true || formData.username === profile?.username)
-    )
-  }
+  const usernameStatus = getUsernameStatus()
+  const isFormValid =
+    formData.name.trim() &&
+    formData.username.trim() &&
+    formData.username.length >= 3 &&
+    (usernameStatus.status === "available" || usernameStatus.status === "current")
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0">
+        <Button variant="outline" size="sm">
           <Edit2 className="h-4 w-4 mr-2" />
           Edit Profile
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Edit Profile
-          </DialogTitle>
+          <DialogTitle>Edit Profile</DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Profile Image */}
+          {/* Profile Image Section */}
           <div className="flex flex-col items-center space-y-4">
             <div className="relative">
-              <Avatar className="w-24 h-24 border-4 border-gradient-to-r from-blue-500 to-purple-500">
-                <AvatarImage src={imagePreview || profile?.profilePic} />
-                <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xl">
-                  {profile?.name
-                    ?.split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={imagePreview || "/placeholder.svg"} alt="Profile" />
+                <AvatarFallback className="text-lg">{formData.name?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
               </Avatar>
               <Button
                 type="button"
                 size="sm"
-                className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-blue-500 hover:bg-blue-600"
+                variant="secondary"
+                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingImage}
               >
-                {uploadingImage ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Camera className="h-4 w-4" />
-                )}
+                {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
               </Button>
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="hidden"
-            />
-            <p className="text-sm text-muted-foreground text-center">
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
+            <p className="text-xs text-muted-foreground text-center">
               Click the camera icon to change your profile picture
             </p>
           </div>
 
-          {/* Name Field */}
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium">
-              Full Name
-            </Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter your full name"
-              required
-              minLength={2}
-              className="focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Username Field */}
-          <div className="space-y-2">
-            <Label htmlFor="username" className="text-sm font-medium">
-              Username
-            </Label>
-            <div className="relative">
+          {/* Form Fields */}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Full Name *</Label>
               <Input
-                id="username"
-                value={formData.username}
-                onChange={(e) => handleUsernameChange(e.target.value)}
-                placeholder="Enter your username"
+                id="name"
+                value={formData.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                placeholder="Enter your full name"
                 required
-                minLength={3}
-                pattern="^[a-zA-Z0-9_]+$"
-                title="Username can only contain letters, numbers, and underscores"
-                className={cn(
-                  "pr-10 focus:ring-2",
-                  usernameCheck.available === true ? "focus:ring-green-500 border-green-500" :
-                  usernameCheck.available === false ? "focus:ring-red-500 border-red-500" :
-                  "focus:ring-blue-500"
-                )}
               />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                {getUsernameValidationIcon()}
-              </div>
             </div>
-            {getUsernameValidationMessage() && (
-              <p className={cn(
-                "text-xs",
-                usernameCheck.available === true ? "text-green-600" :
-                usernameCheck.available === false ? "text-red-600" :
-                "text-blue-600"
-              )}>
-                {getUsernameValidationMessage()}
-              </p>
-            )}
-          </div>
 
-          {/* Email Field (Read Only) */}
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email Address
-            </Label>
-            <Input
-              id="email"
-              value={profile?.email || ""}
-              readOnly
-              className="bg-gray-50 cursor-not-allowed"
-            />
-            <p className="text-xs text-muted-foreground">
-              Email cannot be changed
-            </p>
-          </div>
+            <div>
+              <Label htmlFor="username">Username *</Label>
+              <div className="relative">
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) =>
+                    handleInputChange("username", e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
+                  }
+                  placeholder="Enter username"
+                  className={cn(
+                    usernameStatus.status === "taken" && "border-red-500",
+                    usernameStatus.status === "available" && "border-green-500",
+                  )}
+                  required
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {usernameStatus.status === "checking" && (
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
+                  {usernameStatus.status === "available" && <Check className="h-4 w-4 text-green-500" />}
+                  {usernameStatus.status === "taken" && <X className="h-4 w-4 text-red-500" />}
+                </div>
+              </div>
+              {usernameStatus.message && (
+                <p
+                  className={cn(
+                    "text-xs mt-1",
+                    usernameStatus.status === "taken" && "text-red-500",
+                    usernameStatus.status === "available" && "text-green-500",
+                    usernameStatus.status === "checking" && "text-muted-foreground",
+                  )}
+                >
+                  {usernameStatus.message}
+                </p>
+              )}
+            </div>
 
-          {/* Phone Field */}
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="text-sm font-medium">
-              Phone Number
-            </Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-              placeholder="Enter your phone number"
-              className="focus:ring-2 focus:ring-blue-500"
-            />
+            <div>
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => handleInputChange("phone", e.target.value)}
+                placeholder="Enter phone number"
+                type="tel"
+              />
+            </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex space-x-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              className="flex-1"
-              disabled={loading || uploadingImage}
-            >
+          <div className="flex gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={!isFormValid() || loading || uploadingImage}
-              className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-            >
+            <Button type="submit" disabled={!isFormValid || loading || uploadingImage} className="flex-1">
               {loading || uploadingImage ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

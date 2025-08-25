@@ -137,3 +137,34 @@
 .animate-marquee {
   animation: marquee 20s linear infinite;
 }
+
+/* Custom animations for crypto-themed effects */
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.4; }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes text-glow {
+  0% { text-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+  50% { text-shadow: 0 0 15px rgba(59, 130, 246, 0.8); }
+  100% { text-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+}
+
+.animate-pulse {
+  animation: pulse 8s infinite ease-in-out;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-text-glow {
+  animation: text-glow 3s ease-in-out infinite;
+}
+

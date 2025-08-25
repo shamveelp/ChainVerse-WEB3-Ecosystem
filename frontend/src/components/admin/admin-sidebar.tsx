@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useSelector, useDispatch } from "react-redux"
-import { BarChart3, Calendar, Home, Package, Settings, ShoppingCart, Users, FileText, ChevronUp, LogOut, User, Coins, TrendingUp, Shield, Wallet, Activity, Database, Zap } from 'lucide-react'
+import { BarChart3, Calendar, Home, Package, Settings, ShoppingCart, Users, FileText, ChevronUp, LogOut, User, Coins, TrendingUp, Shield, Wallet, Activity, Database, Zap, ChartBar } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +43,12 @@ const menuItems = [
     // badge: "2.8K",
   },
   {
+    title: "Market",
+    url: "/admin/market-management",
+    icon: ChartBar,
+    // badge: "2.8K",
+  },
+  {
     title: "Community Requests",
     url: "/admin/community-requests",
     icon: Database,
@@ -52,7 +58,7 @@ const menuItems = [
     title: "Wallets",
     url: "/admin/wallet-management",
     icon: Wallet,
-    // badge: "1.2K",
+    badge: "1.2K",
   },
   {
     title: "Coins",

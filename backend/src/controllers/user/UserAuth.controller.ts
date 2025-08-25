@@ -7,10 +7,7 @@ import { IOTPService } from "../../core/interfaces/services/IOtpService";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { JwtService } from "../../utils/jwt";
 import logger from "../../utils/logger";
-import { IRedisClient } from "../../config/redis";
 import { OAuth2Client } from "google-auth-library";
-import { OAuthClient } from "../../utils/OAuthClient";
-import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import { IJwtService } from "../../core/interfaces/services/IJwtService";
 import passport from "passport";
 
@@ -22,7 +19,6 @@ export class UserAuthController implements IUserAuthController {
     @inject(TYPES.IUserAuthService) private _userAuthService: IUserAuthService,
     @inject(TYPES.IOtpService) private _otpService: IOTPService,
     @inject(TYPES.IJwtService) private _jwtService: IJwtService,
-    @inject(TYPES.OAuthClient) private _oauthClient: OAuth2Client,
   ) {
     this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
   }
@@ -35,10 +31,10 @@ export class UserAuthController implements IUserAuthController {
       res
         .status(StatusCode.OK)
         .json({ success:true,message: "OTP sent successfully", data: otpResponse });
-    } catch (error: any) {
+    } catch (error) {
       res
         .status(StatusCode.BAD_REQUEST)
-        .json({ message: "Error requesting OTP", error: error.message });
+        .json({ message: "Error requesting OTP", error: error });
       logger.error("Error requesting OTP", error);
     }
   };

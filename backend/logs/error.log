@@ -219,3 +219,16 @@
 2025-08-20T03:41:26.749Z [error]: Error verifying OTP Invalid OTP
 2025-08-20T04:02:18.876Z [error]: Error verifying forgot password OTP Invalid OTP
 2025-08-20T04:03:30.264Z [error]: Error verifying forgot password OTP Invalid OTP
+2025-08-20T08:13:01.375Z [error]: Error logging in Invalid password
+2025-08-25T12:30:00.800Z [error]: Error logging in User not found
+2025-08-25T12:31:05.670Z [error]: Error logging in Invalid password
+2025-08-25T13:59:49.937Z [error]: Error logging in Invalid password
+2025-08-25T14:00:28.328Z [error]: Error logging in Invalid password
+2025-08-25T14:01:48.703Z [error]: Error logging in Invalid password
+2025-08-25T14:01:52.748Z [error]: Error logging in Invalid password
+2025-08-25T14:02:04.899Z [error]: Error logging in Invalid password
+2025-08-25T14:05:19.145Z [error]: Error logging in Invalid password
+2025-08-25T14:05:47.619Z [error]: Error logging in Invalid password
+2025-08-25T14:05:53.340Z [error]: Error logging in Invalid password
+2025-08-25T14:06:58.537Z [error]: Error logging in Invalid password
+2025-08-25T14:07:44.148Z [error]: Error logging in Invalid password

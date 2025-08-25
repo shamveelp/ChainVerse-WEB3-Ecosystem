@@ -8,7 +8,6 @@ import { JwtService } from '../../utils/jwt';
 import { IAdmin } from '../../models/admin.model';
 import { IUser } from '../../models/user.models';
 import { TYPES } from '../../core/types/types';
-import { ErrorMessages } from '../../constants/messages';
 import { IJwtService } from '../../core/interfaces/services/IJwtService';
 
 @injectable()

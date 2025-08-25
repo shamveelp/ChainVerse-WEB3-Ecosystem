@@ -14,11 +14,11 @@ import { ICommunityRequestRepository } from "../../core/interfaces/repositories/
 @injectable()
 export class CommunityAdminAuthController implements ICommunityAdminAuthController {
     constructor(
-        @inject(TYPES.ICommunityAdminAuthService) private commAdminAuthService: ICommunityAdminAuthService,
-        @inject(TYPES.IJwtService) private jwtService: IJwtService,
-        @inject(TYPES.IOtpService) private otpService: IOTPService,
-        @inject(TYPES.ICommunityAdminRepository) private commAdminRepo: ICommunityAdminRepository,
-        @inject(TYPES.ICommunityRequestRepository) private communityRequestRepo: ICommunityRequestRepository
+        @inject(TYPES.ICommunityAdminAuthService) private _commAdminAuthService: ICommunityAdminAuthService,
+        @inject(TYPES.IJwtService) private _jwtService: IJwtService,
+        @inject(TYPES.IOtpService) private _otpService: IOTPService,
+        @inject(TYPES.ICommunityAdminRepository) private _commAdminRepo: ICommunityAdminRepository,
+        @inject(TYPES.ICommunityRequestRepository) private _communityRequestRepo: ICommunityRequestRepository
     ) {}
 
     async createCommunity(req: Request, res: Response): Promise<void> {
@@ -38,7 +38,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             } = req.body;
 
             
-            const existingRequest = await this.communityRequestRepo.findByEmail(email);
+            const existingRequest = await this._communityRequestRepo.findByEmail(email);
             if (existingRequest) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
@@ -48,7 +48,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             }
 
             
-            const communityRequest = await this.communityRequestRepo.create({
+            const communityRequest = await this._communityRequestRepo.create({
                 communityName,
                 email,
                 username,
@@ -84,7 +84,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             const { email, password } = req.body;
 
             
-            const communityRequest = await this.communityRequestRepo.findByEmail(email);
+            const communityRequest = await this._communityRequestRepo.findByEmail(email);
             if (!communityRequest) {
                 res.status(StatusCode.NOT_FOUND).json({
                     success: false,
@@ -94,7 +94,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             }
 
             
-            const existingAdmin = await this.commAdminRepo.findByEmail(email);
+            const existingAdmin = await this._commAdminRepo.findByEmail(email);
             if (existingAdmin) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
@@ -103,14 +103,14 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 return;
             }
 
-            await this.commAdminAuthService.registerCommunityAdmin({
+            await this._commAdminAuthService.registerCommunityAdmin({
                 email,
                 password,
                 name: communityRequest.username,
                 role: 'communityAdmin'
             });
 
-            await this.otpService.requestOtp(email, 'communityAdmin');
+            await this._otpService.requestOtp(email, 'communityAdmin');
 
             res.status(StatusCode.OK).json({
                 success: true,
@@ -131,7 +131,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const { email, otp } = req.body;
 
-            const isValid = await this.otpService.verifyOtp(email, otp);
+            const isValid = await this._otpService.verifyOtp(email, otp);
             if (!isValid) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
@@ -159,20 +159,20 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const { email, password } = req.body;
 
-            const communityAdmin = await this.commAdminAuthService.loginCommunityAdmin(email, password);
+            const communityAdmin = await this._commAdminAuthService.loginCommunityAdmin(email, password);
             
-            const accessToken = this.jwtService.generateAccessToken(
+            const accessToken = this._jwtService.generateAccessToken(
                 communityAdmin!._id.toString(), 
                 'communityAdmin',
                 communityAdmin!.tokenVersion ?? 0
             );
-            const refreshToken = this.jwtService.generateRefreshToken(
+            const refreshToken = this._jwtService.generateRefreshToken(
                 communityAdmin!._id.toString(), 
                 'communityAdmin',
                 communityAdmin!.tokenVersion ?? 0
             );
 
-            this.jwtService.setTokens(res, accessToken, refreshToken);
+            this._jwtService.setTokens(res, accessToken, refreshToken);
 
             res.status(StatusCode.OK).json({
                 success: true,
@@ -200,7 +200,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const { email } = req.body;
 
-            await this.otpService.requestForgotPasswordOtp(email, 'communityAdmin');
+            await this._otpService.requestForgotPasswordOtp(email, 'communityAdmin');
 
             res.status(StatusCode.OK).json({
                 success: true,
@@ -221,7 +221,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const { email, otp } = req.body;
 
-            const isValid = await this.otpService.verifyOtp(email, otp);
+            const isValid = await this._otpService.verifyOtp(email, otp);
             if (!isValid) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
@@ -249,7 +249,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const { email, password } = req.body;
 
-            await this.commAdminAuthService.resetPassword(email, password);
+            await this._commAdminAuthService.resetPassword(email, password);
 
             res.status(StatusCode.OK).json({
                 success: true,
@@ -267,7 +267,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
     }
 
     async logout(req: Request, res: Response): Promise<void> {
-        this.jwtService.clearTokens(res);
+        this._jwtService.clearTokens(res);
         res.status(StatusCode.OK).json({
             success: true,
             message: "Logged out successfully"
@@ -277,7 +277,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
     async getProfile(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
-            const communityAdmin = await this.commAdminRepo.findById(communityAdminId);
+            const communityAdmin = await this._commAdminRepo.findById(communityAdminId);
 
             if (!communityAdmin) {
                 res.status(StatusCode.NOT_FOUND).json({

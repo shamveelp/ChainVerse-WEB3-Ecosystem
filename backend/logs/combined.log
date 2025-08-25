@@ -901,3 +901,74 @@
 2025-08-20T04:03:17.789Z [info]: Generated OTP: 526650 for forgot password request for email: norman@gmail.com
 2025-08-20T04:03:30.264Z [error]: Error verifying forgot password OTP Invalid OTP
 2025-08-20T04:21:58.719Z [info]: MongoDB connected: localhost
+2025-08-20T07:08:30.311Z [info]: MongoDB connected: localhost
+2025-08-20T07:08:50.648Z [info]: MongoDB connected: localhost
+2025-08-20T07:09:50.940Z [info]: MongoDB connected: localhost
+2025-08-20T08:01:37.631Z [info]: MongoDB connected: localhost
+2025-08-20T08:13:01.375Z [error]: Error logging in Invalid password
+2025-08-20T10:04:44.175Z [info]: Admin logged in successfully
+2025-08-20T10:46:13.808Z [info]: MongoDB connected: localhost
+2025-08-20T10:47:59.424Z [info]: MongoDB connected: localhost
+2025-08-20T10:49:15.759Z [info]: MongoDB connected: localhost
+2025-08-20T10:51:47.683Z [info]: MongoDB connected: localhost
+2025-08-20T10:54:07.716Z [info]: MongoDB connected: localhost
+2025-08-20T10:59:49.094Z [info]: MongoDB connected: localhost
+2025-08-20T11:03:30.353Z [info]: MongoDB connected: localhost
+2025-08-20T11:04:41.331Z [info]: MongoDB connected: localhost
+2025-08-20T11:08:28.549Z [info]: MongoDB connected: localhost
+2025-08-25T09:22:06.955Z [info]: MongoDB connected: localhost
+2025-08-25T10:00:12.523Z [info]: MongoDB connected: localhost
+2025-08-25T10:12:14.104Z [info]: MongoDB connected: localhost
+2025-08-25T10:15:01.935Z [info]: MongoDB connected: localhost
+2025-08-25T10:15:39.393Z [info]: MongoDB connected: localhost
+2025-08-25T10:18:50.850Z [info]: MongoDB connected: localhost
+2025-08-25T10:49:49.981Z [info]: MongoDB connected: localhost
+2025-08-25T11:05:44.829Z [info]: MongoDB connected: localhost
+2025-08-25T11:50:40.230Z [info]: MongoDB connected: localhost
+2025-08-25T11:59:36.987Z [info]: MongoDB connected: localhost
+2025-08-25T12:00:05.424Z [info]: User logged out successfully
+2025-08-25T12:05:18.309Z [info]: MongoDB connected: localhost
+2025-08-25T12:10:20.665Z [info]: MongoDB connected: localhost
+2025-08-25T12:13:12.880Z [info]: MongoDB connected: localhost
+2025-08-25T12:14:13.430Z [info]: MongoDB connected: localhost
+2025-08-25T12:14:52.662Z [info]: MongoDB connected: localhost
+2025-08-25T12:15:11.064Z [info]: MongoDB connected: localhost
+2025-08-25T12:17:17.972Z [info]: MongoDB connected: localhost
+2025-08-25T12:18:12.198Z [info]: MongoDB connected: localhost
+2025-08-25T12:18:53.272Z [info]: MongoDB connected: localhost
+2025-08-25T12:19:26.082Z [info]: MongoDB connected: localhost
+2025-08-25T12:19:40.094Z [info]: MongoDB connected: localhost
+2025-08-25T12:20:26.476Z [info]: MongoDB connected: localhost
+2025-08-25T12:20:42.219Z [info]: MongoDB connected: localhost
+2025-08-25T12:30:00.800Z [error]: Error logging in User not found
+2025-08-25T12:30:58.604Z [info]: User logged out successfully
+2025-08-25T12:31:05.670Z [error]: Error logging in Invalid password
+2025-08-25T13:59:49.937Z [error]: Error logging in Invalid password
+2025-08-25T14:00:28.328Z [error]: Error logging in Invalid password
+2025-08-25T14:01:48.703Z [error]: Error logging in Invalid password
+2025-08-25T14:01:52.748Z [error]: Error logging in Invalid password
+2025-08-25T14:02:04.899Z [error]: Error logging in Invalid password
+2025-08-25T14:05:19.145Z [error]: Error logging in Invalid password
+2025-08-25T14:05:47.619Z [error]: Error logging in Invalid password
+2025-08-25T14:05:53.340Z [error]: Error logging in Invalid password
+2025-08-25T14:06:58.537Z [error]: Error logging in Invalid password
+2025-08-25T14:07:44.148Z [error]: Error logging in Invalid password
+2025-08-25T14:10:49.631Z [info]: MongoDB connected: localhost
+2025-08-25T14:11:15.638Z [info]: MongoDB connected: localhost
+2025-08-25T14:11:28.711Z [info]: MongoDB connected: localhost
+2025-08-25T14:11:38.426Z [info]: MongoDB connected: localhost
+2025-08-25T14:11:54.110Z [info]: MongoDB connected: localhost
+2025-08-25T14:12:09.711Z [info]: MongoDB connected: localhost
+2025-08-25T14:12:44.450Z [info]: MongoDB connected: localhost
+2025-08-25T14:12:56.894Z [info]: MongoDB connected: localhost
+2025-08-25T14:13:12.351Z [info]: MongoDB connected: localhost
+2025-08-25T14:13:37.715Z [info]: MongoDB connected: localhost
+2025-08-25T14:13:53.268Z [info]: MongoDB connected: localhost
+2025-08-25T14:14:04.898Z [info]: MongoDB connected: localhost
+2025-08-25T14:14:40.290Z [info]: MongoDB connected: localhost
+2025-08-25T14:16:28.989Z [info]: MongoDB connected: localhost
+2025-08-25T14:16:52.264Z [info]: MongoDB connected: localhost
+2025-08-25T14:17:16.535Z [info]: MongoDB connected: localhost
+2025-08-25T14:17:30.895Z [info]: MongoDB connected: localhost
+2025-08-25T14:18:23.970Z [info]: MongoDB connected: localhost
+2025-08-25T14:28:58.624Z [info]: Generated OTP: 265094 for email: ajsalajju@gmail.com

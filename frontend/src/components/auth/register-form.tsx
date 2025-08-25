@@ -3,7 +3,7 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Eye, EyeOff, Wallet, Loader2, User, Mail, Lock } from "lucide-react"
+import { Eye, EyeOff, User, Mail, Lock, Bitcoin, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -71,7 +71,7 @@ export function RegisterForm() {
       newErrors.password = "Password must be at least 6 characters"
     } else if (!passwordValidation(formData.password)) {
       newErrors.password =
-        "Password should have at least 8 chars, one uppercase, one lowercase, one number, one special char"
+        "Password must include uppercase, lowercase, number, and special character"
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -114,7 +114,8 @@ export function RegisterForm() {
 
       toast({
         title: "OTP Sent",
-        description: "Please check your email for the verification code",
+        description: "Check your email for the verification code",
+        className: "bg-green-600 text-white border-none",
       })
 
       router.push("/user/verify-otp")
@@ -144,122 +145,121 @@ export function RegisterForm() {
   }
 
   return (
-    <Card className="bg-slate-800/50 backdrop-blur-md border-blue-800/30">
+    <Card className="bg-gray-900/80 backdrop-blur-xl border border-blue-500/20 shadow-xl shadow-blue-500/10">
       <CardHeader className="text-center pb-4">
-        <CardTitle className="text-2xl font-bold text-gray-200">Create Account</CardTitle>
+        <CardTitle className="text-3xl font-bold text-white">Join CryptoVerse</CardTitle>
+        <p className="text-gray-400 text-sm mt-2">Securely create your trading account</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="w-full flex justify-center">
           <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
         </div>
 
-
         <div className="relative">
-          <Separator className="bg-slate-700" />
+          <Separator className="bg-gray-700" />
           <div className="absolute inset-0 flex justify-center">
-            <span className="bg-slate-800 px-3 text-sm text-gray-400">or register with email</span>
+            <span className="bg-gray-900 px-4 text-sm text-gray-400">or register with email</span>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-gray-300">
+            <label htmlFor="name" className="text-sm font-medium text-gray-200">
               Full Name
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
               <Input
                 id="name"
                 type="text"
                 placeholder="Your Name"
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                className="bg-slate-700/50 border-slate-600 text-white h-12 pl-10"
+                className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
               />
             </div>
             {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-gray-300">
-              Email
+            <label htmlFor="email" className="text-sm font-medium text-gray-200">
+              Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
               <Input
                 id="email"
                 type="email"
                 placeholder="Email Address"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                className="bg-slate-700/50 border-slate-600 text-white h-12 pl-10"
+                className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
               />
             </div>
             {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium text-gray-300">
+            <label htmlFor="password" className="text-sm font-medium text-gray-200">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
-                className="bg-slate-700/50 border-slate-600 text-white h-12 pl-10 pr-12"
+                className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 pr-12 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-400"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </Button>
             </div>
             {errors.password && <p className="text-red-400 text-sm">{errors.password}</p>}
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-300">
+            <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-200">
               Confirm Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                className="bg-slate-700/50 border-slate-600 text-white h-12 pl-10 pr-12"
+                className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 pr-12 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-400"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </Button>
             </div>
             {errors.confirmPassword && <p className="text-red-400 text-sm">{errors.confirmPassword}</p>}
           </div>
 
-          {/* Terms and Conditions */}
           <div className="flex items-center space-x-2 text-sm">
             <input
               type="checkbox"
               id="terms"
               checked={agreeTerms}
               onChange={() => setAgreeTerms(!agreeTerms)}
-              className="h-4 w-4 rounded accent-blue-600"
+              className="h-4 w-4 rounded accent-blue-600 border-blue-500/30"
             />
             <label htmlFor="terms" className="text-gray-300">
               I agree to the{" "}
@@ -276,26 +276,26 @@ export function RegisterForm() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white h-12 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white h-12 rounded-lg font-semibold shadow-lg shadow-blue-500/30 disabled:opacity-50 transition-all"
           >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Creating Account...
               </>
             ) : (
               <>
-                <User className="mr-2 h-4 w-4" />
-                CREATE ACCOUNT
+                <Bitcoin className="mr-2 h-5 w-5" />
+                JOIN NOW
               </>
             )}
           </Button>
         </form>
 
         <div className="text-center">
-          <p className="text-gray-400">
+          <p className="text-gray-400 text-sm">
             Already have an account?{" "}
-            <Link href="/user/login" className="text-blue-400 hover:text-blue-300 font-medium">
+            <Link href="/user/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
               Sign In
             </Link>
           </p>
@@ -304,3 +304,6 @@ export function RegisterForm() {
     </Card>
   )
 }
+
+
+

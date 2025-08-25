@@ -1,3 +1,4 @@
+"use client"
 import Link from "next/link"
 import { RegisterForm } from "@/components/auth/register-form"
 import { PreventLoggedIn } from "@/redirects/userRedirects"
@@ -5,21 +6,21 @@ import { PreventLoggedIn } from "@/redirects/userRedirects"
 export default function RegisterPage() {
   return (
     <PreventLoggedIn>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 blur-3xl"></div>
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
-        <div className="relative w-full max-w-md">
-          {/* Logo */}
-          <div className="text-center mb-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Animated Background Effects */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(59,130,246,0.2)_0%,_transparent_70%)] animate-pulse"></div>
+        <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-spin-slow"></div>
+        <div className="absolute bottom-10 right-10 w-72 h-72 bg-green-500/10 rounded-full blur-3xl animate-spin-slow"></div>
+        <div className="relative w-full max-w-lg">
+          {/* Logo and Branding */}
+          <div className="text-center mb-10">
             <Link
               href="/"
-              className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+              className="text-4xl font-extrabold bg-gradient-to-r from-blue-400 via-green-400 to-purple-400 bg-clip-text text-transparent animate-text-glow"
             >
-              ChainVerse
+              CryptoVerse
             </Link>
-            <p className="text-gray-400 mt-2">Join the Web3 Revolution</p>
+            <p className="text-gray-300 mt-3 text-lg font-medium">Trade the Future of Finance</p>
           </div>
           <RegisterForm />
         </div>

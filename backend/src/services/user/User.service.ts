@@ -10,12 +10,12 @@ import { StatusCode } from "../../enums/statusCode.enum";
 @injectable()
 export class UserService implements IUserService {
     constructor(
-        @inject(TYPES.IUserRepository) private userRepository: IUserRepository
+        @inject(TYPES.IUserRepository) private _userRepository: IUserRepository
     ) {}
 
     async getProfile(userId: string): Promise<IUser | null> {
         try {
-            const user = await this.userRepository.findById(userId);
+            const user = await this._userRepository.findById(userId);
             return user;
         } catch (error) {
             throw new CustomError("Failed to fetch user profile", StatusCode.INTERNAL_SERVER_ERROR);
@@ -26,7 +26,7 @@ export class UserService implements IUserService {
         try {
             // Check if username is being changed and is unique
             if (data.username) {
-                const existingUser = await this.userRepository.findByUsername(data.username);
+                const existingUser = await this._userRepository.findByUsername(data.username);
                 if (existingUser && existingUser._id.toString() !== userId) {
                     throw new CustomError("Username is already taken", StatusCode.BAD_REQUEST);
                 }
@@ -35,8 +35,8 @@ export class UserService implements IUserService {
             // Remove sensitive fields that shouldn't be updated via this method
             const { password, email, isEmailVerified, role, googleId, ...updateData } = data;
 
-            await this.userRepository.updateUser(userId, updateData);
-            return await this.userRepository.findById(userId);
+            await this._userRepository.updateUser(userId, updateData);
+            return await this._userRepository.findById(userId);
         } catch (error) {
             if (error instanceof CustomError) {
                 throw error;
@@ -47,7 +47,7 @@ export class UserService implements IUserService {
 
     async updatePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
         try {
-            const user = await this.userRepository.findById(userId);
+            const user = await this._userRepository.findById(userId);
             if (!user) {
                 throw new CustomError("User not found", StatusCode.NOT_FOUND);
             }
@@ -61,7 +61,7 @@ export class UserService implements IUserService {
             }
 
             const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-            await this.userRepository.updateUser(userId, { password: hashedNewPassword });
+            await this._userRepository.updateUser(userId, { password: hashedNewPassword });
         } catch (error) {
             if (error instanceof CustomError) {
                 throw error;
@@ -72,7 +72,7 @@ export class UserService implements IUserService {
 
     async checkUsernameAvailability(username: string, currentUserId?: string): Promise<boolean> {
         try {
-            const existingUser = await this.userRepository.findByUsername(username);
+            const existingUser = await this._userRepository.findByUsername(username);
             if (!existingUser) {
                 return true; // Username is available
             }

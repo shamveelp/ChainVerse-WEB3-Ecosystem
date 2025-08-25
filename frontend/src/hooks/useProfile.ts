@@ -1,34 +1,38 @@
 "use client"
+
+import { useCallback } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { useEffect, useCallback } from "react"
-import { RootState } from "@/redux/store"
-import { useToast } from "@/hooks/use-toast"
-import * as userApiService from "@/services/userApiServices"
+import type { RootState } from "@/redux/store"
 import {
-  setLoading,
   setProfile,
   updateProfile,
+  setLoading,
   setError,
   clearError,
   setUsernameChecking,
   setUsernameAvailable,
   clearUsernameCheck,
 } from "@/redux/slices/userProfileSlice"
+import { userApiService } from "@/services/userApiServices"
+import { useToast } from "@/hooks/use-toast"
 import { login } from "@/redux/slices/userAuthSlice"
 
 export function useProfile() {
   const dispatch = useDispatch()
   const { toast } = useToast()
-  
+
   const { profile, loading, error, usernameCheck } = useSelector((state: RootState) => state.userProfile)
   const { user, token } = useSelector((state: RootState) => state.userAuth)
 
   const fetchProfile = useCallback(async () => {
-    if (!token) return
-    
+    if (!token) {
+      dispatch(setError("No authentication token found"))
+      return
+    }
+
     dispatch(setLoading(true))
     dispatch(clearError())
-    
+
     try {
       const response = await userApiService.getProfile()
       if (response.success && response.data) {
@@ -38,10 +42,15 @@ export function useProfile() {
       }
     } catch (error: any) {
       dispatch(setError(error.message))
+      toast({
+        title: "Error",
+        description: error.message || "Failed to fetch profile",
+        variant: "destructive",
+      })
     } finally {
       dispatch(setLoading(false))
     }
-  }, [dispatch, token])
+  }, [dispatch, token, toast])
 
   const updateUserProfile = async (profileData: {
     name: string
@@ -51,24 +60,26 @@ export function useProfile() {
   }) => {
     dispatch(setLoading(true))
     dispatch(clearError())
-    
+
     try {
       const response = await userApiService.updateProfile(profileData)
       if (response.success && response.data) {
         dispatch(updateProfile(response.data))
-        
+
         // Update the auth user data as well
         if (user) {
-          dispatch(login({ 
-            user: { 
-              ...user, 
-              name: response.data.name,
-              profileImage: response.data.profilePic 
-            }, 
-            token: token! 
-          }))
+          dispatch(
+            login({
+              user: {
+                ...user,
+                name: response.data.name,
+                profileImage: response.data.profilePic,
+              },
+              token: token!,
+            }),
+          )
         }
-        
+
         toast({
           title: "Profile Updated",
           description: "Your profile has been successfully updated.",
@@ -95,20 +106,20 @@ export function useProfile() {
       dispatch(clearUsernameCheck())
       return
     }
-    
+
     // Don't check if it's the current username
     if (profile && username === profile.username) {
       dispatch(setUsernameAvailable({ available: true, username }))
       return
     }
-    
+
     // Don't check if we just checked this username
     if (usernameCheck.lastChecked === username) {
       return
     }
-    
+
     dispatch(setUsernameChecking(true))
-    
+
     try {
       const response = await userApiService.checkUsernameAvailability(username)
       if (response.success) {
@@ -136,13 +147,6 @@ export function useProfile() {
       throw error
     }
   }
-
-  // Auto-fetch profile when component mounts and user is authenticated
-  useEffect(() => {
-    if (token && !profile && !loading) {
-      fetchProfile()
-    }
-  }, [token, profile, loading, fetchProfile])
 
   return {
     profile,
