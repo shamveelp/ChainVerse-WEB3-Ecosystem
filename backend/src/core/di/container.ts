@@ -4,7 +4,7 @@ import { OAuthClient } from "../../utils/OAuthClient"
 
 // Controllers
 import type { IUserAuthController } from "../interfaces/controllers/user/IUserAuth.controllers"
-import { UserAuthController } from "../../controllers/user/UserAuth.controller"
+import { UserAuthController } from "../../controllers/user/userAuth.controller"
 // import { IAdminAuthController } from "../interfaces/controllers/admin/IAuthAdmin.controllers" // Commented out as per your code
 
 // Services
@@ -22,14 +22,14 @@ import { OtpRepository } from "../../repositories/otp.repository"
 import type { IMailService } from "../interfaces/services/IMailService"
 import { MailService } from "../../services/mail.service"
 import { IJwtService } from "../interfaces/services/IJwtService"
-import { AdminAuthController } from "../../controllers/admin/AdminAuth.controller"
+import { AdminAuthController } from "../../controllers/admin/adminAuth.controller"
 import { IAdminAuthController } from "../interfaces/controllers/admin/IAuthAdmin.controllers"
 import { IAdminAuthService } from "../interfaces/services/admin/IAdminAuthService"
 import { AdminAuthService } from "../../services/admin/AdminAuth.service"
 import { IAdminRepository } from "../interfaces/repositories/IAdminRepository"
 import { AdminRepository } from "../../repositories/admin.repository"
 import { ICommunityAdminAuthController } from "../interfaces/controllers/communityAdmin/ICommunityAdminAuth.controller"
-import { CommunityAdminAuthController } from "../../controllers/communityAdmin/CommunityAdminAuth.controller"
+import { CommunityAdminAuthController } from "../../controllers/communityAdmin/communityAdminAuth.controller"
 import { ICommunityAdminAuthService } from "../interfaces/services/communityAdmin/ICommunityAdminAuthService"
 import { CommunityAdminAuthService } from "../../services/communityAdmin/CommunityAdminAuth.service"
 import { ICommunityAdminRepository } from "../interfaces/repositories/ICommunityAdminRepository"
@@ -37,7 +37,7 @@ import { CommunityAdminRepository } from "../../repositories/communityAdmin.repo
 import { ICommunityRequestRepository } from "../interfaces/repositories/ICommunityRequestRepository"
 import { CommunityRequestRepository } from "../../repositories/communityRequest.repository"
 import { IUserProfileController } from "../interfaces/controllers/user/IUserProfile.controller"
-import { UserProfileController } from "../../controllers/user/UserProfile.controller"
+import { UserProfileController } from "../../controllers/user/userProfile.controller"
 import { IUserService } from "../interfaces/services/user/IUserService"
 import { UserService } from "../../services/user/User.service"
 // import { IRedisClient } from "../../config/redis" // Commented out as per your code

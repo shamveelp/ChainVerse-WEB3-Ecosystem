@@ -972,3 +972,57 @@
 2025-08-25T14:17:30.895Z [info]: MongoDB connected: localhost
 2025-08-25T14:18:23.970Z [info]: MongoDB connected: localhost
 2025-08-25T14:28:58.624Z [info]: Generated OTP: 265094 for email: ajsalajju@gmail.com
+2025-08-25T15:45:12.804Z [info]: MongoDB connected: localhost
+2025-08-26T03:53:08.331Z [info]: MongoDB connected: localhost
+2025-08-26T04:10:58.582Z [info]: MongoDB connected: localhost
+2025-08-26T04:11:12.332Z [info]: MongoDB connected: localhost
+2025-08-26T04:12:10.049Z [info]: MongoDB connected: localhost
+2025-08-26T04:14:10.866Z [info]: MongoDB connected: localhost
+2025-08-26T04:18:55.331Z [info]: MongoDB connected: localhost
+2025-08-26T04:19:27.446Z [info]: MongoDB connected: localhost
+2025-08-26T04:19:53.581Z [info]: MongoDB connected: localhost
+2025-08-26T04:20:16.767Z [info]: MongoDB connected: localhost
+2025-08-26T04:20:24.512Z [info]: MongoDB connected: localhost
+2025-08-26T04:20:39.609Z [info]: MongoDB connected: localhost
+2025-08-26T04:21:25.074Z [info]: MongoDB connected: localhost
+2025-08-26T04:23:03.811Z [info]: MongoDB connected: localhost
+2025-08-26T04:23:47.733Z [info]: MongoDB connected: localhost
+2025-08-26T04:24:10.990Z [info]: MongoDB connected: localhost
+2025-08-26T04:24:34.313Z [info]: MongoDB connected: localhost
+2025-08-26T04:24:43.336Z [info]: MongoDB connected: localhost
+2025-08-26T04:24:58.823Z [info]: MongoDB connected: localhost
+2025-08-26T04:25:21.650Z [info]: MongoDB connected: localhost
+2025-08-26T04:25:37.767Z [info]: MongoDB connected: localhost
+2025-08-26T04:26:05.332Z [info]: MongoDB connected: localhost
+2025-08-26T04:26:18.365Z [info]: MongoDB connected: localhost
+2025-08-26T04:26:33.454Z [info]: MongoDB connected: localhost
+2025-08-26T04:26:39.275Z [info]: MongoDB connected: localhost
+2025-08-26T04:27:00.405Z [info]: MongoDB connected: localhost
+2025-08-26T04:27:06.008Z [info]: MongoDB connected: localhost
+2025-08-26T04:30:07.275Z [info]: MongoDB connected: localhost
+2025-08-26T04:30:12.365Z [info]: MongoDB connected: localhost
+2025-08-26T04:42:28.472Z [info]: Admin logged in successfully
+2025-08-26T04:42:46.402Z [error]: Admin login error: Invalid Credentials
+2025-08-26T04:42:56.869Z [error]: Admin login error: Invalid Credentials
+2025-08-26T04:42:58.180Z [error]: Admin login error: Invalid Credentials
+2025-08-26T04:42:58.977Z [error]: Admin login error: Invalid Credentials
+2025-08-26T04:44:07.696Z [error]: Admin login error: Invalid credentials
+2025-08-26T04:44:36.373Z [error]: Admin login error: Invalid credentials
+2025-08-26T04:44:46.723Z [error]: Admin login error: Invalid credentials
+2025-08-26T04:45:05.390Z [error]: Admin login error: Invalid credentials
+2025-08-26T04:53:35.287Z [info]: User logged out successfully
+2025-08-26T04:53:56.403Z [error]: Error logging in User not found
+2025-08-26T04:54:06.232Z [error]: Error logging in User not found
+2025-08-26T04:54:31.772Z [error]: Error logging in User not found
+2025-08-26T04:54:37.669Z [error]: Error logging in User not found
+2025-08-26T04:54:42.382Z [error]: Error logging in User not found
+2025-08-26T04:54:44.157Z [error]: Error logging in User not found
+2025-08-26T04:54:44.720Z [error]: Error logging in User not found
+2025-08-26T04:54:44.844Z [error]: Error logging in User not found
+2025-08-26T04:54:45.021Z [error]: Error logging in User not found
+2025-08-26T04:54:45.334Z [error]: Error logging in User not found
+2025-08-26T04:54:45.459Z [error]: Error logging in User not found
+2025-08-26T04:54:51.711Z [error]: Error logging in User not found
+2025-08-26T05:00:20.626Z [error]: Error logging in User not found
+2025-08-26T05:00:37.642Z [info]: Admin logged in successfully
+2025-08-26T05:02:00.112Z [info]: Generated OTP: 500986 for email: norman@gmail.com

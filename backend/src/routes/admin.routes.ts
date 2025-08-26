@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import container from '../core/di/container';
 import {TYPES} from '../core/types/types';
-import { AdminAuthController } from '../controllers/admin/AdminAuth.controller';
+import { AdminAuthController } from '../controllers/admin/adminAuth.controller';
 const router = Router();
 
 const adminAuthController = container.get<AdminAuthController>(TYPES.IAdminAuthController);

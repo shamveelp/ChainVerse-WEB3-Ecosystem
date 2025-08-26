@@ -1,6 +1,5 @@
 import { injectable, inject } from "inversify";
 import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuthService";
-import { IBaseRepository } from "../../core/interfaces/repositories/iBase.repository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import { TYPES } from "../../core/types/types";
 import bcrypt from "bcrypt";

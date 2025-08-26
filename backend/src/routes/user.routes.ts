@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import container from '../core/di/container';
-import { UserAuthController } from '../controllers/user/UserAuth.controller';
+import { UserAuthController } from '../controllers/user/userAuth.controller';
 import { TYPES } from '../core/types/types';
 import { authMiddleware } from '../middlewares/auth.middleware';
-import { UserProfileController } from '../controllers/user/UserProfile.controller';
+import { UserProfileController } from '../controllers/user/userProfile.controller';
 
 const router = Router();
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import container from '../core/di/container';
 import { TYPES } from '../core/types/types';
-import { CommunityAdminAuthController } from '../controllers/communityAdmin/CommunityAdminAuth.controller';
+import { CommunityAdminAuthController } from '../controllers/communityAdmin/communityAdminAuth.controller';
 
 const router = Router();
 const communityAdminAuthController = container.get<CommunityAdminAuthController>(TYPES.ICommunityAdminAuthController);
