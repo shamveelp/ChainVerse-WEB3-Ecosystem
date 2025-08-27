@@ -253,3 +253,63 @@
 2025-08-26T04:54:45.459Z [error]: Error logging in User not found
 2025-08-26T04:54:51.711Z [error]: Error logging in User not found
 2025-08-26T05:00:20.626Z [error]: Error logging in User not found
+2025-08-26T05:03:40.224Z [error]: Error requesting OTP Email is already registered, Please Login
+2025-08-26T05:17:39.976Z [error]: Error logging in Invalid password
+2025-08-26T08:03:15.202Z [error]: Error logging in Incorrect email or password
+2025-08-26T08:03:19.955Z [error]: Error logging in Incorrect email or password
+2025-08-26T09:23:35.827Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:25:35.995Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:28:16.984Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:29:01.643Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:33:42.166Z [error]: Error verifying OTP OTP has expired
+2025-08-26T09:34:01.695Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:35:31.456Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:37:16.178Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:37:57.070Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:41:42.669Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:49:09.032Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:49:43.145Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:50:47.090Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:51:25.288Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T11:06:19.886Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:06:55.795Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:06:57.761Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:02.145Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:02.795Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:03.553Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:03.886Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:04.105Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:04.357Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:08.425Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:08.987Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:09.548Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:08:18.458Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:08:23.542Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:17:07.683Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:18:27.252Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:03:12.459Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:04:32.272Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:04:45.001Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:04:56.612Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:05:20.399Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:05:26.442Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:08:45.636Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:09:16.912Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:09:39.138Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:29:18.888Z [error]: Error logging in connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-08-26T12:30:03.956Z [error]: Error logging in connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-08-26T12:33:55.587Z [error]: Error logging in Incorrect email or password
+2025-08-26T19:43:05.081Z [error]: Error logging in Incorrect email or password
+2025-08-26T19:46:48.112Z [error]: Error checking username [
+  {
+    "origin": "string",
+    "code": "too_small",
+    "minimum": 4,
+    "inclusive": true,
+    "path": [
+      "username"
+    ],
+    "message": "Username must be at least 4 characters long"
+  }
+]
+2025-08-27T07:29:54.941Z [error]: Error logging in Incorrect email or password

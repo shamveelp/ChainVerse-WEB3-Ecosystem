@@ -1,10 +1,14 @@
 import { Model, FilterQuery, UpdateQuery, Document } from "mongoose";
-import { IBaseRepository } from "../core/interfaces/repositories/iBase.repository";
+import { IBaseRepository } from "../core/interfaces/repositories/IBase.repository";
+import { UserModel, IUser } from "../models/user.models";
+
+
 
 export abstract class BaseRepository<T extends Document> implements IBaseRepository<T> {
     constructor(protected readonly model: Model<T>) { }
 
     async create(item: Partial<T>): Promise<T> {
+        console.log("ideel", item)
         return await this.model.create(item);
     }
 
@@ -12,9 +16,9 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
         return await this.model.findById(id);
     }
 
-    async findAll(): Promise<T[]> {
-        return await this.model.find();
-    }
+    // async findAll(): Promise<T[]> {
+    //     return await this.model.find();
+    // }
 
     async findOne(filtered: FilterQuery<T>): Promise<T | null> {
         return await this.model.findOne(filtered);

@@ -40,6 +40,12 @@ import { IUserProfileController } from "../interfaces/controllers/user/IUserProf
 import { UserProfileController } from "../../controllers/user/userProfile.controller"
 import { IUserService } from "../interfaces/services/user/IUserService"
 import { UserService } from "../../services/user/User.service"
+// import { WalletController } from "../../controllers/user/wallet.controller"
+// import { IWalletController } from "../interfaces/controllers/user/IWallet.controller"
+// import { IWalletRepository } from "../interfaces/repositories/IWalletRepository"
+// import { WalletRepository } from "../../repositories/wallet.repository"
+// import { IWalletService } from "../interfaces/services/user/IWalletService"
+// import { WalletService } from "../../services/user/Wallet.service"
 // import { IRedisClient } from "../../config/redis" // Commented out as per your code
 // import redisClient from "../../config/redis" // Commented out as per your code
 
@@ -94,6 +100,12 @@ container.bind<ICommunityRequestRepository>(TYPES.ICommunityRequestRepository).t
 
 container.bind<IUserProfileController>(TYPES.IUserProfileController).to(UserProfileController)
 container.bind<IUserService>(TYPES.IUserService).to(UserService)
+
+// Wallet
+// container.bind<IWalletController>(TYPES.WalletController).to(WalletController);
+// container.bind<IWalletService>(TYPES.IWalletService).to(WalletService);
+// container.bind<IWalletRepository>(TYPES.IWalletRepository).to(WalletRepository);
+
 
 
 export default container

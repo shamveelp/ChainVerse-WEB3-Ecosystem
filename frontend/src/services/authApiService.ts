@@ -17,10 +17,26 @@ export const login = async (email: string, password: string) => {
   }
 }
 
-export const signup = async (name: string, email: string, password: string, otp: string) => {
+export const register = async (username: string, email: string, password: string) => {
+  try {
+    const response = await API.post("/api/user/register", { username, email, password })
+    return {
+      success: true,
+      message: response.data.message || "Registration successful, OTP sent",
+    }
+  } catch (error: any) {
+    console.error("Register error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Registration failed",
+    }
+  }
+}
+
+export const signup = async (username: string, email: string, password: string, otp: string) => {
   try {
     const response = await API.post("/api/user/verify-otp", {
-      name,
+      username,
       email,
       password,
       otp,
@@ -35,6 +51,38 @@ export const signup = async (name: string, email: string, password: string, otp:
     return {
       success: false,
       error: error.response?.data?.error || error.response?.data?.message || error.message || "Signup failed",
+    }
+  }
+}
+
+export const checkUsername = async (username: string) => {
+  try {
+    const response = await API.post("/api/user/check-username", { username })
+    return {
+      success: true,
+      available: response.data.available,
+    }
+  } catch (error: any) {
+    console.error("Check username error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to check username",
+    }
+  }
+}
+
+export const generateUsername = async () => {
+  try {
+    const response = await API.get("/api/user/generate-username")
+    return {
+      success: true,
+      username: response.data.username,
+    }
+  } catch (error: any) {
+    console.error("Generate username error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to generate username",
     }
   }
 }
@@ -134,18 +182,20 @@ export const googleLogin = async (credential: string) => {
   }
 }
 
-
-
-
-// Admin Auth
-
 export const adminLogin = async (email: string, password: string) => {
   try {
     const response = await API.post("/api/admin/login", { email, password })
-    return response.data
+    return {
+      success: true,
+      user: response.data.user,
+      token: response.data.accessToken || response.data.token,
+    }
   } catch (error: any) {
     console.error("Admin login error:", error.response?.data || error.message)
-    throw error
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Admin login failed",
+    }
   }
 }
 
@@ -155,10 +205,9 @@ export const adminLogout = async () => {
     return { success: true }
   } catch (error: any) {
     console.error("Admin logout error:", error.response?.data || error.message)
-    throw error
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Admin logout failed",
+    }
   }
 }
-
-
-
-

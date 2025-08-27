@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import ClientLayout from "./clientLayout"
 import { ThemeProvider } from "@/components/theme-provider"
+import { ThirdwebProvider } from "thirdweb/react";
 
 
 export const metadata: Metadata = {
@@ -23,7 +24,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <ThirdwebProvider>
+
+            {children}
+          </ThirdwebProvider>
         </ThemeProvider>
 
     </ClientLayout>

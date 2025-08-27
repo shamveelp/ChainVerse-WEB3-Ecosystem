@@ -66,7 +66,7 @@ export default function Navbar() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-popover border-border">
                     <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
-                      <Link href="/user/trade/swap">Swap</Link>
+                      <Link href="/trade/swap">Swap</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
                       <Link href="/bridge">Bridge</Link>
@@ -144,13 +144,10 @@ export default function Navbar() {
                   <DropdownMenuTrigger className="flex items-center space-x-2 text-foreground hover:text-primary">
                     <Avatar className="w-8 h-8">
                       <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                        {user.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
+                        {user.username}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-sm font-medium">{user.name}</span>
+                    <span className="text-sm font-medium">{user.username}</span>
                     <ChevronDown className="h-4 w-4" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-popover border-border w-48">
@@ -249,13 +246,10 @@ export default function Navbar() {
                             <div className="flex items-center space-x-2 mb-2">
                               <Avatar className="w-6 h-6">
                                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                                  {user.name
-                                    .split(" ")
-                                    .map((n) => n[0])
-                                    .join("")}
+                                  {user.username}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="text-foreground text-sm font-medium">{user.name}</span>
+                              <span className="text-foreground text-sm font-medium">{user.username}</span>
                             </div>
                           </div>
                           <Link href="/my-profile">

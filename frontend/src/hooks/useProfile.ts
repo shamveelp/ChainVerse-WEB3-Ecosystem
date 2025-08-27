@@ -1,162 +1,170 @@
-"use client"
+// frontend/src/hooks/useProfile.ts
+"use client";
+import { useState, useCallback, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/redux/store";
+import { userApiService } from "@/services/userApiServices";
+import { login, setLoading } from "@/redux/slices/userAuthSlice";
 
-import { useCallback } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import type { RootState } from "@/redux/store"
-import {
-  setProfile,
-  updateProfile,
-  setLoading,
-  setError,
-  clearError,
-  setUsernameChecking,
-  setUsernameAvailable,
-  clearUsernameCheck,
-} from "@/redux/slices/userProfileSlice"
-import { userApiService } from "@/services/userApiServices"
-import { useToast } from "@/hooks/use-toast"
-import { login } from "@/redux/slices/userAuthSlice"
+interface UserType {
+  _id: string;
+  username: string;
+  email: string;
+  profileImage?: string;
+  name?: string;
+  phone?: string;
+  createdAt?: string;
+  stats?: {
+    achievements?: number;
+    completedGoals?: number;
+    currentStreak?: number;
+  };
+}
 
-export function useProfile() {
-  const dispatch = useDispatch()
-  const { toast } = useToast()
+interface UsernameCheck {
+  checking: boolean;
+  available: boolean;
+  lastChecked: string;
+}
 
-  const { profile, loading, error, usernameCheck } = useSelector((state: RootState) => state.userProfile)
-  const { user, token } = useSelector((state: RootState) => state.userAuth)
+export const useProfile = () => {
+  const dispatch = useDispatch();
+  const { user, token, isAuthenticated } = useSelector((state: RootState) => state.userAuth);
+  const [profile, setProfile] = useState<UserType | null>(null);
+  const [loading, setLocalLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [usernameCheck, setUsernameCheck] = useState<UsernameCheck>({
+    checking: false,
+    available: false,
+    lastChecked: "",
+  });
 
   const fetchProfile = useCallback(async () => {
-    if (!token) {
-      dispatch(setError("No authentication token found"))
-      return
-    }
-
-    dispatch(setLoading(true))
-    dispatch(clearError())
-
+    dispatch(setLoading(true));
+    setLocalLoading(true);
+    setError(null);
     try {
-      const response = await userApiService.getProfile()
+      const response = await userApiService.getProfile();
       if (response.success && response.data) {
-        dispatch(setProfile(response.data))
+        const userData: UserType = {
+          _id: response.data._id,
+          username: response.data.username,
+          email: response.data.email,
+          // profileImage: response.data.profilePic,
+          name: response.data.name,
+          phone: response.data.phone,
+          createdAt: response.data.createdAt,
+          stats: response.data.stats,
+        };
+        setProfile(userData);
+        dispatch(login({ user: userData, token: token || "" })); // Update Redux with user data
       } else {
-        throw new Error(response.error || "Failed to fetch profile")
+        setError(response.error || "Failed to fetch profile");
       }
-    } catch (error: any) {
-      dispatch(setError(error.message))
-      toast({
-        title: "Error",
-        description: error.message || "Failed to fetch profile",
-        variant: "destructive",
-      })
+    } catch (err: any) {
+      setError(err.message || "Failed to fetch profile");
     } finally {
-      dispatch(setLoading(false))
+      dispatch(setLoading(false));
+      setLocalLoading(false);
     }
-  }, [dispatch, token, toast])
+  }, [dispatch, token]);
 
-  const updateUserProfile = async (profileData: {
-    name: string
-    username: string
-    phone?: string
-    profilePic?: string
-  }) => {
-    dispatch(setLoading(true))
-    dispatch(clearError())
-
-    try {
-      const response = await userApiService.updateProfile(profileData)
-      if (response.success && response.data) {
-        dispatch(updateProfile(response.data))
-
-        // Update the auth user data as well
-        if (user) {
-          dispatch(
-            login({
-              user: {
-                ...user,
-                name: response.data.name,
-                profileImage: response.data.profilePic,
-              },
-              token: token!,
-            }),
-          )
+  const updateUserProfile = useCallback(
+    async (data: { name: string; username: string; phone?: string; profilePic?: string }) => {
+      dispatch(setLoading(true));
+      setLocalLoading(true);
+      setError(null);
+      try {
+        const response = await userApiService.updateProfile(data);
+        if (response.success && response.data) {
+          const userData: UserType = {
+            _id: response.data._id,
+            username: response.data.username,
+            email: response.data.email,
+            // profileImage: response.data.profilePic,
+            name: response.data.name,
+            phone: response.data.phone,
+            createdAt: response.data.createdAt,
+            stats: response.data.stats,
+          };
+          setProfile(userData);
+          dispatch(login({ user: userData, token: token || "" })); // Update Redux with new profile
+          return true;
+        } else {
+          setError(response.error || "Failed to update profile");
+          return false;
         }
-
-        toast({
-          title: "Profile Updated",
-          description: "Your profile has been successfully updated.",
-        })
-        return true
-      } else {
-        throw new Error(response.error || "Failed to update profile")
+      } catch (err: any) {
+        setError(err.message || "Failed to update profile");
+        return false;
+      } finally {
+        dispatch(setLoading(false));
+        setLocalLoading(false);
       }
-    } catch (error: any) {
-      dispatch(setError(error.message))
-      toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update profile.",
-        variant: "destructive",
-      })
-      return false
-    } finally {
-      dispatch(setLoading(false))
-    }
-  }
+    },
+    [dispatch, token]
+  );
 
-  const checkUsername = async (username: string) => {
-    if (!username || username.length < 3) {
-      dispatch(clearUsernameCheck())
-      return
-    }
-
-    // Don't check if it's the current username
-    if (profile && username === profile.username) {
-      dispatch(setUsernameAvailable({ available: true, username }))
-      return
-    }
-
-    // Don't check if we just checked this username
-    if (usernameCheck.lastChecked === username) {
-      return
-    }
-
-    dispatch(setUsernameChecking(true))
-
+  const checkUsername = useCallback(async (username: string) => {
+    setUsernameCheck({ checking: true, available: false, lastChecked: username });
     try {
-      const response = await userApiService.checkUsernameAvailability(username)
-      if (response.success) {
-        dispatch(setUsernameAvailable({ available: response.available, username }))
-      }
-    } catch (error) {
-      dispatch(clearUsernameCheck())
+      const response = await userApiService.checkUsernameAvailability(username);
+      setUsernameCheck({
+        checking: false,
+        available: response.available,
+        lastChecked: username,
+      });
+    } catch (err: any) {
+      setUsernameCheck({
+        checking: false,
+        available: false,
+        lastChecked: username,
+      });
+      setError(err.message || "Failed to check username");
     }
-  }
+  }, []);
 
-  const uploadProfileImage = async (file: File) => {
-    try {
-      const response = await userApiService.uploadProfileImage(file)
-      if (response.success && response.imageUrl) {
-        return response.imageUrl
-      } else {
-        throw new Error(response.error || "Failed to upload image")
+  const uploadProfileImage = useCallback(
+    async (file: File) => {
+      dispatch(setLoading(true));
+      setLocalLoading(true);
+      setError(null);
+      try {
+        const response = await userApiService.uploadProfileImage(file);
+        if (response.success) {
+          const updatedProfile = { ...profile, profileImage: response.imageUrl } as UserType;
+          setProfile(updatedProfile);
+          dispatch(login({ user: updatedProfile, token: token || "" }));
+          return response;
+        } else {
+          setError(response.error || "Failed to upload image");
+          return response;
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to upload image");
+        return { success: false, error: err.message };
+      } finally {
+        dispatch(setLoading(false));
+        setLocalLoading(false);
       }
-    } catch (error: any) {
-      toast({
-        title: "Upload Failed",
-        description: error.message || "Failed to upload profile image.",
-        variant: "destructive",
-      })
-      throw error
+    },
+    [dispatch, profile, token]
+  );
+
+  useEffect(() => {
+    if (isAuthenticated && token && !profile) {
+      fetchProfile();
     }
-  }
+  }, [isAuthenticated, token, profile, fetchProfile]);
 
   return {
     profile,
-    loading,
+    loading: loading ,
     error,
     usernameCheck,
     fetchProfile,
     updateUserProfile,
     checkUsername,
     uploadProfileImage,
-    clearError: () => dispatch(clearError()),
-  }
-}
+  };
+};

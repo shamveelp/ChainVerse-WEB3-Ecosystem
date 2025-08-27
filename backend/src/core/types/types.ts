@@ -1,3 +1,4 @@
+
 export const TYPES = {
     IUserAuthController: Symbol.for("IUserAuthController"),
     UserAuthController: Symbol.for("UserAuthController"),
@@ -35,7 +36,12 @@ export const TYPES = {
     IUserProfileController: Symbol.for("IUserProfileController"),
     IUserService: Symbol.for("IUserService"),
     UserService: Symbol.for("UserService"),
-    
+    WalletController: Symbol.for("WalletController"),
+    IWalletController: Symbol.for("IWalletController"),
+    IWalletService: Symbol.for("IWalletService"),
+    WalletService: Symbol.for("WalletService"),
+    IWalletRepository: Symbol.for("IWalletRepository"),
+    WalletRepository: Symbol.for("WalletRepository"),
     
     
 

@@ -1026,3 +1026,159 @@
 2025-08-26T05:00:20.626Z [error]: Error logging in User not found
 2025-08-26T05:00:37.642Z [info]: Admin logged in successfully
 2025-08-26T05:02:00.112Z [info]: Generated OTP: 500986 for email: norman@gmail.com
+2025-08-26T05:03:25.502Z [info]: User logged out successfully
+2025-08-26T05:03:40.224Z [error]: Error requesting OTP Email is already registered, Please Login
+2025-08-26T05:13:28.065Z [info]: User logged out successfully
+2025-08-26T05:17:39.976Z [error]: Error logging in Invalid password
+2025-08-26T06:46:33.638Z [info]: MongoDB connected: localhost
+2025-08-26T06:53:27.979Z [info]: User logged out successfully
+2025-08-26T07:58:31.504Z [info]: MongoDB connected: localhost
+2025-08-26T08:03:11.008Z [info]: User logged out successfully
+2025-08-26T08:03:15.202Z [error]: Error logging in Incorrect email or password
+2025-08-26T08:03:19.955Z [error]: Error logging in Incorrect email or password
+2025-08-26T09:18:49.104Z [info]: User logged out successfully
+2025-08-26T09:22:39.881Z [info]: MongoDB connected: localhost
+2025-08-26T09:23:08.238Z [info]: Generated OTP: 314194 for email: norman222@gmail.com
+2025-08-26T09:23:35.827Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:25:35.995Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:28:16.984Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:28:49.956Z [info]: MongoDB connected: localhost
+2025-08-26T09:28:59.072Z [info]: MongoDB connected: localhost
+2025-08-26T09:29:01.550Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 314194
+2025-08-26T09:29:01.643Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:33:41.991Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 314194
+2025-08-26T09:33:42.166Z [error]: Error verifying OTP OTP has expired
+2025-08-26T09:33:47.150Z [info]: Generated OTP: 218377 for email: norman222@gmail.com
+2025-08-26T09:34:01.583Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 218377
+2025-08-26T09:34:01.695Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:35:29.141Z [info]: MongoDB connected: localhost
+2025-08-26T09:35:31.344Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 218377
+2025-08-26T09:35:31.344Z [info]: Finding OTP for email: norman222@gmail.com
+2025-08-26T09:35:31.456Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:36:04.504Z [info]: MongoDB connected: localhost
+2025-08-26T09:37:14.144Z [info]: MongoDB connected: localhost
+2025-08-26T09:37:16.087Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 218377
+2025-08-26T09:37:16.178Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:37:56.932Z [info]: MongoDB connected: localhost
+2025-08-26T09:37:56.981Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 218377
+2025-08-26T09:37:57.070Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:38:14.923Z [info]: MongoDB connected: localhost
+2025-08-26T09:41:34.258Z [info]: MongoDB connected: localhost
+2025-08-26T09:41:42.531Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 218377
+2025-08-26T09:41:42.669Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:48:47.879Z [info]: Generated OTP: 796010 for email: norman222@gmail.com
+2025-08-26T09:49:08.919Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 796010
+2025-08-26T09:49:09.032Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:49:41.941Z [info]: MongoDB connected: localhost
+2025-08-26T09:49:43.053Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 796010
+2025-08-26T09:49:43.145Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:50:45.890Z [info]: MongoDB connected: localhost
+2025-08-26T09:50:46.984Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 796010
+2025-08-26T09:50:47.090Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:51:10.802Z [info]: MongoDB connected: localhost
+2025-08-26T09:51:23.980Z [info]: MongoDB connected: localhost
+2025-08-26T09:51:25.196Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 796010
+2025-08-26T09:51:25.288Z [error]: Error verifying OTP Cannot read properties of undefined (reading 'create')
+2025-08-26T09:52:04.693Z [info]: MongoDB connected: localhost
+2025-08-26T09:52:22.306Z [info]: MongoDB connected: localhost
+2025-08-26T09:55:31.811Z [info]: MongoDB connected: localhost
+2025-08-26T09:56:13.553Z [info]: MongoDB connected: localhost
+2025-08-26T09:57:33.635Z [info]: MongoDB connected: localhost
+2025-08-26T09:57:57.501Z [info]: MongoDB connected: localhost
+2025-08-26T09:57:58.559Z [info]: Generated OTP: 698227 for email: norman222@gmail.com
+2025-08-26T09:58:09.619Z [info]: username: chainverse_user84011, email: norman222@gmail.com, password: Sanu@123, otp: 698227
+2025-08-26T10:49:46.538Z [info]: User logged out successfully
+2025-08-26T11:04:32.341Z [info]: User logged out successfully
+2025-08-26T11:04:59.092Z [info]: Generated OTP: 297786 for forgot password request for email: norman@gmail.com
+2025-08-26T11:06:19.886Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:06:55.795Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:06:57.761Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:02.145Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:02.795Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:03.553Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:03.886Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:04.105Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:04.357Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:08.425Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:08.987Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:09.548Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:07:52.012Z [info]: User logged out successfully
+2025-08-26T11:08:18.458Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:08:23.542Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:09:26.833Z [info]: Generated OTP: 382754 for email: asdf@gmail.com
+2025-08-26T11:09:40.807Z [info]: username: sssss, email: asdf@gmail.com, password: Sanu@123, otp: 382754
+2025-08-26T11:16:58.083Z [info]: User logged out successfully
+2025-08-26T11:17:07.683Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:18:27.252Z [error]: Error logging in Incorrect email or password
+2025-08-26T11:59:48.311Z [info]: User logged out successfully
+2025-08-26T12:03:12.459Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:04:32.272Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:04:45.001Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:04:56.612Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:05:20.399Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:05:26.442Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:08:45.636Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:09:16.912Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:09:39.138Z [error]: Error logging in Incorrect email or password
+2025-08-26T12:29:18.888Z [error]: Error logging in connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-08-26T12:30:03.956Z [error]: Error logging in connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-08-26T12:32:17.986Z [info]: MongoDB connected: localhost
+2025-08-26T12:33:55.587Z [error]: Error logging in Incorrect email or password
+2025-08-26T17:09:30.444Z [info]: MongoDB connected: localhost
+2025-08-26T17:12:00.867Z [info]: MongoDB connected: localhost
+2025-08-26T17:21:15.795Z [info]: MongoDB connected: localhost
+2025-08-26T17:22:38.269Z [info]: MongoDB connected: localhost
+2025-08-26T17:41:45.560Z [info]: MongoDB connected: localhost
+2025-08-26T19:14:45.454Z [info]: MongoDB connected: localhost
+2025-08-26T19:20:21.755Z [info]: MongoDB connected: localhost
+2025-08-26T19:42:32.613Z [info]: MongoDB connected: localhost
+2025-08-26T19:43:05.081Z [error]: Error logging in Incorrect email or password
+2025-08-26T19:44:13.702Z [info]: MongoDB connected: localhost
+2025-08-26T19:46:48.112Z [error]: Error checking username [
+  {
+    "origin": "string",
+    "code": "too_small",
+    "minimum": 4,
+    "inclusive": true,
+    "path": [
+      "username"
+    ],
+    "message": "Username must be at least 4 characters long"
+  }
+]
+2025-08-26T20:21:25.784Z [info]: MongoDB connected: localhost
+2025-08-26T20:34:43.859Z [info]: User logged out successfully
+2025-08-27T04:36:21.316Z [info]: User logged out successfully
+2025-08-27T06:50:01.573Z [info]: MongoDB connected: localhost
+2025-08-27T07:18:32.439Z [info]: MongoDB connected: localhost
+2025-08-27T07:22:36.647Z [info]: MongoDB connected: localhost
+2025-08-27T07:23:23.568Z [info]: MongoDB connected: localhost
+2025-08-27T07:29:49.602Z [info]: User logged out successfully
+2025-08-27T07:29:54.941Z [error]: Error logging in Incorrect email or password
+2025-08-27T11:46:49.406Z [info]: User logged out successfully
+2025-08-27T13:10:23.916Z [info]: MongoDB connected: localhost
+2025-08-27T13:31:15.008Z [info]: MongoDB connected: localhost
+2025-08-27T13:38:08.446Z [info]: MongoDB connected: localhost
+2025-08-27T13:38:50.145Z [info]: MongoDB connected: localhost
+2025-08-27T13:39:03.772Z [info]: MongoDB connected: localhost
+2025-08-27T13:39:17.209Z [info]: MongoDB connected: localhost
+2025-08-27T13:41:15.743Z [info]: MongoDB connected: localhost
+2025-08-27T13:41:31.200Z [info]: MongoDB connected: localhost
+2025-08-27T13:44:17.861Z [info]: MongoDB connected: localhost
+2025-08-27T13:49:20.430Z [info]: MongoDB connected: localhost
+2025-08-27T13:50:28.727Z [info]: MongoDB connected: localhost
+2025-08-27T13:51:10.292Z [info]: MongoDB connected: localhost
+2025-08-27T13:51:54.853Z [info]: MongoDB connected: localhost
+2025-08-27T13:52:10.567Z [info]: MongoDB connected: localhost
+2025-08-27T13:53:14.544Z [info]: MongoDB connected: localhost
+2025-08-27T13:53:46.304Z [info]: MongoDB connected: localhost
+2025-08-27T13:54:03.239Z [info]: MongoDB connected: localhost
+2025-08-27T13:54:10.809Z [info]: MongoDB connected: localhost
+2025-08-27T13:54:17.712Z [info]: MongoDB connected: localhost
+2025-08-27T13:55:11.979Z [info]: MongoDB connected: localhost
+2025-08-27T13:55:55.508Z [info]: MongoDB connected: localhost
+2025-08-27T13:56:09.603Z [info]: MongoDB connected: localhost
+2025-08-27T14:14:29.945Z [info]: MongoDB connected: localhost
+2025-08-27T15:51:45.101Z [info]: MongoDB connected: localhost
+2025-08-27T16:09:15.362Z [info]: MongoDB connected: localhost
+2025-08-27T16:13:39.771Z [info]: MongoDB connected: localhost

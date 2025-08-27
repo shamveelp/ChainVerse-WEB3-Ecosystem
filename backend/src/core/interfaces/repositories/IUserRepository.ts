@@ -1,4 +1,5 @@
 import { IUser } from "../../../models/user.models";
+import { IBaseRepository } from "./IBase.repository";
 
 export interface PaginatedUsers {
     users: Partial<IUser>[];
@@ -7,7 +8,7 @@ export interface PaginatedUsers {
     totalPages: number;
 }
 
-export interface IUserRepository {
+export interface IUserRepository extends IBaseRepository<IUser> {
   findByEmail(email: string): Promise<IUser | null>;
   findByUsername(username: string): Promise<IUser | null>;
   createUser(data: Partial<IUser>): Promise<IUser>;

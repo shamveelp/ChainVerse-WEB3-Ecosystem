@@ -1,3 +1,4 @@
+// backend/src/controllers/user/userProfile.controller.ts
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
@@ -5,87 +6,105 @@ import { IUserProfileController } from "../../core/interfaces/controllers/user/I
 import { IUserService } from "../../core/interfaces/services/user/IUserService";
 import { CustomError } from "../../utils/CustomError";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
-import { JwtPayload } from "../../core/interfaces/services/IJwtService";
+import { updateProfileSchema, checkUsernameSchema } from "../../validations/user.validation";
+import { z } from "zod";
+import cloudinary from "../../config/cloudinary";
+import { UploadApiResponse } from "cloudinary";
 
 @injectable()
 export class UserProfileController implements IUserProfileController {
-    constructor(
-        @inject(TYPES.IUserService) private _userService: IUserService
-    ) { }
+  constructor(
+    @inject(TYPES.IUserService) private _userService: IUserService
+  ) {}
 
-    async getProfile(req: AuthenticatedRequest, res: Response) {
-        try {
-            const jwtUser = req.user as JwtPayload;
-            const id = jwtUser.id;
-            const user = await this._userService.getProfile(id);
-            res.status(StatusCode.OK).json(user);
-        } catch (error) {
-            res.status(StatusCode.BAD_REQUEST).json({ error: "Failed to fetch user profile" });
-        }
+  async getProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const user = req.user as { id: string; role: string; tokenVersion?: number };
+      if (!user || !user.id) {
+        throw new CustomError("User not authenticated", StatusCode.UNAUTHORIZED);
+      }
+
+      const profile = await this._userService.getProfile(user.id);
+      if (!profile) {
+        throw new CustomError("User not found", StatusCode.NOT_FOUND);
+      }
+
+      res.status(StatusCode.OK).json({ success: true, data: profile });
+    } catch (error: any) {
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+      const message = error.message || "Failed to fetch profile";
+      console.error("Get profile error:", { message, stack: error.stack });
+      res.status(statusCode).json({ success: false, error: message });
     }
+  }
 
-    async updateProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
-        try {
-            const userId = req.user?.id;
-            if (!userId) {
-                throw new CustomError("User not authenticated", StatusCode.UNAUTHORIZED);
-            }
+  async updateProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const user = req.user as { id: string; role: string };
+      if (!user || !user.id) {
+        throw new CustomError("User not authenticated", StatusCode.UNAUTHORIZED);
+      }
 
-            const updateData = req.body;
-            
-            
-            if (updateData.name && updateData.name.trim().length < 2) {
-                throw new CustomError("Name must be at least 2 characters long", StatusCode.BAD_REQUEST);
-            }
-            
-            if (updateData.username && updateData.username.trim().length < 3) {
-                throw new CustomError("Username must be at least 3 characters long", StatusCode.BAD_REQUEST);
-            }
-
-            
-            if (updateData.username && !/^[a-zA-Z0-9_]+$/.test(updateData.username)) {
-                throw new CustomError("Username can only contain letters, numbers, and underscores", StatusCode.BAD_REQUEST);
-            }
-
-            const updatedUser = await this._userService.updateProfile(userId, updateData);
-            
-            res.status(StatusCode.OK).json(updatedUser);
-        } catch (error) {
-            if (error instanceof CustomError) {
-                res.status(error.statusCode).json({ error: error.message });
-            } else {
-                res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ 
-                    error: "Failed to update profile" 
-                });
-            }
-        }
+      const parsedData = updateProfileSchema.parse(req.body);
+      const profile = await this._userService.updateProfile(user.id, parsedData);
+      res.status(StatusCode.OK).json({ success: true, data: profile });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        res.status(StatusCode.BAD_REQUEST).json({ success: false, error: error.issues });
+      } else {
+        const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+        const message = error.message || "Failed to update profile";
+        console.error("Update profile error:", { message, stack: error.stack });
+        res.status(statusCode).json({ success: false, error: message });
+      }
     }
+  }
 
-    async checkUsername(req: AuthenticatedRequest, res: Response): Promise<void> {
-        try {
-            const { username } = req.body;
-            const userId = req.user?.id;
-
-            if (!username || username.trim().length < 3) {
-                throw new CustomError("Username must be at least 3 characters long", StatusCode.BAD_REQUEST);
-            }
-
-            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-                throw new CustomError("Username can only contain letters, numbers, and underscores", StatusCode.BAD_REQUEST);
-            }
-
-            const available = await this._userService.checkUsernameAvailability(username, userId);
-            
-            res.status(StatusCode.OK).json({ available });
-        } catch (error) {
-            if (error instanceof CustomError) {
-                res.status(error.statusCode).json({ error: error.message });
-            } else {
-                res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ 
-                    error: "Failed to check username availability" 
-                });
-            }
-        }
+  async checkUsername(req: Request, res: Response): Promise<void> {
+    try {
+      const { username } = checkUsernameSchema.parse(req.body);
+      const isAvailable = await this._userService.checkUsernameAvailability(username);
+      res.status(StatusCode.OK).json({ success: true, available: isAvailable });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        res.status(StatusCode.BAD_REQUEST).json({ success: false, error: error.issues });
+      } else {
+        const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+        const message = error.message || "Failed to check username";
+        console.error("Check username error:", { message, stack: error.stack });
+        res.status(statusCode).json({ success: false, error: message });
+      }
     }
+  }
+
+  async uploadProfileImage(req: Request, res: Response): Promise<void> {
+    try {
+      const user = req.user as { id: string; role: string };
+      if (!user || !user.id) {
+        throw new CustomError("User not authenticated", StatusCode.UNAUTHORIZED);
+      }
+
+      if (!req.file) {
+        throw new CustomError("No file uploaded", StatusCode.BAD_REQUEST);
+      }
+
+      const result: UploadApiResponse = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream({ folder: "profile_images" }, (error, result) => {
+          if (error) {
+            reject(new CustomError("Failed to upload image", StatusCode.INTERNAL_SERVER_ERROR));
+          } else {
+            resolve(result as UploadApiResponse);
+          }
+        }).end(req.file!.buffer);
+      });
+
+      const profile = await this._userService.updateProfile(user.id, { profilePic: result.secure_url });
+      res.status(StatusCode.OK).json({ success: true, data: profile });
+    } catch (error: any) {
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+      const message = error.message || "Failed to upload profile image";
+      console.error("Upload profile image error:", { message, stack: error.stack });
+      res.status(statusCode).json({ success: false, error: message });
+    }
+  }
 }

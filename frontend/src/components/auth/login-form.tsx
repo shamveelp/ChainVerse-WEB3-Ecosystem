@@ -2,9 +2,9 @@
 import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useDispatch } from "react-redux"
-import { Mail, Lock, Eye, EyeOff, Wallet, Loader2 } from "lucide-react"
+import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,6 +17,7 @@ import { useAuthActions } from "@/lib/auth-actions"
 import { useSelector } from "react-redux"
 import type { RootState } from "@/redux/store"
 import { setLoading } from "@/redux/slices/userAuthSlice" 
+import { validateLoginForm } from "@/validations/auth"
 
 interface LoginData {
   email: string
@@ -35,6 +36,8 @@ export function LoginForm() {
   const { loading } = useSelector((state: RootState) => state.userAuth)
   const dispatch = useDispatch()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect') || '/'
 
   const handleInputChange = (field: keyof LoginData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -43,27 +46,13 @@ export function LoginForm() {
     }
   }
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<LoginData> = {}
-    if (!formData.email) {
-      newErrors.email = "Email is required"
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid"
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrors({}) 
+    setErrors({})
 
-    if (!validateForm()) {
+    const validationErrors = validateLoginForm(formData)
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
       return
     }
 
@@ -87,10 +76,9 @@ export function LoginForm() {
         description: "Welcome back to ChainVerse!",
       })
 
-      router.push("/")
+      router.push(redirectUrl)
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || "Login failed"
-      console.log("Login error:", err)
+      const errorMessage = err.response?.data?.error || "Invalid email or password"
       toast({
         title: "Login Failed",
         description: errorMessage,
@@ -103,7 +91,10 @@ export function LoginForm() {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     if (credentialResponse.credential) {
-      await googleLogin(credentialResponse.credential)
+      const result = await googleLogin(credentialResponse.credential)
+      // if (result.success) {
+      //   router.push(redirectUrl)
+      // }
     }
   }
 
@@ -121,12 +112,9 @@ export function LoginForm() {
         <CardTitle className="text-2xl font-bold text-gray-200">Sign In</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Google Sign-in */}
         <div className="w-full flex justify-center">
           <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
         </div>
-
-        {/* Wallet Connect */}
 
         <div className="relative">
           <Separator className="bg-slate-700" />
@@ -135,7 +123,6 @@ export function LoginForm() {
           </div>
         </div>
 
-        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium text-gray-300">
@@ -206,7 +193,7 @@ export function LoginForm() {
         <div className="text-center">
           <p className="text-gray-400">
             Don&apos;t have an account?{" "}
-            <Link href="/user/register" className="text-blue-400 hover:text-blue-300 font-medium">
+            <Link href={`/user/register?redirect=${encodeURIComponent(redirectUrl)}`} className="text-blue-400 hover:text-blue-300 font-medium">
               Create account
             </Link>
           </p>

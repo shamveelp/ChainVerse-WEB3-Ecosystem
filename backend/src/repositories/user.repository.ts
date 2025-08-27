@@ -1,7 +1,8 @@
 import { UserModel, IUser } from "../models/user.models";
 import { IUserRepository } from "../core/interfaces/repositories/IUserRepository";
+import { BaseRepository } from "./base.repository";
 
-export class UserRepository implements IUserRepository {
+export class UserRepository extends BaseRepository<IUser> implements IUserRepository {
   async createUser(data: Partial<IUser>) {
     return await UserModel.create(data);
   }

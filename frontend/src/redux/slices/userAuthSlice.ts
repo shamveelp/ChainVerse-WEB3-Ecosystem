@@ -1,9 +1,8 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 
-// interfaces
 interface UserType {
   _id: string
-  name: string
+  username: string
   email: string
   profileImage?: string
 }
@@ -13,17 +12,15 @@ interface UserAuthState {
   token: string | null
   isAuthenticated: boolean
   loading: boolean
-  // Temporary state for auth flows
   tempEmail: string | null
   tempUserData: {
-    name: string
+    username: string
     email: string
     password: string
   } | null
   resetToken: string | null
 }
 
-// Initial State
 const initialState: UserAuthState = {
   user: null,
   token: null,
@@ -42,7 +39,6 @@ export const userAuthSlice = createSlice({
       state.user = action.payload.user
       state.token = action.payload.token
       state.isAuthenticated = true
-      // Clear temporary data on successful login
       state.tempEmail = null
       state.tempUserData = null
       state.resetToken = null
@@ -61,7 +57,7 @@ export const userAuthSlice = createSlice({
     setTempEmail: (state, action: PayloadAction<string>) => {
       state.tempEmail = action.payload
     },
-    setTempUserData: (state, action: PayloadAction<{ name: string; email: string; password: string }>) => {
+    setTempUserData: (state, action: PayloadAction<{ username: string; email: string; password: string }>) => {
       state.tempUserData = action.payload
     },
     setResetToken: (state, action: PayloadAction<string>) => {
@@ -72,6 +68,7 @@ export const userAuthSlice = createSlice({
       state.tempUserData = null
       state.resetToken = null
     },
+    
   },
 })
 

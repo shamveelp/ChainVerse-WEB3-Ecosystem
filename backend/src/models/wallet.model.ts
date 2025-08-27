@@ -1,21 +1,33 @@
-import mongoose, {Schema, Document, Model, Types} from "mongoose";
+import { Schema, model, Document } from 'mongoose';
 
-
-export interface IWallet extends Document {
-    walletAddress: string;
-    createdAt: Date;
-    updatedAt: Date;
+interface IWallet extends Document {
+  address: string;
+  lastConnected: Date;
+  connectionCount: number;
+  createdAt: Date;
 }
 
-
-const WalletSchema: Schema<IWallet> = new Schema({
-    walletAddress: { type: String },
+const walletSchema = new Schema<IWallet>({
+  address: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+  },
+  lastConnected: {
+    type: Date,
+    default: Date.now,
+  },
+  connectionCount: {
+    type: Number,
+    default: 1,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 }, {
-    timestamps: true
-})
+  timestamps: true,
+});
 
-
-export const WalletModel: Model<IWallet> = mongoose.model<IWallet>('Wallet', WalletSchema);
-export default WalletModel;
-
-
+export default model<IWallet>('Wallet', walletSchema);

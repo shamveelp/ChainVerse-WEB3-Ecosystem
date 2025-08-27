@@ -6,11 +6,18 @@ export interface IUserAuthService {
     name: string,
     email: string,
     password: string
-  ): Promise<{ user: IUser; accessToken: string; refreshToken: string }>;
+  ): Promise<void>;
+  verifyAndRegisterUser(
+    name: string,
+    email: string,
+    password: string
+  ): Promise<{user: IUser; accessToken: string; refreshToken: string}>;
   loginUser(
     email: string,
     password: string
   ): Promise<{ user: IUser; accessToken: string; refreshToken: string }>;
+  checkUsernameAvailability(username: string): Promise<boolean>;
+  generateUsername(): Promise<string>;
   loginWithGoogle(
     idToken: string
   ): Promise<{ user: IUser; accessToken: string; refreshToken: string }>;

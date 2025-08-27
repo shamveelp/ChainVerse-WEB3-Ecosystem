@@ -12,7 +12,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (!user) {
-      router.replace("/login");
+      router.replace("/user/login");
     }
   }, [user, router]);
 

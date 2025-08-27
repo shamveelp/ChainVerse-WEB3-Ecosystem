@@ -1,9 +1,9 @@
 "use client"
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Eye, EyeOff, User, Mail, Lock, Bitcoin, Loader2 } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Eye, EyeOff, User, Mail, Lock, Bitcoin, Loader2, Wand2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,10 +14,11 @@ import { useAuthActions } from "@/lib/auth-actions"
 import { useSelector, useDispatch } from "react-redux"
 import type { RootState } from "@/redux/store"
 import { setTempEmail, setTempUserData, setLoading } from "@/redux/slices/userAuthSlice"
-import API from "@/lib/api-client"
+import { validateRegisterForm } from "@/validations/auth"
+import { register, checkUsername, generateUsername } from "@/services/authApiService"
 
 interface RegisterData {
-  name: string
+  username: string
   email: string
   password: string
   confirmPassword: string
@@ -27,102 +28,115 @@ export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState<RegisterData>({
-    name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
   })
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [errors, setErrors] = useState<Partial<RegisterData>>({})
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false)
   const router = useRouter()
   const dispatch = useDispatch()
   const { toast } = useToast()
   const { googleLogin } = useAuthActions()
   const { loading } = useSelector((state: RootState) => state.userAuth)
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect') || '/'
 
-  const handleInputChange = (field: keyof RegisterData, value: string) => {
+  const handleInputChange = async (field: keyof RegisterData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }))
     }
+
+    if (field === 'username' && value.length > 3) {
+      setIsCheckingUsername(true)
+      try {
+        const result = await checkUsername(value)
+        if (result.success) {
+          setUsernameAvailable(result.available)
+        } else {
+          setUsernameAvailable(false)
+        }
+      } catch (err) {
+        setUsernameAvailable(false)
+      } finally {
+        setIsCheckingUsername(false)
+      }
+    }
   }
 
-  const passwordValidation = (password: string): boolean => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
-    return regex.test(password)
-  }
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<RegisterData> = {}
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required"
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
-    } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.email)) {
-      newErrors.email = "Invalid email format"
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required"
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
-    } else if (!passwordValidation(formData.password)) {
-      newErrors.password =
-        "Password must include uppercase, lowercase, number, and special character"
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
-    }
-
-    if (!agreeTerms) {
+  const handleGenerateUsername = async () => {
+    try {
+      const result = await generateUsername()
+      if (result.success) {
+        setFormData((prev) => ({ ...prev, username: result.username }))
+        setUsernameAvailable(true)
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to generate username",
+          variant: "destructive",
+        })
+      }
+    } catch (err) {
       toast({
-        title: "Terms Required",
-        description: "You must agree to the Terms and Conditions",
+        title: "Error",
+        description: "Failed to generate username",
         variant: "destructive",
       })
-      return false
     }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!validateForm()) {
+    const validationErrors = validateRegisterForm(formData, agreeTerms)
+    
+    if (Object.keys(validationErrors).length > 0 || !usernameAvailable) {
+      setErrors(validationErrors)
+      if (!agreeTerms) {
+        toast({
+          title: "Terms Required",
+          description: "You must agree to the Terms and Conditions",
+          variant: "destructive",
+        })
+      }
+      if (!usernameAvailable) {
+        setErrors((prev) => ({ ...prev, username: "Username is not available" }))
+      }
       return
     }
 
     dispatch(setLoading(true))
 
     try {
-      await API.post("/api/user/request-otp", { email: formData.email })
+      const result = await register(formData.username, formData.email, formData.password)
+      if (result.success) {
+        dispatch(
+          setTempUserData({
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+          })
+        )
+        dispatch(setTempEmail(formData.email))
 
-      dispatch(
-        setTempUserData({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        }),
-      )
-      dispatch(setTempEmail(formData.email))
+        toast({
+          title: "OTP Sent",
+          description: "Check your email for the verification code",
+          className: "bg-green-600 text-white border-none",
+        })
 
-      toast({
-        title: "OTP Sent",
-        description: "Check your email for the verification code",
-        className: "bg-green-600 text-white border-none",
-      })
-
-      router.push("/user/verify-otp")
+        router.push(`/user/verify-otp?redirect=${encodeURIComponent(redirectUrl)}`)
+      } else {
+        throw new Error(result.error)
+      }
     } catch (err: any) {
       toast({
         title: "Registration Failed",
-        description: err.response?.data?.error || "Failed to send OTP",
+        description: err.message || "Failed to register",
         variant: "destructive",
       })
     } finally {
@@ -132,7 +146,16 @@ export function RegisterForm() {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     if (credentialResponse.credential) {
-      await googleLogin(credentialResponse.credential)
+      const result = await googleLogin(credentialResponse.credential)
+      // if (result.success) {
+      //   router.push(redirectUrl)
+      // } else {
+      //   toast({
+      //     title: "Google Login Error",
+      //     description: result.error || "Google login failed",
+      //     variant: "destructive",
+      //   })
+      // }
     }
   }
 
@@ -164,21 +187,36 @@ export function RegisterForm() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-gray-200">
-              Full Name
+            <label htmlFor="username" className="text-sm font-medium text-gray-200">
+              Username
             </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
-              <Input
-                id="name"
-                type="text"
-                placeholder="Your Name"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
-              />
+            <div className="relative flex gap-2">
+              <div className="relative flex-1">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="Your Username"
+                  value={formData.username}
+                  onChange={(e) => handleInputChange("username", e.target.value)}
+                  className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleGenerateUsername}
+                disabled={isCheckingUsername}
+                className="h-12 w-12"
+              >
+                <Wand2 className="h-5 w-5" />
+              </Button>
             </div>
-            {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
+            {errors.username && <p className="text-red-400 text-sm">{errors.username}</p>}
+            {usernameAvailable === false && <p className="text-red-400 text-sm">Username not available</p>}
+            {usernameAvailable === true && <p className="text-green-400 text-sm">Username available</p>}
+            {isCheckingUsername && <p className="text-yellow-400 text-sm">Checking availability...</p>}
           </div>
 
           <div className="space-y-2">
@@ -275,7 +313,7 @@ export function RegisterForm() {
 
           <Button
             type="submit"
-            disabled={loading}
+            disabled={loading || !usernameAvailable}
             className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white h-12 rounded-lg font-semibold shadow-lg shadow-blue-500/30 disabled:opacity-50 transition-all"
           >
             {loading ? (
@@ -295,7 +333,7 @@ export function RegisterForm() {
         <div className="text-center">
           <p className="text-gray-400 text-sm">
             Already have an account?{" "}
-            <Link href="/user/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+            <Link href={`/user/login?redirect=${encodeURIComponent(redirectUrl)}`} className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
               Sign In
             </Link>
           </p>
@@ -304,6 +342,3 @@ export function RegisterForm() {
     </Card>
   )
 }
-
-
-
