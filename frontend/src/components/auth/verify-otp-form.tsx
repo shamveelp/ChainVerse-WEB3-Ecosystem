@@ -106,13 +106,30 @@ export function VerifyOtpForm() {
 
     try {
       if (verificationType === "register" && tempUserData) {
-        const result = await signup(tempUserData.username, tempUserData.email, tempUserData.password, otpValue)
+        console.log("Verifying OTP and creating account with data:", {
+          username: tempUserData.username,
+          email: tempUserData.email,
+          name: tempUserData.name,
+          referralCode: tempUserData.referralCode,
+          otpValue
+        });
+        
+        const result = await signup(
+          tempUserData.username, 
+          tempUserData.email, 
+          tempUserData.password, 
+          tempUserData.name,
+          tempUserData.referralCode,
+          otpValue
+        )
+        
         if (result.success) {
           dispatch(reduxLogin({ user: result.user, token: result.token }))
 
           toast({
             title: "Account Created Successfully",
             description: "Welcome to ChainVerse!",
+            className: "bg-green-600 text-white border-none",
           })
 
           router.push(redirectUrl)
@@ -125,6 +142,7 @@ export function VerifyOtpForm() {
           toast({
             title: "OTP Verified",
             description: "You can now reset your password.",
+            className: "bg-green-600 text-white border-none",
           })
 
           router.push(`/user/reset-password?redirect=${encodeURIComponent(redirectUrl)}`)
@@ -133,6 +151,7 @@ export function VerifyOtpForm() {
         }
       }
     } catch (err: any) {
+      console.error("OTP verification error:", err);
       toast({
         title: "Verification Failed",
         description: err.message || "OTP verification failed",
@@ -147,11 +166,12 @@ export function VerifyOtpForm() {
     if (!tempEmail) return
 
     try {
-      const result = await (verificationType === "register" ? requestOtp(tempEmail) : verifyForgotPasswordOtp(tempEmail, otp.join("")))
+      const result = await requestOtp(tempEmail)
       if (result.success) {
         toast({
           title: "OTP Resent",
           description: "Please check your email for the new verification code",
+          className: "bg-green-600 text-white border-none",
         })
 
         setCountdown(60)

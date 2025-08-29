@@ -17,9 +17,16 @@ export const login = async (email: string, password: string) => {
   }
 }
 
-export const register = async (username: string, email: string, password: string) => {
+export const register = async (username: string, email: string, password: string, name: string, referralCode?: string) => {
   try {
-    const response = await API.post("/api/user/register", { username, email, password })
+    const payload: any = { username, email, password, name }
+    
+    // Only include referralCode if it has a value
+    if (referralCode && referralCode.trim()) {
+      payload.referralCode = referralCode.trim()
+    }
+    
+    const response = await API.post("/api/user/register", payload)
     return {
       success: true,
       message: response.data.message || "Registration successful, OTP sent",
@@ -33,14 +40,22 @@ export const register = async (username: string, email: string, password: string
   }
 }
 
-export const signup = async (username: string, email: string, password: string, otp: string) => {
+export const signup = async (username: string, email: string, password: string, name: string, referralCode: string | undefined, otp: string) => {
   try {
-    const response = await API.post("/api/user/verify-otp", {
+    const payload: any = {
       username,
       email,
       password,
+      name,
       otp,
-    })
+    }
+    
+    // Only include referralCode if it has a value
+    if (referralCode && referralCode.trim()) {
+      payload.referralCode = referralCode.trim()
+    }
+    
+    const response = await API.post("/api/user/verify-otp", payload)
     return {
       success: true,
       user: response.data.user,
@@ -66,6 +81,7 @@ export const checkUsername = async (username: string) => {
     console.error("Check username error:", error.response?.data || error.message)
     return {
       success: false,
+      available: false,
       error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to check username",
     }
   }
@@ -114,8 +130,7 @@ export const forgotPassword = async (email: string) => {
     console.error("Forgot password error:", error.response?.data || error.message)
     return {
       success: false,
-      error:
-        error.response?.data?.error || error.response?.data?.message || error.message || "Failed to send reset code",
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to send reset code",
     }
   }
 }

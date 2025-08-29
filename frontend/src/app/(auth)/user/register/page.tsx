@@ -18,7 +18,7 @@ export default function RegisterPage() {
               href="/"
               className="text-4xl font-extrabold bg-gradient-to-r from-blue-400 via-green-400 to-purple-400 bg-clip-text text-transparent animate-text-glow"
             >
-              CryptoVerse
+              ChainVerse
             </Link>
             <p className="text-gray-300 mt-3 text-lg font-medium">Trade the Future of Finance</p>
           </div>

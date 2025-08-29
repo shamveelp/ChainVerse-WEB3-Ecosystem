@@ -5,12 +5,16 @@ export interface IUserAuthService {
   registerUser(
     name: string,
     email: string,
-    password: string
+    password: string,
+    referredById?: string,
+    username?: string
   ): Promise<void>;
   verifyAndRegisterUser(
     name: string,
     email: string,
-    password: string
+    password: string,
+    referredById?: string,
+    username?: string
   ): Promise<{user: IUser; accessToken: string; refreshToken: string}>;
   loginUser(
     email: string,

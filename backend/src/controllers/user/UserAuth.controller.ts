@@ -32,21 +32,23 @@ export class UserAuthController implements IUserAuthController {
   register = async (req: Request, res: Response) => {
     try {
       const validatedData = registerSchema.parse(req.body);
-      const { username, email, password } = validatedData;
-      await this._userAuthService.registerUser(username, email, password);
+      const { username, email, password, name, referralCode } = validatedData;
+      
+      // Only validate data and send OTP - don't create user yet
+      await this._userAuthService.registerUser(username, email, password, name, referralCode);
       await this._otpService.requestOtp(email, "user");
-      res
-        .status(StatusCode.OK)
-        .json({ success: true, message: "OTP sent successfully" });
+      
+      res.status(StatusCode.OK).json({ 
+        success: true, 
+        message: "Registration data validated. OTP sent successfully" 
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(StatusCode.BAD_REQUEST).json({ error: error.issues });
+        res.status(StatusCode.BAD_REQUEST).json({ error: error.issues[0].message || "Validation failed" });
       } else {
-        res
-          .status(StatusCode.BAD_REQUEST)
-          .json({ error: (error as Error).message });
+        res.status(StatusCode.BAD_REQUEST).json({ error: (error as Error).message });
       }
-      logger.error("Error registering user", error);
+      logger.error("Error in register:", error);
     }
   };
 
@@ -54,13 +56,12 @@ export class UserAuthController implements IUserAuthController {
     try {
       const { email } = req.body;
       await this._otpService.requestOtp(email, "user");
-      res
-        .status(StatusCode.OK)
-        .json({ success: true, message: "OTP sent successfully" });
+      res.status(StatusCode.OK).json({ 
+        success: true, 
+        message: "OTP sent successfully" 
+      });
     } catch (error) {
-      res
-        .status(StatusCode.BAD_REQUEST)
-        .json({ error: (error as Error).message });
+      res.status(StatusCode.BAD_REQUEST).json({ error: (error as Error).message });
       logger.error("Error requesting OTP", error);
     }
   };
@@ -68,27 +69,42 @@ export class UserAuthController implements IUserAuthController {
   verifyOtp = async (req: Request, res: Response) => {
     try {
       const validatedData = verifyOtpSchema.parse(req.body);
-      const { username, email, password, otp } = validatedData;
-      logger.info(
-        `username: ${username}, email: ${email}, password: ${password}, otp: ${otp}`
-      );
+      const { username, email, password, name, otp, referralCode } = validatedData;
+      
+      logger.info(`Verifying OTP for: ${email}, username: ${username}`);
+      
+      // First verify the OTP
       await this._otpService.verifyOtp(email, otp);
-      const { user, accessToken, refreshToken } =
-        await this._userAuthService.verifyAndRegisterUser(
-          username,
-          email,
-          password
-        );
-      // logger.info(`User registered successfully: ${user}, accessToken: ${accessToken}, refreshToken: ${refreshToken}`)
+      
+      // Then create the user (this is where the actual user creation happens)
+      const { user, accessToken, refreshToken } = await this._userAuthService.verifyAndRegisterUser(
+        username,
+        email,
+        password,
+        name,
+        referralCode
+      );
+      
+      // Set tokens in cookies
       this._jwtService.setTokens(res, accessToken, refreshToken);
-      res.status(StatusCode.CREATED).json({ success: true, user });
+      
+      res.status(StatusCode.CREATED).json({ 
+        success: true, 
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          name: user.name,
+          refferalCode: user.refferalCode,
+          totalPoints: user.totalPoints,
+        },
+        accessToken 
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(StatusCode.BAD_REQUEST).json({ error: error.issues });
+        res.status(StatusCode.BAD_REQUEST).json({ error: error.issues[0].message || "Validation failed" });
       } else {
-        res
-          .status(StatusCode.BAD_REQUEST)
-          .json({ error: (error as Error).message });
+        res.status(StatusCode.BAD_REQUEST).json({ error: (error as Error).message });
       }
       logger.error("Error verifying OTP", error);
     }
@@ -97,16 +113,13 @@ export class UserAuthController implements IUserAuthController {
   checkUsername = async (req: Request, res: Response) => {
     try {
       const { username } = checkUsernameSchema.parse(req.body);
-      const isAvailable =
-        await this._userAuthService.checkUsernameAvailability(username);
+      const isAvailable = await this._userAuthService.checkUsernameAvailability(username);
       res.status(StatusCode.OK).json({ available: isAvailable });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(StatusCode.BAD_REQUEST).json({ error: error.issues });
+        res.status(StatusCode.BAD_REQUEST).json({ error: error.issues[0].message || "Validation failed" });
       } else {
-        res
-          .status(StatusCode.BAD_REQUEST)
-          .json({ error: (error as Error).message });
+        res.status(StatusCode.BAD_REQUEST).json({ error: (error as Error).message });
       }
       logger.error("Error checking username", error);
     }
@@ -117,9 +130,7 @@ export class UserAuthController implements IUserAuthController {
       const username = await this._userAuthService.generateUsername();
       res.status(StatusCode.OK).json({ username });
     } catch (error) {
-      res
-        .status(StatusCode.BAD_REQUEST)
-        .json({ error: (error as Error).message });
+      res.status(StatusCode.BAD_REQUEST).json({ error: (error as Error).message });
       logger.error("Error generating username", error);
     }
   };
@@ -130,9 +141,10 @@ export class UserAuthController implements IUserAuthController {
       await this._otpService.requestForgotPasswordOtp(email, "user");
       res.status(StatusCode.OK).json({ message: "OTP sent successfully" });
     } catch (error: any) {
-      res
-        .status(error.statusCode || StatusCode.BAD_REQUEST)
-        .json({ message: "Error requesting OTP", error: error.message });
+      res.status(error.statusCode || StatusCode.BAD_REQUEST).json({ 
+        message: "Error requesting OTP", 
+        error: error.message 
+      });
       logger.error("Error requesting forgot password OTP", error);
     }
   };
@@ -141,9 +153,9 @@ export class UserAuthController implements IUserAuthController {
     try {
       const { email, otp } = req.body;
       await this._otpService.verifyOtp(email, otp);
-      res
-        .status(StatusCode.OK)
-        .json({ message: "Forgot Password OTP verified successfully" });
+      res.status(StatusCode.OK).json({ 
+        message: "Forgot Password OTP verified successfully" 
+      });
     } catch (error: any) {
       res.status(StatusCode.BAD_REQUEST).json({ error: error.message });
       logger.error("Error verifying forgot password OTP", error);
@@ -154,9 +166,9 @@ export class UserAuthController implements IUserAuthController {
     try {
       const { email, newPassword } = req.body;
       await this._userAuthService.resetPassword(email, newPassword);
-      res
-        .status(StatusCode.OK)
-        .json({ message: "Password reset successfully" });
+      res.status(StatusCode.OK).json({ 
+        message: "Password reset successfully" 
+      });
     } catch (error: any) {
       res.status(StatusCode.BAD_REQUEST).json({ error: error.message });
       logger.error("Error resetting password", error);
@@ -167,15 +179,22 @@ export class UserAuthController implements IUserAuthController {
     try {
       const validatedData = loginSchema.parse(req.body);
       const { email, password } = validatedData;
-      const { user, accessToken, refreshToken } =
-        await this._userAuthService.loginUser(email, password);
-        // console.log("Login successful:", { user, accessToken, refreshToken });
+      const { user, accessToken, refreshToken } = await this._userAuthService.loginUser(email, password);
+      
       this._jwtService.setTokens(res, accessToken, refreshToken);
-      res.status(StatusCode.OK).json({ user });
+      res.status(StatusCode.OK).json({ 
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          name: user.name,
+          refferalCode: user.refferalCode,
+          totalPoints: user.totalPoints,
+        },
+        accessToken 
+      });
     } catch (error: any) {
-      res
-        .status(error.statusCode || StatusCode.UNAUTHORIZED)
-        .json({ error: error.message });
+      res.status(error.statusCode || StatusCode.UNAUTHORIZED).json({ error: error.message });
       logger.error("Error logging in", error);
     }
   };
@@ -194,9 +213,7 @@ export class UserAuthController implements IUserAuthController {
     try {
       const { refreshToken } = req.cookies;
       if (!refreshToken) {
-        return res
-          .status(StatusCode.UNAUTHORIZED)
-          .json({ error: "Refresh token is required" });
+        return res.status(StatusCode.UNAUTHORIZED).json({ error: "Refresh token is required" });
       }
 
       const decoded = this._jwtService.verifyRefreshToken(refreshToken) as {
@@ -204,6 +221,7 @@ export class UserAuthController implements IUserAuthController {
         role: string;
         tokenVersion?: number;
       };
+      
       const accessToken = this._jwtService.generateAccessToken(
         decoded.id,
         decoded.role,
@@ -214,34 +232,41 @@ export class UserAuthController implements IUserAuthController {
         decoded.role,
         decoded.tokenVersion ?? 0
       );
+      
       this._jwtService.setTokens(res, accessToken, newRefreshToken);
 
-      return res
-        .status(StatusCode.OK)
-        .json({ accessToken, refreshToken: newRefreshToken });
+      return res.status(StatusCode.OK).json({ accessToken, refreshToken: newRefreshToken });
     } catch (error) {
       logger.error("Error refreshing access token", error);
-      return res.status(StatusCode.UNAUTHORIZED).json({ error: error });
+      return res.status(StatusCode.UNAUTHORIZED).json({ error: "Invalid refresh token" });
     }
   };
 
   googleLogin = async (req: Request, res: Response) => {
-    const { idToken } = req.body;
+    const { token: idToken } = req.body;
     if (!idToken) {
-      res
-        .status(StatusCode.BAD_REQUEST)
-        .json({ message: "Id token is required" });
+      res.status(StatusCode.BAD_REQUEST).json({ 
+        message: "ID token is required" 
+      });
       return;
     }
+    
     try {
-      const { user, accessToken, refreshToken } =
-        await this._userAuthService.loginWithGoogle(idToken);
+      const { user, accessToken, refreshToken } = await this._userAuthService.loginWithGoogle(idToken);
       this._jwtService.setTokens(res, accessToken, refreshToken);
-      res.status(StatusCode.OK).json({ user });
+      res.status(StatusCode.OK).json({ 
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          name: user.name,
+          refferalCode: user.refferalCode,
+          totalPoints: user.totalPoints,
+        },
+        accessToken 
+      });
     } catch (error) {
-      res
-        .status(StatusCode.BAD_REQUEST)
-        .json({ error: error || "Login Failed" });
+      res.status(StatusCode.BAD_REQUEST).json({ error: error || "Google login failed" });
       logger.error("Error logging in with Google", error);
     }
   };
@@ -255,8 +280,7 @@ export class UserAuthController implements IUserAuthController {
           return res.redirect("http://localhost:3000/signup?error=auth_failed");
         }
         try {
-          const { accessToken, refreshToken } =
-            await this._userAuthService.loginWithGoogle(user);
+          const { accessToken, refreshToken } = await this._userAuthService.loginWithGoogle(user);
           this._jwtService.setTokens(res, accessToken, refreshToken);
           res.redirect(`http://localhost:3000/callback?token=${accessToken}`);
         } catch (error: any) {
@@ -274,7 +298,7 @@ export class UserAuthController implements IUserAuthController {
       logger.info("User logged out successfully");
       res.status(StatusCode.OK).json({ message: "Logged out successfully" });
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ error: error });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ error: "Logout failed" });
       logger.error("Error logging out", error);
     }
   };

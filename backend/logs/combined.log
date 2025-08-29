@@ -1231,3 +1231,131 @@
 2025-08-28T18:23:15.612Z [info]: MongoDB connected: localhost
 2025-08-28T18:23:16.495Z [info]: Admin logged in successfully
 2025-08-29T03:36:17.614Z [info]: User logged out successfully
+2025-08-29T03:53:16.611Z [info]: User logged out successfully
+2025-08-29T04:37:09.706Z [info]: MongoDB connected: localhost
+2025-08-29T05:23:35.645Z [info]: MongoDB connected: localhost
+2025-08-29T06:42:36.605Z [info]: MongoDB connected: localhost
+2025-08-29T06:45:46.524Z [info]: MongoDB connected: localhost
+2025-08-29T06:54:38.463Z [info]: MongoDB connected: localhost
+2025-08-29T06:55:13.734Z [error]: Error registering user [
+  {
+    "origin": "string",
+    "code": "too_small",
+    "minimum": 8,
+    "inclusive": true,
+    "exact": true,
+    "path": [
+      "referralCode"
+    ],
+    "message": "Referral code must be 8 characters long"
+  },
+  {
+    "origin": "string",
+    "code": "invalid_format",
+    "format": "regex",
+    "pattern": "/^[a-zA-Z0-9]{8}$/",
+    "path": [
+      "referralCode"
+    ],
+    "message": "Referral code must contain only letters and numbers"
+  }
+]
+2025-08-29T06:57:28.079Z [info]: MongoDB connected: localhost
+2025-08-29T06:57:45.032Z [error]: Error registering user Email is already registered, Please Login
+2025-08-29T06:57:54.472Z [error]: Error in registerUser: Username already exists
+2025-08-29T06:57:54.473Z [error]: Error registering user Username already exists
+2025-08-29T06:58:04.398Z [error]: Error registering user Email is already registered, Please Login
+2025-08-29T06:58:55.994Z [error]: Error registering user Email is already registered, Please Login
+2025-08-29T10:13:34.756Z [info]: MongoDB connected: localhost
+2025-08-29T10:49:36.523Z [info]: MongoDB connected: localhost
+2025-08-29T10:51:41.992Z [info]: MongoDB connected: localhost
+2025-08-29T10:51:55.164Z [info]: MongoDB connected: localhost
+2025-08-29T10:56:54.601Z [info]: User registration validation successful for:
+2025-08-29T10:56:54.644Z [info]: Generated OTP: 821197 for email: nihal@gmail.com
+2025-08-29T10:57:08.936Z [error]: Error verifying OTP [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "otp"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+2025-08-29T10:57:12.137Z [error]: Error verifying OTP [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "otp"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+2025-08-29T10:57:12.789Z [error]: Error verifying OTP [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "otp"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+2025-08-29T10:57:12.939Z [error]: Error verifying OTP [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "otp"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+2025-08-29T10:57:13.345Z [error]: Error verifying OTP [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "otp"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+2025-08-29T10:57:13.768Z [error]: Error verifying OTP [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "otp"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+2025-08-29T11:00:36.150Z [info]: Generated OTP: 182860 for email: nihal@gmail.com
+2025-08-29T11:00:47.735Z [error]: Error verifying OTP [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "otp"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+2025-08-29T13:55:47.790Z [info]: Generated OTP: 575928 for email: nihal@gmail.com
+2025-08-29T13:55:57.881Z [error]: Error verifying OTP [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "otp"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+2025-08-29T14:38:47.294Z [info]: User registration validation successful for:
+2025-08-29T14:38:47.310Z [info]: Generated OTP: 954621 for email: mern@gmail.com
+2025-08-29T14:38:58.614Z [info]: Verifying OTP for: mern@gmail.com, username: mern
+2025-08-29T14:41:50.394Z [info]: MongoDB connected: localhost
+2025-08-29T14:47:06.804Z [info]: MongoDB connected: localhost

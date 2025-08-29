@@ -4,10 +4,12 @@ export interface LoginData {
 }
 
 export interface RegisterData {
+  name: string
   username: string
   email: string
   password: string
   confirmPassword: string
+  referralCode?: string
 }
 
 export const validateLoginForm = (formData: LoginData): Partial<LoginData> => {
@@ -28,6 +30,12 @@ export const validateLoginForm = (formData: LoginData): Partial<LoginData> => {
 
 export const validateRegisterForm = (formData: RegisterData, agreeTerms: boolean): Partial<RegisterData> => {
   const errors: Partial<RegisterData> = {}
+
+  if (!formData.name.trim()) {
+    errors.name = "Name is required"
+  } else if (formData.name.length < 2) {
+    errors.name = "Name must be at least 2 characters long"
+  }
 
   if (!formData.username.trim()) {
     errors.username = "Username is required"
@@ -54,10 +62,12 @@ export const validateRegisterForm = (formData: RegisterData, agreeTerms: boolean
     errors.confirmPassword = "Passwords do not match"
   }
 
+  if (formData.referralCode && formData.referralCode.trim() && !/^[a-zA-Z0-9]{8}$/.test(formData.referralCode)) {
+    errors.referralCode = "Referral code must be 8 characters long and contain only letters and numbers"
+  }
+
   if (!agreeTerms) {
-    // note: TypeScript may complain since `agreeTerms` is not part of `RegisterData`
-    // you can fix this by extending the interface or using a separate type for validation
-    ;(errors as any).agreeTerms = "You must agree to the terms and conditions"
+    (errors as any).agreeTerms = "You must agree to the terms and conditions"
   }
 
   return errors

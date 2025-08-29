@@ -4,7 +4,9 @@ interface UserType {
   _id: string
   username: string
   email: string
+  name: string
   profileImage?: string
+  referralCode?: string
 }
 
 interface UserAuthState {
@@ -17,6 +19,8 @@ interface UserAuthState {
     username: string
     email: string
     password: string
+    name: string
+    referralCode?: string
   } | null
   resetToken: string | null
 }
@@ -57,7 +61,7 @@ export const userAuthSlice = createSlice({
     setTempEmail: (state, action: PayloadAction<string>) => {
       state.tempEmail = action.payload
     },
-    setTempUserData: (state, action: PayloadAction<{ username: string; email: string; password: string }>) => {
+    setTempUserData: (state, action: PayloadAction<{ username: string; email: string; password: string; name: string; referralCode?: string }>) => {
       state.tempUserData = action.payload
     },
     setResetToken: (state, action: PayloadAction<string>) => {
@@ -68,7 +72,6 @@ export const userAuthSlice = createSlice({
       state.tempUserData = null
       state.resetToken = null
     },
-    
   },
 })
 
