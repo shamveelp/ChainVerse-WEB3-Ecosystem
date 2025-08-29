@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Phone, Mail, Calendar, Flame } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { setProfile, setLoading as setProfileLoading, setError } from "@/redux/slices/userProfileSlice";
+import { setProfile, setLoading as setProfileLoading, setError, clearError } from "@/redux/slices/userProfileSlice";
 import { logout } from "@/redux/slices/userAuthSlice";
 import { userApiService } from "@/services/userApiServices";
 import EditProfileModal from "@/components/user/profile/edit-profile-modal";
@@ -21,40 +21,68 @@ export default function MyProfilePage() {
   const dispatch = useDispatch();
   const router = useRouter();
   const { profile, loading, error } = useSelector((state: RootState) => state.userProfile);
-  const { token } = useSelector((state: RootState) => state.userAuth);
+  const { user } = useSelector((state: RootState) => state.userAuth);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    if (token) {
-      fetchProfile();
-    } else {
-      dispatch(setError("User not authenticated"));
-      toast.error("Please log in to view your profile");
-      router.replace("/user/login");
-    }
-  }, [dispatch, token, router]);
-
-  async function fetchProfile() {
-    dispatch(setProfileLoading(true));
-    try {
-      const response = await userApiService.getProfile();
-      dispatch(setProfile(response.data));
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to fetch profile";
-      dispatch(setError(errorMessage));
-      toast.error("Error loading profile", {
-        description: errorMessage,
-      });
-      if (errorMessage.includes("not authenticated")) {
-        dispatch(logout());
+    async function fetchProfile() {
+      if (!user) {
         router.replace("/user/login");
+        return;
       }
-    } finally {
-      dispatch(setProfileLoading(false));
+      dispatch(setProfileLoading(true));
+      try {
+        const response = await userApiService.getProfile();
+        // Validate date fields
+        if (response.data.createdAt && !isValid(new Date(response.data.createdAt))) {
+          throw new Error("Invalid createdAt date format");
+        }
+        if (response.data.dailyCheckin?.lastCheckIn && !isValid(new Date(response.data.dailyCheckin.lastCheckIn))) {
+          throw new Error("Invalid lastCheckIn date format");
+        }
+        dispatch(setProfile(response.data as any));
+        dispatch(clearError());
+      } catch (err: any) {
+        const errorMessage = err.message || "Failed to fetch profile";
+        dispatch(setError(errorMessage));
+        toast.error("Error loading profile", { description: errorMessage });
+        if (errorMessage.includes("not authenticated") || err.response?.status === 401) {
+          dispatch(logout());
+          dispatch(setProfile(null as any)); // Clear profile on logout
+          router.replace("/user/login");
+        } else if (retryCount < 3) {
+          // Retry up to 3 times with exponential backoff
+          setTimeout(() => setRetryCount(retryCount + 1), 1000 * Math.pow(2, retryCount));
+        }
+      } finally {
+        dispatch(setProfileLoading(false));
+      }
     }
-  }
+    fetchProfile();
+  }, [dispatch, user, router, retryCount]);
 
   if (loading) return <ProfileSkeleton />;
-  if (error) return <div className="text-red-500 text-center">{error}</div>;
+  if (error) {
+    return (
+      <div className="text-red-500 text-center">
+        {error}
+        <button
+          className="ml-4 text-blue-400 underline"
+          onClick={() => {
+            dispatch(clearError());
+            setRetryCount(0); // Reset retry count
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  // Validate profile data before rendering
+  const formattedJoinDate = profile?.createdAt && isValid(new Date(profile.createdAt))
+    ? format(new Date(profile.createdAt), "MMM yyyy")
+    : "Unknown";
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -62,7 +90,7 @@ export default function MyProfilePage() {
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <Avatar className="h-24 w-24 ring-2 ring-blue-500/30">
-              <AvatarImage src={profile?.profilePic || "/placeholder.svg"} alt={profile?.name} />
+              <AvatarImage src={profile?.profilePic || "/placeholder.svg"} alt={profile?.name || profile?.username || "User"} />
               <AvatarFallback className="text-2xl bg-slate-700 text-white">
                 {profile?.name?.charAt(0)?.toUpperCase() || profile?.username?.charAt(0)?.toUpperCase() || "?"}
               </AvatarFallback>
@@ -87,12 +115,10 @@ export default function MyProfilePage() {
                     {profile.phone}
                   </div>
                 )}
-                {profile?.createdAt && (
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4 text-blue-400" />
-                    Joined {format(new Date(profile.createdAt), "MMM yyyy")}
-                  </div>
-                )}
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4 text-blue-400" />
+                  Joined {formattedJoinDate}
+                </div>
               </div>
             </div>
 

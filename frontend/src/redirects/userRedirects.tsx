@@ -1,27 +1,30 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
 
-// Only allow access if logged in
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  const { user } = useSelector((state: RootState) => state.userAuth);
+  const { user, loading } = useSelector((state: RootState) => state.userAuth);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      router.replace("/user/login");
+    // Wait for loading to complete before checking auth state
+    if (!loading) {
+      if (!user) {
+        router.replace("/user/login");
+      }
+      setIsChecking(false);
     }
-  }, [user, router]);
+  }, [user, loading, router]);
 
-  if (!user) return null;
+  if (isChecking || loading || !user) return null;
 
   return <>{children}</>;
 };
 
-// Redirect logged-in users away from login/signup pages
 export const PreventLoggedIn = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const { user } = useSelector((state: RootState) => state.userAuth);
@@ -36,5 +39,3 @@ export const PreventLoggedIn = ({ children }: { children: React.ReactNode }) => 
 
   return <>{children}</>;
 };
-
-

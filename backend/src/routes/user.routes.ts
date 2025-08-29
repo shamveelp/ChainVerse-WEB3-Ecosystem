@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import container from '../core/di/container';
-import { UserAuthController } from '../controllers/user/userAuth.controller';
+import { UserAuthController } from '../controllers/user/UserAuth.controller';
 import { TYPES } from '../core/types/types';
 import { authMiddleware, roleMiddleware } from '../middlewares/auth.middleware';
-import { UserProfileController } from '../controllers/user/userProfile.controller';
+import { UserProfileController } from '../controllers/user/UserProfile.controller';
 import multer from 'multer';
 import { createWallet, getWallet } from '../controllers/user/wallet.controller';
 
@@ -45,7 +45,7 @@ router.post("/google-login", userAuthController.googleLogin.bind(userAuthControl
 router.post("/check-username", userAuthController.checkUsername.bind(userAuthController))
 router.get("/generate-username", userAuthController.generateUsername.bind(userAuthController))
 
-// Profile Routes (protected)
+// Profile Routes (protected) - Fixed endpoints to match frontend
 router.get('/get-profile', authMiddleware, roleMiddleware(['user']), userProfileController.getProfile.bind(userProfileController));
 router.put('/profile', authMiddleware, roleMiddleware(['user']), userProfileController.updateProfile.bind(userProfileController));
 router.post('/check-username', authMiddleware, roleMiddleware(['user']), userProfileController.checkUsername.bind(userProfileController));

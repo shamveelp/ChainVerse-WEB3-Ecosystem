@@ -26,79 +26,149 @@ export const isAuthenticatedRequest = (req: Request): req is AuthenticatedReques
 
 export const authMiddleware: RequestHandler = async (req, res, next) => {
   try {
+    console.log("Auth middleware: Starting authentication check");
+    
+    // Get token from cookies or Authorization header
     const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
-    console.log("Auth middleware - Token:", token ? "Token present" : "No token provided");
+    console.log("Auth middleware: Token present:", token ? "Yes" : "No");
 
     if (!token) {
-      return res.status(StatusCode.UNAUTHORIZED).json({ success: false, error: "Access token is required" });
+      console.log("Auth middleware: No token provided");
+      return res.status(StatusCode.UNAUTHORIZED).json({ 
+        success: false, 
+        error: "Access token is required" 
+      });
     }
 
-    const decoded = JwtService.verifyToken(token) as {
-      id: string;
-      role: string;
-      tokenVersion: number;
-    };
-    console.log("Auth middleware - Decoded token:", { id: decoded.id, role: decoded.role, tokenVersion: decoded.tokenVersion });
+    // Verify and decode token
+    let decoded;
+    try {
+      decoded = JwtService.verifyToken(token) as {
+        id: string;
+        role: string;
+        tokenVersion: number;
+      };
+      console.log("Auth middleware: Token decoded successfully for user:", decoded.id, "role:", decoded.role);
+    } catch (tokenError) {
+      console.log("Auth middleware: Token verification failed:", tokenError);
+      return res.status(StatusCode.UNAUTHORIZED).json({ 
+        success: false, 
+        error: "Invalid or expired token" 
+      });
+    }
 
+    // Get repositories
     const userRepo = container.get<IUserRepository>(TYPES.IUserRepository);
     const adminRepo = container.get<IAdminRepository>(TYPES.IAdminRepository);
 
+    // Find account based on role
     let account: any;
-    switch (decoded.role) {
-      case "user":
-        account = await userRepo.findById(decoded.id);
-        break;
-      case "admin":
-        account = await adminRepo.findById(decoded.id);
-        break;
-      default:
-        throw new CustomError("Invalid role", StatusCode.UNAUTHORIZED);
+    try {
+      switch (decoded.role) {
+        case "user":
+          console.log("Auth middleware: Looking up user account");
+          account = await userRepo.findById(decoded.id);
+          break;
+        case "admin":
+          console.log("Auth middleware: Looking up admin account");
+          account = await adminRepo.findById(decoded.id);
+          break;
+        default:
+          console.log("Auth middleware: Invalid role:", decoded.role);
+          return res.status(StatusCode.UNAUTHORIZED).json({ 
+            success: false, 
+            error: "Invalid role" 
+          });
+      }
+    } catch (dbError) {
+      console.error("Auth middleware: Database error:", dbError);
+      return res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ 
+        success: false, 
+        error: "Database error during authentication" 
+      });
     }
 
-    console.log("Auth middleware - Account:", account ? { id: account._id, tokenVersion: account.tokenVersion, isBanned: account.isBanned } : "No account found");
+    console.log("Auth middleware: Account found:", account ? "Yes" : "No");
 
     if (!account) {
-      return res.status(StatusCode.UNAUTHORIZED).json({ success: false, error: "User not found" });
-    }
-
-    if (decoded.tokenVersion !== account.tokenVersion) {
-      console.log("Auth middleware - Token version mismatch:", {
-        tokenVersion: decoded.tokenVersion,
-        dbTokenVersion: account.tokenVersion,
+      console.log("Auth middleware: Account not found for ID:", decoded.id);
+      return res.status(StatusCode.UNAUTHORIZED).json({ 
+        success: false, 
+        error: "User not found" 
       });
-      return res.status(StatusCode.UNAUTHORIZED).json({ success: false, error: "Invalid or expired token" });
     }
 
+    // Check token version
+    if (decoded.tokenVersion !== account.tokenVersion) {
+      console.log("Auth middleware: Token version mismatch. Token:", decoded.tokenVersion, "DB:", account.tokenVersion);
+      return res.status(StatusCode.UNAUTHORIZED).json({ 
+        success: false, 
+        error: "Invalid or expired token" 
+      });
+    }
+
+    // Check if account is banned
     if (account.isBanned) {
-      return res.status(StatusCode.FORBIDDEN).json({ success: false, error: "Account is banned" });
+      console.log("Auth middleware: Account is banned");
+      return res.status(StatusCode.FORBIDDEN).json({ 
+        success: false, 
+        error: "Account is banned" 
+      });
     }
 
+    // Set user in request
     req.user = {
       id: decoded.id,
       role: decoded.role,
       tokenVersion: decoded.tokenVersion,
     };
+
+    console.log("Auth middleware: Authentication successful for user:", decoded.id);
     next();
   } catch (error) {
+    console.error("Auth middleware: Unexpected error:", error);
     logger.error("Authentication middleware error:", error);
-    res.status(StatusCode.UNAUTHORIZED).json({ success: false, error: "Invalid token" });
+    res.status(StatusCode.UNAUTHORIZED).json({ 
+      success: false, 
+      error: "Authentication failed" 
+    });
   }
 };
+
 export const roleMiddleware = (allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!isAuthenticatedRequest(req) || !req.user) {
-        return res.status(StatusCode.UNAUTHORIZED).json({ error: "User not authenticated" });
+      console.log("Role middleware: Checking roles:", allowedRoles);
+      
+      const user = req.user as { id: string; role: string };
+      if (!user) {
+        console.log("Role middleware: User not authenticated");
+        res.status(StatusCode.UNAUTHORIZED).json({ 
+          success: false, 
+          error: "User not authenticated" 
+        });
+        return;
       }
 
-      if (!allowedRoles.includes(req.user.role)) {
-        return res.status(StatusCode.FORBIDDEN).json({ error: "Access denied" });
+      console.log("Role middleware: User role:", user.role);
+      
+      if (!allowedRoles.includes(user.role)) {
+        console.log("Role middleware: Role not allowed");
+        res.status(StatusCode.FORBIDDEN).json({ 
+          success: false, 
+          error: `Access denied. Required roles: ${allowedRoles.join(', ')}` 
+        });
+        return;
       }
 
+      console.log("Role middleware: Role check passed");
       next();
     } catch (error) {
-      logger.error("Role middleware error:", error);
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ error: "Internal server error" });
+      console.error("Role middleware: Error:", error);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ 
+        success: false, 
+        error: "Internal server error" 
+      });
     }
   };
 };

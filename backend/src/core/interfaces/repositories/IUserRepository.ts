@@ -1,5 +1,5 @@
 import { IUser } from "../../../models/user.models";
-import { IBaseRepository } from "./IBase.repository";
+import { IBaseRepository } from "./iBase.repository";
 
 export interface PaginatedUsers {
     users: Partial<IUser>[];
@@ -16,7 +16,7 @@ export interface IUserRepository extends IBaseRepository<IUser> {
   findByGoogleId(googleId: string): Promise<IUser | null>;
   findUsers(page: number, limit: number, search: string): Promise<PaginatedUsers>;
   count(): Promise<number>;
-  updateUser(id:string,status:Partial<IUser>):Promise<void>
+  updateUser(id: string, update: Partial<IUser>): Promise<IUser | null>;
   updateStatus(id: string, updateData: Partial<IUser>): Promise<IUser | null>;
   findById(id: string): Promise<IUser | null>;
   

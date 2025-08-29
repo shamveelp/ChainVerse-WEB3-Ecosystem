@@ -1,6 +1,4 @@
 import API from "@/lib/api-client";
-import { store } from "@/redux/store";
-import { login, logout, setLoading } from "@/redux/slices/userAuthSlice";
 
 export interface UserProfile {
   _id: string;
@@ -19,7 +17,7 @@ export interface UserProfile {
   isEmailVerified: boolean;
   isGoogleUser: boolean;
   dailyCheckin: {
-    lastCheckIn: Date | null;
+    lastCheckIn: Date | string | null;
     streak: number;
   };
   followersCount: number;
@@ -28,10 +26,20 @@ export interface UserProfile {
   updatedAt: Date | string;
 }
 
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
 export const userApiService = {
   getProfile: async (): Promise<{ data: UserProfile }> => {
     try {
+      console.log("Fetching profile...");
       const response = await API.get("/api/user/get-profile");
+      console.log("Profile API response:", response.data);
+      
       if (response.data.success && response.data.data) {
         const data = response.data.data;
         return {
@@ -52,13 +60,13 @@ export const userApiService = {
             isEmailVerified: data.isEmailVerified || false,
             isGoogleUser: data.isGoogleUser || false,
             dailyCheckin: {
-              lastCheckIn: data.dailyCheckin?.lastCheckIn ? new Date(data.dailyCheckin.lastCheckIn) : null,
+              lastCheckIn: data.dailyCheckin?.lastCheckIn || null,
               streak: data.dailyCheckin?.streak || 0,
             },
             followersCount: data.followersCount || 0,
             followingCount: data.followingCount || 0,
-            createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
-            updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+            createdAt: data.createdAt || new Date().toISOString(),
+            updatedAt: data.updatedAt || new Date().toISOString(),
           },
         };
       }
@@ -66,9 +74,11 @@ export const userApiService = {
     } catch (error: any) {
       console.error("Get profile error:", error.response?.data || error.message);
       const errorMessage = error.response?.data?.error || error.message || "Failed to fetch profile";
+      
       if (error.response?.status === 401) {
         throw new Error("User not authenticated");
       }
+      
       throw new Error(errorMessage);
     }
   },
@@ -78,26 +88,33 @@ export const userApiService = {
     username: string;
     phone?: string;
     profilePic?: string;
-  }) => {
+  }): Promise<{ success: boolean; data?: any; error?: string; message?: string }> => {
     try {
+      console.log("Updating profile...", profileData);
       const response = await API.put("/api/user/profile", profileData);
+      console.log("Update profile API response:", response.data);
+      
       if (response.data.success && response.data.data) {
+        const data = response.data.data;
         return {
           success: true,
           data: {
-            _id: response.data.data._id,
-            username: response.data.data.username,
-            email: response.data.data.email,
-            profileImage: response.data.data.profilePic,
-            name: response.data.data.name,
-            phone: response.data.data.phone,
-            createdAt: response.data.data.createdAt,
-            stats: response.data.data.stats,
+            _id: data._id,
+            username: data.username,
+            email: data.email,
+            profilePic: data.profilePic,
+            name: data.name,
+            phone: data.phone,
+            createdAt: data.createdAt,
+            stats: data.stats,
           },
-          message: "Profile updated successfully",
+          message: response.data.message || "Profile updated successfully",
         };
       }
-      return { success: false, error: response.data.error || "Failed to update profile" };
+      return { 
+        success: false, 
+        error: response.data.error || "Failed to update profile" 
+      };
     } catch (error: any) {
       console.error("Update profile error:", error.response?.data || error.message);
       return {
@@ -107,9 +124,20 @@ export const userApiService = {
     }
   },
 
-  checkUsernameAvailability: async (username: string) => {
+  checkUsernameAvailability: async (username: string): Promise<{
+    success: boolean;
+    available: boolean;
+    error?: string;
+  }> => {
     try {
+      if (!username || username.trim() === "") {
+        return { success: false, available: false, error: "Username cannot be empty" };
+      }
+      
+      console.log("Checking username availability:", username);
       const response = await API.post("/api/user/check-username", { username });
+      console.log("Username check API response:", response.data);
+      
       return {
         success: true,
         available: response.data.available,
@@ -124,20 +152,35 @@ export const userApiService = {
     }
   },
 
-  uploadProfileImage: async (file: File) => {
+  uploadProfileImage: async (file: File): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> => {
     try {
       const formData = new FormData();
       formData.append("profileImage", file);
 
+      console.log("Uploading profile image...");
       const response = await API.post("/api/user/upload-profile-image", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+      console.log("Upload image API response:", response.data);
 
-      return {
-        success: true,
-        imageUrl: response.data.imageUrl,
+      if (response.data.success && response.data.data) {
+        return {
+          success: true,
+          data: {
+            ...response.data.data,
+            profilePic: response.data.data.profilePic,
+          },
+        };
+      }
+      return { 
+        success: false, 
+        error: response.data.error || "Failed to upload image" 
       };
     } catch (error: any) {
       console.error("Upload image error:", error.response?.data || error.message);
@@ -147,5 +190,4 @@ export const userApiService = {
       };
     }
   },
-  
 };

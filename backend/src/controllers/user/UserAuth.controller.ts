@@ -169,6 +169,7 @@ export class UserAuthController implements IUserAuthController {
       const { email, password } = validatedData;
       const { user, accessToken, refreshToken } =
         await this._userAuthService.loginUser(email, password);
+        // console.log("Login successful:", { user, accessToken, refreshToken });
       this._jwtService.setTokens(res, accessToken, refreshToken);
       res.status(StatusCode.OK).json({ user });
     } catch (error: any) {

@@ -1182,3 +1182,52 @@
 2025-08-27T15:51:45.101Z [info]: MongoDB connected: localhost
 2025-08-27T16:09:15.362Z [info]: MongoDB connected: localhost
 2025-08-27T16:13:39.771Z [info]: MongoDB connected: localhost
+2025-08-28T04:01:21.171Z [info]: MongoDB connected: localhost
+2025-08-28T04:03:28.064Z [info]: MongoDB connected: localhost
+2025-08-28T04:04:28.862Z [info]: MongoDB connected: localhost
+2025-08-28T04:53:33.035Z [info]: MongoDB connected: localhost
+2025-08-28T04:54:22.088Z [info]: MongoDB connected: localhost
+2025-08-28T04:54:41.630Z [info]: MongoDB connected: localhost
+2025-08-28T06:20:13.508Z [info]: MongoDB connected: localhost
+2025-08-28T06:31:00.717Z [info]: MongoDB connected: localhost
+2025-08-28T06:31:25.629Z [info]: MongoDB connected: localhost
+2025-08-28T06:31:38.029Z [info]: MongoDB connected: localhost
+2025-08-28T06:35:11.189Z [info]: Generated OTP: 791480 for forgot password request for email: norman@gmail.com
+2025-08-28T06:35:45.906Z [error]: Error verifying forgot password OTP Invalid OTP
+2025-08-28T06:41:38.355Z [info]: User logged out successfully
+2025-08-28T07:25:05.312Z [info]: User logged out successfully
+2025-08-28T07:26:21.720Z [info]: User logged out successfully
+2025-08-28T07:27:26.171Z [info]: Generated OTP: 460186 for email: normak@gmail.com
+2025-08-28T07:27:59.231Z [info]: username: chainverse_user41624, email: normak@gmail.com, password: Sanu@123, otp: 460186
+2025-08-28T07:35:41.582Z [info]: User logged out successfully
+2025-08-28T07:36:17.755Z [info]: User logged out successfully
+2025-08-28T07:42:56.859Z [info]: User logged out successfully
+2025-08-28T09:12:05.762Z [info]: MongoDB connected: localhost
+2025-08-28T11:04:29.949Z [info]: MongoDB connected: localhost
+2025-08-28T11:33:17.735Z [info]: MongoDB connected: localhost
+2025-08-28T11:33:56.362Z [info]: MongoDB connected: localhost
+2025-08-28T11:34:08.430Z [info]: MongoDB connected: localhost
+2025-08-28T11:34:12.924Z [info]: User logged out successfully
+2025-08-28T11:35:54.888Z [info]: MongoDB connected: localhost
+2025-08-28T11:36:11.406Z [info]: MongoDB connected: localhost
+2025-08-28T12:01:38.539Z [info]: MongoDB connected: localhost
+2025-08-28T12:45:05.127Z [info]: MongoDB connected: localhost
+2025-08-28T12:46:43.566Z [info]: User logged out successfully
+2025-08-28T12:48:19.178Z [info]: MongoDB connected: localhost
+2025-08-28T12:49:06.039Z [info]: MongoDB connected: localhost
+2025-08-28T12:49:22.532Z [info]: MongoDB connected: localhost
+2025-08-28T13:55:22.642Z [info]: MongoDB connected: localhost
+2025-08-28T14:13:17.389Z [info]: MongoDB connected: localhost
+2025-08-28T15:14:01.543Z [info]: User logged out successfully
+2025-08-28T15:17:50.961Z [info]: Generated OTP: 989746 for email: ajjuveeran@gmail.com
+2025-08-28T15:18:24.769Z [info]: username: ajju, email: ajjuveeran@gmail.com, password: Sanu@123, otp: 989746
+2025-08-28T15:22:48.404Z [info]: MongoDB connected: localhost
+2025-08-28T15:23:56.056Z [info]: MongoDB connected: localhost
+2025-08-28T18:21:21.430Z [info]: Admin logged in successfully
+2025-08-28T18:21:25.975Z [info]: Admin logged in successfully
+2025-08-28T18:21:26.659Z [info]: Admin logged in successfully
+2025-08-28T18:21:29.246Z [info]: Admin logged in successfully
+2025-08-28T18:23:01.778Z [info]: MongoDB connected: localhost
+2025-08-28T18:23:15.612Z [info]: MongoDB connected: localhost
+2025-08-28T18:23:16.495Z [info]: Admin logged in successfully
+2025-08-29T03:36:17.614Z [info]: User logged out successfully

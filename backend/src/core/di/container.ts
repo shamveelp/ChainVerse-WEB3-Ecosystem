@@ -4,7 +4,7 @@ import { OAuthClient } from "../../utils/OAuthClient"
 
 // Controllers
 import type { IUserAuthController } from "../interfaces/controllers/user/IUserAuth.controllers"
-import { UserAuthController } from "../../controllers/user/userAuth.controller"
+import { UserAuthController } from "../../controllers/user/UserAuth.controller"
 // import { IAdminAuthController } from "../interfaces/controllers/admin/IAuthAdmin.controllers" // Commented out as per your code
 
 // Services
@@ -37,7 +37,7 @@ import { CommunityAdminRepository } from "../../repositories/communityAdmin.repo
 import { ICommunityRequestRepository } from "../interfaces/repositories/ICommunityRequestRepository"
 import { CommunityRequestRepository } from "../../repositories/communityRequest.repository"
 import { IUserProfileController } from "../interfaces/controllers/user/IUserProfile.controller"
-import { UserProfileController } from "../../controllers/user/userProfile.controller"
+import { UserProfileController } from "../../controllers/user/UserProfile.controller"
 import { IUserService } from "../interfaces/services/user/IUserService"
 import { UserService } from "../../services/user/User.service"
 // import { WalletController } from "../../controllers/user/wallet.controller"

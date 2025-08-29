@@ -1,5 +1,5 @@
 import { Model, FilterQuery, UpdateQuery, Document } from "mongoose";
-import { IBaseRepository } from "../core/interfaces/repositories/IBase.repository";
+import { IBaseRepository } from "../core/interfaces/repositories/iBase.repository";
 import { UserModel, IUser } from "../models/user.models";
 
 
@@ -8,12 +8,12 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
     constructor(protected readonly model: Model<T>) { }
 
     async create(item: Partial<T>): Promise<T> {
-        console.log("ideel", item)
         return await this.model.create(item);
     }
 
     async findById(id: string): Promise<T | null> {
         return await this.model.findById(id);
+
     }
 
     // async findAll(): Promise<T[]> {
