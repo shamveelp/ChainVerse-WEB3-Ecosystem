@@ -6,6 +6,8 @@ import { authMiddleware, roleMiddleware } from '../middlewares/auth.middleware';
 import { UserProfileController } from '../controllers/user/UserProfile.controller';
 import multer from 'multer';
 import { createWallet, getWallet } from '../controllers/user/wallet.controller';
+import { ReferralController } from '../controllers/user/Referral.controller';
+import { PointsController } from '../controllers/user/Points.controller';
 
 
 // Configure Multer for file uploads
@@ -27,6 +29,9 @@ const router = Router();
 
 const userAuthController = container.get<UserAuthController>(TYPES.IUserAuthController);
 const userProfileController = container.get<UserProfileController>(TYPES.IUserProfileController);
+const referralController = container.get<ReferralController>(TYPES.IReferralController);
+const pointsController = container.get<PointsController>(TYPES.IPointsController);
+
 // const walletController = container.get<WalletController>(TYPES.WalletController)
 
 // Auth
@@ -45,11 +50,20 @@ router.post("/google-login", userAuthController.googleLogin.bind(userAuthControl
 router.post("/check-username", userAuthController.checkUsername.bind(userAuthController))
 router.get("/generate-username", userAuthController.generateUsername.bind(userAuthController))
 
-// Profile Routes (protected) - Fixed endpoints to match frontend
+// Profile Routes (protected)
 router.get('/get-profile', authMiddleware, roleMiddleware(['user']), userProfileController.getProfile.bind(userProfileController));
 router.put('/profile', authMiddleware, roleMiddleware(['user']), userProfileController.updateProfile.bind(userProfileController));
-router.post('/check-username', authMiddleware, roleMiddleware(['user']), userProfileController.checkUsername.bind(userProfileController));
 router.post('/upload-profile-image', authMiddleware, roleMiddleware(['user']), upload.single('profileImage'), userProfileController.uploadProfileImage.bind(userProfileController));
+
+// Referral Routes (protected)
+router.get('/referrals/history', authMiddleware, roleMiddleware(['user']), referralController.getReferralHistory.bind(referralController));
+router.get('/referrals/stats', authMiddleware, roleMiddleware(['user']), referralController.getReferralStats.bind(referralController));
+
+// Points Routes (protected)
+router.post('/points/daily-checkin', authMiddleware, roleMiddleware(['user']), pointsController.performDailyCheckIn.bind(pointsController));
+router.get('/points/checkin-status', authMiddleware, roleMiddleware(['user']), pointsController.getCheckInStatus.bind(pointsController));
+router.get('/points/checkin-calendar', authMiddleware, roleMiddleware(['user']), pointsController.getCheckInCalendar.bind(pointsController));
+router.get('/points/history', authMiddleware, roleMiddleware(['user']), pointsController.getPointsHistory.bind(pointsController));
 
 
 // Wallet

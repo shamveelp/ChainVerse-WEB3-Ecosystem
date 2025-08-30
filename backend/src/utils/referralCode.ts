@@ -2,7 +2,7 @@ import { customAlphabet } from 'nanoid';
 import { UserModel } from '../models/user.models';
 
 // Create a custom alphabet for referral codes (alphanumeric, no special chars)
-const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const nanoid = customAlphabet(alphabet, 8);
 
 // Utility class for generating and validating referral codes

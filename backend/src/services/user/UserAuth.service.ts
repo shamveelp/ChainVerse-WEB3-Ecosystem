@@ -1,6 +1,8 @@
 import { injectable, inject } from "inversify";
 import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuthService";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
+import { IReferralHistoryRepository } from "../../core/interfaces/repositories/IReferralHistoryRepository";
+import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistoryRepository";
 import { TYPES } from "../../core/types/types";
 import bcrypt from "bcrypt";
 import { JwtService } from "../../utils/jwt";
@@ -21,6 +23,8 @@ export class UserAuthService implements IUserAuthService {
   private _googleClient: OAuth2Client;
   constructor(
     @inject(TYPES.IUserRepository) private _userRepository: IUserRepository,
+    @inject(TYPES.IReferralHistoryRepository) private _referralHistoryRepository: IReferralHistoryRepository,
+    @inject(TYPES.IPointsHistoryRepository) private _pointsHistoryRepository: IPointsHistoryRepository,
     @inject(TYPES.IJwtService) private _jwtService: IJwtService
   ) {
     this._userRepository = _userRepository;
@@ -48,7 +52,6 @@ export class UserAuthService implements IUserAuthService {
         }
       }
 
-      // Don't create user here - just validate the data
       logger.info("User registration validation successful for:", email);
     } catch (error) {
       logger.error("Error in registerUser:", error);
@@ -59,7 +62,9 @@ export class UserAuthService implements IUserAuthService {
   // Create the user after OTP verification
   async verifyAndRegisterUser(username: string, email: string, password: string, name: string, referralCode?: string): Promise<{ user: any; accessToken: string; refreshToken: string }> {
     try {
-      // Double-check that user doesn't exist (in case someone else registered with same email during OTP verification)
+      console.log("Creating user after OTP verification:", { username, email, referralCode });
+      
+      // Double-check that user doesn't exist
       const existingUserByEmail = await this._userRepository.findByEmail(email);
       if (existingUserByEmail) {
         throw new CustomError("Email already exists", StatusCode.BAD_REQUEST);
@@ -87,28 +92,51 @@ export class UserAuthService implements IUserAuthService {
         email,
         password: hashedPassword,
         name,
-        refferalCode: userReferralCode, // User's own referral code
-        refferedBy: refferedById ? new Types.ObjectId(refferedById) : null, // Who referred this user
+        refferalCode: userReferralCode,
+        refferedBy: refferedById ? new Types.ObjectId(refferedById) : null,
         role: "user" as const,
         isEmailVerified: true,
         totalPoints: 0,
       };
 
       const user = await this._userRepository.createUser(userData);
+      console.log("User created successfully:", user._id);
 
-      // Award 100 points to the referrer if someone referred this user
+      // Handle referral rewards
       if (refferedById) {
         try {
+          console.log("Processing referral reward for referrer:", refferedById);
+          
+          // Award 100 points to the referrer
           const referrer = await this._userRepository.findById(refferedById);
           if (referrer) {
+            const newTotalPoints = (referrer.totalPoints || 0) + 100;
             await this._userRepository.updateUser(refferedById, {
-              totalPoints: (referrer.totalPoints || 0) + 100,
+              totalPoints: newTotalPoints,
             });
+
+            // Create referral history record
+            await this._referralHistoryRepository.createReferralHistory({
+              referrer: refferedById,
+              referred: user._id.toString(),
+              referralCode: referralCode!,
+              pointsAwarded: 100,
+            });
+
+            // Create points history for referrer
+            await this._pointsHistoryRepository.createPointsHistory({
+              userId: refferedById,
+              type: 'referral_bonus',
+              points: 100,
+              description: `Referral bonus for inviting ${username}`,
+              relatedId: user._id.toString(),
+            });
+
             logger.info(`Awarded 100 points to referrer ${refferedById} for user ${user._id}`);
           }
         } catch (referralError) {
-          logger.error("Error awarding referral points:", referralError);
-          // Don't fail registration if referral points fail - just log the error
+          logger.error("Error processing referral reward:", referralError);
+          // Don't fail registration if referral reward fails
         }
       }
 
@@ -173,7 +201,6 @@ export class UserAuthService implements IUserAuthService {
   }
 
   public async loginUser(email: string, password: string) {
-    // Find user by email
     const user = await this._userRepository.findByEmail(email);
 
     if (!user) {
@@ -194,7 +221,6 @@ export class UserAuthService implements IUserAuthService {
       throw new CustomError("This user is banned", StatusCode.FORBIDDEN);
     }
 
-    // Compare entered password with hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new CustomError(
@@ -203,7 +229,6 @@ export class UserAuthService implements IUserAuthService {
       );
     }
 
-    // Generate JWT tokens
     const accessToken = this._jwtService.generateAccessToken(
       user._id.toString(),
       user.role,

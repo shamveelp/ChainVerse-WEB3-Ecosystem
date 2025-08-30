@@ -42,6 +42,22 @@ export const TYPES = {
     WalletService: Symbol.for("WalletService"),
     IWalletRepository: Symbol.for("IWalletRepository"),
     WalletRepository: Symbol.for("WalletRepository"),
+
+    ReferralHistoryRepository: Symbol.for("ReferralHistoryRepository"),
+    IReferralHistoryRepository: Symbol.for("IReferralHistoryRepository"),
+    IPointsHistoryRepository: Symbol.for("IPointsHistoryRepository"),
+    PointsHistoryRepository: Symbol.for("PointsHistoryRepository"),
+    IDailyCheckInRepository: Symbol.for("IDailyCheckInRepository"),
+    DailyCheckInRepository: Symbol.for("DailyCheckInRepository"),
+    IReferralService: Symbol.for("IReferralService"),
+    ReferralService: Symbol.for("ReferralService"),
+    IPointsService: Symbol.for("IPointsService"),
+    PointsService: Symbol.for("PointsService"),
+    IReferralController: Symbol.for("IReferralController"),
+    ReferralController: Symbol.for("ReferralController"),
+    IPointsController: Symbol.for("IPointsController"),
+    PointsController: Symbol.for("PointsController"),
+
     
     
 

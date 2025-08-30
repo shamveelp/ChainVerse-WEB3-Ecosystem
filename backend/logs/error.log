@@ -422,3 +422,19 @@
     "message": "Invalid input: expected string, received undefined"
   }
 ]
+2025-08-29T15:05:44.495Z [error]: Error in registerUser: Email already exists
+2025-08-29T15:05:44.498Z [error]: Error in register: Email already exists
+2025-08-29T15:05:56.515Z [error]: Error in registerUser: Invalid referral code
+2025-08-29T15:05:56.516Z [error]: Error in register: Invalid referral code
+2025-08-29T15:48:30.030Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:30.770Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:31.246Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:31.684Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:31.837Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:31.979Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:32.123Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T17:46:09.123Z [error]: Error logging in Incorrect email or password
+2025-08-29T17:46:16.347Z [error]: Error logging in Incorrect email or password
+2025-08-29T17:46:30.912Z [error]: Error logging in Incorrect email or password
+2025-08-29T17:49:55.729Z [error]: Error in registerUser: Email already exists
+2025-08-29T17:49:55.739Z [error]: Error in register: Email already exists

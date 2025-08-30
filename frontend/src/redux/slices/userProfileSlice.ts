@@ -1,4 +1,4 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface UserProfile {
   _id: string;
@@ -17,7 +17,7 @@ export interface UserProfile {
   isEmailVerified: boolean;
   isGoogleUser: boolean;
   dailyCheckin: {
-    lastCheckIn: Date | null;
+    lastCheckIn: Date | string | null;
     streak: number;
   };
   followersCount: number;
@@ -26,32 +26,58 @@ export interface UserProfile {
   updatedAt: Date | string;
 }
 
+export interface ReferralStats {
+  totalReferrals: number;
+  totalPointsEarned: number;
+  referralCode: string;
+  referralLink: string;
+}
+
+export interface CheckInStatus {
+  hasCheckedInToday: boolean;
+  currentStreak: number;
+  nextCheckInAvailable: Date | null;
+}
+
 interface UserProfileState {
   profile: UserProfile | null;
   loading: boolean;
   error: string | null;
-  usernameCheck: {
-    checking: boolean;
-    available: boolean | null;
-    lastChecked: string | null;
-  };
+  
+  // Referral data
+  referralStats: ReferralStats | null;
+  referralHistory: any[];
+  referralLoading: boolean;
+  
+  // Points data
+  checkInStatus: CheckInStatus | null;
+  pointsHistory: any[];
+  pointsSummary: any;
+  pointsLoading: boolean;
 }
 
 const initialState: UserProfileState = {
   profile: null,
   loading: false,
   error: null,
-  usernameCheck: {
-    checking: false,
-    available: null,
-    lastChecked: null,
-  },
+  
+  // Referral
+  referralStats: null,
+  referralHistory: [],
+  referralLoading: false,
+  
+  // Points
+  checkInStatus: null,
+  pointsHistory: [],
+  pointsSummary: null,
+  pointsLoading: false,
 };
 
 export const userProfileSlice = createSlice({
-  name: "userProfile",
+  name: 'userProfile',
   initialState,
   reducers: {
+    // Profile actions
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
@@ -59,42 +85,91 @@ export const userProfileSlice = createSlice({
       state.profile = action.payload;
       state.error = null;
     },
+    setError: (state, action: PayloadAction<string>) => {
+      state.error = action.payload;
+      state.loading = false;
+    },
+    clearError: (state) => {
+      state.error = null;
+    },
     updateProfile: (state, action: PayloadAction<Partial<UserProfile>>) => {
       if (state.profile) {
         state.profile = { ...state.profile, ...action.payload };
       }
     },
-    setError: (state, action: PayloadAction<string>) => {
-      state.error = action.payload;
+    
+    // Referral actions
+    setReferralLoading: (state, action: PayloadAction<boolean>) => {
+      state.referralLoading = action.payload;
     },
-    clearError: (state) => {
+    setReferralStats: (state, action: PayloadAction<ReferralStats>) => {
+      state.referralStats = action.payload;
+    },
+    setReferralHistory: (state, action: PayloadAction<any[]>) => {
+      state.referralHistory = action.payload;
+    },
+    appendReferralHistory: (state, action: PayloadAction<any[]>) => {
+      state.referralHistory.push(...action.payload);
+    },
+    
+    // Points actions
+    setPointsLoading: (state, action: PayloadAction<boolean>) => {
+      state.pointsLoading = action.payload;
+    },
+    setCheckInStatus: (state, action: PayloadAction<CheckInStatus>) => {
+      state.checkInStatus = action.payload;
+    },
+    setPointsHistory: (state, action: PayloadAction<any[]>) => {
+      state.pointsHistory = action.payload;
+    },
+    appendPointsHistory: (state, action: PayloadAction<any[]>) => {
+      state.pointsHistory.push(...action.payload);
+    },
+    setPointsSummary: (state, action: PayloadAction<any>) => {
+      state.pointsSummary = action.payload;
+    },
+    updateTotalPoints: (state, action: PayloadAction<number>) => {
+      if (state.profile) {
+        state.profile.totalPoints = action.payload;
+      }
+    },
+    updateStreak: (state, action: PayloadAction<number>) => {
+      if (state.profile) {
+        state.profile.dailyCheckin.streak = action.payload;
+      }
+    },
+    
+    // Clear all data
+    clearProfileData: (state) => {
+      state.profile = null;
+      state.referralStats = null;
+      state.referralHistory = [];
+      state.checkInStatus = null;
+      state.pointsHistory = [];
+      state.pointsSummary = null;
       state.error = null;
-    },
-    setUsernameChecking: (state, action: PayloadAction<boolean>) => {
-      state.usernameCheck.checking = action.payload;
-    },
-    setUsernameAvailable: (state, action: PayloadAction<{ available: boolean; username: string }>) => {
-      state.usernameCheck.available = action.payload.available;
-      state.usernameCheck.lastChecked = action.payload.username;
-      state.usernameCheck.checking = false;
-    },
-    clearUsernameCheck: (state) => {
-      state.usernameCheck.available = null;
-      state.usernameCheck.lastChecked = null;
-      state.usernameCheck.checking = false;
     },
   },
 });
 
-export const {
-  setLoading,
-  setProfile,
+export const { 
+  setLoading, 
+  setProfile, 
+  setError, 
+  clearError, 
   updateProfile,
-  setError,
-  clearError,
-  setUsernameChecking,
-  setUsernameAvailable,
-  clearUsernameCheck,
+  setReferralLoading,
+  setReferralStats,
+  setReferralHistory,
+  appendReferralHistory,
+  setPointsLoading,
+  setCheckInStatus,
+  setPointsHistory,
+  appendPointsHistory,
+  setPointsSummary,
+  updateTotalPoints,
+  updateStreak,
+  clearProfileData,
 } = userProfileSlice.actions;
 
 export default userProfileSlice.reducer;

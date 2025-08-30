@@ -26,6 +26,26 @@ export interface UserProfile {
   updatedAt: Date | string;
 }
 
+export interface ReferralStats {
+  totalReferrals: number;
+  totalPointsEarned: number;
+  referralCode: string;
+  referralLink: string;
+}
+
+export interface CheckInStatus {
+  hasCheckedInToday: boolean;
+  currentStreak: number;
+  nextCheckInAvailable: Date | null;
+}
+
+export interface DailyCheckInResult {
+  success: boolean;
+  pointsAwarded: number;
+  streakCount: number;
+  message: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -187,6 +207,152 @@ export const userApiService = {
       return {
         success: false,
         error: error.response?.data?.error || error.message || "Failed to upload image",
+      };
+    }
+  },
+
+  // Referral API methods
+  getReferralStats: async (): Promise<{ success: boolean; data?: ReferralStats; error?: string }> => {
+    try {
+      console.log("Fetching referral stats...");
+      const response = await API.get("/api/user/referrals/stats");
+      console.log("Referral stats API response:", response.data);
+      
+      if (response.data.success) {
+        return {
+          success: true,
+          data: response.data.data,
+        };
+      }
+      throw new Error(response.data.error || "Failed to fetch referral stats");
+    } catch (error: any) {
+      console.error("Get referral stats error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || "Failed to fetch referral stats",
+      };
+    }
+  },
+
+  getReferralHistory: async (page = 1, limit = 10): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> => {
+    try {
+      console.log("Fetching referral history...");
+      const response = await API.get(`/api/user/referrals/history?page=${page}&limit=${limit}`);
+      console.log("Referral history API response:", response.data);
+      
+      if (response.data.success) {
+        return {
+          success: true,
+          data: response.data.data,
+        };
+      }
+      throw new Error(response.data.error || "Failed to fetch referral history");
+    } catch (error: any) {
+      console.error("Get referral history error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || "Failed to fetch referral history",
+      };
+    }
+  },
+
+  // Points API methods
+  performDailyCheckIn: async (): Promise<{ success: boolean; data?: DailyCheckInResult; error?: string }> => {
+    try {
+      console.log("Performing daily check-in...");
+      const response = await API.post("/api/user/points/daily-checkin");
+      console.log("Daily check-in API response:", response.data);
+      
+      if (response.data.success) {
+        return {
+          success: true,
+          data: response.data.data,
+        };
+      }
+      throw new Error(response.data.error || "Failed to perform daily check-in");
+    } catch (error: any) {
+      console.error("Daily check-in error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || "Failed to perform daily check-in",
+      };
+    }
+  },
+
+  getCheckInStatus: async (): Promise<{ success: boolean; data?: CheckInStatus; error?: string }> => {
+    try {
+      console.log("Fetching check-in status...");
+      const response = await API.get("/api/user/points/checkin-status");
+      console.log("Check-in status API response:", response.data);
+      
+      if (response.data.success) {
+        return {
+          success: true,
+          data: response.data.data,
+        };
+      }
+      throw new Error(response.data.error || "Failed to fetch check-in status");
+    } catch (error: any) {
+      console.error("Get check-in status error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || "Failed to fetch check-in status",
+      };
+    }
+  },
+
+  getCheckInCalendar: async (month: number, year: number): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> => {
+    try {
+      console.log("Fetching check-in calendar...");
+      const response = await API.get(`/api/user/points/checkin-calendar?month=${month}&year=${year}`);
+      console.log("Check-in calendar API response:", response.data);
+      
+      if (response.data.success) {
+        return {
+          success: true,
+          data: response.data.data,
+        };
+      }
+      throw new Error(response.data.error || "Failed to fetch check-in calendar");
+    } catch (error: any) {
+      console.error("Get check-in calendar error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || "Failed to fetch check-in calendar",
+      };
+    }
+  },
+
+  getPointsHistory: async (page = 1, limit = 10): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> => {
+    try {
+      console.log("Fetching points history...");
+      const response = await API.get(`/api/user/points/history?page=${page}&limit=${limit}`);
+      console.log("Points history API response:", response.data);
+      
+      if (response.data.success) {
+        return {
+          success: true,
+          data: response.data.data,
+        };
+      }
+      throw new Error(response.data.error || "Failed to fetch points history");
+    } catch (error: any) {
+      console.error("Get points history error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || "Failed to fetch points history",
       };
     }
   },

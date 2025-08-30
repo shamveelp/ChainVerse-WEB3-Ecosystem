@@ -1359,3 +1359,67 @@
 2025-08-29T14:38:58.614Z [info]: Verifying OTP for: mern@gmail.com, username: mern
 2025-08-29T14:41:50.394Z [info]: MongoDB connected: localhost
 2025-08-29T14:47:06.804Z [info]: MongoDB connected: localhost
+2025-08-29T14:47:34.339Z [info]: MongoDB connected: localhost
+2025-08-29T14:49:12.297Z [info]: MongoDB connected: localhost
+2025-08-29T14:49:51.759Z [info]: MongoDB connected: localhost
+2025-08-29T14:50:12.731Z [info]: MongoDB connected: localhost
+2025-08-29T14:50:50.914Z [info]: MongoDB connected: localhost
+2025-08-29T14:51:22.240Z [info]: MongoDB connected: localhost
+2025-08-29T14:51:46.159Z [info]: MongoDB connected: localhost
+2025-08-29T14:52:16.698Z [info]: MongoDB connected: localhost
+2025-08-29T14:52:31.564Z [info]: MongoDB connected: localhost
+2025-08-29T14:52:57.300Z [info]: MongoDB connected: localhost
+2025-08-29T14:53:15.989Z [info]: MongoDB connected: localhost
+2025-08-29T14:53:42.479Z [info]: MongoDB connected: localhost
+2025-08-29T14:54:24.971Z [info]: MongoDB connected: localhost
+2025-08-29T14:55:04.821Z [info]: MongoDB connected: localhost
+2025-08-29T14:55:33.460Z [info]: MongoDB connected: localhost
+2025-08-29T14:56:10.298Z [info]: MongoDB connected: localhost
+2025-08-29T14:56:21.269Z [info]: MongoDB connected: localhost
+2025-08-29T14:56:28.351Z [info]: MongoDB connected: localhost
+2025-08-29T14:56:35.923Z [info]: MongoDB connected: localhost
+2025-08-29T14:56:41.711Z [info]: MongoDB connected: localhost
+2025-08-29T14:58:53.010Z [info]: MongoDB connected: localhost
+2025-08-29T14:59:27.396Z [info]: MongoDB connected: localhost
+2025-08-29T15:00:03.485Z [info]: MongoDB connected: localhost
+2025-08-29T15:04:44.438Z [info]: User logged out successfully
+2025-08-29T15:05:44.495Z [error]: Error in registerUser: Email already exists
+2025-08-29T15:05:44.498Z [error]: Error in register: Email already exists
+2025-08-29T15:05:56.515Z [error]: Error in registerUser: Invalid referral code
+2025-08-29T15:05:56.516Z [error]: Error in register: Invalid referral code
+2025-08-29T15:06:43.475Z [info]: User registration validation successful for:
+2025-08-29T15:06:43.495Z [info]: Generated OTP: 309970 for email: arshadpottengattu008@gmail.com
+2025-08-29T15:06:53.040Z [info]: Verifying OTP for: arshadpottengattu008@gmail.com, username: bcomer
+2025-08-29T15:11:17.091Z [info]: MongoDB connected: localhost
+2025-08-29T15:30:48.324Z [info]: MongoDB connected: localhost
+2025-08-29T15:31:08.492Z [info]: User registration validation successful for:
+2025-08-29T15:31:08.506Z [info]: Generated OTP: 205894 for email: koppen@gmail.com
+2025-08-29T15:31:27.264Z [info]: Verifying OTP for: koppen@gmail.com, username: koppen
+2025-08-29T15:46:06.076Z [info]: MongoDB connected: localhost
+2025-08-29T15:48:19.102Z [info]: MongoDB connected: localhost
+2025-08-29T15:48:30.030Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:30.770Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:31.246Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:31.684Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:31.837Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:31.979Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:32.123Z [error]: Daily check-in error: You have already checked in today
+2025-08-29T15:48:44.863Z [info]: User logged out successfully
+2025-08-29T17:45:37.030Z [info]: MongoDB connected: localhost
+2025-08-29T17:46:04.430Z [info]: User logged out successfully
+2025-08-29T17:46:09.123Z [error]: Error logging in Incorrect email or password
+2025-08-29T17:46:16.347Z [error]: Error logging in Incorrect email or password
+2025-08-29T17:46:30.912Z [error]: Error logging in Incorrect email or password
+2025-08-29T17:47:44.038Z [info]: User registration validation successful for:
+2025-08-29T17:47:44.077Z [info]: Generated OTP: 823238 for email: newuser001@gmail.com
+2025-08-29T17:47:52.986Z [info]: Verifying OTP for: newuser001@gmail.com, username: newuser001
+2025-08-29T17:49:16.649Z [info]: User logged out successfully
+2025-08-29T17:49:55.729Z [error]: Error in registerUser: Email already exists
+2025-08-29T17:49:55.739Z [error]: Error in register: Email already exists
+2025-08-29T17:50:06.864Z [info]: User registration validation successful for:
+2025-08-29T17:50:06.871Z [info]: Generated OTP: 525146 for email: newuser002@gmail.com
+2025-08-29T17:50:17.566Z [info]: Verifying OTP for: newuser002@gmail.com, username: newuser002
+2025-08-29T17:50:17.810Z [info]: Awarded 100 points to referrer 68b1e7c9398866b7ba7bd3b4 for user 68b1e859398866b7ba7bd43c
+2025-08-29T17:50:40.744Z [info]: User logged out successfully
+2025-08-29T18:58:05.928Z [info]: User logged out successfully
+2025-08-29T18:58:59.721Z [info]: User logged out successfully

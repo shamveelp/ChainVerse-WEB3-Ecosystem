@@ -5,16 +5,29 @@ import { OAuthClient } from "../../utils/OAuthClient"
 // Controllers
 import type { IUserAuthController } from "../interfaces/controllers/user/IUserAuth.controllers"
 import { UserAuthController } from "../../controllers/user/UserAuth.controller"
-// import { IAdminAuthController } from "../interfaces/controllers/admin/IAuthAdmin.controllers" // Commented out as per your code
+import type { IReferralController } from "../interfaces/controllers/user/IReferral.controller"
+import { ReferralController } from "../../controllers/user/Referral.controller"
+import type { IPointsController } from "../interfaces/controllers/user/IPoints.controller"
+import { PointsController } from "../../controllers/user/Points.controller"
 
 // Services
 import type { IUserAuthService } from "../interfaces/services/user/IUserAuthService"
 import { UserAuthService } from "../../services/user/UserAuth.service"
+import type { IReferralService } from "../interfaces/services/user/IReferralService"
+import { ReferralService } from "../../services/user/Referral.service"
+import type { IPointsService } from "../interfaces/services/user/IPointsService"
+import { PointsService } from "../../services/user/Points.service"
 import { JwtService } from "../../utils/jwt"
 
 // Repositories
 import type { IUserRepository } from "../interfaces/repositories/IUserRepository"
 import { UserRepository } from "../../repositories/user.repository"
+import type { IReferralHistoryRepository } from "../interfaces/repositories/IReferralHistoryRepository"
+import { ReferralHistoryRepository } from "../../repositories/referralHistory.repository"
+import type { IDailyCheckInRepository } from "../interfaces/repositories/IDailyCheckInRepository"
+import { DailyCheckInRepository } from "../../repositories/dailyCheckIn.repository"
+import type { IPointsHistoryRepository } from "../interfaces/repositories/IPointsHistoryRepository"
+import { PointsHistoryRepository } from "../../repositories/pointsHistory.repository"
 import type { IOTPService } from "../interfaces/services/IOtpService"
 import { OtpService } from "../../services/otp.service"
 import type { IOtpRepository } from "../interfaces/repositories/IOtpRepository"
@@ -40,48 +53,36 @@ import { IUserProfileController } from "../interfaces/controllers/user/IUserProf
 import { UserProfileController } from "../../controllers/user/UserProfile.controller"
 import { IUserService } from "../interfaces/services/user/IUserService"
 import { UserService } from "../../services/user/User.service"
-// import { WalletController } from "../../controllers/user/wallet.controller"
-// import { IWalletController } from "../interfaces/controllers/user/IWallet.controller"
-// import { IWalletRepository } from "../interfaces/repositories/IWalletRepository"
-// import { WalletRepository } from "../../repositories/wallet.repository"
-// import { IWalletService } from "../interfaces/services/user/IWalletService"
-// import { WalletService } from "../../services/user/Wallet.service"
-// import { IRedisClient } from "../../config/redis" // Commented out as per your code
-// import redisClient from "../../config/redis" // Commented out as per your code
 
 // Create Container
 const container = new Container()
 
 // Bind Controllers
 container.bind<IUserAuthController>(TYPES.IUserAuthController).to(UserAuthController)
-// container.bind<IAdminAuthController>(TYPES.IAdminAuthController).to(AdminAuthController) // Commented out as per your code
+container.bind<IUserProfileController>(TYPES.IUserProfileController).to(UserProfileController)
+container.bind<IReferralController>(TYPES.IReferralController).to(ReferralController)
+container.bind<IPointsController>(TYPES.IPointsController).to(PointsController)
 
 // Bind Services
 container.bind<IUserAuthService>(TYPES.IUserAuthService).to(UserAuthService)
+container.bind<IUserService>(TYPES.IUserService).to(UserService)
+container.bind<IReferralService>(TYPES.IReferralService).to(ReferralService)
+container.bind<IPointsService>(TYPES.IPointsService).to(PointsService)
 
 // Bind Repositories
 container.bind<IUserRepository>(TYPES.IUserRepository).to(UserRepository)
+container.bind<IReferralHistoryRepository>(TYPES.IReferralHistoryRepository).to(ReferralHistoryRepository)
+container.bind<IDailyCheckInRepository>(TYPES.IDailyCheckInRepository).to(DailyCheckInRepository)
+container.bind<IPointsHistoryRepository>(TYPES.IPointsHistoryRepository).to(PointsHistoryRepository)
 
 // Bind OAuth Client
 container.bind<OAuthClient>(TYPES.OAuthClient).to(OAuthClient)
 
 // Bind other services
-// container.bind<IEmailService>(TYPES.IEmailService).to(EmailService); // Commented out as per your code
-// container.bind<JwtService>(TYPES.JwtService).to(JwtService)
 container.bind<IOTPService>(TYPES.IOtpService).to(OtpService)
-
-// Bind Otp Repository
 container.bind<IOtpRepository>(TYPES.IOtpRepository).to(OtpRepository)
 container.bind<IMailService>(TYPES.IMailService).to(MailService)
-
-// utilities
-// container.bind<IRedisClient>(TYPES.IRedisClient).toConstantValue(redisClient) // Commented out as per your code
-
 container.bind<IJwtService>(TYPES.IJwtService).to(JwtService)
-
-
-
-
 
 // Admin
 container.bind<AdminAuthController>(TYPES.AdminAuthController).to(AdminAuthController)
@@ -89,23 +90,11 @@ container.bind<IAdminAuthController>(TYPES.IAdminAuthController).to(AdminAuthCon
 container.bind<IAdminAuthService>(TYPES.IAdminAuthService).to(AdminAuthService)
 container.bind<IAdminRepository>(TYPES.IAdminRepository).to(AdminRepository)
 
-
 // Community Admin
 container.bind<ICommunityAdminAuthController>(TYPES.ICommunityAdminAuthController).to(CommunityAdminAuthController)
 container.bind<CommunityAdminAuthController>(TYPES.CommunityAdminAuthController).to(CommunityAdminAuthController)
 container.bind<ICommunityAdminAuthService>(TYPES.ICommunityAdminAuthService).to(CommunityAdminAuthService)
 container.bind<ICommunityAdminRepository>(TYPES.ICommunityAdminRepository).to(CommunityAdminRepository)
 container.bind<ICommunityRequestRepository>(TYPES.ICommunityRequestRepository).to(CommunityRequestRepository)
-
-
-container.bind<IUserProfileController>(TYPES.IUserProfileController).to(UserProfileController)
-container.bind<IUserService>(TYPES.IUserService).to(UserService)
-
-// Wallet
-// container.bind<IWalletController>(TYPES.WalletController).to(WalletController);
-// container.bind<IWalletService>(TYPES.IWalletService).to(WalletService);
-// container.bind<IWalletRepository>(TYPES.IWalletRepository).to(WalletRepository);
-
-
 
 export default container

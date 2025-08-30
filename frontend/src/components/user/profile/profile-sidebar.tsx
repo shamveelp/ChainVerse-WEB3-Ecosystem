@@ -1,8 +1,10 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { User, Trophy, Users, CheckSquare } from "lucide-react"
+import { User, Trophy, Users, CheckSquare, Coins } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useSelector } from "react-redux"
+import { RootState } from "@/redux/store"
 
 const sidebarItems = [
   {
@@ -13,7 +15,7 @@ const sidebarItems = [
   {
     title: "Points",
     href: "/my-profile/points",
-    icon: Trophy,
+    icon: Coins,
   },
   {
     title: "Refer a Friend",
@@ -29,16 +31,17 @@ const sidebarItems = [
 
 export default function ProfileSidebar() {
   const pathname = usePathname()
+  const { profile } = useSelector((state: RootState) => state.userProfile)
 
   return (
-    <div className="w-64 bg-slate-800/50 backdrop-blur-md border-r border-blue-800/30 h-screen fixed top-0 left-0 shadow-lg shadow-blue-500/10">
+    <div className="w-80 bg-slate-800/50 backdrop-blur-md border-r border-blue-800/30 h-screen fixed top-0 left-0 shadow-lg shadow-blue-500/10 pt-16">
       <div className="p-6 flex flex-col h-full">
         {/* Header */}
         <div className="mb-8">
           <h2 className="text-xl font-bold text-white bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Profile
           </h2>
-          <p className="text-sm text-slate-400 mt-1"></p>
+          <p className="text-sm text-slate-400 mt-1">Manage your account</p>
         </div>
 
         {/* Navigation */}
@@ -70,17 +73,28 @@ export default function ProfileSidebar() {
           <h3 className="text-sm font-medium text-white mb-3">Quick Stats</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-400">Level</span>
-              <span className="font-semibold text-white">12</span>
+              <span className="text-slate-400">Total Points</span>
+              <span className="font-semibold text-yellow-400">{profile?.totalPoints || 0}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-400">Rank</span>
-              <span className="font-semibold text-blue-400">#247</span>
+              <span className="text-slate-400">Current Streak</span>
+              <span className="font-semibold text-orange-400">{profile?.dailyCheckin?.streak || 0} days</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-slate-400">Level</span>
+              <span className="font-semibold text-blue-400">
+                {Math.floor((profile?.totalPoints || 0) / 100) + 1}
+              </span>
             </div>
             <div className="w-full bg-slate-700 rounded-full h-2">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full w-3/4 transition-all duration-500"></div>
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${((profile?.totalPoints || 0) % 100)}%` }}
+              ></div>
             </div>
-            <p className="text-xs text-slate-400 text-center">75% to next level</p>
+            <p className="text-xs text-slate-400 text-center">
+              {100 - ((profile?.totalPoints || 0) % 100)} points to next level
+            </p>
           </div>
         </div>
       </div>

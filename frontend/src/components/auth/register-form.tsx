@@ -1,6 +1,6 @@
 "use client"
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, User, Mail, Lock, Bitcoin, Loader2, Wand2, CheckCircle, XCircle } from "lucide-react"
@@ -49,6 +49,14 @@ export function RegisterForm() {
   const { loading } = useSelector((state: RootState) => state.userAuth)
   const searchParams = useSearchParams()
   const redirectUrl = searchParams.get('redirect') || '/'
+
+  // Check for referral code in URL
+  useEffect(() => {
+    const refCode = searchParams.get('ref')
+    if (refCode) {
+      setFormData(prev => ({ ...prev, referralCode: refCode.toUpperCase() }))
+    }
+  }, [searchParams])
 
   const handleInputChange = async (field: keyof RegisterData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -139,6 +147,13 @@ export function RegisterForm() {
     dispatch(setLoading(true))
 
     try {
+      console.log("Submitting registration with data:", {
+        username: formData.username,
+        email: formData.email,
+        name: formData.name,
+        referralCode: formData.referralCode
+      });
+      
       const result = await register(
         formData.username,
         formData.email,
@@ -148,7 +163,7 @@ export function RegisterForm() {
       )
       
       if (result.success) {
-        // Store temp data for OTP verification
+        // Store temp data for OTP verification - include name and referralCode
         dispatch(setTempUserData({
           username: formData.username,
           email: formData.email,
@@ -181,12 +196,7 @@ export function RegisterForm() {
   }
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
-    // if (credentialResponse.credential) {
-    //   const result = await googleLogin(credentialResponse.credential)
-    //   if (result.success) {
-    //     router.push(redirectUrl)
-    //   }
-    // }
+    // Implementation for Google OAuth can be added here
   }
 
   const handleGoogleError = () => {
