@@ -438,3 +438,7 @@
 2025-08-29T17:46:30.912Z [error]: Error logging in Incorrect email or password
 2025-08-29T17:49:55.729Z [error]: Error in registerUser: Email already exists
 2025-08-29T17:49:55.739Z [error]: Error in register: Email already exists
+2025-08-30T04:00:19.700Z [error]: Error in registerUser: Invalid referral code
+2025-08-30T04:00:19.711Z [error]: Error in register: Invalid referral code
+2025-08-30T04:00:36.011Z [error]: Error in registerUser: Invalid referral code
+2025-08-30T04:00:36.016Z [error]: Error in register: Invalid referral code

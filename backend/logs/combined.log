@@ -1423,3 +1423,10 @@
 2025-08-29T17:50:40.744Z [info]: User logged out successfully
 2025-08-29T18:58:05.928Z [info]: User logged out successfully
 2025-08-29T18:58:59.721Z [info]: User logged out successfully
+2025-08-30T04:00:19.700Z [error]: Error in registerUser: Invalid referral code
+2025-08-30T04:00:19.711Z [error]: Error in register: Invalid referral code
+2025-08-30T04:00:36.011Z [error]: Error in registerUser: Invalid referral code
+2025-08-30T04:00:36.016Z [error]: Error in register: Invalid referral code
+2025-08-30T04:30:59.692Z [info]: MongoDB connected: localhost
+2025-08-30T06:25:54.332Z [info]: MongoDB connected: localhost
+2025-08-30T06:26:03.919Z [info]: MongoDB connected: localhost
