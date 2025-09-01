@@ -1,12 +1,53 @@
 import API from "@/lib/api-client"
 
+interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+interface LoginResponse {
+  user: {
+    _id: string;
+    username: string;
+    email: string;
+    name: string;
+    refferalCode: string;
+    totalPoints: number;
+    profilePic?: string;
+    role: string;
+    isEmailVerified: boolean;
+    createdAt: string;
+    lastLogin?: string;
+  };
+  accessToken: string;
+  message: string;
+}
+
+interface RegisterResponse {
+  success: boolean;
+  message: string;
+}
+
+interface UsernameCheckResponse {
+  available: boolean;
+  success: boolean;
+}
+
+interface GenerateUsernameResponse {
+  username: string;
+  success: boolean;
+}
+
 export const login = async (email: string, password: string) => {
   try {
-    const response = await API.post("/api/user/login", { email, password })
+    const response = await API.post<LoginResponse>("/api/user/login", { email, password })
     return {
       success: true,
       user: response.data.user,
-      token: response.data.accessToken || response.data.token,
+      token: response.data.accessToken,
+      message: response.data.message,
     }
   } catch (error: any) {
     console.error("Login error:", error.response?.data || error.message)
@@ -23,12 +64,12 @@ export const register = async (username: string, email: string, password: string
     
     // Only include referralCode if it has a value
     if (referralCode && referralCode.trim()) {
-      payload.referralCode = referralCode.trim()
+      payload.referralCode = referralCode.trim().toUpperCase()
     }
     
     console.log("Sending registration request with payload:", payload);
     
-    const response = await API.post("/api/user/register", payload)
+    const response = await API.post<RegisterResponse>("/api/user/register", payload)
     return {
       success: true,
       message: response.data.message || "Registration successful, OTP sent",
@@ -54,29 +95,30 @@ export const signup = async (username: string, email: string, password: string, 
     
     // Only include referralCode if it has a value
     if (referralCode && referralCode.trim()) {
-      payload.referralCode = referralCode.trim()
+      payload.referralCode = referralCode.trim().toUpperCase()
     }
     
     console.log("Sending OTP verification with payload:", payload);
     
-    const response = await API.post("/api/user/verify-otp", payload)
+    const response = await API.post<LoginResponse>("/api/user/verify-otp", payload)
     return {
       success: true,
       user: response.data.user,
-      token: response.data.accessToken || response.data.token,
+      token: response.data.accessToken,
+      message: response.data.message,
     }
   } catch (error: any) {
     console.error("Signup error:", error.response?.data || error.message)
     return {
       success: false,
-      error: error.response?.data?.error || error.response?.data?.message || error.message || "Signup failed",
+      error: error.response?.data?.error || error.response?.data?.message || error.message || "Account creation failed",
     }
   }
 }
 
 export const checkUsername = async (username: string) => {
   try {
-    const response = await API.post("/api/user/check-username", { username })
+    const response = await API.post<UsernameCheckResponse>("/api/user/check-username", { username })
     return {
       success: true,
       available: response.data.available,
@@ -93,7 +135,7 @@ export const checkUsername = async (username: string) => {
 
 export const generateUsername = async () => {
   try {
-    const response = await API.get("/api/user/generate-username")
+    const response = await API.get<GenerateUsernameResponse>("/api/user/generate-username")
     return {
       success: true,
       username: response.data.username,
@@ -109,7 +151,7 @@ export const generateUsername = async () => {
 
 export const requestOtp = async (email: string) => {
   try {
-    const response = await API.post("/api/user/request-otp", { email })
+    const response = await API.post<ApiResponse>("/api/user/request-otp", { email })
     return {
       success: response.data.success || true,
       message: response.data.message,
@@ -125,7 +167,7 @@ export const requestOtp = async (email: string) => {
 
 export const forgotPassword = async (email: string) => {
   try {
-    const response = await API.post("/api/user/forgot-password", { email })
+    const response = await API.post<ApiResponse>("/api/user/forgot-password", { email })
     return {
       success: true,
       message: response.data.message,
@@ -141,7 +183,7 @@ export const forgotPassword = async (email: string) => {
 
 export const verifyForgotPasswordOtp = async (email: string, otp: string) => {
   try {
-    const response = await API.post("/api/user/verify-forgot-password-otp", { email, otp })
+    const response = await API.post<ApiResponse>("/api/user/verify-forgot-password-otp", { email, otp })
     return {
       success: true,
       message: response.data.message,
@@ -157,7 +199,7 @@ export const verifyForgotPasswordOtp = async (email: string, otp: string) => {
 
 export const resetPassword = async (email: string, newPassword: string) => {
   try {
-    const response = await API.post("/api/user/reset-password", { email, newPassword })
+    const response = await API.post<ApiResponse>("/api/user/reset-password", { email, newPassword })
     return {
       success: true,
       message: response.data.message,
@@ -186,11 +228,12 @@ export const logout = async () => {
 
 export const googleLogin = async (credential: string) => {
   try {
-    const response = await API.post("/api/user/google-login", { token: credential })
+    const response = await API.post<LoginResponse>("/api/user/google-login", { token: credential })
     return {
       success: true,
       user: response.data.user,
-      token: response.data.accessToken || response.data.token,
+      token: response.data.accessToken,
+      message: response.data.message,
     }
   } catch (error: any) {
     console.error("Google login error:", error.response?.data || error.message)
@@ -203,18 +246,17 @@ export const googleLogin = async (credential: string) => {
 
 export const adminLogin = async (email: string, password: string) => {
   try {
-    const response = await API.post("/api/admin/login", { email, password })
+    const response = await API.post("/api/admin/login", { email, password });
     return {
-      success: true,
-      user: response.data.user,
-      token: response.data.accessToken || response.data.token,
-    }
+      success: response.data.success,
+      admin: response.data.admin,
+      message: response.data.message,
+    };
   } catch (error: any) {
-    console.error("Admin login error:", error.response?.data || error.message)
     return {
       success: false,
-      error: error.response?.data?.error || error.response?.data?.message || error.message || "Admin login failed",
-    }
+      error: error.response?.data?.message || "Invalid email or password",
+    };
   }
 }
 

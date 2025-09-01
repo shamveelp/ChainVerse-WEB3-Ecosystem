@@ -70,7 +70,7 @@ export class PointsService implements IPointsService {
       // Update user's total points
       const user = await this._userRepository.findById(userId);
       if (user) {
-        await this._userRepository.updateUser(userId, {
+        await this._userRepository.update(userId, {
           totalPoints: (user.totalPoints || 0) + pointsAwarded,
           'dailyCheckin.lastCheckIn': today,
           'dailyCheckin.streak': streakCount,

@@ -89,7 +89,7 @@ export class UserService implements IUserService {
       console.log("UserService: Filtered update data:", updateData);
       
       // Update the user
-      await this._userRepository.updateUser(userId, updateData);
+      await this._userRepository.update(userId, updateData);
       
       // Fetch and return the updated user
       const updatedUser = await this._userRepository.findById(userId);
@@ -126,7 +126,7 @@ export class UserService implements IUserService {
       }
 
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-      await this._userRepository.updateUser(userId, { password: hashedNewPassword });
+      await this._userRepository.update(userId, { password: hashedNewPassword });
       
       console.log("UserService: Password updated successfully");
     } catch (error) {

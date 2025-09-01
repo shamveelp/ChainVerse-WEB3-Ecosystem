@@ -1,23 +1,20 @@
-import { IUser } from "../../../models/user.models";
-import { IBaseRepository } from "./iBase.repository";
+import { IUser } from '../../../models/user.models';
+import { IBaseRepository } from './iBase.repository';
 
 export interface PaginatedUsers {
-    users: Partial<IUser>[];
-    total: number;
-    page: number;
-    totalPages: number;
+  users: IUser[];
+  total: number;
+  page: number;
+  totalPages: number;
 }
 
 export interface IUserRepository extends IBaseRepository<IUser> {
-  findByEmail(email: string): Promise<IUser | null>;
-  findByUsername(username: string): Promise<IUser | null>;
-  createUser(data: Partial<IUser>): Promise<IUser>;
-  findAll(skip: number, limit: number): Promise<IUser[]>;
-  findByGoogleId(googleId: string): Promise<IUser | null>;
-  findUsers(page: number, limit: number, search: string): Promise<PaginatedUsers>;
-  count(): Promise<number>;
-  updateUser(id: string, update: Partial<IUser>): Promise<IUser | null>;
-  updateStatus(id: string, updateData: Partial<IUser>): Promise<IUser | null>;
-  findById(id: string): Promise<IUser | null>;
-  
+    findByEmail(email: string): Promise<IUser | null>;
+    findByUsername(username: string): Promise<IUser | null>;
+    findByGoogleId(googleId: string): Promise<IUser | null>;
+    findByReferralCode(referralCode: string): Promise<IUser | null>;
+    findAllWithPagination(skip: number, limit: number, search: string): Promise<IUser[]>;
+    count(search?: string): Promise<number>;
+    updateLastLogin(id: string): Promise<IUser | null>;
+    incrementTokenVersion(id: string): Promise<IUser | null>;
 }

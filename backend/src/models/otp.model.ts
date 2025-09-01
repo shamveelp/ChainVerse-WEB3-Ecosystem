@@ -1,8 +1,7 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
-
+import { Schema, model, Document } from "mongoose";
 
 export interface IOTP extends Document {
-  _id: mongoose.Types.ObjectId; 
+  _id: Schema.Types.ObjectId;
   email: string;
   otp: string;
   expiresAt: Date;
@@ -10,15 +9,32 @@ export interface IOTP extends Document {
   updatedAt: Date;
 }
 
-
-const otpSchema: Schema<IOTP> = new Schema(
+const otpSchema = new Schema<IOTP>(
   {
-    email: { type: String, required: true },
-    otp: { type: String, required: true },
-    expiresAt: { type: Date, required: true },
+    email: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+      index: true,
+    },
+    otp: {
+      type: String,
+      required: true,
+      length: 6,
+    },
+    expiresAt: {
+      type: Date,
+      required: true,
+      index: { expireAfterSeconds: 0 }, // MongoDB TTL index
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
+// Ensure only one OTP per email at a time
+otpSchema.index({ email: 1 }, { unique: true });
 
-export const OtpModel: Model<IOTP> = mongoose.model<IOTP>("Otp", otpSchema);
+export const OtpModel = model<IOTP>("Otp", otpSchema);

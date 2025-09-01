@@ -23,5 +23,11 @@ export enum ErrorMessages {
     ADMIN_INACTIVE = "Admin account is inactive",
     SERVER_ERROR = "Internal server error",
     VALIDATION_ERROR = "Validation error",
-    UNAUTHORIZED = "Unauthorized access"
+    UNAUTHORIZED = "Unauthorized access",
+    FORBIDDEN = "Forbidden access",
+    DATABASE_ERROR = "Database error",
+    RATE_LIMIT_EXCEEDED = "Rate limit exceeded",
+    FILE_TOO_LARGE = "Uploaded file is too large",
+    INVALID_FILE_TYPE = "Invalid file type"
+    
 }

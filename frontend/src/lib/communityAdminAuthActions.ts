@@ -1,6 +1,6 @@
 import { useDispatch } from 'react-redux'
 import { useRouter } from 'next/navigation'
-import { login as loginAction, logout as logoutAction, setLoading, setApplicationStatus } from '@/redux/slices/communityAdminAuthSlice'
+import { login as loginAction, logout as logoutAction, setLoading } from '@/redux/slices/communityAdminAuthSlice'
 import { login as loginAPI, logout as logoutAPI } from '@/services/communityAdminApiService'
 import { toast } from '@/hooks/use-toast'
 
@@ -10,36 +10,33 @@ export const useCommunityAdminAuthActions = () => {
 
   const login = async (email: string, password: string) => {
     dispatch(setLoading(true))
-    
     try {
-      const result = await loginAPI(email, password)
+      const response = await loginAPI(email, password)
       
-      if (result.success) {
+      if (response.success) {
         dispatch(loginAction({
-          ...result.communityAdmin,
-          token: result.token
+          ...response.communityAdmin,
+          token: response.token
         }))
-        
         toast({
-          title: "Success",
-          description: "Login successful!",
+          title: "Login Successful",
+          description: "Welcome to your community dashboard",
         })
-        
-        router.push('/malare/')
+        router.push("/dashboard/community-admin")
       } else {
-        if (result.status === 401) {
-          if (result.error?.includes('under review')) {
-            dispatch(setApplicationStatus('pending'))
-          } else if (result.error?.includes('rejected')) {
-            dispatch(setApplicationStatus('rejected'))
-          }
+        if (response.status === 403) {
+          toast({
+            title: "Application Under Review",
+            description: response.error,
+            variant: "destructive"
+          })
+        } else {
+          toast({
+            title: "Login Failed",
+            description: response.error || "Invalid credentials",
+            variant: "destructive"
+          })
         }
-        
-        toast({
-          title: "Error",
-          description: result.error || "Login failed",
-          variant: "destructive"
-        })
       }
     } catch (error: any) {
       toast({
@@ -56,18 +53,16 @@ export const useCommunityAdminAuthActions = () => {
     try {
       await logoutAPI()
       dispatch(logoutAction())
-      router.push('/malare/login')
-      
       toast({
-        title: "Success",
-        description: "Logged out successfully",
+        title: "Logged Out",
+        description: "You have been logged out successfully",
       })
+      router.push("/malare/login")
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Logout failed",
-        variant: "destructive"
-      })
+      console.error("Logout error:", error)
+      // Still logout locally even if API call fails
+      dispatch(logoutAction())
+      router.push("/malare/login")
     }
   }
 

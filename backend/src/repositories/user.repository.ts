@@ -1,112 +1,124 @@
+import { injectable } from "inversify";
 import { UserModel, IUser } from "../models/user.models";
 import { IUserRepository } from "../core/interfaces/repositories/IUserRepository";
 import { BaseRepository } from "./base.repository";
-import mongoose from "mongoose";
+import logger from "../utils/logger";
 
+export interface PaginatedUsers {
+  users: IUser[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+@injectable()
 export class UserRepository extends BaseRepository<IUser> implements IUserRepository {
-  async createUser(data: Partial<IUser>) {
-    console.log("UserRepository: Creating user with data:", data);
-    return await UserModel.create(data);
+  constructor() {
+    super(UserModel);
   }
 
-  async findByEmail(email: string) {
-    console.log("UserRepository: Finding user by email:", email);
-    return await UserModel.findOne({ email }).exec();
-  }
-
-  async findByUsername(username: string) {
-    console.log("UserRepository: Finding user by username:", username);
-    return await UserModel.findOne({ username }).exec();
-  }
-
-  async findByGoogleId(googleId: string) {
-    console.log("UserRepository: Finding user by Google ID:", googleId);
-    return await UserModel.findOne({ googleId }).exec();
-  }
-
-  async findAll(skip: number, limit: number) {
-    console.log("UserRepository: Finding all users with skip:", skip, "limit:", limit);
-    return await UserModel.find()
-      .skip(skip)
-      .limit(limit)
-      .select("name email phone isEmailVerified isBanned role username followersCount followingCount dailyCheckin.streak totalPoints profilePic createdAt");
-  }
-
-  async findUsers(page: number, limit: number, search: string) {
-    console.log("UserRepository: Finding users with page:", page, "limit:", limit, "search:", search);
-    const query: any = {};
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } }
-      ];
+  async findByEmail(email: string): Promise<IUser | null> {
+    try {
+      return await this.model.findOne({ email: email.toLowerCase().trim() }).exec();
+    } catch (error) {
+      logger.error("Error finding user by email:", error);
+      throw new Error("Database error");
     }
+  }
 
-    const skip = (page - 1) * limit;
+  async findByUsername(username: string): Promise<IUser | null> {
+    try {
+      return await this.model.findOne({ username: username.trim() }).exec();
+    } catch (error) {
+      logger.error("Error finding user by username:", error);
+      throw new Error("Database error");
+    }
+  }
 
-    const [users, total] = await Promise.all([
-      UserModel.find(query)
-        .sort({ createdAt: -1 })
+  async findByGoogleId(googleId: string): Promise<IUser | null> {
+    try {
+      return await this.model.findOne({ googleId }).exec();
+    } catch (error) {
+      logger.error("Error finding user by Google ID:", error);
+      throw new Error("Database error");
+    }
+  }
+
+  async findByReferralCode(referralCode: string): Promise<IUser | null> {
+    try {
+      return await this.model.findOne({ refferalCode: referralCode.toUpperCase().trim() }).exec();
+    } catch (error) {
+      logger.error("Error finding user by referral code:", error);
+      throw new Error("Database error");
+    }
+  }
+
+  async findAllWithPagination(skip: number, limit: number, search: string): Promise<IUser[]> {
+    try {
+      const query = search
+        ? {
+            $or: [
+              { username: { $regex: search, $options: 'i' } },
+              { email: { $regex: search, $options: 'i' } },
+              { name: { $regex: search, $options: 'i' } }
+            ]
+          }
+        : {};
+
+      return await this.model
+        .find(query)
         .skip(skip)
         .limit(limit)
-        .select("name email phone username role isEmailVerified isBanned createdAt")
-        .lean(),
-      UserModel.countDocuments(query)
-    ]);
-
-    return {
-      users,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit)
-    };
-  }
-
-  async count() {
-    console.log("UserRepository: Counting users");
-    return await UserModel.countDocuments();
-  }
-
-  async updateUser(id: string, update: Partial<IUser>) {
-    console.log("UserRepository: Updating user:", id, "with data:", update);
-    
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new Error("Invalid user ID format");
+        .sort({ createdAt: -1 })
+        .exec();
+    } catch (error) {
+      logger.error("Error finding users with pagination:", error);
+      throw new Error("Database error");
     }
-
-    const result = await UserModel.findByIdAndUpdate(
-      id, 
-      { $set: update }, 
-      { new: true, runValidators: true }
-    ).select("-password");
-    
-    console.log("UserRepository: Update result:", result ? "Success" : "Failed");
-    return result;
   }
 
-  async updateStatus(id: string, updateData: Partial<IUser>) {
-    console.log("UserRepository: Updating status for user:", id, "with data:", updateData);
-    
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new Error("Invalid user ID format");
-    }
+  async count(search?: string): Promise<number> {
+    try {
+      const query = search
+        ? {
+            $or: [
+              { username: { $regex: search, $options: 'i' } },
+              { email: { $regex: search, $options: 'i' } },
+              { name: { $regex: search, $options: 'i' } }
+            ]
+          }
+        : {};
 
-    return await UserModel.findByIdAndUpdate(id, updateData, { new: true });
+      return await this.model.countDocuments(query).exec();
+    } catch (error) {
+      logger.error("Error counting users:", error);
+      throw new Error("Database error");
+    }
   }
 
-  async findById(id: string) {
-    console.log("UserRepository: Finding user by ID:", id);
-    
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      console.log("UserRepository: Invalid ObjectId format:", id);
-      return null;
+  async updateLastLogin(id: string): Promise<IUser | null> {
+    try {
+      return await this.model.findByIdAndUpdate(
+        id, 
+        { lastLogin: new Date() }, 
+        { new: true }
+      ).exec();
+    } catch (error) {
+      logger.error("Error updating last login:", error);
+      throw new Error("Database error");
     }
+  }
 
-    const user = await UserModel.findById(id).select("-password").lean();
-    console.log("UserRepository: User found:", user ? "Yes" : "No");
-    return user;
+  async incrementTokenVersion(id: string): Promise<IUser | null> {
+    try {
+      return await this.model.findByIdAndUpdate(
+        id,
+        { $inc: { tokenVersion: 1 } },
+        { new: true }
+      ).exec();
+    } catch (error) {
+      logger.error("Error incrementing token version:", error);
+      throw new Error("Database error");
+    }
   }
 }

@@ -1,5 +1,4 @@
 import { IAdmin } from "../../../../models/admin.model";
-import { IUser } from "../../../../models/user.models";
 
 export interface IAdminAuthService {
   login(email: string, password: string): Promise<{
@@ -8,8 +7,13 @@ export interface IAdminAuthService {
       name: string;
       email: string;
       role: "admin";
+      isActive: boolean;
+      lastLogin: Date | null;
     };
-    accessToken:string,
-    refreshToken:string
+    accessToken: string;
+    refreshToken: string;
   }>;
+  getAdminById(id: string): Promise<IAdmin | null>;
+  resetPassword(email: string, password: string): Promise<void>;
+  changePassword(adminId: string, currentPassword: string, newPassword: string): Promise<void>;
 }

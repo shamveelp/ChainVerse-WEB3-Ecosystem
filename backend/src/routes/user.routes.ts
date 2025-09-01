@@ -8,7 +8,17 @@ import multer from 'multer';
 import { createWallet, getWallet } from '../controllers/user/wallet.controller';
 import { ReferralController } from '../controllers/user/Referral.controller';
 import { PointsController } from '../controllers/user/Points.controller';
-
+import { validateBody } from '../middlewares/validation.middleware';
+import { 
+  UserRegisterDto, 
+  UserLoginDto, 
+  VerifyOtpDto, 
+  CheckUsernameDto, 
+  ForgotPasswordDto, 
+  ResetPasswordDto,
+  RequestOtpDto,
+  GoogleLoginDto
+} from '../dtos/users/UserAuth.dto';
 
 // Configure Multer for file uploads
 const storage = multer.memoryStorage();
@@ -32,43 +42,110 @@ const userProfileController = container.get<UserProfileController>(TYPES.IUserPr
 const referralController = container.get<ReferralController>(TYPES.IReferralController);
 const pointsController = container.get<PointsController>(TYPES.IPointsController);
 
-// const walletController = container.get<WalletController>(TYPES.WalletController)
+// Auth Routes with DTO validation
+router.post("/register", 
+  validateBody(UserRegisterDto), 
+  userAuthController.register.bind(userAuthController)
+);
 
-// Auth
-router.post("/register", userAuthController.register.bind(userAuthController))
-router.post("/login", userAuthController.login.bind(userAuthController))
-router.post("/refresh-token", userAuthController.refreshAccessToken.bind(userAuthController))
-router.post("/logout", userAuthController.logout.bind(userAuthController))
-router.post("/request-otp", userAuthController.requestOtp.bind(userAuthController))
-router.post("/verify-otp", userAuthController.verifyOtp.bind(userAuthController))
-router.post("/resend-otp", userAuthController.resendOtp.bind(userAuthController))
-router.post("/forgot-password", userAuthController.forgotPassword.bind(userAuthController))
-router.post("/verify-forgot-password-otp", userAuthController.verifyForgotPasswordOtp.bind(userAuthController))
-router.post("/reset-password", userAuthController.resetPassword.bind(userAuthController))
-router.post("/google-login", userAuthController.googleLogin.bind(userAuthController))
+router.post("/login", 
+  validateBody(UserLoginDto), 
+  userAuthController.login.bind(userAuthController)
+);
 
-router.post("/check-username", userAuthController.checkUsername.bind(userAuthController))
-router.get("/generate-username", userAuthController.generateUsername.bind(userAuthController))
+router.post("/verify-otp", 
+  validateBody(VerifyOtpDto), 
+  userAuthController.verifyOtp.bind(userAuthController)
+);
+
+router.post("/check-username", 
+  validateBody(CheckUsernameDto), 
+  userAuthController.checkUsername.bind(userAuthController)
+);
+
+router.post("/request-otp", 
+  validateBody(RequestOtpDto), 
+  userAuthController.requestOtp.bind(userAuthController)
+);
+
+router.post("/forgot-password", 
+  validateBody(ForgotPasswordDto), 
+  userAuthController.forgotPassword.bind(userAuthController)
+);
+
+router.post("/reset-password", 
+  validateBody(ResetPasswordDto), 
+  userAuthController.resetPassword.bind(userAuthController)
+);
+
+router.post("/google-login", 
+  validateBody(GoogleLoginDto), 
+  userAuthController.googleLogin.bind(userAuthController)
+);
+
+// Routes without DTO validation (simple requests)
+router.get("/generate-username", userAuthController.generateUsername.bind(userAuthController));
+router.post("/refresh-token", userAuthController.refreshAccessToken.bind(userAuthController));
+router.post("/logout", userAuthController.logout.bind(userAuthController));
+router.post("/resend-otp", userAuthController.resendOtp.bind(userAuthController));
+router.post("/verify-forgot-password-otp", userAuthController.verifyForgotPasswordOtp.bind(userAuthController));
 
 // Profile Routes (protected)
-router.get('/get-profile', authMiddleware, roleMiddleware(['user']), userProfileController.getProfile.bind(userProfileController));
-router.put('/profile', authMiddleware, roleMiddleware(['user']), userProfileController.updateProfile.bind(userProfileController));
-router.post('/upload-profile-image', authMiddleware, roleMiddleware(['user']), upload.single('profileImage'), userProfileController.uploadProfileImage.bind(userProfileController));
+router.get('/get-profile', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  userProfileController.getProfile.bind(userProfileController)
+);
+
+router.put('/profile', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  userProfileController.updateProfile.bind(userProfileController)
+);
+
+router.post('/upload-profile-image', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  upload.single('profileImage'), 
+  userProfileController.uploadProfileImage.bind(userProfileController)
+);
 
 // Referral Routes (protected)
-router.get('/referrals/history', authMiddleware, roleMiddleware(['user']), referralController.getReferralHistory.bind(referralController));
-router.get('/referrals/stats', authMiddleware, roleMiddleware(['user']), referralController.getReferralStats.bind(referralController));
+router.get('/referrals/history', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  referralController.getReferralHistory.bind(referralController)
+);
+
+router.get('/referrals/stats', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  referralController.getReferralStats.bind(referralController)
+);
 
 // Points Routes (protected)
-router.post('/points/daily-checkin', authMiddleware, roleMiddleware(['user']), pointsController.performDailyCheckIn.bind(pointsController));
-router.get('/points/checkin-status', authMiddleware, roleMiddleware(['user']), pointsController.getCheckInStatus.bind(pointsController));
-router.get('/points/checkin-calendar', authMiddleware, roleMiddleware(['user']), pointsController.getCheckInCalendar.bind(pointsController));
-router.get('/points/history', authMiddleware, roleMiddleware(['user']), pointsController.getPointsHistory.bind(pointsController));
+router.post('/points/daily-checkin', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  pointsController.performDailyCheckIn.bind(pointsController)
+);
 
+router.get('/points/checkin-status', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  pointsController.getCheckInStatus.bind(pointsController)
+);
 
-// Wallet
+router.get('/points/checkin-calendar', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  pointsController.getCheckInCalendar.bind(pointsController)
+);
 
-// router.post('/wallets', createWallet);
-// router.get('/:address', getWallet);
+router.get('/points/history', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  pointsController.getPointsHistory.bind(pointsController)
+);
 
 export default router;

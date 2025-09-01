@@ -2,182 +2,219 @@ import { Request, Response } from "express";
 import { injectable, inject } from "inversify";
 import { IAdminAuthController } from "../../core/interfaces/controllers/admin/IAuthAdmin.controllers";
 import { IAdminAuthService } from "../../core/interfaces/services/admin/IAdminAuthService";
+import { IOTPService } from "../../core/interfaces/services/IOtpService";
+import { IJwtService } from "../../core/interfaces/services/IJwtService";
 import { TYPES } from "../../core/types/types";
 import logger from "../../utils/logger";
-import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuthService";
-import { IJwtService } from "../../core/interfaces/services/IJwtService";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { ICommunityRequestRepository } from "../../core/interfaces/repositories/ICommunityRequestRepository";
-import { ICommunityAdminAuthService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminAuthService";
-import { ErrorMessages } from "../../enums/messages.enum";
-
+import { ErrorMessages, SuccessMessages } from "../../enums/messages.enum";
+import { AdminResponseDto, AdminLoginResponseDto } from "../../dtos/admin/AdminAuth.dto";
+import bcrypt from "bcryptjs";
 
 @injectable()
 export class AdminAuthController implements IAdminAuthController {
   constructor(
     @inject(TYPES.IAdminAuthService) private _adminAuthService: IAdminAuthService,
-    @inject(TYPES.IUserAuthService) private _userAuthService: IUserAuthService,
     @inject(TYPES.IJwtService) private _jwtService: IJwtService,
-    @inject(TYPES.ICommunityRequestRepository) private _communityRequestRepo: ICommunityRequestRepository,
-    @inject(TYPES.ICommunityAdminAuthService) private _communityAdminAuthService: ICommunityAdminAuthService,
+    @inject(TYPES.IOtpService) private _otpService: IOTPService,
   ) {}
 
-  async login(req: Request, res: Response) {
+  async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
-      const { accessToken, refreshToken, admin } = await this._adminAuthService.login(email,password);
-        //Set Cookies
-      this._jwtService.setTokens(res, accessToken, refreshToken);
-      res.status(StatusCode.OK).json({ admin })
-      logger.info("Admin logged in successfully");
+      
+      if (!email || !password) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          message: "Email and password are required",
+        });
+        return;
+      }
+
+      const result = await this._adminAuthService.login(email, password);
+      
+      // Set cookies
+      this._jwtService.setTokens(res, result.accessToken, result.refreshToken);
+      
+      // Return response with DTO
+      const response = new AdminLoginResponseDto(result.admin, SuccessMessages.ADMIN_LOGGED_IN);
+      res.status(StatusCode.OK).json(response);
+      
+      logger.info(`Admin logged in successfully: ${email}`);
     } catch (error: any) {
       logger.error("Admin login error:", error);
       res.status(StatusCode.UNAUTHORIZED).json({
+        success: false,
+        message: error.message || ErrorMessages.INVALID_CREDENTIALS,
+      });
+    }
+  }
+
+  async logout(req: Request, res: Response): Promise<void> {
+    try {
+      this._jwtService.clearTokens(res);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: SuccessMessages.ADMIN_LOGGED_OUT,
+      });
+      logger.info("Admin logged out successfully");
+    } catch (error: any) {
+      logger.error("Admin logout error:", error);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: ErrorMessages.SERVER_ERROR,
+      });
+    }
+  }
+
+  async forgotPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          message: "Email is required",
+        });
+        return;
+      }
+
+      await this._otpService.requestForgotPasswordOtp(email, 'admin');
+      
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "OTP sent to your email for password reset",
+      });
+      
+      logger.info(`Forgot password OTP sent to admin: ${email}`);
+    } catch (error: any) {
+      logger.error("Admin forgot password error:", error);
+      res.status(StatusCode.BAD_REQUEST).json({
         success: false,
         message: error.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
 
-  
-
-  async getAllUsers(req: Request, res: Response): Promise<void> {
+  async verifyForgotPasswordOtp(req: Request, res: Response): Promise<void> {
     try {
-        const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 15;
-        const search = String(req.query.search) || '';
-
-        const users = await this._userAuthService.getAllUsers(page, limit, search);
-        // console.log(users)
-        res.status(StatusCode.OK).json({users});
-    } catch (error: any) {
-        logger.error("Get all users error:", error);
+      const { email, otp } = req.body;
+      
+      if (!email || !otp) {
         res.status(StatusCode.BAD_REQUEST).json({
-            success: false,
-            message: error.message || ErrorMessages.SERVER_ERROR,
-        });
-    }
-  }
-
-  async getUserById(req: Request, res: Response): Promise<void> {
-    try {
-      const id = req.params.id;
-      const user = await this._userAuthService.getUserById(id);
-      if (!user) {
-        res.status(StatusCode.NOT_FOUND).json({ message: "User not found" });
-        return;
-      }
-      res.status(StatusCode.OK).json(user);
-    } catch (err) {
-      logger.error("Failed to fetch user", err);
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch user" });
-    }
-  }
-
-  async updateUserStatus(req: Request, res: Response) {
-    try {
-        const { id } = req.params;
-        const { isBanned } = req.body;
-
-        const updatedUser = await this._userAuthService.updateUserStatus(id, { isBanned });
-
-        if (!updatedUser) {
-            res.status(StatusCode.BAD_REQUEST).json({ message: "User not found" });
-        return
-        }
-
-        res.status(StatusCode.OK).json(updatedUser);
-    } catch (err) {
-        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to update user ban status" });
-    }
-  }
-
-  logout(req: Request, res: Response) {
-    this._jwtService.clearTokens(res)
-  }
-
-
-   // Community Admin Management
-  async getAllCommunityRequests(req: Request, res: Response): Promise<void> {
-    try {
-      const page = Number(req.query.page) || 1;
-      const limit = Number(req.query.limit) || 10;
-      const search = String(req.query.search) || '';
-      
-      const requests = await this._communityRequestRepo.findAll(page, limit, search);
-      res.status(StatusCode.OK).json(requests);
-    } catch (error: any) {
-      logger.error("Get community requests error:", error);
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: error.message || "Failed to fetch community requests"
-      });
-    }
-  }
-
-  async approveCommunityRequest(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      
-      // Update request status to approved
-      const updatedRequest = await this._communityRequestRepo.updateStatus(id, 'approved');
-      if (!updatedRequest) {
-        res.status(StatusCode.NOT_FOUND).json({
           success: false,
-          message: "Community request not found"
+          message: "Email and OTP are required",
         });
         return;
       }
 
-      // Create community from request
-      await this._communityAdminAuthService.createCommunityFromRequest(id);
-
-      res.status(StatusCode.OK).json({
-        success: true,
-        message: "Community request approved successfully",
-        request: updatedRequest
-      });
-
-      logger.info(`Community request approved: ${id}`);
-    } catch (error: any) {
-      logger.error("Approve community request error:", error);
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: error.message || "Failed to approve community request"
-      });
-    }
-  }
-
-  async rejectCommunityRequest(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const { reason } = req.body;
-
-      const updatedRequest = await this._communityRequestRepo.updateStatus(id, 'rejected');
-      if (!updatedRequest) {
-        res.status(StatusCode.NOT_FOUND).json({
+      const isValid = await this._otpService.verifyOtp(email, otp);
+      if (!isValid) {
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "Community request not found"
+          message: ErrorMessages.INVALID_OTP,
         });
         return;
       }
 
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Community request rejected successfully",
-        request: updatedRequest
+        message: "OTP verified. You can now reset your password.",
       });
-
-      logger.info(`Community request rejected: ${id}, reason: ${reason}`);
+      
+      logger.info(`Forgot password OTP verified for admin: ${email}`);
     } catch (error: any) {
-      logger.error("Reject community request error:", error);
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+      logger.error("Admin verify forgot password OTP error:", error);
+      res.status(StatusCode.BAD_REQUEST).json({
         success: false,
-        message: error.message || "Failed to reject community request"
+        message: error.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
 
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          message: "Email and password are required",
+        });
+        return;
+      }
 
- 
+      await this._adminAuthService.resetPassword(email, password);
+      
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: SuccessMessages.PASSWORD_RESET,
+      });
+      
+      logger.info(`Password reset successful for admin: ${email}`);
+    } catch (error: any) {
+      logger.error("Admin reset password error:", error);
+      res.status(StatusCode.BAD_REQUEST).json({
+        success: false,
+        message: error.message || ErrorMessages.SERVER_ERROR,
+      });
+    }
+  }
+
+  async getProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = (req as any).user.id;
+      const admin = await this._adminAuthService.getAdminById(adminId);
+      
+      if (!admin) {
+        res.status(StatusCode.NOT_FOUND).json({
+          success: false,
+          message: ErrorMessages.ADMIN_NOT_FOUND,
+        });
+        return;
+      }
+
+      const response = new AdminResponseDto(admin);
+      res.status(StatusCode.OK).json({
+        success: true,
+        admin: response,
+      });
+    } catch (error: any) {
+      logger.error("Get admin profile error:", error);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: ErrorMessages.SERVER_ERROR,
+      });
+    }
+  }
+
+  async changePassword(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = (req as any).user.id;
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          message: "Current password and new password are required",
+        });
+        return;
+      }
+
+      await this._adminAuthService.changePassword(adminId, currentPassword, newPassword);
+      
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Password changed successfully",
+      });
+      
+      logger.info(`Password changed for admin: ${adminId}`);
+    } catch (error: any) {
+      logger.error("Admin change password error:", error);
+      res.status(StatusCode.BAD_REQUEST).json({
+        success: false,
+        message: error.message || ErrorMessages.SERVER_ERROR,
+      });
+    }
+  }
 }

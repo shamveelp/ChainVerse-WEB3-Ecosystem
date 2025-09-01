@@ -1,40 +1,162 @@
 import API from "@/lib/axios"
 
-export const getUsers = async (page: number, limit: number = 15, search: string = "") => {
-  const params = new URLSearchParams({
-    page: page.toString(),
-    limit: limit.toString(),
-    search: search
-  })
-  const res = await API.get(`/api/admin/users?${params.toString()}`)
-  console.log(res.data)
-  return res.data
+// Auth Services
+export const adminLogin = async (email: string, password: string) => {
+  try {
+    const response = await API.post("/api/admin/login", { email, password })
+    return {
+      success: true,
+      admin: response.data.admin,
+      message: response.data.message,
+    }
+  } catch (error: any) {
+    console.error("Admin login error:", error.response?.data || error.message)
+    throw {
+      success: false,
+      error: error.response?.data?.message || error.message || "Login failed",
+      response: error.response
+    }
+  }
 }
 
-export const toggleUserBan = async (userId: string, isBanned: boolean) => {
-  await API.patch(`/api/admin/users/${userId}`, { isBanned })
-  const res = await API.get(`/api/admin/users/${userId}`)
-  return res.data
+export const forgotPassword = async (email: string) => {
+  try {
+    const response = await API.post("/api/admin/forgot-password", { email })
+    return {
+      success: true,
+      message: response.data.message,
+    }
+  } catch (error: any) {
+    console.error("Forgot password error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Failed to send reset code",
+    }
+  }
+}
+
+export const verifyResetOtp = async (email: string, otp: string) => {
+  try {
+    const response = await API.post("/api/admin/verify-forgot-password-otp", { email, otp })
+    return {
+      success: true,
+      message: response.data.message,
+    }
+  } catch (error: any) {
+    console.error("Verify reset OTP error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Invalid OTP",
+    }
+  }
+}
+
+export const resetPassword = async (email: string, password: string) => {
+  try {
+    const response = await API.post("/api/admin/reset-password", { email, password })
+    return {
+      success: true,
+      message: response.data.message,
+    }
+  } catch (error: any) {
+    console.error("Reset password error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Password reset failed",
+    }
+  }
+}
+
+export const getAdminProfile = async () => {
+  try {
+    const response = await API.get("/api/admin/profile")
+    return {
+      success: true,
+      admin: response.data.admin,
+    }
+  } catch (error: any) {
+    console.error("Get admin profile error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Failed to get profile",
+    }
+  }
+}
+
+export const changeAdminPassword = async (currentPassword: string, newPassword: string) => {
+  try {
+    const response = await API.post("/api/admin/change-password", { currentPassword, newPassword })
+    return {
+      success: true,
+      message: response.data.message,
+    }
+  } catch (error: any) {
+    console.error("Change password error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Failed to change password",
+    }
+  }
+}
+
+// User Management Services
+export const getUsers = async (page: number, limit: number = 10, search: string = "") => {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      search: search
+    })
+    const response = await API.get(`/api/admin/users?${params.toString()}`)
+    return {
+      success: true,
+      users: response.data.data || response.data,
+      total: response.data.total,
+      totalPages: response.data.totalPages,
+      page: response.data.page,
+      limit: response.data.limit
+    }
+  } catch (error: any) {
+    console.error("Get users error:", error.response?.data || error.message)
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Failed to fetch users",
+    }
+  }
 }
 
 export const getUserById = async (id: string) => {
-  const res = await API.get(`/api/admin/users/${id}`)
-  return res.data
+  try {
+    const response = await API.get(`/api/admin/users/${id}`)
+    return response.data.user || response.data
+  } catch (error: any) {
+    console.error("Get user by id error:", error.response?.data || error.message)
+    throw error
+  }
+}
+
+export const toggleUserBan = async (userId: string, isBanned: boolean) => {
+  try {
+    const response = await API.patch(`/api/admin/users/${userId}/ban`, { isBanned })
+    return response.data.user || response.data
+  } catch (error: any) {
+    console.error("Toggle user ban error:", error.response?.data || error.message)
+    throw error
+  }
 }
 
 export const toggleUserBlock = async (userId: string, isBlocked: boolean) => {
-  await API.patch(`/api/admin/users/${userId}`, { isBlocked })
-  const res = await API.get(`/api/admin/users/${userId}`)
-  return res.data
+  try {
+    await API.patch(`/api/admin/users/${userId}`, { isBlocked })
+    const response = await API.get(`/api/admin/users/${userId}`)
+    return response.data.user || response.data
+  } catch (error: any) {
+    console.error("Toggle user block error:", error.response?.data || error.message)
+    throw error
+  }
 }
 
-export const updateUserPoints = async (userId: string, points: number) => {
-  const res = await API.patch(`/api/admin/users/${userId}/points`, { points })
-  return res.data
-}
-
-
-
+// Community Management Services
 export const getAllCommunityRequests = async (page: number = 1, limit: number = 10, search: string = '') => {
   try {
     const response = await API.get(`/api/admin/community-requests?page=${page}&limit=${limit}&search=${search}`)

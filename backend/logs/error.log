@@ -442,3 +442,25 @@
 2025-08-30T04:00:19.711Z [error]: Error in register: Invalid referral code
 2025-08-30T04:00:36.011Z [error]: Error in registerUser: Invalid referral code
 2025-08-30T04:00:36.016Z [error]: Error in register: Invalid referral code
+2025-08-30T19:24:59.643Z [error]: Admin login error: Invalid credentials
+2025-08-30T19:25:00.874Z [error]: Admin login error: Invalid credentials
+2025-08-30T19:25:01.944Z [error]: Admin login error: Invalid credentials
+2025-08-30T19:32:48.527Z [error]: Error logging in Incorrect email or password
+2025-08-30T19:33:49.470Z [error]: Error in register: connect ECONNREFUSED 127.0.0.1:587
+2025-09-01T05:17:49.327Z [error]: Error in registerUser: Invalid referral code
+2025-09-01T05:17:49.344Z [error]: Error in register: Invalid referral code
+2025-09-01T05:17:58.644Z [error]: Error in register: connect ECONNREFUSED 127.0.0.1:587
+2025-09-01T05:45:55.027Z [error]: Error in register: connect ECONNREFUSED 127.0.0.1:587
+2025-09-01T06:24:56.083Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T06:24:56.100Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T06:46:13.086Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T06:46:13.115Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T06:46:20.986Z [error]: Admin login error: Invalid credentials
+2025-09-01T06:46:31.622Z [error]: Admin login error: Invalid credentials
+2025-09-01T06:48:53.866Z [error]: Admin login error: Invalid credentials
+2025-09-01T06:59:46.485Z [error]: Admin login error: Invalid credentials
+2025-09-01T08:14:11.474Z [error]: Admin login error: Invalid credentials
+2025-09-01T10:43:46.545Z [error]: Error in loginUser: Invalid email or password
+2025-09-01T10:43:46.549Z [error]: Error logging in: Invalid email or password
+2025-09-01T10:43:46.777Z [error]: Error in loginUser: Invalid email or password
+2025-09-01T10:43:46.779Z [error]: Error logging in: Invalid email or password
