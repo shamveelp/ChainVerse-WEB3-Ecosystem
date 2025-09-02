@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { useSelector, useDispatch } from "react-redux"
 import { BarChart3, Calendar, Home, Package, Settings, ShoppingCart, Users, FileText, ChevronUp, LogOut, User, Coins, TrendingUp, Shield, Wallet, Activity, Database, Zap, ChartBar } from 'lucide-react'
@@ -34,25 +34,21 @@ const menuItems = [
     title: "Dashboard",
     url: "/admin",
     icon: Home,
-    isActive: true,
   },
   {
     title: "Users",
     url: "/admin/user-management",
     icon: Users,
-    // badge: "2.8K",
   },
   {
     title: "Market",
     url: "/admin/market-management",
     icon: ChartBar,
-    // badge: "2.8K",
   },
   {
     title: "Community Requests",
     url: "/admin/community-requests",
     icon: Database,
-    // badge: "1.2K",
   },
   {
     title: "Wallets",
@@ -64,30 +60,35 @@ const menuItems = [
     title: "Coins",
     url: "/admin/coins",
     icon: Coins,
-    // badge: "1.2K",
   },
   {
     title: "NFTs",
-    url: "/admin/coins",
+    url: "/admin/nfts",
     icon: FileText,
-    // badge: "1.2K",
   },
   {
     title: "Quests",
-    url: "/admin/coins",
+    url: "/admin/quests",
     icon: Calendar,
-    // badge: "1.2K",
   },
 ]
 
 export function AppSidebar() {
   const router = useRouter()
+  const pathname = usePathname()
   const dispatch = useDispatch()
   const { admin } = useSelector((state: RootState) => state.adminAuth)
 
   const handleLogout = () => {
     dispatch(logout())
     router.push("/admin/login")
+  }
+
+  const isActiveRoute = (url: string) => {
+    if (url === "/admin") {
+      return pathname === "/admin"
+    }
+    return pathname.startsWith(url)
   }
 
   return (
@@ -115,9 +116,9 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={item.isActive}
+                    isActive={isActiveRoute(item.url)}
                     tooltip={item.title}
-                    className=" text-white hover:bg-slate-800/50 hover:text-cyan-400 data-[active=true]:bg-gradient-to-r data-[active=true]:from-cyan-500/20 data-[active=true]:to-purple-500/20 data-[active=true]:text-cyan-400 data-[active=true]:border-r-2 data-[active=true]:border-cyan-400"
+                    className="text-white hover:bg-slate-800/50 hover:text-cyan-400 data-[active=true]:bg-gradient-to-r data-[active=true]:from-cyan-500/20 data-[active=true]:to-purple-500/20 data-[active=true]:text-cyan-400 data-[active=true]:border-r-2 data-[active=true]:border-cyan-400"
                   >
                     <Link href={item.url} className="flex items-center gap-3 w-full">
                       <item.icon className="h-4 w-4" />
@@ -131,7 +132,6 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -169,7 +169,7 @@ export function AppSidebar() {
                 align="end"
                 sideOffset={4}
               >
-                <DropdownMenuItem className="hover:bg-slate-800/50 hover:text-cyan-400">
+                <DropdownMenuItem onClick={() => router.push('/admin/profile')} className="hover:bg-slate-800/50 hover:text-cyan-400">
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>

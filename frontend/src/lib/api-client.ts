@@ -23,12 +23,17 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
   api.interceptors.request.use(
     (config) => {
       const state = storeInstance?.getState() as RootState;
-      const token = state?.userAuth?.token;
-      
+      // Check both userAuth and adminAuth for token
+      const userToken = state?.userAuth?.token;
+      const adminToken = state?.adminAuth?.token;
+
+      // Prioritize admin token for admin routes
+      const token = config.url?.includes('/admin') ? adminToken : userToken;
+
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-      
+
       config.withCredentials = true;
       return config;
     },
@@ -42,31 +47,52 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
-      
+
       if (
         error.response?.status === 401 &&
         !originalRequest._retry &&
-        originalRequest.url !== '/api/user/refresh-token'
+        !originalRequest.url.includes('/refresh-token')
       ) {
         originalRequest._retry = true;
-        
+
         try {
           // Attempt to refresh token
-          const response = await api.post('/api/user/refresh-token', {}, { withCredentials: true });
-          
+          const refreshEndpoint = originalRequest.url.includes('/admin')
+            ? '/api/admin/refresh-token'
+            : '/api/user/refresh-token';
+
+          const response = await api.post(refreshEndpoint, {}, { withCredentials: true });
+
           if (response.data.success) {
-            // If refresh successful, retry original request
+            // Update token in Redux store
+            const state = storeInstance?.getState() as RootState;
+            const role = originalRequest.url.includes('/admin') ? 'admin' : 'user';
+            if (role === 'admin') {
+              store.dispatch({
+                type: 'adminAuth/updateToken',
+                payload: response.data.accessToken,
+              });
+            } else {
+              store.dispatch({
+                type: 'userAuth/updateToken',
+                payload: response.data.accessToken,
+              });
+            }
+            // Retry original request
             return api(originalRequest);
           }
         } catch (refreshError) {
-          // If refresh fails, redirect to login
+          // If refresh fails, redirect to appropriate login page
           if (typeof window !== 'undefined') {
-            window.location.href = '/user/login';
+            const redirectUrl = originalRequest.url.includes('/admin')
+              ? '/admin/login'
+              : '/user/login';
+            window.location.href = redirectUrl;
           }
           return Promise.reject(refreshError);
         }
       }
-      
+
       return Promise.reject(error);
     }
   );

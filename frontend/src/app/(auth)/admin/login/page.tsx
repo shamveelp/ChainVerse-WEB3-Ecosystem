@@ -34,33 +34,33 @@ export default function AdminLogin() {
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const response = await adminLogin(email, password);
-      if (response.success) {
-        dispatch(login(response.admin)); // Store admin data in Redux
-        toast({
-          title: "Login Successful",
-          description: response.message || "Welcome to the ChainVerse Admin Portal",
-          className: "bg-green-600 text-white",
-        });
-        router.push("/admin");
-      } else {
-        throw new Error(response.error || "Invalid email or password");
-      }
-    } catch (error: any) {
+  try {
+    const response = await adminLogin(email, password);
+    if (response.success) {
+      dispatch(login({ admin: response.admin, token: response.token })); // Store admin data and token
       toast({
-        title: "Login Failed",
-        description: error.message || "Invalid email or password",
-        variant: "destructive",
-        className: "bg-red-600 text-white",
+        title: "Login Successful",
+        description: response.message || "Welcome to the ChainVerse Admin Portal",
+        className: "bg-green-600 text-white",
       });
-    } finally {
-      setLoading(false);
+      router.push("/admin");
+    } else {
+      throw new Error(response.error || "Invalid email or password");
     }
-  };
+  } catch (error: any) {
+    toast({
+      title: "Login Failed",
+      description: error.message || "Invalid email or password",
+      variant: "destructive",
+      className: "bg-red-600 text-white",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">

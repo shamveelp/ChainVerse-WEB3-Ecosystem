@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, Eye, ChevronLeft, ChevronRight, Loader2, Users, Wallet, Shield, Zap, Activity } from 'lucide-react'
-import { getUsers, getUserById } from "@/services/adminApiService"
+import { Search, Eye, ChevronLeft, ChevronRight, Loader2, Users, Wallet, Shield, Zap, Activity, RefreshCw } from 'lucide-react'
+import { getUsers } from "@/services/adminApiService"
 import { setTotalUsers, setActiveUsers, setBannedUsers } from "@/redux/slices/adminStatistics" 
 
 interface IUser {
@@ -26,6 +26,7 @@ interface IUser {
   totalPoints?: number
   isBlocked?: boolean
   isBanned?: boolean
+  isActive?: boolean
   isEmailVerified?: boolean
   isGoogleUser?: boolean
   dailyCheckin?: {
@@ -36,6 +37,16 @@ interface IUser {
   followingCount?: number
   createdAt: Date
   updatedAt: Date
+}
+
+interface UsersResponse {
+  success: boolean
+  data: IUser[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+  message?: string
 }
 
 export default function UserManagement() {
@@ -52,42 +63,46 @@ export default function UserManagement() {
   const dispatch = useDispatch() 
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true)
-      try {
-        const response = await getUsers(currentPage, usersPerPage, searchQuery)
-        const usersList = response.users?.users || []
-        const totalCount = response.users?.total || 0
-        
-        setUsers(usersList)
-        setTotal(totalCount)
+    fetchUsers()
+  }, [currentPage, searchQuery])
+
+  const fetchUsers = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await getUsers(currentPage, usersPerPage, searchQuery)
+      
+      if (response.success) {
+        const usersData = response.data || []
+        setUsers(usersData)
+        setTotal(response.total || 0)
         setTotalPages(response.totalPages || 1)
-        setError(null)
 
         // Update Redux store with user statistics
-        dispatch(setTotalUsers(totalCount))
+        dispatch(setTotalUsers(response.total || 0))
         
         // Calculate active and banned users
-        const activeUsers = usersList.filter((user: IUser) => !user.isBanned && !user.isBlocked).length
-        const bannedUsers = usersList.filter((user: IUser) => user.isBanned).length
+        const activeUsers = usersData.filter((user: IUser) => !user.isBanned && !user.isBlocked && user.isActive !== false).length
+        const bannedUsers = usersData.filter((user: IUser) => user.isBanned).length
         
         dispatch(setActiveUsers(activeUsers))
         dispatch(setBannedUsers(bannedUsers))
-
-      } catch (err: any) {
-        console.error("Error fetching users:", err)
-        setError(err.response?.data?.message || "Failed to fetch users. Please try again.")
-        setUsers([])
-        setTotalPages(1)
-      } finally {
-        setLoading(false)
+      } else {
+        throw new Error(response.error || "Failed to fetch users")
       }
+    } catch (err: any) {
+      console.error("Error fetching users:", err)
+      setError(err.message || "Failed to fetch users. Please try again.")
+      setUsers([])
+      setTotalPages(1)
+      setTotal(0)
+    } finally {
+      setLoading(false)
     }
-    fetchUsers()
-  }, [currentPage, searchQuery, dispatch]) // Add dispatch to dependencies
+  }
 
   const handleSearch = () => {
-    setSearchQuery(searchInput)
+    setSearchQuery(searchInput.trim())
     setCurrentPage(1)
   }
 
@@ -97,17 +112,46 @@ export default function UserManagement() {
     }
   }
 
-  const handleViewUser = async (userId: string) => {
-    try {
-      const user = await getUserById(userId)
-      router.push(`/admin/user-management/${userId}`)
-    } catch (err) {
-      console.error("Failed to fetch user details", err)
-    }
+  const handleViewUser = (userId: string) => {
+    router.push(`/admin/user-management/${userId}`)
   }
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page)
+    }
+  }
+
+  const getStatusBadge = (user: IUser) => {
+    if (user.isBanned) {
+      return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Banned</Badge>
+    }
+    if (user.isBlocked) {
+      return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Blocked</Badge>
+    }
+    if (user.isActive === false) {
+      return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Inactive</Badge>
+    }
+    return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Active</Badge>
+  }
+
+  const getPaginationButtons = () => {
+    const buttons = []
+    const maxButtons = 5
+    const halfMax = Math.floor(maxButtons / 2)
+    
+    let startPage = Math.max(1, currentPage - halfMax)
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1)
+    
+    if (endPage - startPage < maxButtons - 1) {
+      startPage = Math.max(1, endPage - maxButtons + 1)
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(i)
+    }
+    
+    return buttons
   }
 
   return (
@@ -123,11 +167,19 @@ export default function UserManagement() {
             Manage and monitor all Web3 ecosystem users
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <div className="text-right">
             <p className="text-2xl font-bold text-white">{total.toLocaleString()}</p>
             <p className="text-sm text-slate-400">Total Users</p>
           </div>
+          <Button
+            onClick={fetchUsers}
+            variant="outline"
+            className="bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-400"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
         </div>
       </div>
 
@@ -138,7 +190,7 @@ export default function UserManagement() {
             <div className="flex-1 relative group">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-cyan-400/70 group-focus-within:text-cyan-400 transition-colors" />
               <Input
-                placeholder="Search users by name, email, or wallet..."
+                placeholder="Search users by name, email, username, or referral code..."
                 value={searchInput}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
                 onKeyPress={handleKeyPress}
@@ -163,10 +215,10 @@ export default function UserManagement() {
           <CardTitle className="text-white flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-cyan-400" />
-              Active Users
+              Web3 Users Registry
             </div>
             <div className="text-sm text-slate-400 font-normal">
-              Showing {Math.min(currentPage * usersPerPage, total)} of {total} users
+              {loading ? "Loading..." : `Showing ${((currentPage - 1) * usersPerPage) + 1} - ${Math.min(currentPage * usersPerPage, total)} of ${total} users`}
             </div>
           </CardTitle>
         </CardHeader>
@@ -183,16 +235,32 @@ export default function UserManagement() {
               <Shield className="h-12 w-12 text-red-400 mx-auto" />
               <p className="text-red-400 mb-4">{error}</p>
               <Button 
-                onClick={() => window.location.reload()}
+                onClick={fetchUsers}
                 className="bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30"
               >
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Try Again
               </Button>
             </div>
           ) : users.length === 0 ? (
             <div className="text-center py-12 space-y-4">
               <Users className="h-12 w-12 text-slate-600 mx-auto" />
-              <p className="text-slate-400">No users found in the ecosystem</p>
+              <p className="text-slate-400">
+                {searchQuery ? `No users found matching "${searchQuery}"` : "No users found in the ecosystem"}
+              </p>
+              {searchQuery && (
+                <Button 
+                  onClick={() => {
+                    setSearchInput("")
+                    setSearchQuery("")
+                    setCurrentPage(1)
+                  }}
+                  variant="outline"
+                  className="bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50"
+                >
+                  Clear Search
+                </Button>
+              )}
             </div>
           ) : (
             <>
@@ -203,13 +271,14 @@ export default function UserManagement() {
                       <th className="text-left py-4 px-6 text-slate-400 font-medium">User</th>
                       <th className="text-left py-4 px-6 text-slate-400 font-medium">Contact</th>
                       <th className="text-left py-4 px-6 text-slate-400 font-medium">Status</th>
-                      <th className="text-left py-4 px-6 text-slate-400 font-medium">Activity</th>
+                      <th className="text-left py-4 px-6 text-slate-400 font-medium">Web3 Activity</th>
+                      <th className="text-left py-4 px-6 text-slate-400 font-medium">Referral</th>
                       <th className="text-left py-4 px-6 text-slate-400 font-medium">Joined</th>
                       <th className="text-left py-4 px-6 text-slate-400 font-medium">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((user, index) => (
+                    {users.map((user) => (
                       <tr 
                         key={user._id} 
                         className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors group"
@@ -234,27 +303,15 @@ export default function UserManagement() {
                         </td>
                         <td className="py-4 px-6">
                           <div>
-                            <p className="text-slate-300">{user.email}</p>
+                            <p className="text-slate-300 text-sm">{user.email}</p>
                             {user.phone && (
-                              <p className="text-sm text-slate-400">{user.phone}</p>
+                              <p className="text-xs text-slate-400">{user.phone}</p>
                             )}
                           </div>
                         </td>
                         <td className="py-4 px-6">
-                          <div className="flex flex-col gap-2">
-                            {user.isBanned ? (
-                              <Badge className="bg-red-500/20 text-red-400 border-red-500/30 w-fit">
-                                Banned
-                              </Badge>
-                            ) : user.isBlocked ? (
-                              <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 w-fit">
-                                Blocked
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30 w-fit">
-                                Active
-                              </Badge>
-                            )}
+                          <div className="flex flex-col gap-1">
+                            {getStatusBadge(user)}
                             {user.isEmailVerified && (
                               <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 w-fit text-xs">
                                 Verified
@@ -266,7 +323,8 @@ export default function UserManagement() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
                               <Zap className="h-3 w-3 text-yellow-400" />
-                              <span className="text-sm text-slate-300">{user.totalPoints  || 0} Points</span>
+                              <span className="text-sm text-slate-300 font-medium">{user.totalPoints || 0}</span>
+                              <span className="text-xs text-slate-500">points</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Activity className="h-3 w-3 text-cyan-400" />
@@ -275,8 +333,22 @@ export default function UserManagement() {
                           </div>
                         </td>
                         <td className="py-4 px-6">
+                          <div className="space-y-1">
+                            {user.refferalCode && (
+                              <div className="text-xs text-slate-400 font-mono bg-slate-800/30 px-2 py-1 rounded">
+                                {user.refferalCode}
+                              </div>
+                            )}
+                            {user.refferedBy && (
+                              <div className="text-xs text-green-400">
+                                Referred
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
                           <div>
-                            <p className="text-slate-300">{new Date(user.createdAt).toLocaleDateString()}</p>
+                            <p className="text-slate-300 text-sm">{new Date(user.createdAt).toLocaleDateString()}</p>
                             <p className="text-xs text-slate-500">{new Date(user.createdAt).toLocaleTimeString()}</p>
                           </div>
                         </td>
@@ -300,7 +372,7 @@ export default function UserManagement() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between p-6 border-t border-slate-700/50 bg-slate-800/20">
                   <div className="text-sm text-slate-400">
-                    Page {currentPage} of {totalPages}
+                    Page {currentPage} of {totalPages} • Total {total} users
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -315,23 +387,20 @@ export default function UserManagement() {
                     
                     {/* Page numbers */}
                     <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={currentPage === pageNum ? "default" : "outline"}
-                            onClick={() => handlePageChange(pageNum)}
-                            className={currentPage === pageNum 
-                              ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white" 
-                              : "bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-400"
-                            }
-                            size="sm"
-                          >
-                            {pageNum}
-                          </Button>
-                        )
-                      })}
+                      {getPaginationButtons().map(pageNum => (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={currentPage === pageNum 
+                            ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white" 
+                            : "bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-400"
+                          }
+                          size="sm"
+                        >
+                          {pageNum}
+                        </Button>
+                      ))}
                     </div>
 
                     <Button

@@ -1,4 +1,3 @@
-// backend/src/controllers/user/userProfile.controller.ts
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";

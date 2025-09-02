@@ -8,4 +8,5 @@ export interface IAdminAuthController {
   resetPassword(req: Request, res: Response): Promise<void>;
   getProfile(req: Request, res: Response): Promise<void>;
   changePassword(req: Request, res: Response): Promise<void>;
+  refreshToken(req: Request, res: Response): Promise<void>;
 }

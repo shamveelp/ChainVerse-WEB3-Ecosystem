@@ -14,7 +14,10 @@ export interface ValidationErrorResponse {
   }>;
 }
 
-export const validateDto = (dtoClass: any, source: 'body' | 'query' | 'params' = 'body') => {
+export const validateDto = (
+  dtoClass: any,
+  source: 'body' | 'query' | 'params' = 'body'
+) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       // Transform plain object to class instance
@@ -22,56 +25,63 @@ export const validateDto = (dtoClass: any, source: 'body' | 'query' | 'params' =
         enableImplicitConversion: true,
         excludeExtraneousValues: false,
       });
+      logger.debug(`Validating DTO for ${req.path} [${source}]`, { dto });
 
       // Validate the DTO
       const errors: ValidationError[] = await validate(dto, {
         whitelist: true,
-        forbidNonWhitelisted: false, // Allow extra properties for now
+        forbidNonWhitelisted: false,
         skipMissingProperties: false,
-        validationError: { target: false, value: false }
+        validationError: { target: false, value: false },
       });
 
       if (errors.length > 0) {
-        const errorDetails = errors.map(error => {
+        const errorDetails = errors.map((error) => {
           const constraints = error.constraints || {};
           return {
             field: error.property,
             value: error.value,
-            constraints
+            constraints,
           };
         });
 
-        // Get the first error message
         const firstError = errors[0];
         const firstConstraint = Object.values(firstError.constraints || {})[0];
-        
+
         const response: ValidationErrorResponse = {
           success: false,
           error: firstConstraint || 'Validation failed',
-          details: errorDetails
+          details: errorDetails,
         };
 
-        logger.warn('DTO Validation failed:', { 
-          endpoint: req.path, 
-          method: req.method, 
-          errors: errorDetails 
+        logger.warn('DTO Validation failed:', {
+          endpoint: req.path,
+          method: req.method,
+          errors: errorDetails,
         });
 
         return res.status(StatusCode.BAD_REQUEST).json(response);
       }
 
-      // Replace the request data with the validated DTO
-      req[source] = dto;
+      // ✅ Only overwrite body
+      if (source === 'body') {
+        req.body = dto;
+      } else {
+        // ✅ Merge validated fields into query/params instead of overwriting
+        Object.assign(req[source], dto);
+      }
+
       next();
     } catch (error) {
       logger.error('Validation middleware error:', error);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        error: 'Internal validation error'
+        error: 'Internal validation error',
       });
     }
   };
 };
+
 
 export const validateQuery = (dtoClass: any) => validateDto(dtoClass, 'query');
 export const validateParams = (dtoClass: any) => validateDto(dtoClass, 'params');

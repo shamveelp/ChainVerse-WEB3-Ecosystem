@@ -24,7 +24,7 @@ export const isAuthenticatedRequest = (req: Request): req is AuthenticatedReques
 
 export const authMiddleware: RequestHandler = async (req, res, next) => {
   try {
-    logger.info("Auth middleware: Starting authentication check");
+    // logger.info("Auth middleware: Starting authentication check");
     
     // Get token from cookies or Authorization header
     const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];

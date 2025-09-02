@@ -1,23 +1,24 @@
-import API from "@/lib/axios"
+import API from "@/lib/api-client";
 
 // Auth Services
 export const adminLogin = async (email: string, password: string) => {
   try {
-    const response = await API.post("/api/admin/login", { email, password })
+    const response = await API.post("/api/admin/login", { email, password });
     return {
       success: true,
       admin: response.data.admin,
+      token: response.data.accessToken, // Include token if backend returns it
       message: response.data.message,
-    }
+    };
   } catch (error: any) {
-    console.error("Admin login error:", error.response?.data || error.message)
+    console.error("Admin login error:", error.response?.data || error.message);
     throw {
       success: false,
       error: error.response?.data?.message || error.message || "Login failed",
-      response: error.response
-    }
+      response: error.response,
+    };
   }
-}
+};
 
 export const forgotPassword = async (email: string) => {
   try {
@@ -105,25 +106,26 @@ export const getUsers = async (page: number, limit: number = 10, search: string 
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
-      search: search
-    })
-    const response = await API.get(`/api/admin/users?${params.toString()}`)
+      search: search,
+    });
+    const response = await API.get(`/api/admin/users?${params.toString()}`);
     return {
       success: true,
-      users: response.data.data || response.data,
-      total: response.data.total,
-      totalPages: response.data.totalPages,
-      page: response.data.page,
-      limit: response.data.limit
-    }
+      data: response.data.data || response.data.users || [],
+      total: response.data.total || 0,
+      totalPages: response.data.totalPages || 1,
+      page: response.data.page || 1,
+      limit: response.data.limit || limit,
+      message: response.data.message,
+    };
   } catch (error: any) {
-    console.error("Get users error:", error.response?.data || error.message)
+    console.error("Get users error:", error.response?.data || error.message);
     return {
       success: false,
       error: error.response?.data?.message || error.message || "Failed to fetch users",
-    }
+    };
   }
-}
+};
 
 export const getUserById = async (id: string) => {
   try {

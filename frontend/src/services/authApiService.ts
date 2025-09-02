@@ -248,17 +248,20 @@ export const adminLogin = async (email: string, password: string) => {
   try {
     const response = await API.post("/api/admin/login", { email, password });
     return {
-      success: response.data.success,
+      success: true,
       admin: response.data.admin,
+      token: response.data.accessToken, // Include token if backend returns it
       message: response.data.message,
     };
   } catch (error: any) {
-    return {
+    console.error("Admin login error:", error.response?.data || error.message);
+    throw {
       success: false,
-      error: error.response?.data?.message || "Invalid email or password",
+      error: error.response?.data?.message || error.message || "Login failed",
+      response: error.response,
     };
   }
-}
+};
 
 export const adminLogout = async () => {
   try {

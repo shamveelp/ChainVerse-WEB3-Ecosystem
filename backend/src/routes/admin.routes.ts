@@ -23,6 +23,8 @@ router.post("/forgot-password", validateBody(AdminForgotPasswordDto), adminAuthC
 router.post("/verify-forgot-password-otp", validateBody(AdminVerifyOtpDto), adminAuthController.verifyForgotPasswordOtp.bind(adminAuthController));
 router.post("/reset-password", validateBody(AdminResetPasswordDto), adminAuthController.resetPassword.bind(adminAuthController));
 
+router.post("/refresh-token", adminAuthController.refreshToken.bind(adminAuthController));
+
 // Protected Routes - Auth
 router.post("/logout", authMiddleware, roleMiddleware(['admin']), adminAuthController.logout.bind(adminAuthController));
 router.get("/profile", authMiddleware, roleMiddleware(['admin']), adminAuthController.getProfile.bind(adminAuthController));

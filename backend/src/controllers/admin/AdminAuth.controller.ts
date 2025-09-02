@@ -20,35 +20,38 @@ export class AdminAuthController implements IAdminAuthController {
   ) {}
 
   async login(req: Request, res: Response): Promise<void> {
-    try {
-      const { email, password } = req.body;
-      
-      if (!email || !password) {
-        res.status(StatusCode.BAD_REQUEST).json({
-          success: false,
-          message: "Email and password are required",
-        });
-        return;
-      }
-
-      const result = await this._adminAuthService.login(email, password);
-      
-      // Set cookies
-      this._jwtService.setTokens(res, result.accessToken, result.refreshToken);
-      
-      // Return response with DTO
-      const response = new AdminLoginResponseDto(result.admin, SuccessMessages.ADMIN_LOGGED_IN);
-      res.status(StatusCode.OK).json(response);
-      
-      logger.info(`Admin logged in successfully: ${email}`);
-    } catch (error: any) {
-      logger.error("Admin login error:", error);
-      res.status(StatusCode.UNAUTHORIZED).json({
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      res.status(StatusCode.BAD_REQUEST).json({
         success: false,
-        message: error.message || ErrorMessages.INVALID_CREDENTIALS,
+        message: "Email and password are required",
       });
+      return;
     }
+
+    const result = await this._adminAuthService.login(email, password);
+    
+    // Set cookies
+    this._jwtService.setTokens(res, result.accessToken, result.refreshToken);
+    
+    // Return response with DTO
+    const response = new AdminLoginResponseDto(result.admin, SuccessMessages.ADMIN_LOGGED_IN);
+    res.status(StatusCode.OK).json({
+      ...response,
+      accessToken: result.accessToken, // Include token in response
+    });
+    
+    logger.info(`Admin logged in successfully: ${email}`);
+  } catch (error: any) {
+    logger.error("Admin login error:", error);
+    res.status(StatusCode.UNAUTHORIZED).json({
+      success: false,
+      message: error.message || ErrorMessages.INVALID_CREDENTIALS,
+    });
   }
+}
 
   async logout(req: Request, res: Response): Promise<void> {
     try {
@@ -217,4 +220,58 @@ export class AdminAuthController implements IAdminAuthController {
       });
     }
   }
+
+  async refreshToken(req: Request, res: Response): Promise<void> {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      res.status(StatusCode.UNAUTHORIZED).json({
+        success: false,
+        message: "Refresh token is required",
+      });
+      return;
+    }
+
+    const decoded = this._jwtService.verifyRefreshToken(refreshToken);
+    const admin = await this._adminAuthService.getAdminById(decoded.id);
+
+    if (!admin) {
+      res.status(StatusCode.UNAUTHORIZED).json({
+        success: false,
+        message: ErrorMessages.ADMIN_NOT_FOUND,
+      });
+      return;
+    }
+
+    if (decoded.tokenVersion !== admin.tokenVersion) {
+      res.status(StatusCode.UNAUTHORIZED).json({
+        success: false,
+        message: "Invalid refresh token",
+      });
+      return;
+    }
+
+    const newAccessToken = this._jwtService.generateAccessToken(
+      admin._id.toString(),
+      admin.role,
+      admin.tokenVersion ?? 0
+    );
+
+    this._jwtService.setAccessToken(res, newAccessToken);
+
+    res.status(StatusCode.OK).json({
+      success: true,
+      accessToken: newAccessToken,
+      message: "Token refreshed successfully",
+    });
+
+    logger.info(`Token refreshed for admin: ${admin.email}`);
+  } catch (error: any) {
+    logger.error("Admin refresh token error:", error);
+    res.status(StatusCode.UNAUTHORIZED).json({
+      success: false,
+      message: error.message || ErrorMessages.INVALID_TOKEN,
+    });
+  }
+}
 }

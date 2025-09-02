@@ -109,10 +109,12 @@ export default function Navbar() {
             <div className="hidden md:flex items-center space-x-4">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
+                  <Link href={'/my-profile/points'}>
+                  <Button  variant="ghost" size="icon" className="text-foreground hover:text-primary">
                     <CircleDollarSign className="h-5 w-5" />
                     <span className="sr-only">Daily Check-in</span>
                   </Button>
+                  </Link>
                 </TooltipTrigger>
                 <TooltipContent>Daily Check-in</TooltipContent>
               </Tooltip>

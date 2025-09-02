@@ -41,6 +41,17 @@ export class UpdateProfileDto {
   profilePic?: string;
 }
 
+export class CheckUsernameDto {
+  @IsString({ message: 'Username must be a string' })
+  @MinLength(4, { message: 'Username must be at least 4 characters long' })
+  @MaxLength(20, { message: 'Username must be at most 20 characters long' })
+  @Matches(/^[a-zA-Z0-9_]+$/, { 
+    message: 'Username can only contain letters, numbers, and underscores' 
+  })
+  @Transform(({ value }) => value?.trim())
+  username!: string;
+}
+
 export class UserProfileResponseDto {
   _id: string;
   username: string;
@@ -61,7 +72,26 @@ export class UserProfileResponseDto {
   createdAt: Date;
   updatedAt: Date;
 
-  constructor(user: any) {
+  constructor(user: {
+    _id: string;
+    username: string;
+    name?: string;
+    email: string;
+    phone?: string;
+    refferalCode?: string;
+    profilePic?: string;
+    totalPoints?: number;
+    isEmailVerified?: boolean;
+    isGoogleUser?: boolean;
+    dailyCheckin?: {
+      lastCheckIn?: Date | null;
+      streak?: number;
+    };
+    followersCount?: number;
+    followingCount?: number;
+    createdAt: Date;
+    updatedAt: Date;
+  }) {
     this._id = user._id;
     this.username = user.username;
     this.name = user.name || '';
@@ -86,8 +116,26 @@ export class UserProfileResponseDto {
 export class ProfileResponseDto extends BaseResponseDto {
   data: UserProfileResponseDto;
 
-  constructor(user: any, message: string = 'Profile fetched successfully') {
+  constructor(user: UserProfileResponseDto, message: string = 'Profile fetched successfully') {
     super(true, message);
-    this.data = new UserProfileResponseDto(user);
+    this.data = user;
+  }
+}
+
+export class UpdateProfileResponseDto extends BaseResponseDto {
+  data: UserProfileResponseDto;
+
+  constructor(user: UserProfileResponseDto, message: string = 'Profile updated successfully') {
+    super(true, message);
+    this.data = user;
+  }
+}
+
+export class UsernameCheckResponseDto extends BaseResponseDto {
+  available: boolean;
+
+  constructor(available: boolean) {
+    super(true, 'Username availability checked');
+    this.available = available;
   }
 }

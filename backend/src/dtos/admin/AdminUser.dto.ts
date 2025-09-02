@@ -48,6 +48,8 @@ export class UserResponseDto {
   isGoogleUser?: boolean;
   createdAt: Date;
   updatedAt: Date;
+  refferalCode?: string;
+  refferedBy?: string | null;
 
   constructor(user: any) {
     this._id = user._id;
@@ -62,6 +64,8 @@ export class UserResponseDto {
     this.isGoogleUser = user.isGoogleUser;
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
+    this.refferalCode = user.refferalCode;
+    this.refferedBy = user.refferedBy;
   }
 }
 

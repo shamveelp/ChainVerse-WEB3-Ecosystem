@@ -1,52 +1,43 @@
-import { createSlice,type PayloadAction } from '@reduxjs/toolkit';
-
-interface AdminType {
-  _id: string;
-  name: string;
-  email: string;
-  profileImage?: string;
-}
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface AdminAuthState {
-  admin: AdminType | null;
-  token: string | null;
   isAuthenticated: boolean;
-  loading: boolean;
+  admin: {
+    _id: string;
+    name: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+    lastLogin: string | null;
+  } | null;
+  token: string | null;
 }
 
 const initialState: AdminAuthState = {
+  isAuthenticated: false,
   admin: null,
   token: null,
-  isAuthenticated: false,
-  loading: false,
 };
 
-export const adminAuthSlice = createSlice({
+const adminAuthSlice = createSlice({
   name: 'adminAuth',
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<any>) => {
-      const payload = action.payload;
-      state.admin = {
-        _id: payload._id,
-        name: payload.name,
-        email: payload.email,
-        profileImage: payload.profileImage,
-      };
-      state.token = payload.token;
+    login: (state, action: PayloadAction<{ admin: any; token: string }>) => {
       state.isAuthenticated = true;
+      state.admin = action.payload.admin;
+      state.token = action.payload.token;
     },
     logout: (state) => {
+      state.isAuthenticated = false;
       state.admin = null;
       state.token = null;
-      state.isAuthenticated = false;
     },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.loading = action.payload;
+    updateToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload;
     },
   },
 });
 
-export const { login, logout, setLoading } = adminAuthSlice.actions;
-
+export const { login, logout, updateToken } = adminAuthSlice.actions;
 export default adminAuthSlice.reducer;

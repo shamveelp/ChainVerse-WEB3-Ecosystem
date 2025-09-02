@@ -464,3 +464,92 @@
 2025-09-01T10:43:46.549Z [error]: Error logging in: Invalid email or password
 2025-09-01T10:43:46.777Z [error]: Error in loginUser: Invalid email or password
 2025-09-01T10:43:46.779Z [error]: Error logging in: Invalid email or password
+2025-09-01T13:52:25.358Z [error]: Update profile error: Username is already taken
+2025-09-01T16:31:25.442Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T16:31:25.451Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T16:31:25.518Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T16:31:25.523Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T16:31:28.021Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T16:31:28.054Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T16:33:47.601Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T16:33:47.615Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T17:49:32.806Z [error]: Admin login error: Invalid credentials
+2025-09-01T17:49:33.092Z [error]: Admin login error: Invalid credentials
+2025-09-01T18:10:21.141Z [error]: Error in loginUser: Invalid email or password
+2025-09-01T18:10:21.141Z [error]: Error logging in: Invalid email or password
+2025-09-01T18:10:31.737Z [error]: Error in loginUser: Invalid email or password
+2025-09-01T18:10:31.737Z [error]: Error logging in: Invalid email or password
+2025-09-01T21:40:49.100Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T21:40:49.128Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T21:43:59.240Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T21:43:59.976Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T21:44:00.655Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T21:45:32.128Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-01T21:45:32.445Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T03:43:52.801Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T03:43:52.836Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T03:49:18.896Z [error]: Error in registerUser validation: Invalid referral code
+2025-09-02T03:49:18.897Z [error]: Error in register: Invalid referral code
+2025-09-02T03:49:30.450Z [error]: Error in registerUser validation: Invalid referral code
+2025-09-02T03:49:30.450Z [error]: Error in register: Invalid referral code
+2025-09-02T03:50:13.668Z [error]: Error verifying OTP: Invalid verification code
+2025-09-02T03:50:13.668Z [error]: Error verifying OTP: Invalid verification code
+2025-09-02T04:07:03.410Z [error]: Validation middleware error: Cannot read properties of undefined (reading 'constructor')
+2025-09-02T04:07:36.462Z [error]: Validation middleware error: Cannot read properties of undefined (reading 'constructor')
+2025-09-02T04:07:39.503Z [error]: Validation middleware error: Cannot read properties of undefined (reading 'constructor')
+2025-09-02T04:10:04.061Z [error]: Validation middleware error: Cannot read properties of undefined (reading 'constructor')
+2025-09-02T04:34:09.071Z [error]: Admin login error: Invalid credentials
+2025-09-02T04:34:09.141Z [error]: Admin login error: Invalid credentials
+2025-09-02T04:35:09.806Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T04:35:09.828Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T04:37:56.375Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T04:37:56.535Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T04:38:40.911Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T04:38:40.927Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T05:16:43.376Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T05:16:43.393Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:39:15.482Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:39:15.500Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:40:01.802Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:40:01.880Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:40:31.443Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:40:31.450Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:43:12.749Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:43:12.791Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:44:18.672Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:44:18.705Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:46:13.370Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:46:13.403Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:46:16.581Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:46:16.603Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:46:28.753Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:46:28.765Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:49:19.819Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:49:19.835Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:56:13.146Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T06:56:13.165Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:00:45.219Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:00:45.260Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:01:00.948Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:01:33.142Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:01:35.166Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:01:37.332Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:01:37.763Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:09:23.291Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:09:23.310Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:10:33.351Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:10:33.375Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:14:53.129Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:15:13.074Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:16:19.944Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:16:19.988Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:17:57.691Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:17:57.720Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:19:10.405Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:19:10.480Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:19:55.697Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:19:55.720Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:20:33.726Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:20:33.753Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:21:03.846Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:21:03.875Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter

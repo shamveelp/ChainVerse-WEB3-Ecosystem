@@ -5,8 +5,10 @@ import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, User, Mail, Phone, Calendar, Shield, Zap, Activity, Ban, UserCheck, Loader2 } from 'lucide-react'
-import { getUserById, toggleUserBan, toggleUserBlock } from "@/services/adminApiService"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ArrowLeft, User, Mail, Phone, Calendar, Shield, Zap, Activity, Ban, UserCheck, Loader2, Users, TrendingUp, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { getUserById, toggleUserBan } from "@/services/adminApiService"
+import { getUserReferrals, getUserPointsHistory, getUserCheckInHistory, getUserStats } from "@/services/userDetailsApiService"
 import { useToast } from "@/hooks/use-toast"
 
 interface IUser {
@@ -23,6 +25,7 @@ interface IUser {
   totalPoints?: number
   isBlocked?: boolean
   isBanned?: boolean
+  isActive?: boolean
   isEmailVerified?: boolean
   isGoogleUser?: boolean
   dailyCheckin?: {
@@ -35,34 +38,125 @@ interface IUser {
   updatedAt: Date
 }
 
+interface ReferralData {
+  _id: string
+  referred: {
+    _id: string
+    username: string
+    name: string
+    email: string
+    createdAt: string
+  }
+  pointsAwarded: number
+  createdAt: string
+}
+
+interface PointsHistoryData {
+  _id: string
+  type: string
+  points: number
+  description: string
+  createdAt: string
+}
+
 export default function UserDetails() {
   const [user, setUser] = useState<IUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // Referrals state
+  const [referrals, setReferrals] = useState<ReferralData[]>([])
+  const [referralsLoading, setReferralsLoading] = useState(false)
+  const [referralsPage, setReferralsPage] = useState(1)
+  const [referralsTotal, setReferralsTotal] = useState(0)
+  const [referralsTotalPages, setReferralsTotalPages] = useState(1)
+  
+  // Points history state
+  const [pointsHistory, setPointsHistory] = useState<PointsHistoryData[]>([])
+  const [pointsLoading, setPointsLoading] = useState(false)
+  const [pointsPage, setPointsPage] = useState(1)
+  const [pointsTotal, setPointsTotal] = useState(0)
+  const [pointsTotalPages, setPointsTotalPages] = useState(1)
+  
+  // User stats
+  const [userStats, setUserStats] = useState<any>({})
+  
   const router = useRouter()
   const params = useParams()
   const { toast } = useToast()
   const userId = params.id as string
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userData = await getUserById(userId)
-        setUser(userData)
-        setError(null)
-      } catch (err: any) {
-        console.error("Error fetching user:", err)
-        setError(err.response?.data?.message || "Failed to fetch user details")
-      } finally {
-        setLoading(false)
-      }
-    }
-
     if (userId) {
-      fetchUser()
+      fetchUserDetails()
     }
   }, [userId])
+
+  useEffect(() => {
+    if (userId) {
+      fetchReferrals()
+    }
+  }, [userId, referralsPage])
+
+  useEffect(() => {
+    if (userId) {
+      fetchPointsHistory()
+    }
+  }, [userId, pointsPage])
+
+  const fetchUserDetails = async () => {
+    setLoading(true)
+    try {
+      const userData = await getUserById(userId)
+      setUser(userData)
+      
+      // Fetch user stats
+      const statsData = await getUserStats(userId)
+      if (statsData.success) {
+        setUserStats(statsData.data)
+      }
+      
+      setError(null)
+    } catch (err: any) {
+      console.error("Error fetching user:", err)
+      setError(err.response?.data?.message || "Failed to fetch user details")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchReferrals = async () => {
+    setReferralsLoading(true)
+    try {
+      const result = await getUserReferrals(userId, referralsPage, 10)
+      if (result.success) {
+        setReferrals(result.data)
+        setReferralsTotal(result.total)
+        setReferralsTotalPages(result.totalPages)
+      }
+    } catch (error) {
+      console.error("Error fetching referrals:", error)
+    } finally {
+      setReferralsLoading(false)
+    }
+  }
+
+  const fetchPointsHistory = async () => {
+    setPointsLoading(true)
+    try {
+      const result = await getUserPointsHistory(userId, pointsPage, 10)
+      if (result.success) {
+        setPointsHistory(result.data)
+        setPointsTotal(result.total)
+        setPointsTotalPages(result.totalPages)
+      }
+    } catch (error) {
+      console.error("Error fetching points history:", error)
+    } finally {
+      setPointsLoading(false)
+    }
+  }
 
   const handleToggleBan = async () => {
     if (!user) return
@@ -87,26 +181,14 @@ export default function UserDetails() {
     }
   }
 
-  const handleToggleBlock = async () => {
-    if (!user) return
-    
-    setActionLoading(true)
-    try {
-      const updatedUser = await toggleUserBlock(user._id, !user.isBlocked)
-      setUser(updatedUser)
-      toast({
-        title: user.isBlocked ? "User Unblocked" : "User Blocked",
-        description: `${user.name} has been ${user.isBlocked ? 'unblocked' : 'blocked'} successfully`,
-        className: user.isBlocked ? "bg-green-900/90 border-green-500/50 text-green-100" : "bg-yellow-900/90 border-yellow-500/50 text-yellow-100"
-      })
-    } catch (err: any) {
-      toast({
-        title: "Action Failed",
-        description: err.response?.data?.message || "Failed to update user status",
-        variant: "destructive"
-      })
-    } finally {
-      setActionLoading(false)
+  const getPointsTypeColor = (type: string) => {
+    switch (type) {
+      case 'daily_checkin': return 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+      case 'referral_bonus': return 'bg-green-500/20 text-green-400 border-green-500/30'
+      case 'quest_reward': return 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+      case 'bonus': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+      case 'deduction': return 'bg-red-500/20 text-red-400 border-red-500/30'
+      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
     }
   }
 
@@ -145,15 +227,15 @@ export default function UserDetails() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-600 bg-clip-text text-transparent">
-            User Details
+            User Profile: {user.name}
           </h1>
-          <p className="text-slate-400">Manage user account and permissions</p>
+          <p className="text-slate-400">Comprehensive user account management</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* User Profile Card */}
-        <Card className="lg:col-span-2 bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* User Profile Summary */}
+        <Card className="lg:col-span-3 bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
           <CardHeader className="border-b border-slate-700/50">
             <CardTitle className="text-white flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-gradient-to-r from-cyan-400 to-purple-600 flex items-center justify-center text-slate-900 font-bold text-lg">
@@ -165,78 +247,295 @@ export default function UserDetails() {
               </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            {/* Contact Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Mail className="h-4 w-4" />
-                  <span className="text-sm">Email</span>
-                </div>
-                <p className="text-white">{user.email}</p>
-                {user.isEmailVerified && (
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                    Verified
-                  </Badge>
-                )}
-              </div>
-              
-              {user.phone && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <Phone className="h-4 w-4" />
-                    <span className="text-sm">Phone</span>
+          <CardContent className="p-6">
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 bg-slate-800/50">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">Overview</TabsTrigger>
+                <TabsTrigger value="referrals" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">Referrals</TabsTrigger>
+                <TabsTrigger value="points" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">Points History</TabsTrigger>
+                <TabsTrigger value="activity" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">Activity</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="overview" className="space-y-6 mt-6">
+                {/* Contact Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-white">Contact Information</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 p-3 bg-slate-800/30 rounded-lg">
+                        <Mail className="h-4 w-4 text-slate-400" />
+                        <div>
+                          <p className="text-slate-300">{user.email}</p>
+                          {user.isEmailVerified && (
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs mt-1">
+                              Verified
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      {user.phone && (
+                        <div className="flex items-center gap-2 p-3 bg-slate-800/30 rounded-lg">
+                          <Phone className="h-4 w-4 text-slate-400" />
+                          <p className="text-slate-300">{user.phone}</p>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 p-3 bg-slate-800/30 rounded-lg">
+                        <Calendar className="h-4 w-4 text-slate-400" />
+                        <div>
+                          <p className="text-slate-300">{new Date(user.createdAt).toLocaleDateString()}</p>
+                          <p className="text-xs text-slate-500">{new Date(user.createdAt).toLocaleTimeString()}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-white">{user.phone}</p>
-                </div>
-              )}
-            </div>
 
-            {/* Account Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Calendar className="h-4 w-4" />
-                  <span className="text-sm">Joined</span>
-                </div>
-                <p className="text-white">{new Date(user.createdAt).toLocaleDateString()}</p>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <User className="h-4 w-4" />
-                  <span className="text-sm">Role</span>
-                </div>
-                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                  {user.role}
-                </Badge>
-              </div>
-            </div>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-white">Account Status</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 p-3 bg-slate-800/30 rounded-lg">
+                        <User className="h-4 w-4 text-slate-400" />
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-300">Status:</span>
+                          {user.isBanned ? (
+                            <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Banned</Badge>
+                          ) : user.isBlocked ? (
+                            <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Blocked</Badge>
+                          ) : (
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Active</Badge>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {user.isGoogleUser && (
+                        <div className="flex items-center gap-2 p-3 bg-slate-800/30 rounded-lg">
+                          <Shield className="h-4 w-4 text-blue-400" />
+                          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                            Google Account
+                          </Badge>
+                        </div>
+                      )}
 
-            {/* Referral Information */}
-            {user.refferalCode && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Shield className="h-4 w-4" />
-                  <span className="text-sm">Referral Code</span>
+                      {user.refferalCode && (
+                        <div className="p-3 bg-slate-800/30 rounded-lg">
+                          <p className="text-slate-400 text-sm mb-1">Referral Code</p>
+                          <p className="text-slate-300 font-mono text-lg">{user.refferalCode}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <p className="text-white font-mono">{user.refferalCode}</p>
-                {user.refferedBy && (
-                  <p className="text-slate-400 text-sm">Referred by: {user.refferedBy}</p>
+              </TabsContent>
+
+              <TabsContent value="referrals" className="space-y-4 mt-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white">Referred Users</h3>
+                  <Button 
+                    onClick={fetchReferrals}
+                    variant="outline"
+                    size="sm"
+                    className="bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+                
+                {referralsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
+                  </div>
+                ) : referrals.length === 0 ? (
+                  <div className="text-center py-8 text-slate-400">
+                    <Users className="h-8 w-8 mx-auto mb-2" />
+                    <p>No referrals found</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      {referrals.map((referral) => (
+                        <div key={referral._id} className="p-4 bg-slate-800/30 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-white font-medium">{referral.referred.name}</p>
+                              <p className="text-slate-400 text-sm">@{referral.referred.username}</p>
+                              <p className="text-slate-500 text-xs">{referral.referred.email}</p>
+                            </div>
+                            <div className="text-right">
+                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                +{referral.pointsAwarded} points
+                              </Badge>
+                              <p className="text-slate-400 text-xs mt-1">
+                                {new Date(referral.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {referralsTotalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4">
+                        <div className="text-sm text-slate-400">
+                          Page {referralsPage} of {referralsTotalPages}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setReferralsPage(referralsPage - 1)}
+                            disabled={referralsPage === 1}
+                            size="sm"
+                            className="bg-slate-800/50 border-slate-600/50"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setReferralsPage(referralsPage + 1)}
+                            disabled={referralsPage === referralsTotalPages}
+                            size="sm"
+                            className="bg-slate-800/50 border-slate-600/50"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
-              </div>
-            )}
+              </TabsContent>
+
+              <TabsContent value="points" className="space-y-4 mt-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white">Points History</h3>
+                  <Button 
+                    onClick={fetchPointsHistory}
+                    variant="outline"
+                    size="sm"
+                    className="bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+                
+                {pointsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
+                  </div>
+                ) : pointsHistory.length === 0 ? (
+                  <div className="text-center py-8 text-slate-400">
+                    <Zap className="h-8 w-8 mx-auto mb-2" />
+                    <p>No points history found</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      {pointsHistory.map((entry) => (
+                        <div key={entry._id} className="p-4 bg-slate-800/30 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge className={getPointsTypeColor(entry.type)}>
+                                  {entry.type.replace('_', ' ')}
+                                </Badge>
+                                <span className={`font-bold ${entry.points > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                  {entry.points > 0 ? '+' : ''}{entry.points}
+                                </span>
+                              </div>
+                              <p className="text-slate-300 text-sm">{entry.description}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-slate-400 text-xs">
+                                {new Date(entry.createdAt).toLocaleDateString()}
+                              </p>
+                              <p className="text-slate-500 text-xs">
+                                {new Date(entry.createdAt).toLocaleTimeString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {pointsTotalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4">
+                        <div className="text-sm text-slate-400">
+                          Page {pointsPage} of {pointsTotalPages}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setPointsPage(pointsPage - 1)}
+                            disabled={pointsPage === 1}
+                            size="sm"
+                            className="bg-slate-800/50 border-slate-600/50"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setPointsPage(pointsPage + 1)}
+                            disabled={pointsPage === pointsTotalPages}
+                            size="sm"
+                            className="bg-slate-800/50 border-slate-600/50"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </TabsContent>
+
+              <TabsContent value="activity" className="space-y-4 mt-6">
+                <h3 className="text-lg font-semibold text-white">Activity Overview</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-800/30 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Activity className="h-4 w-4 text-cyan-400" />
+                      <span className="text-slate-400">Daily Check-in Streak</span>
+                    </div>
+                    <p className="text-2xl font-bold text-white">{user.dailyCheckin?.streak || 0} days</p>
+                  </div>
+                  
+                  <div className="p-4 bg-slate-800/30 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="h-4 w-4 text-green-400" />
+                      <span className="text-slate-400">Total Referrals</span>
+                    </div>
+                    <p className="text-2xl font-bold text-white">{referralsTotal}</p>
+                  </div>
+                  
+                  <div className="p-4 bg-slate-800/30 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="h-4 w-4 text-blue-400" />
+                      <span className="text-slate-400">Followers</span>
+                    </div>
+                    <p className="text-2xl font-bold text-white">{user.followersCount || 0}</p>
+                  </div>
+                  
+                  <div className="p-4 bg-slate-800/30 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="h-4 w-4 text-purple-400" />
+                      <span className="text-slate-400">Following</span>
+                    </div>
+                    <p className="text-2xl font-bold text-white">{user.followingCount || 0}</p>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
-        {/* Stats and Actions */}
+        {/* Side Stats and Actions */}
         <div className="space-y-6">
           {/* Stats Card */}
           <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Activity className="h-5 w-5 text-cyan-400" />
-                User Stats
+                <Zap className="h-5 w-5 text-yellow-400" />
+                Web3 Stats
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -245,55 +544,22 @@ export default function UserDetails() {
                   <Zap className="h-4 w-4 text-yellow-400" />
                   <span className="text-slate-400">Total Points</span>
                 </div>
-                <span className="text-white font-semibold">{user.totalPoints || 0}</span>
+                <span className="text-white font-bold text-lg">{user.totalPoints || 0}</span>
               </div>
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Activity className="h-4 w-4 text-cyan-400" />
-                  <span className="text-slate-400">Daily Streak</span>
+                  <span className="text-slate-400">Max Streak</span>
                 </div>
-                <span className="text-white font-semibold">{user.dailyCheckin?.streak || 0}</span>
+                <span className="text-white font-bold text-lg">{user.dailyCheckin?.streak || 0}</span>
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Followers</span>
-                <span className="text-white font-semibold">{user.followersCount || 0}</span>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Following</span>
-                <span className="text-white font-semibold">{user.followingCount || 0}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Status Card */}
-          <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
-            <CardHeader>
-              <CardTitle className="text-white">Account Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col gap-2">
-                {user.isBanned ? (
-                  <Badge className="bg-red-500/20 text-red-400 border-red-500/30 w-fit">
-                    Banned
-                  </Badge>
-                ) : user.isBlocked ? (
-                  <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 w-fit">
-                    Blocked
-                  </Badge>
-                ) : (
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30 w-fit">
-                    Active
-                  </Badge>
-                )}
-                
-                {user.isGoogleUser && (
-                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 w-fit">
-                    Google User
-                  </Badge>
-                )}
+                <span className="text-slate-400">Role</span>
+                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                  {user.role || 'user'}
+                </Badge>
               </div>
             </CardContent>
           </Card>
@@ -301,7 +567,7 @@ export default function UserDetails() {
           {/* Actions Card */}
           <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
             <CardHeader>
-              <CardTitle className="text-white">Actions</CardTitle>
+              <CardTitle className="text-white">Admin Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Button
@@ -323,24 +589,6 @@ export default function UserDetails() {
                 )}
                 {user.isBanned ? 'Unban User' : 'Ban User'}
               </Button>
-              
-              {/* <Button
-                onClick={handleToggleBlock}
-                disabled={actionLoading}
-                className={`w-full ${
-                  user.isBlocked
-                    ? 'bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30'
-                    : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/30'
-                }`}
-                variant="outline"
-              >
-                {actionLoading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Shield className="h-4 w-4 mr-2" />
-                )}
-                {user.isBlocked ? 'Unblock User' : 'Block User'}
-              </Button> */}
             </CardContent>
           </Card>
         </div>
