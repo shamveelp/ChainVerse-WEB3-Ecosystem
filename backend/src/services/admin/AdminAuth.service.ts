@@ -88,4 +88,9 @@ export class AdminAuthService implements IAdminAuthService {
       tokenVersion: (admin.tokenVersion ?? 0) + 1, // Invalidate existing tokens
     });
   }
+
+  async incrementTokenVersion(adminId: string): Promise<void> {
+    console.log("ithinte id", adminId);
+    await this._adminRepository.incrementTokenVersion(adminId);
+  }
 }

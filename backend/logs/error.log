@@ -553,3 +553,19 @@
 2025-09-02T07:20:33.753Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
 2025-09-02T07:21:03.846Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
 2025-09-02T07:21:03.875Z [error]: Validation middleware error: Cannot set property query of #<IncomingMessage> which has only a getter
+2025-09-02T07:36:38.007Z [error]: Error in loginUser: Your account has been banned
+2025-09-02T07:36:38.008Z [error]: Error logging in: Your account has been banned
+2025-09-02T07:36:39.649Z [error]: Error in loginUser: Your account has been banned
+2025-09-02T07:36:39.649Z [error]: Error logging in: Your account has been banned
+2025-09-02T09:25:33.485Z [error]: Error in loginUser: Your account has been banned
+2025-09-02T09:25:33.485Z [error]: Error logging in: Your account has been banned
+2025-09-02T09:25:55.842Z [error]: Error in loginUser: Your account has been banned
+2025-09-02T09:25:55.842Z [error]: Error logging in: Your account has been banned
+2025-09-02T09:30:20.855Z [error]: Error in loginUser: Your account has been banned
+2025-09-02T09:30:20.857Z [error]: Error logging in: Your account has been banned
+2025-09-02T09:30:23.562Z [error]: Error in loginUser: Your account has been banned
+2025-09-02T09:30:23.562Z [error]: Error logging in: Your account has been banned
+2025-09-02T09:30:25.109Z [error]: Error in loginUser: Your account has been banned
+2025-09-02T09:30:25.109Z [error]: Error logging in: Your account has been banned
+2025-09-02T09:32:01.847Z [error]: Error in loginUser: Your account has been banned
+2025-09-02T09:32:01.848Z [error]: Error logging in: Your account has been banned

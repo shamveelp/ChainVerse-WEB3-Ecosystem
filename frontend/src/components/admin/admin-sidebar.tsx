@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/sidebar"
 import { logout } from '@/redux/slices/adminAuthSlice'
 import type { RootState } from "@/redux/store"
+import api from "@/lib/api-client"
 
 // Web3 themed menu items
 const menuItems = [
@@ -81,6 +82,7 @@ export function AppSidebar() {
 
   const handleLogout = () => {
     dispatch(logout())
+    api.post("/api/admin/logout")
     router.push("/admin/login")
   }
 

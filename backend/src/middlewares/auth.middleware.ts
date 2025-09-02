@@ -102,6 +102,7 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
     }
 
     // Check token version
+    logger.info("Auth middleware: Token version:", decoded.tokenVersion, "DB:", account.tokenVersion);
     if (decoded.tokenVersion !== account.tokenVersion) {
       logger.info("Auth middleware: Token version mismatch. Token:", decoded.tokenVersion, "DB:", account.tokenVersion);
       return res.status(StatusCode.UNAUTHORIZED).json({ 

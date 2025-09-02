@@ -16,4 +16,6 @@ export interface IAdminAuthService {
   getAdminById(id: string): Promise<IAdmin | null>;
   resetPassword(email: string, password: string): Promise<void>;
   changePassword(adminId: string, currentPassword: string, newPassword: string): Promise<void>;
+  incrementTokenVersion(adminId: string): Promise<void>;
+
 }

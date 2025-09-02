@@ -48,7 +48,7 @@ export default function AdminLogin() {
       });
       router.push("/admin");
     } else {
-      throw new Error(response.error || "Invalid email or password");
+      throw new Error(response.message  || "Invalid email or password");
     }
   } catch (error: any) {
     toast({

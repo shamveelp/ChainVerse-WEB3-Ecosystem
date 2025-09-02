@@ -246,7 +246,7 @@ export class UserAuthService implements IUserAuthService {
       }
 
       if (user.isBanned) {
-        throw new CustomError("Your account has been banned", StatusCode.FORBIDDEN);
+        throw new CustomError("Your account has been banned", StatusCode.NOT_FOUND);
       }
 
       if (!user.isEmailVerified) {
