@@ -7484,3 +7484,50 @@
 2025-09-02T20:08:43.198Z [info]: Role middleware: User role:
 2025-09-02T20:08:43.198Z [info]: Role middleware: Role check passed
 2025-09-02T20:09:02.763Z [info]: Community admin logged in: normankutty@gmail.com
+2025-09-02T20:14:42.279Z [info]: Auth middleware: Token present:
+2025-09-02T20:14:42.312Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:14:42.323Z [info]: Auth middleware: Looking up community admin account
+2025-09-02T20:14:42.380Z [info]: Auth middleware: Account found:
+2025-09-02T20:14:42.381Z [info]: Auth middleware: Token version:
+2025-09-02T20:14:42.381Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:14:42.382Z [info]: Role middleware: Checking roles:
+2025-09-02T20:14:42.382Z [info]: Role middleware: User role:
+2025-09-02T20:14:42.382Z [info]: Role middleware: Role check passed
+2025-09-02T20:15:59.955Z [info]: Community application created for email: pascal@gmail.com
+2025-09-02T20:16:11.658Z [info]: Generated OTP: 671523 for email: pascal@gmail.com, role: communityAdmin
+2025-09-02T20:16:11.684Z [info]: OTP deleted for: pascal@gmail.com
+2025-09-02T20:16:11.699Z [info]: OTP saved for email: pascal@gmail.com
+2025-09-02T20:16:11.701Z [info]: === DEVELOPMENT EMAIL ===
+2025-09-02T20:16:11.701Z [info]: To: pascal@gmail.com
+2025-09-02T20:16:11.701Z [info]: Subject: Email Verification OTP
+2025-09-02T20:16:11.702Z [info]: OTP: 671523
+2025-09-02T20:16:11.702Z [info]: === END EMAIL ===
+2025-09-02T20:16:12.715Z [info]: OTP sent successfully to: pascal@gmail.com
+2025-09-02T20:16:12.716Z [info]: Password set for community admin: pascal@gmail.com
+2025-09-02T20:16:23.901Z [info]: Finding OTP for email: pascal@gmail.com, found: yes
+2025-09-02T20:16:23.908Z [info]: OTP deleted for: 68b7508becb662cb5f932997
+2025-09-02T20:16:23.908Z [info]: OTP verified successfully for: pascal@gmail.com
+2025-09-02T20:16:23.909Z [info]: OTP verified for community admin: pascal@gmail.com
+2025-09-02T20:21:06.897Z [info]: Auth middleware: Token present:
+2025-09-02T20:21:06.939Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-02T20:21:06.942Z [info]: Auth middleware: Token present:
+2025-09-02T20:21:06.944Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-02T20:21:14.875Z [info]: User logged in successfully: superman@gmail.com
+2025-09-02T20:21:18.275Z [info]: Auth middleware: Token present:
+2025-09-02T20:21:18.276Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:21:18.280Z [info]: Auth middleware: Looking up user account
+2025-09-02T20:21:18.293Z [info]: Auth middleware: Account found:
+2025-09-02T20:21:18.293Z [info]: Auth middleware: Token version:
+2025-09-02T20:21:18.294Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:21:18.295Z [info]: Role middleware: Checking roles:
+2025-09-02T20:21:18.295Z [info]: Role middleware: User role:
+2025-09-02T20:21:18.295Z [info]: Role middleware: Role check passed
+2025-09-02T20:21:18.307Z [info]: Auth middleware: Token present:
+2025-09-02T20:21:18.308Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:21:18.309Z [info]: Auth middleware: Looking up user account
+2025-09-02T20:21:18.312Z [info]: Auth middleware: Account found:
+2025-09-02T20:21:18.312Z [info]: Auth middleware: Token version:
+2025-09-02T20:21:18.313Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:21:18.313Z [info]: Role middleware: Checking roles:
+2025-09-02T20:21:18.313Z [info]: Role middleware: User role:
+2025-09-02T20:21:18.313Z [info]: Role middleware: Role check passed
