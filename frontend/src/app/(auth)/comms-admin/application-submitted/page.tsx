@@ -76,7 +76,7 @@ export default function ApplicationSubmitted() {
 
             <div className="pt-6 space-y-4">
               <Button
-                onClick={() => router.push('/malare/login')}
+                onClick={() => router.push('/comms-admin/login')}
                 className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white py-3 font-semibold rounded-xl shadow-lg shadow-green-900/30 hover:shadow-green-800/40 transition-all duration-300"
               >
                 Go to Login

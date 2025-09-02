@@ -569,3 +569,15 @@
 2025-09-02T09:30:25.109Z [error]: Error logging in: Your account has been banned
 2025-09-02T09:32:01.847Z [error]: Error in loginUser: Your account has been banned
 2025-09-02T09:32:01.848Z [error]: Error logging in: Your account has been banned
+2025-09-02T15:03:12.292Z [error]: Error finding user by email: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-09-02T15:03:12.302Z [error]: Error in loginUser: Database error
+2025-09-02T15:03:12.303Z [error]: Error logging in: Login failed
+2025-09-02T15:04:14.750Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-09-02T19:53:38.440Z [error]: Community admin login error: Invalid credentials
+2025-09-02T19:53:38.481Z [error]: Community admin login error: Invalid credentials
+2025-09-02T19:53:54.296Z [error]: Community admin login error: Invalid credentials
+2025-09-02T19:53:54.336Z [error]: Community admin login error: Invalid credentials
+2025-09-02T19:53:59.522Z [error]: Error in loginUser: Invalid email or password
+2025-09-02T19:53:59.522Z [error]: Error logging in: Invalid email or password
+2025-09-02T19:53:59.772Z [error]: Error in loginUser: Invalid email or password
+2025-09-02T19:53:59.772Z [error]: Error logging in: Invalid email or password

@@ -19,9 +19,30 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+
+  const validateForm = () => {
+    const newErrors: { email?: string; password?: string } = {}
+    
+    if (!email) {
+      newErrors.email = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Invalid email format'
+    }
+    
+    if (!password) {
+      newErrors.password = 'Password is required'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!validateForm()) return
+    
     await login(email, password)
   }
 
@@ -71,11 +92,12 @@ export default function LoginPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
+                    className={`pl-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20 ${errors.email ? 'border-red-500' : ''}`}
                     placeholder="Enter your email"
                     required
                   />
                 </div>
+                {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-red-400 font-medium">Password</Label>
@@ -86,7 +108,7 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
+                    className={`pl-10 pr-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20 ${errors.password ? 'border-red-500' : ''}`}
                     placeholder="Enter your password"
                     required
                   />
@@ -98,12 +120,13 @@ export default function LoginPage() {
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
+                {errors.password && <p className="text-red-400 text-sm">{errors.password}</p>}
               </div>
               <div className="flex justify-end">
                 <Button
                   type="button"
                   variant="link"
-                  onClick={() => router.push('/malare/forgot-password')}
+                  onClick={() => router.push('/comms-admin/forgot-password')}
                   className="text-red-400 hover:text-red-300 p-0 h-auto"
                 >
                   Forgot password?
@@ -129,7 +152,7 @@ export default function LoginPage() {
                 Don't have a community?{' '}
                 <Button
                   variant="link"
-                  onClick={() => router.push('/malare/create-community')}
+                  onClick={() => router.push('/comms-admin/create-community')}
                   className="text-red-400 hover:text-red-300 p-0 h-auto font-semibold"
                 >
                   Create one

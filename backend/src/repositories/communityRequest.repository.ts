@@ -14,6 +14,10 @@ export class CommunityRequestRepository implements ICommunityRequestRepository {
         return await CommunityRequestModel.findOne({ email }).exec();
     }
 
+    async findByUsername(username: string): Promise<ICommunityRequest | null> {
+        return await CommunityRequestModel.findOne({ username }).exec();
+    }
+
     async findById(id: string): Promise<ICommunityRequest | null> {
         return await CommunityRequestModel.findById(id).exec();
     }
@@ -24,6 +28,18 @@ export class CommunityRequestRepository implements ICommunityRequestRepository {
             { status }, 
             { new: true }
         ).exec();
+    }
+
+    async update(id: string, updateData: Partial<ICommunityRequest>): Promise<ICommunityRequest | null> {
+        return await CommunityRequestModel.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true }
+        ).exec();
+    }
+
+    async delete(id: string): Promise<ICommunityRequest | null> {
+        return await CommunityRequestModel.findByIdAndDelete(id).exec();
     }
 
     async findAll(page: number, limit: number, search: string): Promise<{ data: ICommunityRequest[]; total: number; page: number; limit: number }> {

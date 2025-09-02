@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDispatch } from 'react-redux'
 import { Button } from "@/components/ui/button"
@@ -9,16 +9,23 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Home, Upload, Plus, Trash2, Users, Sparkles, Mail, User, Wallet, FileText, Share2, Image, Loader2 } from 'lucide-react'
+import { Home, Upload, Plus, Trash2, Users, Sparkles, Mail, User, Wallet, FileText, Share2, Image, Loader2, CheckCircle, X, AlertCircle } from 'lucide-react'
 import { setTempEmail, setTempApplicationData } from '@/redux/slices/communityAdminAuthSlice'
-import { submitCommunityApplication } from '@/services/communityAdminApiService'
-import { uploadToCloudinary } from '@/lib/cloudinary'
+import { communityAdminApiService } from '@/services/communityAdminApiService'
 import { toast } from '@/hooks/use-toast'
+import { validateCommunityForm } from '@/validations/communityAdminValidation'
+import { uploadToCloudinary } from '@/lib/cloudinary'
+import { useDebounce } from '@/hooks/useDebounce'
 
 export default function CreateCommunityPage() {
   const router = useRouter()
   const dispatch = useDispatch()
   const [loading, setLoading] = useState(false)
+  const [emailChecking, setEmailChecking] = useState(false)
+  const [usernameChecking, setUsernameChecking] = useState(false)
+  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null)
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
+  
   const [formData, setFormData] = useState({
     email: '',
     communityName: '',
@@ -38,17 +45,93 @@ export default function CreateCommunityPage() {
     banner: null as File | null
   })
 
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
   const categories = [
     'DeFi', 'GameFi', 'Trading', 'Education', 'NFTs', 'DAOs', 'Layer2', 'Others'
   ]
 
+  // Debounced values for API calls
+  const debouncedEmail = useDebounce(formData.email, 500)
+  const debouncedUsername = useDebounce(formData.communityUsername, 500)
+
+  // Check email availability
+  const checkEmailAvailability = useCallback(async (email: string) => {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailAvailable(null)
+      return
+    }
+
+    setEmailChecking(true)
+    try {
+      const result = await communityAdminApiService.checkEmailExists(email)
+      setEmailAvailable(!result.exists)
+    } catch (error) {
+      setEmailAvailable(null)
+    } finally {
+      setEmailChecking(false)
+    }
+  }, [])
+
+  // Check username availability
+  const checkUsernameAvailability = useCallback(async (username: string) => {
+    if (!username || username.length < 4) {
+      setUsernameAvailable(null)
+      return
+    }
+
+    setUsernameChecking(true)
+    try {
+      const result = await communityAdminApiService.checkUsernameExists(username)
+      setUsernameAvailable(!result.exists)
+    } catch (error) {
+      setUsernameAvailable(null)
+    } finally {
+      setUsernameChecking(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (debouncedEmail) {
+      checkEmailAvailability(debouncedEmail)
+    }
+  }, [debouncedEmail, checkEmailAvailability])
+  // Effect for checking username availability
+  useEffect(() => {
+    if (debouncedUsername) {
+      checkUsernameAvailability(debouncedUsername)
+    }
+  }, [debouncedUsername, checkUsernameAvailability])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.email || !formData.communityName || !formData.communityUsername) {
+    // Validate form
+    const validation = validateCommunityForm(formData)
+    if (!validation.isValid) {
+      setErrors(validation.errors ?? {})
+      toast({
+        title: "Validation Error",
+        description: "Please fix the form errors before submitting",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Check availability
+    if (emailAvailable === false) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields",
+        description: "Email is already in use",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (usernameAvailable === false) {
+      toast({
+        title: "Error",
+        description: "Username is already taken",
         variant: "destructive"
       })
       return
@@ -82,7 +165,7 @@ export default function CreateCommunityPage() {
         banner: bannerUrl
       }
 
-      const result = await submitCommunityApplication(applicationData)
+      const result = await communityAdminApiService.submitCommunityApplication(applicationData)
       
       if (result.success) {
         dispatch(setTempEmail(formData.email))
@@ -93,7 +176,7 @@ export default function CreateCommunityPage() {
           description: "Community application submitted successfully!",
         })
         
-        router.push('/malare/set-password')
+        router.push('/comms-admin/set-password')
       } else {
         toast({
           title: "Error",
@@ -137,10 +220,21 @@ export default function CreateCommunityPage() {
   }
 
   const handleFileUpload = (file: File, type: 'logo' | 'banner') => {
-    if (file.size > (type === 'logo' ? 2 * 1024 * 1024 : 5 * 1024 * 1024)) {
+    const maxSize = type === 'logo' ? 2 * 1024 * 1024 : 5 * 1024 * 1024
+    
+    if (file.size > maxSize) {
       toast({
         title: "Error",
         description: `File size too large. Max ${type === 'logo' ? '2MB' : '5MB'} allowed.`,
+        variant: "destructive"
+      })
+      return
+    }
+    
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please upload a valid image file",
         variant: "destructive"
       })
       return
@@ -150,6 +244,20 @@ export default function CreateCommunityPage() {
       ...formData,
       [type]: file
     })
+  }
+
+  const getEmailValidationIcon = () => {
+    if (emailChecking) return <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+    if (emailAvailable === true) return <CheckCircle className="h-4 w-4 text-green-400" />
+    if (emailAvailable === false) return <X className="h-4 w-4 text-red-400" />
+    return null
+  }
+
+  const getUsernameValidationIcon = () => {
+    if (usernameChecking) return <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+    if (usernameAvailable === true) return <CheckCircle className="h-4 w-4 text-green-400" />
+    if (usernameAvailable === false) return <X className="h-4 w-4 text-red-400" />
+    return null
   }
 
   return (
@@ -204,15 +312,23 @@ export default function CreateCommunityPage() {
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="email" className="text-orange-400 font-medium">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20"
-                  placeholder="Enter your email address"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    className={`bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20 pr-10 ${errors.email ? 'border-red-500' : emailAvailable === true ? 'border-green-500' : emailAvailable === false ? 'border-red-500' : ''}`}
+                    placeholder="Enter your email address"
+                    required
+                  />
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {getEmailValidationIcon()}
+                  </div>
+                </div>
+                {errors.email && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{errors.email}</p>}
+                {emailAvailable === false && <p className="text-red-400 text-sm flex items-center gap-1"><X className="h-4 w-4" />Email already exists</p>}
+                {emailAvailable === true && <p className="text-green-400 text-sm flex items-center gap-1"><CheckCircle className="h-4 w-4" />Email is available</p>}
               </div>
             </CardContent>
           </Card>
@@ -233,32 +349,45 @@ export default function CreateCommunityPage() {
                     id="communityName"
                     value={formData.communityName}
                     onChange={(e) => setFormData({...formData, communityName: e.target.value})}
-                    className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20"
+                    className={`bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20 ${errors.communityName ? 'border-red-500' : ''}`}
                     placeholder="Enter community name"
                     required
                   />
+                  {errors.communityName && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{errors.communityName}</p>}
                 </div>
                 <div>
                   <Label htmlFor="communityUsername" className="text-orange-400 font-medium">Community Username *</Label>
-                  <Input
-                    id="communityUsername"
-                    value={formData.communityUsername}
-                    onChange={(e) => setFormData({...formData, communityUsername: e.target.value})}
-                    className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20"
-                    placeholder="@username"
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="communityUsername"
+                      value={formData.communityUsername}
+                      onChange={(e) => setFormData({...formData, communityUsername: e.target.value})}
+                      className={`bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20 pr-10 ${errors.communityUsername ? 'border-red-500' : usernameAvailable === true ? 'border-green-500' : usernameAvailable === false ? 'border-red-500' : ''}`}
+                      placeholder="@username"
+                      required
+                    />
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      {getUsernameValidationIcon()}
+                    </div>
+                  </div>
+                  {errors.communityUsername && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{errors.communityUsername}</p>}
+                  {usernameAvailable === false && <p className="text-red-400 text-sm flex items-center gap-1"><X className="h-4 w-4" />Username already taken</p>}
+                  {usernameAvailable === true && <p className="text-green-400 text-sm flex items-center gap-1"><CheckCircle className="h-4 w-4" />Username is available</p>}
                 </div>
               </div>
               <div>
-                <Label htmlFor="description" className="text-orange-400 font-medium">Community Description</Label>
+                <Label htmlFor="description" className="text-orange-400 font-medium">Community Description *</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20 min-h-[120px]"
-                  placeholder="Describe your community..."
+                  className={`bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20 min-h-[120px] ${errors.description ? 'border-red-500' : ''}`}
+                  placeholder="Describe your community... (minimum 50 characters)"
                 />
+                <div className="flex justify-between items-center mt-1">
+                  {errors.description && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{errors.description}</p>}
+                  <p className="text-gray-400 text-sm ml-auto">{formData.description.length}/500</p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -274,19 +403,21 @@ export default function CreateCommunityPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="ethWallet" className="text-orange-400 font-medium">ETH Wallet Address</Label>
+                  <Label htmlFor="ethWallet" className="text-orange-400 font-medium">ETH Wallet Address *</Label>
                   <Input
                     id="ethWallet"
                     value={formData.ethWallet}
                     onChange={(e) => setFormData({...formData, ethWallet: e.target.value})}
-                    className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20"
+                    className={`bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20 ${errors.ethWallet ? 'border-red-500' : ''}`}
                     placeholder="0x..."
+                    required
                   />
+                  {errors.ethWallet && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{errors.ethWallet}</p>}
                 </div>
                 <div>
-                  <Label className="text-orange-400 font-medium">Category</Label>
+                  <Label className="text-orange-400 font-medium">Category *</Label>
                   <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                    <SelectTrigger className="bg-red-950/20 border-red-800/30 text-white focus:border-orange-500 focus:ring-orange-500/20">
+                    <SelectTrigger className={`bg-red-950/20 border-red-800/30 text-white focus:border-orange-500 focus:ring-orange-500/20 ${errors.category ? 'border-red-500' : ''}`}>
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent className="bg-black border-red-800/30">
@@ -297,6 +428,7 @@ export default function CreateCommunityPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.category && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{errors.category}</p>}
                 </div>
               </div>
             </CardContent>
@@ -312,14 +444,18 @@ export default function CreateCommunityPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="whyChooseUs" className="text-orange-400 font-medium">Why did you choose us?</Label>
+                <Label htmlFor="whyChooseUs" className="text-orange-400 font-medium">Why did you choose us? *</Label>
                 <Textarea
                   id="whyChooseUs"
                   value={formData.whyChooseUs}
                   onChange={(e) => setFormData({...formData, whyChooseUs: e.target.value})}
-                  className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20 min-h-[120px]"
-                  placeholder="Tell us why you chose our platform..."
+                  className={`bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20 min-h-[120px] ${errors.whyChooseUs ? 'border-red-500' : ''}`}
+                  placeholder="Tell us why you chose our platform... (minimum 30 characters)"
                 />
+                <div className="flex justify-between items-center mt-1">
+                  {errors.whyChooseUs && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{errors.whyChooseUs}</p>}
+                  <p className="text-gray-400 text-sm ml-auto">{formData.whyChooseUs.length}/300</p>
+                </div>
               </div>
                             
               <div>
@@ -425,35 +561,41 @@ export default function CreateCommunityPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-orange-400 font-medium">Community Logo</Label>
-                  <div className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-orange-500/50 transition-colors cursor-pointer">
+                  <div 
+                    className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-orange-500/50 transition-colors cursor-pointer"
+                    onClick={() => document.getElementById('logo-input')?.click()}
+                  >
                     <Upload className="h-12 w-12 text-gray-400 mx-auto mb-3" />
                     <p className="text-gray-400 font-medium">
                       {formData.logo ? formData.logo.name : 'Upload Logo'}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">PNG, JPG or GIF (max 2MB)</p>
                     <input 
+                      id="logo-input"
                       type="file" 
                       className="hidden" 
                       accept="image/*"
                       onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'logo')}
-                      onClick={(e) => (e.target as HTMLInputElement).value = ''}
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-orange-400 font-medium">Community Banner</Label>
-                  <div className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-orange-500/50 transition-colors cursor-pointer">
+                  <div 
+                    className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-orange-500/50 transition-colors cursor-pointer"
+                    onClick={() => document.getElementById('banner-input')?.click()}
+                  >
                     <Upload className="h-12 w-12 text-gray-400 mx-auto mb-3" />
                     <p className="text-gray-400 font-medium">
                       {formData.banner ? formData.banner.name : 'Upload Banner'}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">PNG, JPG or GIF (max 5MB)</p>
                     <input 
+                      id="banner-input"
                       type="file" 
                       className="hidden" 
                       accept="image/*"
                       onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'banner')}
-                      onClick={(e:any) => (e.target.files as any) = null}
                     />
                   </div>
                 </div>
@@ -465,7 +607,7 @@ export default function CreateCommunityPage() {
           <div className="flex justify-center pt-8">
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || emailAvailable === false || usernameAvailable === false || emailChecking || usernameChecking}
               className="bg-gradient-to-r from-orange-600 to-red-700 hover:from-orange-500 hover:to-red-600 text-white px-12 py-3 text-lg font-semibold rounded-lg shadow-2xl shadow-orange-900/20 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (

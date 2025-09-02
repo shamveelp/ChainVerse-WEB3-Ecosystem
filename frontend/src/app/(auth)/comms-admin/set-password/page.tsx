@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Eye, EyeOff, Lock, Home, CheckCircle, Shield, Loader2 } from 'lucide-react'
-import { setPassword } from '@/services/communityAdminApiService'
+import { Eye, EyeOff, Lock, Home, CheckCircle, Shield, Loader2, AlertCircle } from 'lucide-react'
+import { communityAdminApiService } from '@/services/communityAdminApiService'
 import { toast } from '@/hooks/use-toast'
+import { validatePassword } from '@/validations/communityAdminValidation'
 import type { RootState } from '@/redux/store'
 
 export default function SetPasswordPage() {
@@ -18,43 +19,53 @@ export default function SetPasswordPage() {
   
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [password, setPass] = useState('')
+  const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({})
+
+  const validateForm = () => {
+    const newErrors: { password?: string; confirmPassword?: string } = {}
+    
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.isValid) {
+      newErrors.password = passwordValidation.error
+    }
+    
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (password !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match",
-        variant: "destructive"
-      })
-      return
-    }
-
+    if (!validateForm()) return
+    
     if (!tempEmail) {
       toast({
         title: "Error", 
         description: "No email found. Please start from the beginning.",
         variant: "destructive"
       })
-      router.push('/malare/create-community')
+      router.push('/comms-admin/create-community')
       return
     }
         
     setLoading(true)
     
     try {
-      const result = await setPassword(tempEmail, password)
+      const result = await communityAdminApiService.setPassword(tempEmail, password)
       
       if (result.success) {
         toast({
           title: "Success",
           description: "Password set successfully! OTP sent to your email.",
         })
-        router.push('/malare/community-verify-otp')
+        router.push('/comms-admin/community-verify-otp')
       } else {
         toast({
           title: "Error",
@@ -74,7 +85,26 @@ export default function SetPasswordPage() {
   }
 
   const passwordsMatch = password === confirmPassword
-  const isValid = password.length >= 8 && passwordsMatch
+  const passwordValid = validatePassword(password).isValid
+  const isValid = passwordValid && passwordsMatch
+
+  const getPasswordStrength = () => {
+    if (password.length < 4) return { strength: 0, label: '', color: '' }
+    
+    let score = 0
+    if (password.length >= 8) score++
+    if (/[A-Z]/.test(password)) score++
+    if (/[a-z]/.test(password)) score++
+    if (/[0-9]/.test(password)) score++
+    if (/[^A-Za-z0-9]/.test(password)) score++
+    
+    if (score < 2) return { strength: 25, label: 'Weak', color: 'bg-red-500' }
+    if (score < 4) return { strength: 50, label: 'Fair', color: 'bg-yellow-500' }
+    if (score < 5) return { strength: 75, label: 'Good', color: 'bg-blue-500' }
+    return { strength: 100, label: 'Strong', color: 'bg-green-500' }
+  }
+
+  const passwordStrength = getPasswordStrength()
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
@@ -123,8 +153,8 @@ export default function SetPasswordPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPass(e.target.value)}
-                    className="pl-10 pr-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`pl-10 pr-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20 ${errors.password ? 'border-red-500' : ''}`}
                     placeholder="Enter your password"
                     required
                   />
@@ -136,9 +166,23 @@ export default function SetPasswordPage() {
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
-                {password && password.length < 8 && (
-                  <p className="text-red-400 text-sm">Password must be at least 8 characters</p>
+                {password && passwordStrength.strength > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-400">Password Strength</span>
+                      <span className={`text-sm font-medium ${passwordStrength.strength >= 75 ? 'text-green-400' : passwordStrength.strength >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        {passwordStrength.label}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div 
+                        className={`${passwordStrength.color} h-2 rounded-full transition-all duration-300`}
+                        style={{ width: `${passwordStrength.strength}%` }}
+                      />
+                    </div>
+                  </div>
                 )}
+                {errors.password && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{errors.password}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-red-400 font-medium">Confirm Password</Label>
@@ -149,7 +193,7 @@ export default function SetPasswordPage() {
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
+                    className={`pl-10 pr-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20 ${errors.confirmPassword ? 'border-red-500' : passwordsMatch && confirmPassword ? 'border-green-500' : ''}`}
                     placeholder="Confirm your password"
                     required
                   />
@@ -161,9 +205,7 @@ export default function SetPasswordPage() {
                     {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
-                {confirmPassword && !passwordsMatch && (
-                  <p className="text-red-400 text-sm">Passwords do not match</p>
-                )}
+                {errors.confirmPassword && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{errors.confirmPassword}</p>}
                 {confirmPassword && passwordsMatch && (
                   <p className="text-green-400 text-sm flex items-center gap-1">
                     <CheckCircle className="h-4 w-4" />

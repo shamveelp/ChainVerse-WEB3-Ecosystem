@@ -1,39 +1,43 @@
 import { useDispatch } from 'react-redux'
 import { useRouter } from 'next/navigation'
-import { login as loginAction, logout as logoutAction, setLoading } from '@/redux/slices/communityAdminAuthSlice'
-import { login as loginAPI, logout as logoutAPI } from '@/services/communityAdminApiService'
+import { login, logout, setLoading, setApplicationStatus } from '@/redux/slices/communityAdminAuthSlice'
+import { communityAdminApiService } from '@/services/communityAdminApiService'
 import { toast } from '@/hooks/use-toast'
 
 export const useCommunityAdminAuthActions = () => {
   const dispatch = useDispatch()
   const router = useRouter()
 
-  const login = async (email: string, password: string) => {
+  const handleLogin = async (email: string, password: string) => {
     dispatch(setLoading(true))
+    
     try {
-      const response = await loginAPI(email, password)
+      const result = await communityAdminApiService.login(email, password)
       
-      if (response.success) {
-        dispatch(loginAction({
-          ...response.communityAdmin,
-          token: response.token
+      if (result.success && result.data) {
+        dispatch(login({
+          ...result.data.communityAdmin,
+          token: result.data.token
         }))
+        
         toast({
-          title: "Login Successful",
-          description: "Welcome to your community dashboard",
+          title: "Success",
+          description: "Login successful! Welcome back.",
         })
-        router.push("/dashboard/community-admin")
+        
+        router.push('/comms-admin')
       } else {
-        if (response.status === 403) {
-          toast({
-            title: "Application Under Review",
-            description: response.error,
-            variant: "destructive"
-          })
+        // Handle specific error cases
+        if (result.error?.includes('under review')) {
+          dispatch(setApplicationStatus('pending'))
+          router.push('/comms-admin/application-submitted')
+        } else if (result.error?.includes('rejected')) {
+          dispatch(setApplicationStatus('rejected'))
+          router.push('/comms-admin/create-community')
         } else {
           toast({
             title: "Login Failed",
-            description: response.error || "Invalid credentials",
+            description: result.error || "Invalid credentials",
             variant: "destructive"
           })
         }
@@ -41,7 +45,7 @@ export const useCommunityAdminAuthActions = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Something went wrong",
+        description: error.message || "Something went wrong during login",
         variant: "destructive"
       })
     } finally {
@@ -49,22 +53,46 @@ export const useCommunityAdminAuthActions = () => {
     }
   }
 
-  const logout = async () => {
+  const handleLogout = async () => {
     try {
-      await logoutAPI()
-      dispatch(logoutAction())
+      await communityAdminApiService.logout()
+      dispatch(logout())
+      router.push('/comms-admin/login')
+      
       toast({
-        title: "Logged Out",
-        description: "You have been logged out successfully",
+        title: "Success",
+        description: "Logged out successfully",
       })
-      router.push("/malare/login")
     } catch (error: any) {
-      console.error("Logout error:", error)
-      // Still logout locally even if API call fails
-      dispatch(logoutAction())
-      router.push("/malare/login")
+      // Even if API call fails, clear local state
+      dispatch(logout())
+      router.push('/comms-admin/login')
     }
   }
 
-  return { login, logout }
+  const checkAuthStatus = async () => {
+    try {
+      const result = await communityAdminApiService.getProfile()
+      
+      if (result.success && result.data) {
+        dispatch(login({
+          ...result.data.communityAdmin,
+          token: 'existing' // Token is in cookies
+        }))
+        return true
+      } else {
+        dispatch(logout())
+        return false
+      }
+    } catch (error) {
+      dispatch(logout())
+      return false
+    }
+  }
+
+  return {
+    login: handleLogin,
+    logout: handleLogout,
+    checkAuthStatus
+  }
 }

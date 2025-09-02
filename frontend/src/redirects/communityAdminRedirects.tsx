@@ -16,11 +16,11 @@ export const CommunityAdminProtectedRoute = ({ children }: Props) => {
   useEffect(() => {
     if (!isAuthenticated) {
       if (applicationStatus === 'pending') {
-        router.push("/community-admin/application-submitted")
+        router.push("/comms-admin/application-submitted")
       } else if (applicationStatus === 'rejected') {
-        router.push("/community-admin/get-started")
+        router.push("/comms-admin/get-started")
       } else {
-        router.push("/community-admin/login")
+        router.push("/comms-admin/login")
       }
     }
   }, [isAuthenticated, applicationStatus, router])
@@ -37,9 +37,9 @@ export const CommunityAdminPreventLoggedIn = ({ children }: Props) => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/dashboard/community-admin")
+      router.push("/comms-admin")
     } else if (applicationStatus === 'pending') {
-      router.push("/community-admin/application-submitted")
+      router.push("/comms-admin/application-submitted")
     }
   }, [isAuthenticated, applicationStatus, router])
 
@@ -55,7 +55,7 @@ export const CommunityAdminApplicationFlow = ({ children }: Props) => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/dashboard/community-admin")
+      router.push("/comms-admin")
     }
   }, [isAuthenticated, router])
 

@@ -7,7 +7,8 @@ import {
   IsArray,
   IsUrl,
   Length,
-  Matches
+  Matches,
+  IsObject
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
@@ -57,17 +58,18 @@ export class CreateCommunityDto {
 
   @IsArray({ message: 'Rules must be an array' })
   @IsString({ each: true, message: 'Each rule must be a string' })
-  rules: string[] | undefined;
+  rules: [string] | undefined;
 
-  @IsArray({ message: 'Social links must be an array' })
-  socialLinks: object[] | undefined;
+  @IsObject({ message: 'Social links must be an object' })
+  @IsOptional()
+  socialLinks?: [Object] | undefined;
 
   @IsOptional()
-  @IsUrl({}, { message: 'Logo must be a valid URL' })
+  @IsString({ message: 'Logo must be a valid URL string' })
   logo?: string;
 
   @IsOptional()
-  @IsUrl({}, { message: 'Banner must be a valid URL' })
+  @IsString({ message: 'Banner must be a valid URL string' })
   banner?: string;
 }
 
@@ -108,21 +110,47 @@ export class VerifyOtpDto {
   otp: string | undefined;
 }
 
+export class CheckEmailDto {
+  @IsEmail({}, { message: 'Please provide a valid email address' })
+  @Transform(({ value }) => value?.toLowerCase().trim())
+  email: string | undefined;
+}
+
+export class CheckUsernameDto {
+  @IsString({ message: 'Username is required' })
+  @MinLength(4, { message: 'Username must be at least 4 characters long' })
+  @MaxLength(20, { message: 'Username must be at most 20 characters long' })
+  @Matches(/^[a-zA-Z0-9_]+$/, { 
+    message: 'Username can only contain letters, numbers, and underscores' 
+  })
+  @Transform(({ value }) => value?.trim())
+  username: string | undefined;
+}
+
+export class ResendOtpDto {
+  @IsEmail({}, { message: 'Please provide a valid email address' })
+  @Transform(({ value }) => value?.toLowerCase().trim())
+  email: string | undefined;
+}
+
+// Response DTOs
 export class CommunityAdminResponseDto {
   _id: string;
   email: string;
   name: string;
   role: string;
+  token?: string;
   communityId?: string;
   isActive: boolean;
   lastLogin?: Date;
 
   constructor(admin: any) {
-    this._id = admin._id;
+    this._id = admin._id.toString();
     this.email = admin.email;
     this.name = admin.name;
     this.role = admin.role;
-    this.communityId = admin.communityId;
+    this.token = admin.token;
+    this.communityId = admin.communityId?.toString();
     this.isActive = admin.isActive;
     this.lastLogin = admin.lastLogin;
   }
@@ -130,6 +158,7 @@ export class CommunityAdminResponseDto {
 
 export class CommunityAdminLoginResponseDto extends BaseResponseDto {
   communityAdmin: CommunityAdminResponseDto;
+  token?: string;
 
   constructor(admin: any, message: string = 'Login successful') {
     super(true, message);
@@ -143,5 +172,45 @@ export class CreateCommunityResponseDto extends BaseResponseDto {
   constructor(requestId: string, message: string = 'Community application submitted successfully') {
     super(true, message);
     this.requestId = requestId;
+  }
+}
+
+export class CheckExistenceResponseDto extends BaseResponseDto {
+  exists: boolean;
+
+  constructor(exists: boolean, message: string = 'Check completed') {
+    super(true, message);
+    this.exists = exists;
+  }
+}
+
+export class CommunityDetailsResponseDto extends BaseResponseDto {
+  community: {
+    id: string;
+    name: string;
+    username: string;
+    description: string;
+    category: string;
+    logo?: string;
+    banner?: string;
+    memberCount: number;
+    isVerified: boolean;
+    status: string;
+  };
+
+  constructor(community: any, memberCount: number = 0) {
+    super(true, 'Community details retrieved successfully');
+    this.community = {
+      id: community._id?.toString(),
+      name: community.communityName,
+      username: community.username,
+      description: community.description,
+      category: community.category,
+      logo: community.logo,
+      banner: community.banner,
+      memberCount,
+      isVerified: community.isVerified,
+      status: community.status
+    };
   }
 }

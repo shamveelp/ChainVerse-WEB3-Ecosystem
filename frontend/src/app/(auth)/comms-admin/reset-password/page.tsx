@@ -1,12 +1,15 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Eye, EyeOff, Lock, Home, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, Lock, Home, CheckCircle, Loader2, AlertCircle } from 'lucide-react'
+import { communityAdminApiService } from '@/services/communityAdminApiService'
+import { toast } from '@/hooks/use-toast'
+import { validatePassword, validatePasswordMatch } from '@/validations/communityAdminValidation'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -15,21 +18,105 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState<string | null>(null)
+  const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({})
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem('forgotPasswordEmail')
+    if (storedEmail) {
+      setEmail(storedEmail)
+    } else {
+      router.push('/comms-admin/forgot-password')
+      toast({
+        title: "Error",
+        description: "Please enter your email to reset password first.",
+        variant: "destructive",
+      })
+    }
+  }, [router])
+
+  const validateForm = () => {
+    const newErrors: { password?: string; confirmPassword?: string } = {}
+    
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.isValid) {
+      newErrors.password = passwordValidation.error!
+    }
+    
+    const passwordMatchValidation = validatePasswordMatch(password, confirmPassword)
+    if (!passwordMatchValidation.isValid) {
+      newErrors.confirmPassword = passwordMatchValidation.error!
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (password !== confirmPassword) return
     
+    if (!validateForm()) return
+    
+    if (!email) {
+      toast({
+        title: "Error",
+        description: "Email not found. Please go back to the forgot password page.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoading(true)
-    // Simulate password reset
-    setTimeout(() => {
+    
+    try {
+      const result = await communityAdminApiService.resetPassword(email, password)
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message || "Password reset successfully",
+        })
+        localStorage.removeItem('forgotPasswordEmail')
+        router.push('/comms-admin/login')
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to reset password",
+          variant: "destructive",
+        })
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
+      })
+    } finally {
       setLoading(false)
-      router.push('/login')
-    }, 2000)
+    }
   }
 
   const passwordsMatch = password === confirmPassword
-  const isValid = password.length >= 8 && passwordsMatch
+  const passwordValid = validatePassword(password).isValid
+  const isValid = passwordValid && passwordsMatch
+
+  const getPasswordStrength = () => {
+    if (password.length < 4) return { strength: 0, label: '', color: '' }
+    
+    let score = 0
+    if (password.length >= 8) score++
+    if (/[A-Z]/.test(password)) score++
+    if (/[a-z]/.test(password)) score++
+    if (/[0-9]/.test(password)) score++
+    if (/[^A-Za-z0-9]/.test(password)) score++
+    
+    if (score < 2) return { strength: 25, label: 'Weak', color: 'bg-red-500' }
+    if (score < 4) return { strength: 50, label: 'Fair', color: 'bg-yellow-500' }
+    if (score < 5) return { strength: 75, label: 'Good', color: 'bg-blue-500' }
+    return { strength: 100, label: 'Strong', color: 'bg-green-500' }
+  }
+
+  const passwordStrength = getPasswordStrength()
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
@@ -68,7 +155,6 @@ export default function ResetPasswordPage() {
               Create a new password for your account
             </p>
           </CardHeader>
-
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
@@ -80,7 +166,7 @@ export default function ResetPasswordPage() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
+                    className={`pl-10 pr-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20 ${errors.password ? 'border-red-500' : ''}`}
                     placeholder="Enter new password"
                     required
                   />
@@ -92,11 +178,24 @@ export default function ResetPasswordPage() {
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
-                {password && password.length < 8 && (
-                  <p className="text-red-400 text-sm">Password must be at least 8 characters</p>
+                {password && passwordStrength.strength > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-400">Password Strength</span>
+                      <span className={`text-sm font-medium ${passwordStrength.strength >= 75 ? 'text-green-400' : passwordStrength.strength >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        {passwordStrength.label}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div 
+                        className={`${passwordStrength.color} h-2 rounded-full transition-all duration-300`}
+                        style={{ width: `${passwordStrength.strength}%` }}
+                      />
+                    </div>
+                  </div>
                 )}
+                {errors.password && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{errors.password}</p>}
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-red-400 font-medium">Confirm Password</Label>
                 <div className="relative">
@@ -106,7 +205,7 @@ export default function ResetPasswordPage() {
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
+                    className={`pl-10 pr-10 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20 ${errors.confirmPassword ? 'border-red-500' : passwordsMatch && confirmPassword ? 'border-green-500' : ''}`}
                     placeholder="Confirm new password"
                     required
                   />
@@ -118,9 +217,7 @@ export default function ResetPasswordPage() {
                     {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
-                {confirmPassword && !passwordsMatch && (
-                  <p className="text-red-400 text-sm">Passwords do not match</p>
-                )}
+                {errors.confirmPassword && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{errors.confirmPassword}</p>}
                 {confirmPassword && passwordsMatch && (
                   <p className="text-green-400 text-sm flex items-center gap-1">
                     <CheckCircle className="h-4 w-4" />
@@ -128,15 +225,14 @@ export default function ResetPasswordPage() {
                   </p>
                 )}
               </div>
-
               <Button
                 type="submit"
-                disabled={loading || !isValid}
+                disabled={loading || !isValid || !email}
                 className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white py-3 font-semibold rounded-xl shadow-lg shadow-red-900/30 hover:shadow-red-800/40 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     Resetting Password...
                   </div>
                 ) : (
