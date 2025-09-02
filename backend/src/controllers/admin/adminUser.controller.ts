@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import { injectable, inject } from "inversify";
 import { IAdminUserController } from "../../core/interfaces/controllers/admin/IAdminUser.controller";
 import { IAdminUserService } from "../../core/interfaces/services/admin/IAdminUserService";
+import { IReferralHistoryService } from "../../core/interfaces/services/IReferralHistoryService";
+import { IPointsHistoryService } from "../../core/interfaces/services/IPointsHistoryService";
+import { IDailyCheckInService } from "../../core/interfaces/services/IDailyCheckInService";
 import { TYPES } from "../../core/types/types";
 import logger from "../../utils/logger";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -12,6 +15,9 @@ import { GetUsersResponseDto, UserResponseDto } from "../../dtos/admin/AdminUser
 export class AdminUserController implements IAdminUserController {
   constructor(
     @inject(TYPES.IAdminUserService) private _adminUserService: IAdminUserService,
+    @inject(TYPES.IReferralHistoryService) private _referralHistoryService: IReferralHistoryService,
+    @inject(TYPES.IPointsHistoryService) private _pointsHistoryService: IPointsHistoryService,
+    @inject(TYPES.IDailyCheckInService) private _dailyCheckInService: IDailyCheckInService,
   ) {}
 
   async getAllUsers(req: Request, res: Response): Promise<void> {
@@ -149,6 +155,106 @@ export class AdminUserController implements IAdminUserController {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ 
         success: false,
         message: ErrorMessages.SERVER_ERROR 
+      });
+    }
+  }
+
+  async getUserReferrals(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+
+      const result = await this._referralHistoryService.findByReferrer(id, page, limit);
+      
+      res.status(StatusCode.OK).json({
+        success: true,
+        referrals: result.referrals,
+        total: result.total,
+        totalPages: result.totalPages,
+        page,
+        limit,
+        message: "Referrals retrieved successfully",
+      });
+    } catch (error: any) {
+      logger.error("Get user referrals error:", error);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: error.message || ErrorMessages.SERVER_ERROR,
+      });
+    }
+  }
+
+  async getUserPointsHistory(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+
+      const result = await this._pointsHistoryService.getPointsHistory(id, page, limit);
+      
+      res.status(StatusCode.OK).json({
+        success: true,
+        history: result.history,
+        total: result.total,
+        totalPages: result.totalPages,
+        page,
+        limit,
+        message: "Points history retrieved successfully",
+      });
+    } catch (error: any) {
+      logger.error("Get user points history error:", error);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: error.message || ErrorMessages.SERVER_ERROR,
+      });
+    }
+  }
+
+  async getUserCheckInHistory(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+
+      const result = await this._dailyCheckInService.getCheckInHistory(id, page, limit);
+      
+      res.status(StatusCode.OK).json({
+        success: true,
+        checkIns: result.checkIns,
+        total: result.total,
+        totalPages: result.totalPages,
+        page,
+        limit,
+        message: "Check-in history retrieved successfully",
+      });
+    } catch (error: any) {
+      logger.error("Get user check-in history error:", error);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: error.message || ErrorMessages.SERVER_ERROR,
+      });
+    }
+  }
+
+  async getUserStats(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const stats = await this._referralHistoryService.getReferralStats(id);
+      
+      res.status(StatusCode.OK).json({
+        success: true,
+        stats: {
+          totalReferrals: stats.totalReferrals,
+          totalPointsEarnedFromReferrals: stats.totalPointsEarned,
+        },
+        message: "User stats retrieved successfully",
+      });
+    } catch (error: any) {
+      logger.error("Get user stats error:", error);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: error.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }

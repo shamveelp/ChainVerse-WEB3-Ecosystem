@@ -71,6 +71,12 @@ import { ICommunityAdminRepository } from "../interfaces/repositories/ICommunity
 import { CommunityAdminRepository } from "../../repositories/communityAdmin.repository"
 import { ICommunityRequestRepository } from "../interfaces/repositories/ICommunityRequestRepository"
 import { CommunityRequestRepository } from "../../repositories/communityRequest.repository"
+import { IReferralHistoryService } from "../interfaces/services/IReferralHistoryService"
+import { ReferralHistoryService } from "../../services/referralHistory.service"
+import { IPointsHistoryService } from "../interfaces/services/IPointsHistoryService"
+import { PointsHistoryService } from "../../services/pointsHistory.service"
+import { IDailyCheckInService } from "../interfaces/services/IDailyCheckInService"
+import { DailyCheckInService } from "../../services/DailyCheckInService"
 
 // Create Container
 const container = new Container()
@@ -117,6 +123,18 @@ container.bind<IOtpRepository>(TYPES.IOtpRepository).to(OtpRepository)
 container.bind<IAdminRepository>(TYPES.IAdminRepository).to(AdminRepository)
 container.bind<ICommunityAdminRepository>(TYPES.ICommunityAdminRepository).to(CommunityAdminRepository)
 container.bind<ICommunityRequestRepository>(TYPES.ICommunityRequestRepository).to(CommunityRequestRepository)
+
+
+
+
+container.bind<IReferralHistoryService>(TYPES.IReferralHistoryService).to(ReferralHistoryService);
+container.bind<IPointsHistoryService>(TYPES.IPointsHistoryService).to(PointsHistoryService);
+container.bind<IDailyCheckInService>(TYPES.IDailyCheckInService).to(DailyCheckInService);
+
+// Repositories
+
+
+
 
 // Bind OAuth Client
 container.bind<OAuthClient>(TYPES.OAuthClient).to(OAuthClient)

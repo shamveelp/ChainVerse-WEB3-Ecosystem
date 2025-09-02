@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, User, Mail, Phone, Calendar, Shield, Zap, Activity, Ban, UserCheck, Loader2, Users, TrendingUp, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { ArrowLeft, User, Mail, Phone, Calendar, Shield, Zap, Activity, Ban, UserCheck, Loader2, Users, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import { getUserById, toggleUserBan } from "@/services/adminApiService"
 import { getUserReferrals, getUserPointsHistory, getUserCheckInHistory, getUserStats } from "@/services/userDetailsApiService"
 import { useToast } from "@/hooks/use-toast"
@@ -19,7 +19,12 @@ interface IUser {
   phone?: string
   googleId?: string | null
   refferalCode?: string
-  refferedBy?: string | null
+  refferedBy?: {
+    _id: string
+    username?: string
+    name: string
+    email: string
+  } | null
   profilePic?: string
   role?: 'user'
   totalPoints?: number
@@ -42,7 +47,7 @@ interface ReferralData {
   _id: string
   referred: {
     _id: string
-    username: string
+    username?: string
     name: string
     email: string
     createdAt: string
@@ -57,6 +62,14 @@ interface PointsHistoryData {
   points: number
   description: string
   createdAt: string
+}
+
+interface CheckInHistoryData {
+  _id: string
+  checkInDate: Date
+  pointsAwarded: number
+  streakCount: number
+  createdAt: Date
 }
 
 export default function UserDetails() {
@@ -79,6 +92,13 @@ export default function UserDetails() {
   const [pointsTotal, setPointsTotal] = useState(0)
   const [pointsTotalPages, setPointsTotalPages] = useState(1)
   
+  // Check-in history state
+  const [checkInHistory, setCheckInHistory] = useState<CheckInHistoryData[]>([])
+  const [checkInLoading, setCheckInLoading] = useState(false)
+  const [checkInPage, setCheckInPage] = useState(1)
+  const [checkInTotal, setCheckInTotal] = useState(0)
+  const [checkInTotalPages, setCheckInTotalPages] = useState(1)
+  
   // User stats
   const [userStats, setUserStats] = useState<any>({})
   
@@ -90,6 +110,9 @@ export default function UserDetails() {
   useEffect(() => {
     if (userId) {
       fetchUserDetails()
+      fetchReferrals()
+      fetchPointsHistory()
+      fetchCheckInHistory()
     }
   }, [userId])
 
@@ -105,13 +128,18 @@ export default function UserDetails() {
     }
   }, [userId, pointsPage])
 
+  useEffect(() => {
+    if (userId) {
+      fetchCheckInHistory()
+    }
+  }, [userId, checkInPage])
+
   const fetchUserDetails = async () => {
     setLoading(true)
     try {
       const userData = await getUserById(userId)
       setUser(userData)
       
-      // Fetch user stats
       const statsData = await getUserStats(userId)
       if (statsData.success) {
         setUserStats(statsData.data)
@@ -134,9 +162,16 @@ export default function UserDetails() {
         setReferrals(result.data)
         setReferralsTotal(result.total)
         setReferralsTotalPages(result.totalPages)
+      } else {
+        throw new Error(result.error || "Failed to fetch referrals")
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching referrals:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch referrals",
+        variant: "destructive"
+      })
     } finally {
       setReferralsLoading(false)
     }
@@ -150,11 +185,41 @@ export default function UserDetails() {
         setPointsHistory(result.data)
         setPointsTotal(result.total)
         setPointsTotalPages(result.totalPages)
+      } else {
+        throw new Error(result.error || "Failed to fetch points history")
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching points history:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch points history",
+        variant: "destructive"
+      })
     } finally {
       setPointsLoading(false)
+    }
+  }
+
+  const fetchCheckInHistory = async () => {
+    setCheckInLoading(true)
+    try {
+      const result = await getUserCheckInHistory(userId, checkInPage, 10)
+      if (result.success) {
+        setCheckInHistory(result.data)
+        setCheckInTotal(result.total)
+        setCheckInTotalPages(result.totalPages)
+      } else {
+        throw new Error(result.error || "Failed to fetch check-in history")
+      }
+    } catch (error: any) {
+      console.error("Error fetching check-in history:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch check-in history",
+        variant: "destructive"
+      })
+    } finally {
+      setCheckInLoading(false)
     }
   }
 
@@ -321,6 +386,15 @@ export default function UserDetails() {
                           <p className="text-slate-300 font-mono text-lg">{user.refferalCode}</p>
                         </div>
                       )}
+
+                      {user.refferedBy && (
+                        <div className="p-3 bg-slate-800/30 rounded-lg">
+                          <p className="text-slate-400 text-sm mb-1">Referred By</p>
+                          <p className="text-slate-300">{user.refferedBy.name}</p>
+                          <p className="text-slate-400 text-sm">@{user.refferedBy.username || 'no-username'}</p>
+                          <p className="text-slate-500 text-xs">{user.refferedBy.email}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -357,7 +431,7 @@ export default function UserDetails() {
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="text-white font-medium">{referral.referred.name}</p>
-                              <p className="text-slate-400 text-sm">@{referral.referred.username}</p>
+                              <p className="text-slate-400 text-sm">@{referral.referred.username || 'no-username'}</p>
                               <p className="text-slate-500 text-xs">{referral.referred.email}</p>
                             </div>
                             <div className="text-right">
@@ -489,7 +563,19 @@ export default function UserDetails() {
               </TabsContent>
 
               <TabsContent value="activity" className="space-y-4 mt-6">
-                <h3 className="text-lg font-semibold text-white">Activity Overview</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white">Activity Overview</h3>
+                  <Button 
+                    onClick={fetchCheckInHistory}
+                    variant="outline"
+                    size="sm"
+                    className="bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-slate-800/30 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
@@ -522,6 +608,72 @@ export default function UserDetails() {
                     </div>
                     <p className="text-2xl font-bold text-white">{user.followingCount || 0}</p>
                   </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">Check-in History</h3>
+                  {checkInLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
+                    </div>
+                  ) : checkInHistory.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400">
+                      <Activity className="h-8 w-8 mx-auto mb-2" />
+                      <p>No check-in history found</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-3">
+                        {checkInHistory.map((checkIn) => (
+                          <div key={checkIn._id} className="p-4 bg-slate-800/30 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-white font-medium">Check-in</p>
+                                <p className="text-slate-300 text-sm">Streak: {checkIn.streakCount}</p>
+                                <p className="text-slate-300 text-sm">Points: +{checkIn.pointsAwarded}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-slate-400 text-xs">
+                                  {new Date(checkIn.checkInDate).toLocaleDateString()}
+                                </p>
+                                <p className="text-slate-500 text-xs">
+                                  {new Date(checkIn.checkInDate).toLocaleTimeString()}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {checkInTotalPages > 1 && (
+                        <div className="flex items-center justify-between pt-4">
+                          <div className="text-sm text-slate-400">
+                            Page {checkInPage} of {checkInTotalPages}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => setCheckInPage(checkInPage - 1)}
+                              disabled={checkInPage === 1}
+                              size="sm"
+                              className="bg-slate-800/50 border-slate-600/50"
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => setCheckInPage(checkInPage + 1)}
+                              disabled={checkInPage === checkInTotalPages}
+                              size="sm"
+                              className="bg-slate-800/50 border-slate-600/50"
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>

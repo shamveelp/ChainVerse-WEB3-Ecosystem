@@ -37,6 +37,11 @@ router.patch("/users/:id", authMiddleware, roleMiddleware(['admin']), validateBo
 router.patch("/users/:id/ban", authMiddleware, roleMiddleware(['admin']), adminUserController.updateUserBanStatus.bind(adminUserController));
 router.delete("/users/:id", authMiddleware, roleMiddleware(['admin']), adminUserController.deleteUser.bind(adminUserController));
 
+router.get("/users/:id/referrals", authMiddleware, roleMiddleware(['admin']), adminUserController.getUserReferrals.bind(adminUserController));
+router.get("/users/:id/points-history", authMiddleware, roleMiddleware(['admin']), adminUserController.getUserPointsHistory.bind(adminUserController));
+router.get("/users/:id/checkin-history", authMiddleware, roleMiddleware(['admin']), adminUserController.getUserCheckInHistory.bind(adminUserController));
+router.get("/users/:id/stats", authMiddleware, roleMiddleware(['admin']), adminUserController.getUserStats.bind(adminUserController));
+
 // Protected Routes - Community Management
 router.get("/community-requests", authMiddleware, roleMiddleware(['admin']), validateQuery(GetCommunityRequestsQueryDto), adminCommunityController.getAllCommunityRequests.bind(adminCommunityController));
 router.get("/community-requests/:id", authMiddleware, roleMiddleware(['admin']), adminCommunityController.getCommunityRequestById.bind(adminCommunityController));

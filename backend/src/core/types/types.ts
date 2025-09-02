@@ -38,6 +38,14 @@ const TYPES = {
   AdminUserController: Symbol.for("AdminUserController"),
   AdminCommunityController: Symbol.for("AdminCommunityController"),
   CommunityAdminAuthController: Symbol.for("CommunityAdminAuthController"),
+
+
+
+  
+  IReferralHistoryService: Symbol.for("IReferralHistoryService"),
+  IPointsHistoryService: Symbol.for("IPointsHistoryService"),
+  IDailyCheckInService: Symbol.for("IDailyCheckInService"),
+  
 };
 
 export { TYPES };
