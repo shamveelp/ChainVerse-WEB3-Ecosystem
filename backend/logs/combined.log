@@ -7531,3 +7531,1935 @@
 2025-09-02T20:21:18.313Z [info]: Role middleware: Checking roles:
 2025-09-02T20:21:18.313Z [info]: Role middleware: User role:
 2025-09-02T20:21:18.313Z [info]: Role middleware: Role check passed
+2025-09-02T20:24:26.678Z [info]: MongoDB connected: localhost
+2025-09-02T20:25:56.988Z [info]: Auth middleware: Token present:
+2025-09-02T20:25:57.038Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:25:57.051Z [info]: Auth middleware: Looking up user account
+2025-09-02T20:25:57.198Z [info]: Auth middleware: Account found:
+2025-09-02T20:25:57.201Z [info]: Auth middleware: Token version:
+2025-09-02T20:25:57.201Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:25:57.202Z [info]: Role middleware: Checking roles:
+2025-09-02T20:25:57.202Z [info]: Role middleware: User role:
+2025-09-02T20:25:57.203Z [info]: Role middleware: Role not allowed
+2025-09-02T20:25:57.225Z [info]: Auth middleware: Token present:
+2025-09-02T20:25:57.229Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:25:57.230Z [info]: Auth middleware: Looking up user account
+2025-09-02T20:25:57.236Z [info]: Auth middleware: Account found:
+2025-09-02T20:25:57.237Z [info]: Auth middleware: Token version:
+2025-09-02T20:25:57.238Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:25:57.238Z [info]: Role middleware: Checking roles:
+2025-09-02T20:25:57.238Z [info]: Role middleware: User role:
+2025-09-02T20:25:57.239Z [info]: Role middleware: Role not allowed
+2025-09-02T20:26:09.512Z [error]: Admin login error: Invalid credentials
+2025-09-02T20:26:31.536Z [info]: Admin logged in successfully: admin@gmail.com
+2025-09-02T20:26:34.634Z [info]: Auth middleware: Token present:
+2025-09-02T20:26:34.636Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:26:34.636Z [info]: Auth middleware: Looking up admin account
+2025-09-02T20:26:34.649Z [info]: Auth middleware: Account found:
+2025-09-02T20:26:34.660Z [info]: Auth middleware: Token version:
+2025-09-02T20:26:34.661Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:26:34.669Z [info]: Role middleware: Checking roles:
+2025-09-02T20:26:34.670Z [info]: Role middleware: User role:
+2025-09-02T20:26:34.671Z [info]: Role middleware: Role check passed
+2025-09-02T20:26:34.778Z [info]: Auth middleware: Token present:
+2025-09-02T20:26:34.780Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:26:34.780Z [info]: Auth middleware: Looking up admin account
+2025-09-02T20:26:34.784Z [info]: Auth middleware: Account found:
+2025-09-02T20:26:34.784Z [info]: Auth middleware: Token version:
+2025-09-02T20:26:34.784Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:26:34.785Z [info]: Role middleware: Checking roles:
+2025-09-02T20:26:34.785Z [info]: Role middleware: User role:
+2025-09-02T20:26:34.785Z [info]: Role middleware: Role check passed
+2025-09-02T20:26:36.617Z [info]: Auth middleware: Token present:
+2025-09-02T20:26:36.619Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:26:36.619Z [info]: Auth middleware: Looking up admin account
+2025-09-02T20:26:36.630Z [info]: Auth middleware: Account found:
+2025-09-02T20:26:36.631Z [info]: Auth middleware: Token version:
+2025-09-02T20:26:36.631Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:26:36.631Z [info]: Role middleware: Checking roles:
+2025-09-02T20:26:36.631Z [info]: Role middleware: User role:
+2025-09-02T20:26:36.632Z [info]: Role middleware: Role check passed
+2025-09-02T20:26:36.657Z [info]: Auth middleware: Token present:
+2025-09-02T20:26:36.659Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:26:36.659Z [info]: Auth middleware: Looking up admin account
+2025-09-02T20:26:36.669Z [info]: Auth middleware: Account found:
+2025-09-02T20:26:36.670Z [info]: Auth middleware: Token version:
+2025-09-02T20:26:36.670Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:26:36.670Z [info]: Role middleware: Checking roles:
+2025-09-02T20:26:36.670Z [info]: Role middleware: User role:
+2025-09-02T20:26:36.670Z [info]: Role middleware: Role check passed
+2025-09-02T20:29:42.368Z [info]: Auth middleware: Token present:
+2025-09-02T20:29:42.412Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:29:42.423Z [info]: Auth middleware: Looking up admin account
+2025-09-02T20:29:42.480Z [info]: Auth middleware: Token present:
+2025-09-02T20:29:42.498Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:29:42.498Z [info]: Auth middleware: Looking up admin account
+2025-09-02T20:29:42.502Z [info]: Auth middleware: Token present:
+2025-09-02T20:29:42.504Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:29:42.505Z [info]: Auth middleware: Looking up admin account
+2025-09-02T20:29:42.520Z [info]: Auth middleware: Account found:
+2025-09-02T20:29:42.521Z [info]: Auth middleware: Token version:
+2025-09-02T20:29:42.522Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:29:42.524Z [info]: Role middleware: Checking roles:
+2025-09-02T20:29:42.525Z [info]: Role middleware: User role:
+2025-09-02T20:29:42.525Z [info]: Role middleware: Role not allowed
+2025-09-02T20:29:42.538Z [info]: Auth middleware: Account found:
+2025-09-02T20:29:42.539Z [info]: Auth middleware: Token version:
+2025-09-02T20:29:42.539Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:29:42.541Z [info]: Role middleware: Checking roles:
+2025-09-02T20:29:42.541Z [info]: Role middleware: User role:
+2025-09-02T20:29:42.542Z [info]: Role middleware: Role not allowed
+2025-09-02T20:29:42.547Z [info]: Auth middleware: Account found:
+2025-09-02T20:29:42.548Z [info]: Auth middleware: Token version:
+2025-09-02T20:29:42.548Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:29:42.548Z [info]: Role middleware: Checking roles:
+2025-09-02T20:29:42.549Z [info]: Role middleware: User role:
+2025-09-02T20:29:42.549Z [info]: Role middleware: Role not allowed
+2025-09-02T20:29:42.560Z [info]: Auth middleware: Token present:
+2025-09-02T20:29:42.563Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:29:42.564Z [info]: Auth middleware: Looking up admin account
+2025-09-02T20:29:42.566Z [info]: Auth middleware: Token present:
+2025-09-02T20:29:42.567Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:29:42.568Z [info]: Auth middleware: Looking up admin account
+2025-09-02T20:29:42.571Z [info]: Auth middleware: Token present:
+2025-09-02T20:29:42.573Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-02T20:29:42.573Z [info]: Auth middleware: Looking up admin account
+2025-09-02T20:29:42.581Z [info]: Auth middleware: Account found:
+2025-09-02T20:29:42.582Z [info]: Auth middleware: Token version:
+2025-09-02T20:29:42.582Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:29:42.582Z [info]: Role middleware: Checking roles:
+2025-09-02T20:29:42.582Z [info]: Role middleware: User role:
+2025-09-02T20:29:42.583Z [info]: Role middleware: Role not allowed
+2025-09-02T20:29:42.585Z [info]: Auth middleware: Account found:
+2025-09-02T20:29:42.586Z [info]: Auth middleware: Token version:
+2025-09-02T20:29:42.586Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:29:42.586Z [info]: Role middleware: Checking roles:
+2025-09-02T20:29:42.586Z [info]: Role middleware: User role:
+2025-09-02T20:29:42.586Z [info]: Role middleware: Role not allowed
+2025-09-02T20:29:42.632Z [info]: Auth middleware: Account found:
+2025-09-02T20:29:42.633Z [info]: Auth middleware: Token version:
+2025-09-02T20:29:42.633Z [info]: Auth middleware: Authentication successful for user:
+2025-09-02T20:29:42.633Z [info]: Role middleware: Checking roles:
+2025-09-02T20:29:42.633Z [info]: Role middleware: User role:
+2025-09-02T20:29:42.634Z [info]: Role middleware: Role not allowed
+2025-09-02T20:37:39.188Z [info]: User logged in successfully: superman@gmail.com
+2025-09-03T04:30:55.171Z [info]: Auth middleware: Token present:
+2025-09-03T04:30:55.217Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T04:30:55.223Z [info]: Auth middleware: Token present:
+2025-09-03T04:30:55.228Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T04:31:09.096Z [info]: Auth middleware: Token present:
+2025-09-03T04:31:09.100Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T04:31:09.104Z [info]: Auth middleware: Token present:
+2025-09-03T04:31:09.107Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T04:31:09.170Z [info]: Auth middleware: Token present:
+2025-09-03T04:31:09.171Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T04:31:09.177Z [info]: Auth middleware: Looking up user account
+2025-09-03T04:31:09.191Z [info]: Auth middleware: Account found:
+2025-09-03T04:31:09.191Z [info]: Auth middleware: Token version:
+2025-09-03T04:31:09.191Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T04:31:09.192Z [info]: Role middleware: Checking roles:
+2025-09-03T04:31:09.192Z [info]: Role middleware: User role:
+2025-09-03T04:31:09.192Z [info]: Role middleware: Role check passed
+2025-09-03T04:31:09.243Z [info]: Auth middleware: Token present:
+2025-09-03T04:31:09.244Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T04:31:09.244Z [info]: Auth middleware: Looking up user account
+2025-09-03T04:31:09.247Z [info]: Auth middleware: Account found:
+2025-09-03T04:31:09.247Z [info]: Auth middleware: Token version:
+2025-09-03T04:31:09.247Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T04:31:09.247Z [info]: Role middleware: Checking roles:
+2025-09-03T04:31:09.247Z [info]: Role middleware: User role:
+2025-09-03T04:31:09.248Z [info]: Role middleware: Role check passed
+2025-09-03T05:19:03.492Z [info]: MongoDB connected: localhost
+2025-09-03T05:19:40.728Z [info]: MongoDB connected: localhost
+2025-09-03T05:20:50.001Z [info]: MongoDB connected: localhost
+2025-09-03T05:21:23.728Z [info]: MongoDB connected: localhost
+2025-09-03T05:22:12.329Z [info]: MongoDB connected: localhost
+2025-09-03T05:22:30.234Z [info]: MongoDB connected: localhost
+2025-09-03T05:22:54.332Z [info]: MongoDB connected: localhost
+2025-09-03T05:23:10.661Z [info]: MongoDB connected: localhost
+2025-09-03T05:23:55.028Z [info]: MongoDB connected: localhost
+2025-09-03T05:24:16.574Z [info]: MongoDB connected: localhost
+2025-09-03T05:24:37.775Z [info]: MongoDB connected: localhost
+2025-09-03T05:27:34.073Z [info]: MongoDB connected: localhost
+2025-09-03T05:28:00.403Z [info]: MongoDB connected: localhost
+2025-09-03T05:28:31.978Z [info]: MongoDB connected: localhost
+2025-09-03T05:28:48.251Z [info]: MongoDB connected: localhost
+2025-09-03T05:28:57.157Z [info]: MongoDB connected: localhost
+2025-09-03T05:29:24.496Z [info]: MongoDB connected: localhost
+2025-09-03T05:29:31.489Z [info]: MongoDB connected: localhost
+2025-09-03T05:29:49.486Z [info]: MongoDB connected: localhost
+2025-09-03T05:30:21.188Z [info]: MongoDB connected: localhost
+2025-09-03T05:30:42.917Z [info]: MongoDB connected: localhost
+2025-09-03T05:31:19.680Z [info]: MongoDB connected: localhost
+2025-09-03T05:32:21.986Z [info]: MongoDB connected: localhost
+2025-09-03T05:32:54.991Z [info]: MongoDB connected: localhost
+2025-09-03T05:37:53.189Z [info]: MongoDB connected: localhost
+2025-09-03T05:42:39.573Z [info]: MongoDB connected: localhost
+2025-09-03T05:43:35.240Z [info]: MongoDB connected: localhost
+2025-09-03T05:45:37.002Z [info]: MongoDB connected: localhost
+2025-09-03T05:46:39.857Z [info]: MongoDB connected: localhost
+2025-09-03T05:49:32.895Z [info]: MongoDB connected: localhost
+2025-09-03T06:25:56.402Z [info]: User logged out successfully
+2025-09-03T06:26:04.448Z [info]: Admin logged in successfully: admin@gmail.com
+2025-09-03T06:35:06.708Z [info]: MongoDB connected: localhost
+2025-09-03T06:35:36.027Z [info]: MongoDB connected: localhost
+2025-09-03T06:36:17.031Z [info]: MongoDB connected: localhost
+2025-09-03T06:37:47.941Z [info]: MongoDB connected: localhost
+2025-09-03T06:42:27.035Z [info]: MongoDB connected: localhost
+2025-09-03T07:51:35.527Z [info]: MongoDB connected: localhost
+2025-09-03T07:51:58.039Z [info]: MongoDB connected: localhost
+2025-09-03T07:53:11.275Z [info]: MongoDB connected: localhost
+2025-09-03T07:53:42.957Z [info]: MongoDB connected: localhost
+2025-09-03T08:20:56.916Z [info]: Auth middleware: Token present:
+2025-09-03T08:20:57.113Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T08:20:57.166Z [info]: Auth middleware: Token present:
+2025-09-03T08:20:57.172Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T08:20:57.669Z [info]: Auth middleware: Token present:
+2025-09-03T08:20:57.672Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T08:20:57.701Z [info]: Auth middleware: Looking up admin account
+2025-09-03T08:20:57.952Z [info]: Auth middleware: Account found:
+2025-09-03T08:20:57.957Z [info]: Auth middleware: Token version:
+2025-09-03T08:20:57.958Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T08:20:57.964Z [info]: Role middleware: Checking roles:
+2025-09-03T08:20:57.964Z [info]: Role middleware: User role:
+2025-09-03T08:20:57.965Z [info]: Role middleware: Role not allowed
+2025-09-03T08:20:58.002Z [info]: Auth middleware: Token present:
+2025-09-03T08:20:58.004Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T08:20:58.007Z [info]: Auth middleware: Looking up admin account
+2025-09-03T08:20:58.099Z [info]: Auth middleware: Account found:
+2025-09-03T08:20:58.099Z [info]: Auth middleware: Token version:
+2025-09-03T08:20:58.099Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T08:20:58.099Z [info]: Role middleware: Checking roles:
+2025-09-03T08:20:58.100Z [info]: Role middleware: User role:
+2025-09-03T08:20:58.100Z [info]: Role middleware: Role not allowed
+2025-09-03T08:21:26.768Z [info]: User logged in successfully: superman@gmail.com
+2025-09-03T08:21:31.150Z [info]: Auth middleware: Token present:
+2025-09-03T08:21:31.193Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T08:21:31.194Z [info]: Auth middleware: Looking up user account
+2025-09-03T08:21:31.306Z [info]: Auth middleware: Account found:
+2025-09-03T08:21:31.306Z [info]: Auth middleware: Token version:
+2025-09-03T08:21:31.306Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T08:21:31.307Z [info]: Role middleware: Checking roles:
+2025-09-03T08:21:31.307Z [info]: Role middleware: User role:
+2025-09-03T08:21:31.307Z [info]: Role middleware: Role check passed
+2025-09-03T08:21:31.387Z [info]: Auth middleware: Token present:
+2025-09-03T08:21:31.393Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T08:21:31.393Z [info]: Auth middleware: Looking up user account
+2025-09-03T08:21:31.403Z [info]: Auth middleware: Account found:
+2025-09-03T08:21:31.403Z [info]: Auth middleware: Token version:
+2025-09-03T08:21:31.404Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T08:21:31.404Z [info]: Role middleware: Checking roles:
+2025-09-03T08:21:31.404Z [info]: Role middleware: User role:
+2025-09-03T08:21:31.404Z [info]: Role middleware: Role check passed
+2025-09-03T09:37:56.205Z [info]: MongoDB connected: localhost
+2025-09-03T09:56:48.490Z [info]: MongoDB connected: localhost
+2025-09-03T10:14:35.526Z [info]: MongoDB connected: localhost
+2025-09-03T10:49:42.643Z [info]: MongoDB connected: localhost
+2025-09-03T10:50:29.348Z [info]: MongoDB connected: localhost
+2025-09-03T11:11:03.339Z [info]: Auth middleware: Token present:
+2025-09-03T11:11:03.737Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T11:11:04.171Z [info]: Auth middleware: Token present:
+2025-09-03T11:11:04.180Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T11:11:05.020Z [info]: Auth middleware: Token present:
+2025-09-03T11:11:05.023Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:11:05.106Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:11:05.602Z [info]: Auth middleware: Account found:
+2025-09-03T11:11:05.604Z [info]: Auth middleware: Token version:
+2025-09-03T11:11:05.606Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:11:05.608Z [info]: Role middleware: Checking roles:
+2025-09-03T11:11:05.608Z [info]: Role middleware: User role:
+2025-09-03T11:11:05.608Z [info]: Role middleware: Role check passed
+2025-09-03T11:11:06.025Z [info]: Auth middleware: Token present:
+2025-09-03T11:11:06.027Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:11:06.027Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:11:06.031Z [info]: Auth middleware: Account found:
+2025-09-03T11:11:06.031Z [info]: Auth middleware: Token version:
+2025-09-03T11:11:06.032Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:11:06.032Z [info]: Role middleware: Checking roles:
+2025-09-03T11:11:06.032Z [info]: Role middleware: User role:
+2025-09-03T11:11:06.032Z [info]: Role middleware: Role check passed
+2025-09-03T11:15:19.940Z [info]: User logged out successfully
+2025-09-03T11:15:26.681Z [info]: User logged in successfully: superman@gmail.com
+2025-09-03T11:15:29.820Z [info]: User logged out successfully
+2025-09-03T11:15:34.507Z [error]: Error in loginUser: Invalid email or password
+2025-09-03T11:15:34.508Z [error]: Error logging in: Invalid email or password
+2025-09-03T11:15:40.603Z [error]: Error in loginUser: Invalid email or password
+2025-09-03T11:15:40.604Z [error]: Error logging in: Invalid email or password
+2025-09-03T11:16:16.321Z [info]: User logged in successfully: superman@gmail.com
+2025-09-03T11:16:18.817Z [info]: User logged out successfully
+2025-09-03T11:18:09.972Z [info]: Starting registration validation for email: newuser099@gmail.com, username: newuser099
+2025-09-03T11:18:09.984Z [info]: Validating registration data for: newuser099@gmail.com, username: newuser099
+2025-09-03T11:18:10.033Z [info]: Registration validation successful for:
+2025-09-03T11:18:10.040Z [info]: Generated OTP: 826631 for email: newuser099@gmail.com, role: user
+2025-09-03T11:18:10.090Z [info]: OTP deleted for: newuser099@gmail.com
+2025-09-03T11:18:10.248Z [info]: OTP saved for email: newuser099@gmail.com
+2025-09-03T11:18:10.260Z [info]: === DEVELOPMENT EMAIL ===
+2025-09-03T11:18:10.260Z [info]: To: newuser099@gmail.com
+2025-09-03T11:18:10.260Z [info]: Subject: Email Verification OTP
+2025-09-03T11:18:10.261Z [info]: OTP: 826631
+2025-09-03T11:18:10.261Z [info]: === END EMAIL ===
+2025-09-03T11:18:11.264Z [info]: OTP sent successfully to: newuser099@gmail.com
+2025-09-03T11:19:32.982Z [info]: Verifying OTP for email: newuser099@gmail.com, username: newuser099
+2025-09-03T11:19:33.042Z [info]: Finding OTP for email: newuser099@gmail.com, found: yes
+2025-09-03T11:19:33.060Z [info]: OTP deleted for: 68b823f21899af54be0d55c0
+2025-09-03T11:19:33.060Z [info]: OTP verified successfully for: newuser099@gmail.com
+2025-09-03T11:19:33.064Z [info]: Creating user account after OTP verification: newuser099@gmail.com, username: newuser099
+2025-09-03T11:19:33.412Z [info]: User created successfully: 68b824451899af54be0d55c7
+2025-09-03T11:19:41.154Z [info]: Auth middleware: Token present:
+2025-09-03T11:19:41.163Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:19:41.179Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:19:41.189Z [info]: Auth middleware: Account found:
+2025-09-03T11:19:41.189Z [info]: Auth middleware: Token version:
+2025-09-03T11:19:41.189Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:19:41.189Z [info]: Role middleware: Checking roles:
+2025-09-03T11:19:41.189Z [info]: Role middleware: User role:
+2025-09-03T11:19:41.190Z [info]: Role middleware: Role check passed
+2025-09-03T11:19:41.209Z [info]: Auth middleware: Token present:
+2025-09-03T11:19:41.212Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:19:41.212Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:19:41.215Z [info]: Auth middleware: Account found:
+2025-09-03T11:19:41.216Z [info]: Auth middleware: Token version:
+2025-09-03T11:19:41.216Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:19:41.216Z [info]: Role middleware: Checking roles:
+2025-09-03T11:19:41.216Z [info]: Role middleware: User role:
+2025-09-03T11:19:41.216Z [info]: Role middleware: Role check passed
+2025-09-03T11:21:29.422Z [info]: Auth middleware: Token present:
+2025-09-03T11:21:29.425Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:21:29.425Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:21:29.430Z [info]: Auth middleware: Token present:
+2025-09-03T11:21:29.432Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:21:29.432Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:21:29.453Z [info]: Auth middleware: Token present:
+2025-09-03T11:21:29.456Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:21:29.456Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:21:29.461Z [info]: Auth middleware: Account found:
+2025-09-03T11:21:29.461Z [info]: Auth middleware: Token version:
+2025-09-03T11:21:29.462Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:21:29.462Z [info]: Role middleware: Checking roles:
+2025-09-03T11:21:29.462Z [info]: Role middleware: User role:
+2025-09-03T11:21:29.462Z [info]: Role middleware: Role check passed
+2025-09-03T11:21:29.503Z [info]: Auth middleware: Account found:
+2025-09-03T11:21:29.503Z [info]: Auth middleware: Token version:
+2025-09-03T11:21:29.503Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:21:29.504Z [info]: Role middleware: Checking roles:
+2025-09-03T11:21:29.504Z [info]: Role middleware: User role:
+2025-09-03T11:21:29.504Z [info]: Role middleware: Role check passed
+2025-09-03T11:21:29.543Z [info]: Auth middleware: Account found:
+2025-09-03T11:21:29.544Z [info]: Auth middleware: Token version:
+2025-09-03T11:21:29.544Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:21:29.544Z [info]: Role middleware: Checking roles:
+2025-09-03T11:21:29.544Z [info]: Role middleware: User role:
+2025-09-03T11:21:29.544Z [info]: Role middleware: Role check passed
+2025-09-03T11:21:29.615Z [info]: Auth middleware: Token present:
+2025-09-03T11:21:29.617Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:21:29.617Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:21:29.635Z [info]: Auth middleware: Account found:
+2025-09-03T11:21:29.636Z [info]: Auth middleware: Token version:
+2025-09-03T11:21:29.636Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:21:29.636Z [info]: Role middleware: Checking roles:
+2025-09-03T11:21:29.636Z [info]: Role middleware: User role:
+2025-09-03T11:21:29.637Z [info]: Role middleware: Role check passed
+2025-09-03T11:21:29.643Z [info]: Auth middleware: Token present:
+2025-09-03T11:21:29.644Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:21:29.645Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:21:29.657Z [info]: Auth middleware: Account found:
+2025-09-03T11:21:29.658Z [info]: Auth middleware: Token version:
+2025-09-03T11:21:29.658Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:21:29.658Z [info]: Role middleware: Checking roles:
+2025-09-03T11:21:29.658Z [info]: Role middleware: User role:
+2025-09-03T11:21:29.658Z [info]: Role middleware: Role check passed
+2025-09-03T11:21:29.739Z [info]: Auth middleware: Token present:
+2025-09-03T11:21:29.741Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:21:29.741Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:21:29.747Z [info]: Auth middleware: Account found:
+2025-09-03T11:21:29.747Z [info]: Auth middleware: Token version:
+2025-09-03T11:21:29.747Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:21:29.747Z [info]: Role middleware: Checking roles:
+2025-09-03T11:21:29.748Z [info]: Role middleware: User role:
+2025-09-03T11:21:29.748Z [info]: Role middleware: Role check passed
+2025-09-03T11:23:44.777Z [info]: Auth middleware: Token present:
+2025-09-03T11:23:44.844Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:23:44.865Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:23:44.944Z [info]: Auth middleware: Token present:
+2025-09-03T11:23:44.946Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:23:44.947Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:23:44.971Z [info]: Auth middleware: Account found:
+2025-09-03T11:23:44.972Z [info]: Auth middleware: Token version:
+2025-09-03T11:23:44.972Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:23:44.972Z [info]: Role middleware: Checking roles:
+2025-09-03T11:23:44.973Z [info]: Role middleware: User role:
+2025-09-03T11:23:44.973Z [info]: Role middleware: Role check passed
+2025-09-03T11:23:45.008Z [info]: Auth middleware: Account found:
+2025-09-03T11:23:45.008Z [info]: Auth middleware: Token version:
+2025-09-03T11:23:45.008Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:23:45.008Z [info]: Role middleware: Checking roles:
+2025-09-03T11:23:45.009Z [info]: Role middleware: User role:
+2025-09-03T11:23:45.009Z [info]: Role middleware: Role check passed
+2025-09-03T11:23:45.160Z [info]: Auth middleware: Token present:
+2025-09-03T11:23:45.162Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:23:45.163Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:23:45.186Z [info]: Auth middleware: Account found:
+2025-09-03T11:23:45.186Z [info]: Auth middleware: Token version:
+2025-09-03T11:23:45.187Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:23:45.187Z [info]: Role middleware: Checking roles:
+2025-09-03T11:23:45.187Z [info]: Role middleware: User role:
+2025-09-03T11:23:45.187Z [info]: Role middleware: Role check passed
+2025-09-03T11:23:45.191Z [info]: Auth middleware: Token present:
+2025-09-03T11:23:45.192Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:23:45.194Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:23:45.199Z [info]: Auth middleware: Account found:
+2025-09-03T11:23:45.200Z [info]: Auth middleware: Token version:
+2025-09-03T11:23:45.200Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:23:45.200Z [info]: Role middleware: Checking roles:
+2025-09-03T11:23:45.200Z [info]: Role middleware: User role:
+2025-09-03T11:23:45.201Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:22.784Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:22.786Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:22.787Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:22.790Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:22.792Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:22.793Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:22.804Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:22.807Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:22.807Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:22.813Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:22.813Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:22.814Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:22.814Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:22.814Z [info]: Role middleware: User role:
+2025-09-03T11:24:22.814Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:22.830Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:22.830Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:22.830Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:22.831Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:22.831Z [info]: Role middleware: User role:
+2025-09-03T11:24:22.831Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:22.849Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:22.849Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:22.849Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:22.850Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:22.850Z [info]: Role middleware: User role:
+2025-09-03T11:24:22.850Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:22.863Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:22.864Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:22.865Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:22.871Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:22.873Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:22.873Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:22.878Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:22.878Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:22.878Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:22.878Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:22.878Z [info]: Role middleware: User role:
+2025-09-03T11:24:22.878Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:22.884Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:22.885Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:22.885Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:22.886Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:22.886Z [info]: Role middleware: User role:
+2025-09-03T11:24:22.886Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:22.909Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:22.910Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:22.911Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:22.916Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:22.916Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:22.917Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:22.917Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:22.917Z [info]: Role middleware: User role:
+2025-09-03T11:24:22.917Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:24.290Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:24.292Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:24.292Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:24.295Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:24.295Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:24.295Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:24.296Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:24.296Z [info]: Role middleware: User role:
+2025-09-03T11:24:24.296Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:24.324Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:24.326Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:24.327Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:24.330Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:24.330Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:24.331Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:24.331Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:24.331Z [info]: Role middleware: User role:
+2025-09-03T11:24:24.331Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:29.241Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:29.243Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:29.243Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:29.245Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:29.246Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:29.246Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:29.248Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:29.250Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:29.250Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:29.252Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:29.252Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:29.252Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:29.253Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:29.253Z [info]: Role middleware: User role:
+2025-09-03T11:24:29.253Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:29.271Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:29.271Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:29.271Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:29.271Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:29.272Z [info]: Role middleware: User role:
+2025-09-03T11:24:29.272Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:29.275Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:29.275Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:29.275Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:29.276Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:29.276Z [info]: Role middleware: User role:
+2025-09-03T11:24:29.276Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:29.290Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:29.300Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:29.300Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:29.307Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:29.310Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:29.310Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:29.312Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:29.312Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:29.312Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:29.313Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:29.313Z [info]: Role middleware: User role:
+2025-09-03T11:24:29.313Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:29.340Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:29.340Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:29.340Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:29.340Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:29.340Z [info]: Role middleware: User role:
+2025-09-03T11:24:29.340Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:29.361Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:29.363Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:29.363Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:29.367Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:29.368Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:29.368Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:29.369Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:29.373Z [info]: Role middleware: User role:
+2025-09-03T11:24:29.373Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:30.479Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:30.481Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:30.481Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:30.484Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:30.484Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:30.484Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:30.485Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:30.485Z [info]: Role middleware: User role:
+2025-09-03T11:24:30.485Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:30.676Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:30.678Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:30.678Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:30.710Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:30.711Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:30.711Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:30.711Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:30.711Z [info]: Role middleware: User role:
+2025-09-03T11:24:30.712Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:30.721Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:30.722Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:30.723Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:30.727Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:30.728Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:30.728Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:30.728Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:30.728Z [info]: Role middleware: User role:
+2025-09-03T11:24:30.728Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:30.780Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:30.782Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:30.783Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:30.788Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:30.788Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:30.789Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:30.789Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:30.789Z [info]: Role middleware: User role:
+2025-09-03T11:24:30.789Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:41.975Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:41.977Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:41.977Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:41.979Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:41.981Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:41.981Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:41.984Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:41.985Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:41.985Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:41.985Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:41.985Z [info]: Role middleware: User role:
+2025-09-03T11:24:41.986Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:41.992Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:41.992Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:41.992Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:41.992Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:41.993Z [info]: Role middleware: User role:
+2025-09-03T11:24:41.993Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:42.039Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:42.041Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:42.041Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:42.044Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:42.044Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:42.045Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:42.045Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:42.045Z [info]: Role middleware: User role:
+2025-09-03T11:24:42.045Z [info]: Role middleware: Role check passed
+2025-09-03T11:24:42.073Z [info]: Auth middleware: Token present:
+2025-09-03T11:24:42.074Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:24:42.074Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:24:42.077Z [info]: Auth middleware: Account found:
+2025-09-03T11:24:42.077Z [info]: Auth middleware: Token version:
+2025-09-03T11:24:42.077Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:24:42.077Z [info]: Role middleware: Checking roles:
+2025-09-03T11:24:42.077Z [info]: Role middleware: User role:
+2025-09-03T11:24:42.077Z [info]: Role middleware: Role check passed
+2025-09-03T11:25:03.400Z [info]: Auth middleware: Token present:
+2025-09-03T11:25:03.402Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:25:03.402Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:25:03.406Z [info]: Auth middleware: Account found:
+2025-09-03T11:25:03.407Z [info]: Auth middleware: Token version:
+2025-09-03T11:25:03.407Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:25:03.407Z [info]: Role middleware: Checking roles:
+2025-09-03T11:25:03.407Z [info]: Role middleware: User role:
+2025-09-03T11:25:03.407Z [info]: Role middleware: Role check passed
+2025-09-03T11:25:03.420Z [info]: Auth middleware: Token present:
+2025-09-03T11:25:03.424Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:25:03.424Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:25:03.433Z [info]: Auth middleware: Account found:
+2025-09-03T11:25:03.433Z [info]: Auth middleware: Token version:
+2025-09-03T11:25:03.433Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:25:03.433Z [info]: Role middleware: Checking roles:
+2025-09-03T11:25:03.434Z [info]: Role middleware: User role:
+2025-09-03T11:25:03.434Z [info]: Role middleware: Role check passed
+2025-09-03T11:25:14.010Z [info]: Auth middleware: Token present:
+2025-09-03T11:25:14.012Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:25:14.012Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:25:14.019Z [info]: Auth middleware: Account found:
+2025-09-03T11:25:14.019Z [info]: Auth middleware: Token version:
+2025-09-03T11:25:14.019Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:25:14.019Z [info]: Role middleware: Checking roles:
+2025-09-03T11:25:14.019Z [info]: Role middleware: User role:
+2025-09-03T11:25:14.019Z [info]: Role middleware: Role check passed
+2025-09-03T11:25:18.190Z [info]: Auth middleware: Token present:
+2025-09-03T11:25:18.191Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:25:18.192Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:25:18.195Z [info]: Auth middleware: Account found:
+2025-09-03T11:25:18.195Z [info]: Auth middleware: Token version:
+2025-09-03T11:25:18.195Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:25:18.195Z [info]: Role middleware: Checking roles:
+2025-09-03T11:25:18.196Z [info]: Role middleware: User role:
+2025-09-03T11:25:18.196Z [info]: Role middleware: Role check passed
+2025-09-03T11:37:32.817Z [info]: Auth middleware: Token present:
+2025-09-03T11:37:33.447Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T11:37:33.468Z [info]: Auth middleware: Token present:
+2025-09-03T11:37:34.943Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T11:37:35.475Z [info]: Auth middleware: Token present:
+2025-09-03T11:37:35.477Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:37:35.492Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:37:35.737Z [info]: Auth middleware: Account found:
+2025-09-03T11:37:35.738Z [info]: Auth middleware: Token version:
+2025-09-03T11:37:35.738Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:37:35.739Z [info]: Role middleware: Checking roles:
+2025-09-03T11:37:35.739Z [info]: Role middleware: User role:
+2025-09-03T11:37:35.740Z [info]: Role middleware: Role check passed
+2025-09-03T11:37:35.766Z [info]: Auth middleware: Token present:
+2025-09-03T11:37:35.767Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:37:35.768Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:37:35.770Z [info]: Auth middleware: Account found:
+2025-09-03T11:37:35.770Z [info]: Auth middleware: Token version:
+2025-09-03T11:37:35.770Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:37:35.770Z [info]: Role middleware: Checking roles:
+2025-09-03T11:37:35.770Z [info]: Role middleware: User role:
+2025-09-03T11:37:35.770Z [info]: Role middleware: Role check passed
+2025-09-03T11:48:05.080Z [info]: Auth middleware: Token present:
+2025-09-03T11:48:05.156Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:48:05.173Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:48:05.261Z [info]: Auth middleware: Token present:
+2025-09-03T11:48:05.263Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:48:05.263Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:48:05.271Z [info]: Auth middleware: Token present:
+2025-09-03T11:48:05.272Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:48:05.272Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:48:05.303Z [info]: Auth middleware: Account found:
+2025-09-03T11:48:05.304Z [info]: Auth middleware: Token version:
+2025-09-03T11:48:05.305Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:48:05.316Z [info]: Role middleware: Checking roles:
+2025-09-03T11:48:05.316Z [info]: Role middleware: User role:
+2025-09-03T11:48:05.316Z [info]: Role middleware: Role check passed
+2025-09-03T11:48:05.338Z [info]: Auth middleware: Account found:
+2025-09-03T11:48:05.338Z [info]: Auth middleware: Token version:
+2025-09-03T11:48:05.338Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:48:05.338Z [info]: Role middleware: Checking roles:
+2025-09-03T11:48:05.339Z [info]: Role middleware: User role:
+2025-09-03T11:48:05.339Z [info]: Role middleware: Role check passed
+2025-09-03T11:48:05.356Z [info]: Auth middleware: Account found:
+2025-09-03T11:48:05.356Z [info]: Auth middleware: Token version:
+2025-09-03T11:48:05.357Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:48:05.357Z [info]: Role middleware: Checking roles:
+2025-09-03T11:48:05.357Z [info]: Role middleware: User role:
+2025-09-03T11:48:05.357Z [info]: Role middleware: Role check passed
+2025-09-03T11:48:05.420Z [info]: Auth middleware: Token present:
+2025-09-03T11:48:05.421Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:48:05.422Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:48:05.427Z [info]: Auth middleware: Account found:
+2025-09-03T11:48:05.428Z [info]: Auth middleware: Token version:
+2025-09-03T11:48:05.428Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:48:05.428Z [info]: Role middleware: Checking roles:
+2025-09-03T11:48:05.428Z [info]: Role middleware: User role:
+2025-09-03T11:48:05.429Z [info]: Role middleware: Role check passed
+2025-09-03T11:48:05.431Z [info]: Auth middleware: Token present:
+2025-09-03T11:48:05.432Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:48:05.433Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:48:05.441Z [info]: Auth middleware: Account found:
+2025-09-03T11:48:05.442Z [info]: Auth middleware: Token version:
+2025-09-03T11:48:05.442Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:48:05.442Z [info]: Role middleware: Checking roles:
+2025-09-03T11:48:05.442Z [info]: Role middleware: User role:
+2025-09-03T11:48:05.442Z [info]: Role middleware: Role check passed
+2025-09-03T11:48:06.478Z [info]: Auth middleware: Token present:
+2025-09-03T11:48:06.479Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:48:06.479Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:48:06.482Z [info]: Auth middleware: Account found:
+2025-09-03T11:48:06.482Z [info]: Auth middleware: Token version:
+2025-09-03T11:48:06.482Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:48:06.482Z [info]: Role middleware: Checking roles:
+2025-09-03T11:48:06.483Z [info]: Role middleware: User role:
+2025-09-03T11:48:06.483Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:10.178Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:10.186Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:10.189Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:10.197Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:10.200Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:10.200Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:10.202Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:10.204Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:10.204Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:10.210Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:10.210Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:10.211Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:10.211Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:10.211Z [info]: Role middleware: User role:
+2025-09-03T11:49:10.211Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:10.215Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:10.215Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:10.215Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:10.215Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:10.216Z [info]: Role middleware: User role:
+2025-09-03T11:49:10.216Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:10.222Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:10.223Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:10.223Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:10.223Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:10.223Z [info]: Role middleware: User role:
+2025-09-03T11:49:10.224Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:10.241Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:10.243Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:10.243Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:10.246Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:10.248Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:10.248Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:10.251Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:10.251Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:10.251Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:10.252Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:10.252Z [info]: Role middleware: User role:
+2025-09-03T11:49:10.252Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:10.258Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:10.259Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:10.259Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:10.259Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:10.259Z [info]: Role middleware: User role:
+2025-09-03T11:49:10.259Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:10.289Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:10.291Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:10.292Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:10.308Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:10.308Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:10.308Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:10.309Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:10.309Z [info]: Role middleware: User role:
+2025-09-03T11:49:10.309Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:13.379Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:13.382Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:13.383Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:13.392Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:13.393Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:13.393Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:13.393Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:13.393Z [info]: Role middleware: User role:
+2025-09-03T11:49:13.393Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:13.415Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:13.417Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:13.417Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:13.419Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:13.420Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:13.420Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:13.420Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:13.420Z [info]: Role middleware: User role:
+2025-09-03T11:49:13.420Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:15.940Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:15.941Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:15.941Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:15.943Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:15.944Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:15.944Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:15.946Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:15.947Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:15.947Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:15.947Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:15.947Z [info]: Role middleware: User role:
+2025-09-03T11:49:15.947Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:16.020Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:16.021Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:16.021Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:16.021Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:16.021Z [info]: Role middleware: User role:
+2025-09-03T11:49:16.021Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:16.549Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:16.550Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:16.551Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:16.552Z [info]: Auth middleware: Token present:
+2025-09-03T11:49:16.553Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T11:49:16.553Z [info]: Auth middleware: Looking up user account
+2025-09-03T11:49:16.554Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:16.554Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:16.555Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:16.555Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:16.555Z [info]: Role middleware: User role:
+2025-09-03T11:49:16.555Z [info]: Role middleware: Role check passed
+2025-09-03T11:49:16.597Z [info]: Auth middleware: Account found:
+2025-09-03T11:49:16.597Z [info]: Auth middleware: Token version:
+2025-09-03T11:49:16.597Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T11:49:16.597Z [info]: Role middleware: Checking roles:
+2025-09-03T11:49:16.597Z [info]: Role middleware: User role:
+2025-09-03T11:49:16.598Z [info]: Role middleware: Role check passed
+2025-09-03T11:56:14.808Z [info]: MongoDB connected: localhost
+2025-09-03T11:57:18.220Z [info]: Community application created for email: aswinlalu645@gmail.com
+2025-09-03T11:58:05.315Z [info]: Generated OTP: 138293 for email: aswinlalu645@gmail.com, role: communityAdmin
+2025-09-03T11:58:05.340Z [info]: OTP deleted for: aswinlalu645@gmail.com
+2025-09-03T11:58:05.353Z [info]: OTP saved for email: aswinlalu645@gmail.com
+2025-09-03T11:58:05.355Z [info]: === DEVELOPMENT EMAIL ===
+2025-09-03T11:58:05.357Z [info]: To: aswinlalu645@gmail.com
+2025-09-03T11:58:05.358Z [info]: Subject: Email Verification OTP
+2025-09-03T11:58:05.358Z [info]: OTP: 138293
+2025-09-03T11:58:05.358Z [info]: === END EMAIL ===
+2025-09-03T11:58:06.367Z [info]: OTP sent successfully to: aswinlalu645@gmail.com
+2025-09-03T11:58:06.373Z [info]: Password set for community admin: aswinlalu645@gmail.com
+2025-09-03T11:59:06.463Z [info]: Finding OTP for email: aswinlalu645@gmail.com, found: yes
+2025-09-03T11:59:06.474Z [info]: OTP deleted for: 68b82d4df13b28e3749c04a9
+2025-09-03T11:59:06.474Z [info]: OTP verified successfully for: aswinlalu645@gmail.com
+2025-09-03T11:59:06.475Z [info]: OTP verified for community admin: aswinlalu645@gmail.com
+2025-09-03T12:03:15.399Z [info]: Auth middleware: Token present:
+2025-09-03T12:03:15.639Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T12:03:15.656Z [info]: Auth middleware: Token present:
+2025-09-03T12:03:15.665Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-03T12:03:15.803Z [info]: Auth middleware: Token present:
+2025-09-03T12:03:15.806Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:03:15.860Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:03:15.989Z [info]: Auth middleware: Account found:
+2025-09-03T12:03:15.994Z [info]: Auth middleware: Token version:
+2025-09-03T12:03:15.994Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:03:15.998Z [info]: Role middleware: Checking roles:
+2025-09-03T12:03:15.999Z [info]: Role middleware: User role:
+2025-09-03T12:03:15.999Z [info]: Role middleware: Role check passed
+2025-09-03T12:03:16.084Z [info]: Auth middleware: Token present:
+2025-09-03T12:03:16.086Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:03:16.086Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:03:16.125Z [info]: Auth middleware: Account found:
+2025-09-03T12:03:16.125Z [info]: Auth middleware: Token version:
+2025-09-03T12:03:16.125Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:03:16.126Z [info]: Role middleware: Checking roles:
+2025-09-03T12:03:16.126Z [info]: Role middleware: User role:
+2025-09-03T12:03:16.126Z [info]: Role middleware: Role check passed
+2025-09-03T12:05:18.462Z [info]: Auth middleware: Token present:
+2025-09-03T12:05:18.535Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:05:18.547Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:05:18.725Z [info]: Auth middleware: Token present:
+2025-09-03T12:05:18.729Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:05:18.729Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:05:18.742Z [info]: Auth middleware: Token present:
+2025-09-03T12:05:18.745Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:05:18.747Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:05:18.806Z [info]: Auth middleware: Account found:
+2025-09-03T12:05:18.810Z [info]: Auth middleware: Token version:
+2025-09-03T12:05:18.812Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:05:18.819Z [info]: Role middleware: Checking roles:
+2025-09-03T12:05:18.824Z [info]: Role middleware: User role:
+2025-09-03T12:05:18.826Z [info]: Role middleware: Role check passed
+2025-09-03T12:05:19.010Z [info]: Auth middleware: Account found:
+2025-09-03T12:05:19.011Z [info]: Auth middleware: Token version:
+2025-09-03T12:05:19.011Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:05:19.011Z [info]: Role middleware: Checking roles:
+2025-09-03T12:05:19.011Z [info]: Role middleware: User role:
+2025-09-03T12:05:19.012Z [info]: Role middleware: Role check passed
+2025-09-03T12:05:19.072Z [info]: Auth middleware: Account found:
+2025-09-03T12:05:19.072Z [info]: Auth middleware: Token version:
+2025-09-03T12:05:19.072Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:05:19.073Z [info]: Role middleware: Checking roles:
+2025-09-03T12:05:19.073Z [info]: Role middleware: User role:
+2025-09-03T12:05:19.073Z [info]: Role middleware: Role check passed
+2025-09-03T12:05:19.253Z [info]: Auth middleware: Token present:
+2025-09-03T12:05:19.256Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:05:19.257Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:05:19.260Z [info]: Auth middleware: Token present:
+2025-09-03T12:05:19.264Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:05:19.267Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:05:19.271Z [info]: Auth middleware: Account found:
+2025-09-03T12:05:19.272Z [info]: Auth middleware: Token version:
+2025-09-03T12:05:19.272Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:05:19.272Z [info]: Role middleware: Checking roles:
+2025-09-03T12:05:19.272Z [info]: Role middleware: User role:
+2025-09-03T12:05:19.272Z [info]: Role middleware: Role check passed
+2025-09-03T12:05:19.290Z [info]: Auth middleware: Account found:
+2025-09-03T12:05:19.290Z [info]: Auth middleware: Token version:
+2025-09-03T12:05:19.290Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:05:19.290Z [info]: Role middleware: Checking roles:
+2025-09-03T12:05:19.291Z [info]: Role middleware: User role:
+2025-09-03T12:05:19.292Z [info]: Role middleware: Role check passed
+2025-09-03T12:05:19.386Z [info]: Auth middleware: Token present:
+2025-09-03T12:05:19.388Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:05:19.388Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:05:19.392Z [info]: Auth middleware: Account found:
+2025-09-03T12:05:19.392Z [info]: Auth middleware: Token version:
+2025-09-03T12:05:19.392Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:05:19.392Z [info]: Role middleware: Checking roles:
+2025-09-03T12:05:19.393Z [info]: Role middleware: User role:
+2025-09-03T12:05:19.393Z [info]: Role middleware: Role check passed
+2025-09-03T12:06:42.190Z [info]: Auth middleware: Token present:
+2025-09-03T12:06:42.249Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:06:42.264Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:06:42.350Z [info]: Auth middleware: Token present:
+2025-09-03T12:06:42.353Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:06:42.353Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:06:42.394Z [info]: Auth middleware: Account found:
+2025-09-03T12:06:42.395Z [info]: Auth middleware: Token version:
+2025-09-03T12:06:42.396Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:06:42.397Z [info]: Role middleware: Checking roles:
+2025-09-03T12:06:42.397Z [info]: Role middleware: User role:
+2025-09-03T12:06:42.397Z [info]: Role middleware: Role check passed
+2025-09-03T12:06:42.456Z [info]: Auth middleware: Account found:
+2025-09-03T12:06:42.456Z [info]: Auth middleware: Token version:
+2025-09-03T12:06:42.457Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:06:42.457Z [info]: Role middleware: Checking roles:
+2025-09-03T12:06:42.457Z [info]: Role middleware: User role:
+2025-09-03T12:06:42.457Z [info]: Role middleware: Role check passed
+2025-09-03T12:06:42.569Z [info]: Auth middleware: Token present:
+2025-09-03T12:06:42.571Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:06:42.571Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:06:42.595Z [info]: Auth middleware: Account found:
+2025-09-03T12:06:42.596Z [info]: Auth middleware: Token version:
+2025-09-03T12:06:42.596Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:06:42.596Z [info]: Role middleware: Checking roles:
+2025-09-03T12:06:42.597Z [info]: Role middleware: User role:
+2025-09-03T12:06:42.597Z [info]: Role middleware: Role check passed
+2025-09-03T12:06:42.600Z [info]: Auth middleware: Token present:
+2025-09-03T12:06:42.602Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:06:42.602Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:06:42.608Z [info]: Auth middleware: Account found:
+2025-09-03T12:06:42.608Z [info]: Auth middleware: Token version:
+2025-09-03T12:06:42.608Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:06:42.608Z [info]: Role middleware: Checking roles:
+2025-09-03T12:06:42.608Z [info]: Role middleware: User role:
+2025-09-03T12:06:42.608Z [info]: Role middleware: Role check passed
+2025-09-03T12:07:52.611Z [info]: Auth middleware: Token present:
+2025-09-03T12:07:52.715Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:07:52.734Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:07:53.254Z [info]: Auth middleware: Account found:
+2025-09-03T12:07:53.256Z [info]: Auth middleware: Token version:
+2025-09-03T12:07:53.257Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:07:53.258Z [info]: Role middleware: Checking roles:
+2025-09-03T12:07:53.259Z [info]: Role middleware: User role:
+2025-09-03T12:07:53.260Z [info]: Role middleware: Role check passed
+2025-09-03T12:07:53.328Z [info]: Auth middleware: Token present:
+2025-09-03T12:07:53.331Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:07:53.333Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:07:53.344Z [info]: Auth middleware: Account found:
+2025-09-03T12:07:53.345Z [info]: Auth middleware: Token version:
+2025-09-03T12:07:53.346Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:07:53.346Z [info]: Role middleware: Checking roles:
+2025-09-03T12:07:53.346Z [info]: Role middleware: User role:
+2025-09-03T12:07:53.347Z [info]: Role middleware: Role check passed
+2025-09-03T12:25:33.531Z [info]: MongoDB connected: localhost
+2025-09-03T12:25:52.933Z [info]: Starting registration validation for email: newuser013@gmail.com, username: newuser013
+2025-09-03T12:25:52.935Z [info]: Validating registration data for: newuser013@gmail.com, username: newuser013
+2025-09-03T12:25:52.965Z [info]: Registration validation successful for:
+2025-09-03T12:25:52.966Z [info]: Generated OTP: 142259 for email: newuser013@gmail.com, role: user
+2025-09-03T12:25:53.016Z [info]: OTP deleted for: newuser013@gmail.com
+2025-09-03T12:25:53.147Z [info]: OTP saved for email: newuser013@gmail.com
+2025-09-03T12:25:53.148Z [info]: === DEVELOPMENT EMAIL ===
+2025-09-03T12:25:53.148Z [info]: To: newuser013@gmail.com
+2025-09-03T12:25:53.149Z [info]: Subject: Email Verification OTP
+2025-09-03T12:25:53.149Z [info]: OTP: 142259
+2025-09-03T12:25:53.149Z [info]: === END EMAIL ===
+2025-09-03T12:25:54.160Z [info]: OTP sent successfully to: newuser013@gmail.com
+2025-09-03T12:26:00.844Z [error]: Admin login error: Invalid credentials
+2025-09-03T12:26:19.015Z [info]: Admin logged in successfully: admin@gmail.com
+2025-09-03T12:27:05.636Z [info]: Verifying OTP for email: newuser013@gmail.com, username: newuser013
+2025-09-03T12:27:05.775Z [info]: Finding OTP for email: newuser013@gmail.com, found: yes
+2025-09-03T12:27:05.809Z [info]: OTP deleted for: 68b833d1c45899a21070a909
+2025-09-03T12:27:05.809Z [info]: OTP verified successfully for: newuser013@gmail.com
+2025-09-03T12:27:05.825Z [info]: Creating user account after OTP verification: newuser013@gmail.com, username: newuser013
+2025-09-03T12:27:07.690Z [info]: User created successfully: 68b8341bc45899a21070a913
+2025-09-03T12:27:54.227Z [info]: Auth middleware: Token present:
+2025-09-03T12:27:54.608Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:27:54.731Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:27:55.208Z [info]: Auth middleware: Account found:
+2025-09-03T12:27:55.211Z [info]: Auth middleware: Token version:
+2025-09-03T12:27:55.212Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:27:55.223Z [info]: Role middleware: Checking roles:
+2025-09-03T12:27:55.224Z [info]: Role middleware: User role:
+2025-09-03T12:27:55.224Z [info]: Role middleware: Role not allowed
+2025-09-03T12:27:55.242Z [info]: Auth middleware: Token present:
+2025-09-03T12:27:55.246Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:27:55.248Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:27:55.257Z [info]: Auth middleware: Account found:
+2025-09-03T12:27:55.259Z [info]: Auth middleware: Token version:
+2025-09-03T12:27:55.262Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:27:55.263Z [info]: Role middleware: Checking roles:
+2025-09-03T12:27:55.263Z [info]: Role middleware: User role:
+2025-09-03T12:27:55.264Z [info]: Role middleware: Role not allowed
+2025-09-03T12:28:06.164Z [info]: Auth middleware: Token present:
+2025-09-03T12:28:06.172Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:28:06.174Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:28:06.202Z [info]: Auth middleware: Account found:
+2025-09-03T12:28:06.204Z [info]: Auth middleware: Token version:
+2025-09-03T12:28:06.205Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:28:06.207Z [info]: Role middleware: Checking roles:
+2025-09-03T12:28:06.207Z [info]: Role middleware: User role:
+2025-09-03T12:28:06.208Z [info]: Role middleware: Role check passed
+2025-09-03T12:28:06.413Z [info]: Auth middleware: Token present:
+2025-09-03T12:28:06.416Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:28:06.417Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:28:06.556Z [info]: Auth middleware: Account found:
+2025-09-03T12:28:06.557Z [info]: Auth middleware: Token version:
+2025-09-03T12:28:06.558Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:28:06.559Z [info]: Role middleware: Checking roles:
+2025-09-03T12:28:06.560Z [info]: Role middleware: User role:
+2025-09-03T12:28:06.560Z [info]: Role middleware: Role check passed
+2025-09-03T12:43:39.256Z [info]: MongoDB connected: localhost
+2025-09-03T12:43:46.134Z [info]: User logged out successfully
+2025-09-03T12:46:08.294Z [info]: Starting registration validation for email: usernew003@gmail.com, username: usernew003
+2025-09-03T12:46:08.308Z [info]: Validating registration data for: usernew003@gmail.com, username: usernew003
+2025-09-03T12:46:08.367Z [info]: Registration validation successful for:
+2025-09-03T12:46:08.374Z [info]: Generated OTP: 935582 for email: usernew003@gmail.com, role: user
+2025-09-03T12:46:08.461Z [info]: OTP deleted for: usernew003@gmail.com
+2025-09-03T12:46:08.687Z [info]: OTP saved for email: usernew003@gmail.com
+2025-09-03T12:46:08.691Z [info]: === DEVELOPMENT EMAIL ===
+2025-09-03T12:46:08.693Z [info]: To: usernew003@gmail.com
+2025-09-03T12:46:08.694Z [info]: Subject: Email Verification OTP
+2025-09-03T12:46:08.694Z [info]: OTP: 935582
+2025-09-03T12:46:08.694Z [info]: === END EMAIL ===
+2025-09-03T12:46:09.696Z [info]: OTP sent successfully to: usernew003@gmail.com
+2025-09-03T12:49:16.854Z [info]: Verifying OTP for email: usernew003@gmail.com, username: usernew003
+2025-09-03T12:49:17.216Z [info]: Finding OTP for email: usernew003@gmail.com, found: yes
+2025-09-03T12:49:17.227Z [error]: Error verifying OTP: Invalid verification code
+2025-09-03T12:49:17.229Z [error]: Error verifying OTP: Invalid verification code
+2025-09-03T12:49:28.761Z [info]: Verifying OTP for email: usernew003@gmail.com, username: usernew003
+2025-09-03T12:49:28.783Z [info]: Finding OTP for email: usernew003@gmail.com, found: yes
+2025-09-03T12:49:28.857Z [info]: OTP deleted for: 68b83890ea48b41143f18cbf
+2025-09-03T12:49:28.857Z [info]: OTP verified successfully for: usernew003@gmail.com
+2025-09-03T12:49:28.867Z [info]: Creating user account after OTP verification: usernew003@gmail.com, username: usernew003
+2025-09-03T12:49:29.899Z [info]: User created successfully: 68b83959ea48b41143f18cc7
+2025-09-03T12:49:42.685Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:42.726Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:42.775Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:42.863Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:42.872Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:42.873Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:42.886Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:42.886Z [info]: Role middleware: User role:
+2025-09-03T12:49:42.887Z [info]: Role middleware: Role check passed
+2025-09-03T12:49:42.992Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:43.005Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:43.009Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:43.021Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:43.023Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:43.023Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:43.024Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:43.033Z [info]: Role middleware: User role:
+2025-09-03T12:49:43.038Z [info]: Role middleware: Role check passed
+2025-09-03T12:49:48.966Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:48.969Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:48.969Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:48.974Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:48.977Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:48.977Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:48.986Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:48.987Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:48.987Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:48.987Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:48.988Z [info]: Role middleware: User role:
+2025-09-03T12:49:48.990Z [info]: Role middleware: Role check passed
+2025-09-03T12:49:49.140Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:49.142Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:49.143Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:49.153Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:49.178Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:49.181Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:49.183Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:49.184Z [info]: Role middleware: User role:
+2025-09-03T12:49:49.184Z [info]: Role middleware: Role check passed
+2025-09-03T12:49:49.270Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:49.270Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:49.270Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:49.271Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:49.271Z [info]: Role middleware: User role:
+2025-09-03T12:49:49.271Z [info]: Role middleware: Role check passed
+2025-09-03T12:49:49.763Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:49.768Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:49.769Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:49.775Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:49.780Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:49.802Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:49.813Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:49.820Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:49.821Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:49.822Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:49.822Z [info]: Role middleware: User role:
+2025-09-03T12:49:49.823Z [info]: Role middleware: Role check passed
+2025-09-03T12:49:49.832Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:49.833Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:49.833Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:49.834Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:49.836Z [info]: Role middleware: User role:
+2025-09-03T12:49:49.846Z [info]: Role middleware: Role check passed
+2025-09-03T12:49:49.995Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:49.998Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:49.998Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:50.012Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:50.021Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:50.022Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:50.022Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:50.023Z [info]: Role middleware: User role:
+2025-09-03T12:49:50.023Z [info]: Role middleware: Role check passed
+2025-09-03T12:49:57.729Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:57.735Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:57.735Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:57.740Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:57.741Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:57.741Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:57.758Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:57.758Z [info]: Role middleware: User role:
+2025-09-03T12:49:57.759Z [info]: Role middleware: Role check passed
+2025-09-03T12:49:57.991Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:57.998Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:58.000Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:58.012Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:58.013Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:58.014Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:58.014Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:58.014Z [info]: Role middleware: User role:
+2025-09-03T12:49:58.014Z [info]: Role middleware: Role check passed
+2025-09-03T12:49:58.042Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:58.045Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:58.046Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:58.073Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:58.083Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:58.084Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:58.084Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:58.085Z [info]: Role middleware: User role:
+2025-09-03T12:49:58.085Z [info]: Role middleware: Role check passed
+2025-09-03T12:49:58.147Z [info]: Auth middleware: Token present:
+2025-09-03T12:49:58.150Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:49:58.150Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:49:58.155Z [info]: Auth middleware: Account found:
+2025-09-03T12:49:58.156Z [info]: Auth middleware: Token version:
+2025-09-03T12:49:58.156Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:49:58.157Z [info]: Role middleware: Checking roles:
+2025-09-03T12:49:58.157Z [info]: Role middleware: User role:
+2025-09-03T12:49:58.157Z [info]: Role middleware: Role check passed
+2025-09-03T12:53:32.100Z [info]: Auth middleware: Token present:
+2025-09-03T12:53:32.609Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:53:32.786Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:53:33.715Z [info]: Auth middleware: Account found:
+2025-09-03T12:53:33.758Z [info]: Auth middleware: Token version:
+2025-09-03T12:53:33.768Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:53:33.782Z [info]: Role middleware: Checking roles:
+2025-09-03T12:53:33.783Z [info]: Role middleware: User role:
+2025-09-03T12:53:33.797Z [info]: Role middleware: Role not allowed
+2025-09-03T12:53:33.963Z [info]: Auth middleware: Token present:
+2025-09-03T12:53:33.974Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T12:53:33.980Z [info]: Auth middleware: Looking up user account
+2025-09-03T12:53:34.197Z [info]: Auth middleware: Account found:
+2025-09-03T12:53:34.199Z [info]: Auth middleware: Token version:
+2025-09-03T12:53:34.201Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T12:53:34.205Z [info]: Role middleware: Checking roles:
+2025-09-03T12:53:34.206Z [info]: Role middleware: User role:
+2025-09-03T12:53:34.207Z [info]: Role middleware: Role not allowed
+2025-09-03T13:01:00.918Z [info]: MongoDB connected: localhost
+2025-09-03T13:02:06.983Z [info]: MongoDB connected: localhost
+2025-09-03T13:04:05.138Z [info]: User logged in successfully: superman@gmail.com
+2025-09-03T13:04:28.618Z [info]: Auth middleware: Token present:
+2025-09-03T13:04:28.655Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:04:28.692Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:04:28.790Z [info]: Auth middleware: Account found:
+2025-09-03T13:04:28.793Z [info]: Auth middleware: Token version:
+2025-09-03T13:04:28.794Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:04:28.797Z [info]: Role middleware: Checking roles:
+2025-09-03T13:04:28.799Z [info]: Role middleware: User role:
+2025-09-03T13:04:28.799Z [info]: Role middleware: Role check passed
+2025-09-03T13:04:28.852Z [info]: Auth middleware: Token present:
+2025-09-03T13:04:28.854Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:04:28.855Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:04:28.877Z [info]: Auth middleware: Account found:
+2025-09-03T13:04:28.877Z [info]: Auth middleware: Token version:
+2025-09-03T13:04:28.877Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:04:28.877Z [info]: Role middleware: Checking roles:
+2025-09-03T13:04:28.878Z [info]: Role middleware: User role:
+2025-09-03T13:04:28.878Z [info]: Role middleware: Role check passed
+2025-09-03T13:06:15.164Z [info]: Auth middleware: Token present:
+2025-09-03T13:06:15.236Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:06:15.256Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:06:15.361Z [info]: Auth middleware: Token present:
+2025-09-03T13:06:15.366Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:06:15.367Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:06:15.384Z [info]: Auth middleware: Token present:
+2025-09-03T13:06:15.388Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:06:15.478Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:06:15.660Z [info]: Auth middleware: Account found:
+2025-09-03T13:06:15.661Z [info]: Auth middleware: Token version:
+2025-09-03T13:06:15.662Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:06:15.663Z [info]: Role middleware: Checking roles:
+2025-09-03T13:06:15.664Z [info]: Role middleware: User role:
+2025-09-03T13:06:15.664Z [info]: Role middleware: Role check passed
+2025-09-03T13:06:15.742Z [info]: Auth middleware: Account found:
+2025-09-03T13:06:15.742Z [info]: Auth middleware: Token version:
+2025-09-03T13:06:15.742Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:06:15.743Z [info]: Role middleware: Checking roles:
+2025-09-03T13:06:15.743Z [info]: Role middleware: User role:
+2025-09-03T13:06:15.744Z [info]: Role middleware: Role check passed
+2025-09-03T13:06:15.808Z [info]: Auth middleware: Account found:
+2025-09-03T13:06:15.808Z [info]: Auth middleware: Token version:
+2025-09-03T13:06:15.808Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:06:15.808Z [info]: Role middleware: Checking roles:
+2025-09-03T13:06:15.809Z [info]: Role middleware: User role:
+2025-09-03T13:06:15.809Z [info]: Role middleware: Role check passed
+2025-09-03T13:06:15.952Z [info]: Auth middleware: Token present:
+2025-09-03T13:06:15.958Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:06:15.959Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:06:15.962Z [info]: Auth middleware: Token present:
+2025-09-03T13:06:15.964Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:06:15.964Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:06:15.967Z [info]: Auth middleware: Account found:
+2025-09-03T13:06:15.968Z [info]: Auth middleware: Token version:
+2025-09-03T13:06:15.968Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:06:15.968Z [info]: Role middleware: Checking roles:
+2025-09-03T13:06:15.968Z [info]: Role middleware: User role:
+2025-09-03T13:06:15.968Z [info]: Role middleware: Role check passed
+2025-09-03T13:06:15.973Z [info]: Auth middleware: Account found:
+2025-09-03T13:06:15.974Z [info]: Auth middleware: Token version:
+2025-09-03T13:06:15.974Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:06:15.974Z [info]: Role middleware: Checking roles:
+2025-09-03T13:06:15.975Z [info]: Role middleware: User role:
+2025-09-03T13:06:15.975Z [info]: Role middleware: Role check passed
+2025-09-03T13:06:16.096Z [info]: Auth middleware: Token present:
+2025-09-03T13:06:16.099Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:06:16.099Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:06:16.105Z [info]: Auth middleware: Account found:
+2025-09-03T13:06:16.105Z [info]: Auth middleware: Token version:
+2025-09-03T13:06:16.105Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:06:16.106Z [info]: Role middleware: Checking roles:
+2025-09-03T13:06:16.106Z [info]: Role middleware: User role:
+2025-09-03T13:06:16.106Z [info]: Role middleware: Role check passed
+2025-09-03T13:07:16.403Z [info]: Auth middleware: Token present:
+2025-09-03T13:07:16.510Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:07:16.531Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:07:16.752Z [info]: Auth middleware: Token present:
+2025-09-03T13:07:16.754Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:07:16.755Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:07:16.785Z [info]: Auth middleware: Account found:
+2025-09-03T13:07:16.786Z [info]: Auth middleware: Token version:
+2025-09-03T13:07:16.786Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:07:16.787Z [info]: Role middleware: Checking roles:
+2025-09-03T13:07:16.787Z [info]: Role middleware: User role:
+2025-09-03T13:07:16.787Z [info]: Role middleware: Role check passed
+2025-09-03T13:07:16.833Z [info]: Auth middleware: Account found:
+2025-09-03T13:07:16.834Z [info]: Auth middleware: Token version:
+2025-09-03T13:07:16.835Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:07:16.835Z [info]: Role middleware: Checking roles:
+2025-09-03T13:07:16.835Z [info]: Role middleware: User role:
+2025-09-03T13:07:16.835Z [info]: Role middleware: Role check passed
+2025-09-03T13:07:17.104Z [info]: Auth middleware: Token present:
+2025-09-03T13:07:17.106Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:07:17.107Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:07:17.113Z [info]: Auth middleware: Account found:
+2025-09-03T13:07:17.113Z [info]: Auth middleware: Token version:
+2025-09-03T13:07:17.114Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:07:17.115Z [info]: Role middleware: Checking roles:
+2025-09-03T13:07:17.115Z [info]: Role middleware: User role:
+2025-09-03T13:07:17.115Z [info]: Role middleware: Role check passed
+2025-09-03T13:07:17.141Z [info]: Auth middleware: Token present:
+2025-09-03T13:07:17.143Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:07:17.143Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:07:17.147Z [info]: Auth middleware: Account found:
+2025-09-03T13:07:17.147Z [info]: Auth middleware: Token version:
+2025-09-03T13:07:17.147Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:07:17.147Z [info]: Role middleware: Checking roles:
+2025-09-03T13:07:17.147Z [info]: Role middleware: User role:
+2025-09-03T13:07:17.148Z [info]: Role middleware: Role check passed
+2025-09-03T13:10:31.941Z [info]: User logged out successfully
+2025-09-03T13:30:25.944Z [info]: Starting registration validation for email: newuser076@gmail.com, username: newuser076
+2025-09-03T13:30:26.135Z [info]: Validating registration data for: newuser076@gmail.com, username: newuser076
+2025-09-03T13:30:26.180Z [info]: Registration validation successful for:
+2025-09-03T13:30:26.211Z [info]: Generated OTP: 652292 for email: newuser076@gmail.com, role: user
+2025-09-03T13:30:29.928Z [info]: OTP deleted for: newuser076@gmail.com
+2025-09-03T13:30:30.160Z [info]: OTP saved for email: newuser076@gmail.com
+2025-09-03T13:30:30.166Z [info]: === DEVELOPMENT EMAIL ===
+2025-09-03T13:30:30.167Z [info]: To: newuser076@gmail.com
+2025-09-03T13:30:30.167Z [info]: Subject: Email Verification OTP
+2025-09-03T13:30:30.167Z [info]: OTP: 652292
+2025-09-03T13:30:30.168Z [info]: === END EMAIL ===
+2025-09-03T13:30:31.169Z [info]: OTP sent successfully to: newuser076@gmail.com
+2025-09-03T13:34:22.295Z [info]: User logged in successfully: superman@gmail.com
+2025-09-03T13:39:30.552Z [info]: Auth middleware: Token present:
+2025-09-03T13:39:30.642Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:39:30.686Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:39:30.799Z [info]: Auth middleware: Account found:
+2025-09-03T13:39:30.800Z [info]: Auth middleware: Token version:
+2025-09-03T13:39:30.800Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:39:30.800Z [info]: Role middleware: Checking roles:
+2025-09-03T13:39:30.800Z [info]: Role middleware: User role:
+2025-09-03T13:39:30.801Z [info]: Role middleware: Role check passed
+2025-09-03T13:39:31.238Z [info]: Auth middleware: Token present:
+2025-09-03T13:39:31.240Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:39:31.241Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:39:31.245Z [info]: Auth middleware: Account found:
+2025-09-03T13:39:31.245Z [info]: Auth middleware: Token version:
+2025-09-03T13:39:31.253Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:39:31.254Z [info]: Role middleware: Checking roles:
+2025-09-03T13:39:31.254Z [info]: Role middleware: User role:
+2025-09-03T13:39:31.254Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:08.074Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:08.085Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:08.087Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:08.109Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:08.114Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:08.115Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:08.127Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:08.130Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:08.130Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:08.317Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:08.318Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:08.318Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:08.318Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:08.318Z [info]: Role middleware: User role:
+2025-09-03T13:40:08.318Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:08.374Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:08.374Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:08.374Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:08.375Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:08.375Z [info]: Role middleware: User role:
+2025-09-03T13:40:08.375Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:08.424Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:08.424Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:08.424Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:08.425Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:08.425Z [info]: Role middleware: User role:
+2025-09-03T13:40:08.425Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:08.543Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:08.545Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:08.545Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:08.548Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:08.549Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:08.550Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:08.564Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:08.564Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:08.564Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:08.565Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:08.565Z [info]: Role middleware: User role:
+2025-09-03T13:40:08.565Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:08.568Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:08.568Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:08.569Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:08.569Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:08.570Z [info]: Role middleware: User role:
+2025-09-03T13:40:08.570Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:08.636Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:08.637Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:08.640Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:08.644Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:08.644Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:08.645Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:08.645Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:08.646Z [info]: Role middleware: User role:
+2025-09-03T13:40:08.648Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:27.434Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:27.437Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:27.438Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:27.441Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:27.442Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:27.443Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:27.446Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:27.446Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:27.446Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:27.447Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:27.447Z [info]: Role middleware: User role:
+2025-09-03T13:40:27.449Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:27.468Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:27.468Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:27.468Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:27.468Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:27.468Z [info]: Role middleware: User role:
+2025-09-03T13:40:27.469Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:27.511Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:27.513Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:27.514Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:27.517Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:27.520Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:27.521Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:27.524Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:27.525Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:27.525Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:27.525Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:27.525Z [info]: Role middleware: User role:
+2025-09-03T13:40:27.526Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:27.539Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:27.540Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:27.540Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:27.541Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:27.541Z [info]: Role middleware: User role:
+2025-09-03T13:40:27.541Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:34.896Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:34.897Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:34.897Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:34.901Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:34.901Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:34.901Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:34.901Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:34.901Z [info]: Role middleware: User role:
+2025-09-03T13:40:34.902Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:35.149Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:35.152Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:35.152Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:37.090Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:37.090Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:37.090Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:37.091Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:37.091Z [info]: Role middleware: User role:
+2025-09-03T13:40:37.091Z [info]: Role middleware: Role check passed
+2025-09-03T13:40:59.875Z [info]: Auth middleware: Token present:
+2025-09-03T13:40:59.877Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:40:59.881Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:40:59.889Z [info]: Auth middleware: Account found:
+2025-09-03T13:40:59.890Z [info]: Auth middleware: Token version:
+2025-09-03T13:40:59.890Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:40:59.890Z [info]: Role middleware: Checking roles:
+2025-09-03T13:40:59.890Z [info]: Role middleware: User role:
+2025-09-03T13:40:59.892Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:05.062Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:05.065Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:05.066Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:05.070Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:05.072Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:05.073Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:05.082Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:05.084Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:05.084Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:05.089Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:05.089Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:05.089Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:05.090Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:05.090Z [info]: Role middleware: User role:
+2025-09-03T13:41:05.090Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:05.098Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:05.099Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:05.099Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:05.100Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:05.100Z [info]: Role middleware: User role:
+2025-09-03T13:41:05.100Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:05.264Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:05.265Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:05.265Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:05.266Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:05.266Z [info]: Role middleware: User role:
+2025-09-03T13:41:05.266Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:05.293Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:05.296Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:05.296Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:05.313Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:05.314Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:05.314Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:05.314Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:05.314Z [info]: Role middleware: User role:
+2025-09-03T13:41:05.314Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:05.320Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:05.322Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:05.322Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:05.329Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:05.329Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:05.330Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:05.330Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:05.330Z [info]: Role middleware: User role:
+2025-09-03T13:41:05.330Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:05.360Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:05.362Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:05.362Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:05.365Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:05.365Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:05.365Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:05.366Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:05.366Z [info]: Role middleware: User role:
+2025-09-03T13:41:05.366Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:20.626Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:20.628Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:20.629Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:20.638Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:20.639Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:20.639Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:20.640Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:20.640Z [info]: Role middleware: User role:
+2025-09-03T13:41:20.640Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:20.738Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:20.740Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:20.740Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:20.743Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:20.743Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:20.743Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:20.743Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:20.743Z [info]: Role middleware: User role:
+2025-09-03T13:41:20.744Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:20.765Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:20.767Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:20.767Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:20.769Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:20.770Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:20.770Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:20.770Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:20.770Z [info]: Role middleware: User role:
+2025-09-03T13:41:20.770Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:20.807Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:20.809Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:20.810Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:20.820Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:20.820Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:20.820Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:20.820Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:20.820Z [info]: Role middleware: User role:
+2025-09-03T13:41:20.820Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:32.136Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:32.137Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:32.138Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:32.148Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:32.148Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:32.149Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:32.149Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:32.149Z [info]: Role middleware: User role:
+2025-09-03T13:41:32.149Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:32.156Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:32.157Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:32.157Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:32.160Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:32.162Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:32.162Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:32.162Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:32.163Z [info]: Role middleware: User role:
+2025-09-03T13:41:32.163Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:33.745Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:33.746Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:33.747Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:33.752Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:33.760Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:33.761Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:33.766Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:33.769Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:33.769Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:33.772Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:33.772Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:33.772Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:33.772Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:33.773Z [info]: Role middleware: User role:
+2025-09-03T13:41:33.773Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:33.775Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:33.775Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:33.776Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:33.776Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:33.776Z [info]: Role middleware: User role:
+2025-09-03T13:41:33.776Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:33.790Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:33.791Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:33.791Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:33.791Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:33.791Z [info]: Role middleware: User role:
+2025-09-03T13:41:33.791Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:33.813Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:33.815Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:33.815Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:33.828Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:33.830Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:33.830Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:33.833Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:33.834Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:33.834Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:33.834Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:33.834Z [info]: Role middleware: User role:
+2025-09-03T13:41:33.834Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:33.837Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:33.837Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:33.838Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:33.838Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:33.838Z [info]: Role middleware: User role:
+2025-09-03T13:41:33.838Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:33.865Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:33.866Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:33.867Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:33.876Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:33.876Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:33.876Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:33.876Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:33.876Z [info]: Role middleware: User role:
+2025-09-03T13:41:33.876Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:38.929Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:38.930Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:38.931Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:38.935Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:38.936Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:38.936Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:38.940Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:38.940Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:38.941Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:38.941Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:38.941Z [info]: Role middleware: User role:
+2025-09-03T13:41:38.941Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:38.943Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:38.943Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:38.943Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:38.943Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:38.943Z [info]: Role middleware: User role:
+2025-09-03T13:41:38.944Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:38.973Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:38.975Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:38.975Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:38.995Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:38.996Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:38.996Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:38.997Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:38.997Z [info]: Role middleware: User role:
+2025-09-03T13:41:38.998Z [info]: Role middleware: Role check passed
+2025-09-03T13:41:39.003Z [info]: Auth middleware: Token present:
+2025-09-03T13:41:39.005Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:41:39.005Z [info]: Auth middleware: Looking up user account
+2025-09-03T13:41:39.011Z [info]: Auth middleware: Account found:
+2025-09-03T13:41:39.012Z [info]: Auth middleware: Token version:
+2025-09-03T13:41:39.013Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:41:39.013Z [info]: Role middleware: Checking roles:
+2025-09-03T13:41:39.013Z [info]: Role middleware: User role:
+2025-09-03T13:41:39.013Z [info]: Role middleware: Role check passed
+2025-09-03T13:42:01.430Z [info]: User logged out successfully
+2025-09-03T13:45:46.757Z [info]: Starting registration validation for email: shamveelp022@gmail.com, username: shamveel22
+2025-09-03T13:45:46.902Z [info]: Validating registration data for: shamveelp022@gmail.com, username: shamveel22
+2025-09-03T13:45:54.325Z [info]: Valid referral code provided: Q56YB032 from user: 68b6697f27e447e3fdf256e4
+2025-09-03T13:45:54.328Z [info]: Registration validation successful for:
+2025-09-03T13:45:54.332Z [info]: Generated OTP: 101623 for email: shamveelp022@gmail.com, role: user
+2025-09-03T13:45:54.379Z [info]: OTP deleted for: shamveelp022@gmail.com
+2025-09-03T13:45:54.436Z [info]: OTP saved for email: shamveelp022@gmail.com
+2025-09-03T13:45:54.440Z [info]: === DEVELOPMENT EMAIL ===
+2025-09-03T13:45:54.441Z [info]: To: shamveelp022@gmail.com
+2025-09-03T13:45:54.442Z [info]: Subject: Email Verification OTP
+2025-09-03T13:45:54.442Z [info]: OTP: 101623
+2025-09-03T13:45:54.442Z [info]: === END EMAIL ===
+2025-09-03T13:45:55.443Z [info]: OTP sent successfully to: shamveelp022@gmail.com
+2025-09-03T13:48:21.071Z [info]: Auth middleware: Token present:
+2025-09-03T13:48:21.090Z [info]: Auth middleware: No token provided
+2025-09-03T13:48:21.135Z [info]: Auth middleware: Token present:
+2025-09-03T13:48:21.135Z [info]: Auth middleware: No token provided
+2025-09-03T13:52:17.474Z [info]: Admin logged in successfully: admin@gmail.com
+2025-09-03T13:52:24.553Z [info]: Auth middleware: Token present:
+2025-09-03T13:52:24.562Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:52:24.583Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:52:24.602Z [info]: Auth middleware: Account found:
+2025-09-03T13:52:24.603Z [info]: Auth middleware: Token version:
+2025-09-03T13:52:24.604Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:52:24.605Z [info]: Role middleware: Checking roles:
+2025-09-03T13:52:24.605Z [info]: Role middleware: User role:
+2025-09-03T13:52:24.606Z [info]: Role middleware: Role check passed
+2025-09-03T13:52:24.828Z [info]: Auth middleware: Token present:
+2025-09-03T13:52:24.829Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:52:24.830Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:52:24.832Z [info]: Auth middleware: Account found:
+2025-09-03T13:52:24.833Z [info]: Auth middleware: Token version:
+2025-09-03T13:52:24.833Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:52:24.833Z [info]: Role middleware: Checking roles:
+2025-09-03T13:52:24.833Z [info]: Role middleware: User role:
+2025-09-03T13:52:24.833Z [info]: Role middleware: Role check passed
+2025-09-03T13:52:42.714Z [info]: Auth middleware: Token present:
+2025-09-03T13:52:42.715Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:52:42.715Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:52:42.737Z [info]: Auth middleware: Account found:
+2025-09-03T13:52:42.737Z [info]: Auth middleware: Token version:
+2025-09-03T13:52:42.737Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:52:42.737Z [info]: Role middleware: Checking roles:
+2025-09-03T13:52:42.737Z [info]: Role middleware: User role:
+2025-09-03T13:52:42.737Z [info]: Role middleware: Role check passed
+2025-09-03T13:52:43.273Z [info]: Auth middleware: Token present:
+2025-09-03T13:52:43.275Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:52:43.275Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:52:43.278Z [info]: Auth middleware: Account found:
+2025-09-03T13:52:43.278Z [info]: Auth middleware: Token version:
+2025-09-03T13:52:43.278Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:52:43.278Z [info]: Role middleware: Checking roles:
+2025-09-03T13:52:43.278Z [info]: Role middleware: User role:
+2025-09-03T13:52:43.318Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:04.503Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:04.579Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:04.593Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:04.661Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:04.664Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:04.665Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:06.780Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:06.781Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:06.782Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:06.783Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:06.783Z [info]: Role middleware: User role:
+2025-09-03T13:56:06.783Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:06.806Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:06.808Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:06.808Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:06.815Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:06.816Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:06.816Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:06.823Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:06.823Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:06.823Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:06.823Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:06.823Z [info]: Role middleware: User role:
+2025-09-03T13:56:06.824Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:06.877Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:06.878Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:06.878Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:06.878Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:06.878Z [info]: Role middleware: User role:
+2025-09-03T13:56:06.878Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:06.911Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:06.911Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:06.911Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:06.912Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:06.912Z [info]: Role middleware: User role:
+2025-09-03T13:56:06.913Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:06.930Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:06.931Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:06.931Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.005Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.006Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.006Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.006Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.006Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.006Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:07.012Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:07.013Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:07.013Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.032Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.032Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.032Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.033Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.033Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.033Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:07.040Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:07.042Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:07.043Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.052Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:07.053Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:07.053Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.055Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:07.056Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:07.056Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.059Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.059Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.059Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.059Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.059Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.060Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:07.061Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.062Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.064Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.064Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.064Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.067Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:07.070Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.070Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.070Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.070Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.070Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.071Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:07.082Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:07.091Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:07.092Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.099Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.099Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.099Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.099Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.099Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.099Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:07.102Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:07.102Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:07.103Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.104Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:07.105Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:07.105Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.111Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:07.112Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:07.114Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.117Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.117Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.117Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.117Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.118Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.118Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:07.120Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.120Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.120Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.120Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.121Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.121Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:07.129Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.129Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.129Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.129Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.129Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.129Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:07.138Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:07.139Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:07.139Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.142Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:07.143Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:07.144Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.147Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.148Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.148Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.148Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.148Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.148Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:07.150Z [info]: Auth middleware: Token present:
+2025-09-03T13:56:07.151Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:56:07.151Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:56:07.153Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.156Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.156Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.156Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.156Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.156Z [info]: Role middleware: Role check passed
+2025-09-03T13:56:07.159Z [info]: Auth middleware: Account found:
+2025-09-03T13:56:07.159Z [info]: Auth middleware: Token version:
+2025-09-03T13:56:07.160Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:56:07.160Z [info]: Role middleware: Checking roles:
+2025-09-03T13:56:07.160Z [info]: Role middleware: User role:
+2025-09-03T13:56:07.160Z [info]: Role middleware: Role check passed
+2025-09-03T13:58:37.585Z [info]: Auth middleware: Token present:
+2025-09-03T13:58:37.694Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:58:37.715Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:58:46.422Z [info]: Auth middleware: Account found:
+2025-09-03T13:58:46.423Z [info]: Auth middleware: Token version:
+2025-09-03T13:58:46.425Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:58:46.428Z [info]: Role middleware: Checking roles:
+2025-09-03T13:58:46.429Z [info]: Role middleware: User role:
+2025-09-03T13:58:46.429Z [info]: Role middleware: Role check passed
+2025-09-03T13:58:52.520Z [info]: Auth middleware: Token present:
+2025-09-03T13:58:52.523Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:58:52.524Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:58:52.620Z [info]: Auth middleware: Account found:
+2025-09-03T13:58:52.621Z [info]: Auth middleware: Token version:
+2025-09-03T13:58:52.622Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:58:52.622Z [info]: Role middleware: Checking roles:
+2025-09-03T13:58:52.622Z [info]: Role middleware: User role:
+2025-09-03T13:58:52.623Z [info]: Role middleware: Role check passed
+2025-09-03T13:59:32.953Z [info]: Auth middleware: Token present:
+2025-09-03T13:59:32.958Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:59:32.960Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:59:32.972Z [info]: Auth middleware: Account found:
+2025-09-03T13:59:32.972Z [info]: Auth middleware: Token version:
+2025-09-03T13:59:32.973Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:59:32.973Z [info]: Role middleware: Checking roles:
+2025-09-03T13:59:32.974Z [info]: Role middleware: User role:
+2025-09-03T13:59:32.974Z [info]: Role middleware: Role check passed
+2025-09-03T13:59:33.458Z [info]: Community created from request: 68b7507fecb662cb5f93298e
+2025-09-03T13:59:33.467Z [info]: === COMMUNITY APPROVAL EMAIL ===
+2025-09-03T13:59:33.467Z [info]: To: pascal@gmail.com
+2025-09-03T13:59:33.467Z [info]: Community: pasalll
+2025-09-03T13:59:33.468Z [info]: === END EMAIL ===
+2025-09-03T13:59:33.470Z [info]: Community request approved: 68b7507fecb662cb5f93298e
+2025-09-03T13:59:33.486Z [info]: Auth middleware: Token present:
+2025-09-03T13:59:33.488Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-03T13:59:33.488Z [info]: Auth middleware: Looking up admin account
+2025-09-03T13:59:33.493Z [info]: Auth middleware: Account found:
+2025-09-03T13:59:33.494Z [info]: Auth middleware: Token version:
+2025-09-03T13:59:33.494Z [info]: Auth middleware: Authentication successful for user:
+2025-09-03T13:59:33.494Z [info]: Role middleware: Checking roles:
+2025-09-03T13:59:33.495Z [info]: Role middleware: User role:
+2025-09-03T13:59:33.495Z [info]: Role middleware: Role check passed
+2025-09-03T20:52:40.572Z [info]: MongoDB connected: localhost
+2025-09-03T21:36:50.460Z [info]: MongoDB connected: localhost
+2025-09-03T21:46:17.920Z [info]: MongoDB connected: localhost
+2025-09-04T16:47:02.336Z [info]: MongoDB connected: localhost
+2025-09-05T05:37:30.823Z [info]: MongoDB connected: localhost
+2025-09-07T05:53:30.831Z [info]: MongoDB connected: localhost
+2025-09-07T05:54:54.669Z [info]: Google login successful for: clownsart385@gmail.com
+2025-09-07T05:57:35.773Z [info]: Auth middleware: Token present:
+2025-09-07T05:57:35.776Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-07T05:57:35.777Z [info]: Auth middleware: Looking up user account
+2025-09-07T05:57:35.790Z [info]: Auth middleware: Account found:
+2025-09-07T05:57:35.791Z [info]: Auth middleware: Token version:
+2025-09-07T05:57:35.791Z [info]: Auth middleware: Authentication successful for user:
+2025-09-07T05:57:35.792Z [info]: Role middleware: Checking roles:
+2025-09-07T05:57:35.793Z [info]: Role middleware: User role:
+2025-09-07T05:57:35.794Z [info]: Role middleware: Role check passed
+2025-09-07T05:57:35.816Z [info]: Auth middleware: Token present:
+2025-09-07T05:57:35.818Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-07T05:57:35.819Z [info]: Auth middleware: Looking up user account
+2025-09-07T05:57:35.824Z [info]: Auth middleware: Account found:
+2025-09-07T05:57:35.825Z [info]: Auth middleware: Token version:
+2025-09-07T05:57:35.825Z [info]: Auth middleware: Authentication successful for user:
+2025-09-07T05:57:35.825Z [info]: Role middleware: Checking roles:
+2025-09-07T05:57:35.826Z [info]: Role middleware: User role:
+2025-09-07T05:57:35.826Z [info]: Role middleware: Role check passed
+2025-09-07T05:57:44.720Z [info]: Auth middleware: Token present:
+2025-09-07T05:57:44.722Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-07T05:57:44.722Z [info]: Auth middleware: Looking up user account
+2025-09-07T05:57:44.724Z [info]: Auth middleware: Token present:
+2025-09-07T05:57:44.725Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-07T05:57:44.725Z [info]: Auth middleware: Looking up user account
+2025-09-07T05:57:44.727Z [info]: Auth middleware: Token present:
+2025-09-07T05:57:44.729Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-07T05:57:44.729Z [info]: Auth middleware: Looking up user account
+2025-09-07T05:57:44.731Z [info]: Auth middleware: Account found:
+2025-09-07T05:57:44.731Z [info]: Auth middleware: Token version:
+2025-09-07T05:57:44.732Z [info]: Auth middleware: Authentication successful for user:
+2025-09-07T05:57:44.732Z [info]: Role middleware: Checking roles:
+2025-09-07T05:57:44.732Z [info]: Role middleware: User role:
+2025-09-07T05:57:44.732Z [info]: Role middleware: Role check passed
+2025-09-07T05:57:44.738Z [info]: Auth middleware: Account found:
+2025-09-07T05:57:44.738Z [info]: Auth middleware: Token version:
+2025-09-07T05:57:44.738Z [info]: Auth middleware: Authentication successful for user:
+2025-09-07T05:57:44.738Z [info]: Role middleware: Checking roles:
+2025-09-07T05:57:44.738Z [info]: Role middleware: User role:
+2025-09-07T05:57:44.739Z [info]: Role middleware: Role check passed
+2025-09-07T05:57:44.743Z [info]: Auth middleware: Account found:
+2025-09-07T05:57:44.743Z [info]: Auth middleware: Token version:
+2025-09-07T05:57:44.744Z [info]: Auth middleware: Authentication successful for user:
+2025-09-07T05:57:44.744Z [info]: Role middleware: Checking roles:
+2025-09-07T05:57:44.744Z [info]: Role middleware: User role:
+2025-09-07T05:57:44.744Z [info]: Role middleware: Role check passed
+2025-09-07T05:57:44.815Z [info]: Auth middleware: Token present:
+2025-09-07T05:57:44.816Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-07T05:57:44.816Z [info]: Auth middleware: Looking up user account
+2025-09-07T05:57:44.818Z [info]: Auth middleware: Token present:
+2025-09-07T05:57:44.820Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-07T05:57:44.821Z [info]: Auth middleware: Looking up user account
+2025-09-07T05:57:44.831Z [info]: Auth middleware: Account found:
+2025-09-07T05:57:44.831Z [info]: Auth middleware: Token version:
+2025-09-07T05:57:44.831Z [info]: Auth middleware: Authentication successful for user:
+2025-09-07T05:57:44.831Z [info]: Role middleware: Checking roles:
+2025-09-07T05:57:44.832Z [info]: Role middleware: User role:
+2025-09-07T05:57:44.832Z [info]: Role middleware: Role check passed
+2025-09-07T05:57:44.835Z [info]: Auth middleware: Account found:
+2025-09-07T05:57:44.836Z [info]: Auth middleware: Token version:
+2025-09-07T05:57:44.836Z [info]: Auth middleware: Authentication successful for user:
+2025-09-07T05:57:44.836Z [info]: Role middleware: Checking roles:
+2025-09-07T05:57:44.836Z [info]: Role middleware: User role:
+2025-09-07T05:57:44.836Z [info]: Role middleware: Role check passed
+2025-09-07T05:57:44.892Z [info]: Auth middleware: Token present:
+2025-09-07T05:57:44.894Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-07T05:57:44.894Z [info]: Auth middleware: Looking up user account
+2025-09-07T05:57:44.896Z [info]: Auth middleware: Account found:
+2025-09-07T05:57:44.897Z [info]: Auth middleware: Token version:
+2025-09-07T05:57:44.897Z [info]: Auth middleware: Authentication successful for user:
+2025-09-07T05:57:44.897Z [info]: Role middleware: Checking roles:
+2025-09-07T05:57:44.897Z [info]: Role middleware: User role:
+2025-09-07T05:57:44.898Z [info]: Role middleware: Role check passed
+2025-09-08T13:16:45.479Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017

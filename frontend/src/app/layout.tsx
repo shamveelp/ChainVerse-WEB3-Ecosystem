@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import ClientLayout from "./clientLayout"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ThirdwebProvider } from "thirdweb/react";
+import { Providers } from "./providers";
 
 
 export const metadata: Metadata = {
@@ -25,8 +26,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ThirdwebProvider>
+            <Providers>
 
             {children}
+            </Providers>
+
           </ThirdwebProvider>
         </ThemeProvider>
 

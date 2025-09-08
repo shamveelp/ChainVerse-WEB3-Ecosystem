@@ -1,42 +1,77 @@
-import axios, { AxiosInstance } from 'axios';
-
-interface WalletData {
+interface WalletConnectionData {
   address: string;
-  lastConnected: Date;
 }
 
 class WalletApiService {
-  private api: AxiosInstance;
+  private baseUrl = '/api/wallet';
 
-  constructor() {
-    this.api = axios.create({
-      baseURL: 'http://localhost:5000/api',
-      timeout: 5000,
+  async connectWallet(address: string) {
+    const response = await fetch(`${this.baseUrl}/connect`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ address }),
     });
+    
+    if (!response.ok) {
+      throw new Error('Failed to connect wallet');
+    }
+    
+    return response.json();
   }
 
-  async saveWalletConnection(walletAddress: string): Promise<WalletData> {
-    try {
-      const response = await this.api.post<WalletData>('/wallets', {
-        address: walletAddress,
-        lastConnected: new Date(),
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error saving wallet connection:', error);
-      throw error;
+  async disconnectWallet(address: string) {
+    const response = await fetch(`${this.baseUrl}/disconnect`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ address }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to disconnect wallet');
     }
+    
+    return response.json();
   }
 
-  async getWallet(walletAddress: string): Promise<WalletData> {
-    try {
-      const response = await this.api.get<WalletData>(`/wallets/${walletAddress}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching wallet:', error);
-      throw error;
+  async getWalletInfo(address: string) {
+    const response = await fetch(`${this.baseUrl}/${address}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to get wallet info');
     }
+    
+    return response.json();
+  }
+
+  async getWalletTransactions(address: string, page: number = 1, limit: number = 20) {
+    const response = await fetch(`${this.baseUrl}/${address}/transactions?page=${page}&limit=${limit}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to get wallet transactions');
+    }
+    
+    return response.json();
+  }
+
+  async updateWalletConnection(address: string) {
+    const response = await fetch(`${this.baseUrl}/update-connection`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ address }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update wallet connection');
+    }
+    
+    return response.json();
   }
 }
 
-export default new WalletApiService();
+export const walletApiService = new WalletApiService();

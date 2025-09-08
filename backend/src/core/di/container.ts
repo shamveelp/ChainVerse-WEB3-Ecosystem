@@ -4,13 +4,13 @@ import { OAuthClient } from "../../utils/OAuthClient"
 
 // Controllers
 import type { IUserAuthController } from "../interfaces/controllers/user/IUserAuth.controllers"
-import { UserAuthController } from "../../controllers/user/UserAuth.controller"
+import { UserAuthController } from "../../controllers/user/userAuth.controller"
 import type { IReferralController } from "../interfaces/controllers/user/IReferral.controller"
-import { ReferralController } from "../../controllers/user/Referral.controller"
+import { ReferralController } from "../../controllers/user/referral.controller"
 import type { IPointsController } from "../interfaces/controllers/user/IPoints.controller"
-import { PointsController } from "../../controllers/user/Points.controller"
+import { PointsController } from "../../controllers/user/points.controller"
 import { IUserProfileController } from "../interfaces/controllers/user/IUserProfile.controller"
-import { UserProfileController } from "../../controllers/user/UserProfile.controller"
+import { UserProfileController } from "../../controllers/user/userProfile.controller"
 
 // Admin Controllers
 import { IAdminAuthController } from "../interfaces/controllers/admin/IAuthAdmin.controllers"
@@ -77,6 +77,24 @@ import { IPointsHistoryService } from "../interfaces/services/IPointsHistoryServ
 import { PointsHistoryService } from "../../services/pointsHistory.service"
 import { IDailyCheckInService } from "../interfaces/services/IDailyCheckInService"
 import { DailyCheckInService } from "../../services/DailyCheckInService"
+import { IAdminDexController } from "../interfaces/controllers/admin/IAdminDexController"
+import { AdminDexController } from "../../controllers/admin/adminDex.controller"
+import { IAdminWalletController } from "../interfaces/controllers/admin/IAdminWalletController"
+import { AdminWalletController } from "../../controllers/admin/adminWallet.controller"
+import { DexController } from "../../controllers/dex/dex.controller"
+import { IDexController } from "../interfaces/controllers/dex/IDexController"
+import { WalletController } from "../../controllers/dex/wallet.controller"
+import { IWalletController } from "../interfaces/controllers/dex/IWalletController"
+import { DexService } from "../../services/dex/dex.service"
+import { IDexService } from "../interfaces/services/dex/IDexService"
+import { IWalletService } from "../interfaces/services/dex/IWalletService"
+import { WalletService } from "../../services/dex/wallet.service"
+import { IAdminDexService } from "../interfaces/services/admin/IAdminDexService"
+import { AdminDexService } from "../../services/admin/adminDex.service"
+import { IAdminWalletService } from "../interfaces/services/admin/IAdminWalletService"
+import { AdminWalletService } from "../../services/admin/adminWallet.service"
+import { IDexRepository } from "../interfaces/repositories/IDexRepository"
+import { DexRepository } from "../../repositories/dex.repository"
 
 // Create Container
 const container = new Container()
@@ -133,6 +151,21 @@ container.bind<IDailyCheckInService>(TYPES.IDailyCheckInService).to(DailyCheckIn
 
 // Repositories
 
+
+// dex
+container.bind<IAdminDexController>(TYPES.IAdminDexController).to(AdminDexController)
+container.bind<IAdminWalletController>(TYPES.IAdminWalletController).to(AdminWalletController)
+container.bind<IDexController>(TYPES.IDexController).to(DexController)
+container.bind<IWalletController>(TYPES.IWalletController).to(WalletController)
+
+// dex - servie
+container.bind<IDexService>(TYPES.IDexService).to(DexService)
+container.bind<IWalletService>(TYPES.IWalletService).to(WalletService)
+container.bind<IAdminDexService>(TYPES.IAdminDexService).to(AdminDexService)
+container.bind<IAdminWalletService>(TYPES.IAdminWalletService).to(AdminWalletService)
+
+// dex repo
+container.bind<IDexRepository>(TYPES.IDexRepository).to(DexRepository)
 
 
 

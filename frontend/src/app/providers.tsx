@@ -1,15 +1,28 @@
-// "use client"
+'use client';
 
-// import { GoogleOAuthProvider } from "@react-oauth/google"
-// import { useEffect, type ReactNode } from "react"
-// import { useAuthStore } from "@/stores/user-auth-store"
+import '@rainbow-me/rainbowkit/styles.css';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { WagmiProvider } from 'wagmi';
+import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
+import { config } from '@/lib/web3-config';
 
-// export function Providers({ children }: { children: ReactNode }) {
-//   const initializeAuth = useAuthStore((state) => state.initializeAuth)
+const queryClient = new QueryClient();
 
-//   useEffect(() => {
-//     initializeAuth()
-//   }, [initializeAuth])
-
-//   return <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>{children}</GoogleOAuthProvider>
-// }
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider 
+          theme={darkTheme({
+            accentColor: '#8B5CF6',
+            accentColorForeground: 'white',
+            borderRadius: 'medium',
+            fontStack: 'system',
+          })}
+        >
+          {children}
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+}

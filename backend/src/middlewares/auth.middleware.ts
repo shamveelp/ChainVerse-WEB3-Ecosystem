@@ -24,9 +24,6 @@ export const isAuthenticatedRequest = (req: Request): req is AuthenticatedReques
 
 export const authMiddleware: RequestHandler = async (req, res, next) => {
   try {
-    // logger.info("Auth middleware: Starting authentication check");
-    
-    // Get token from cookies or Authorization header
     const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
     logger.info("Auth middleware: Token present:", token ? "Yes" : "No");
 
@@ -38,7 +35,6 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
       });
     }
 
-    // Verify and decode token
     let decoded;
     try {
       decoded = JwtService.verifyToken(token) as {
@@ -55,12 +51,10 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
       });
     }
 
-    // Get repositories
     const userRepo = container.get<IUserRepository>(TYPES.IUserRepository);
     const adminRepo = container.get<IAdminRepository>(TYPES.IAdminRepository);
     const communityAdminRepo = container.get<ICommunityAdminRepository>(TYPES.ICommunityAdminRepository);
 
-    // Find account based on role
     let account: any;
     try {
       switch (decoded.role) {

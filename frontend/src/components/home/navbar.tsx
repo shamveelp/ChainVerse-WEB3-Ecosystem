@@ -86,7 +86,7 @@ export default function Navbar() {
                   Community
                 </Link>
                 <Link
-                  href="/nfts"
+                  href="/trade/nfts-marketplace"
                   className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
                 >
                   NFTs

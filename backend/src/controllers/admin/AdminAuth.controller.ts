@@ -33,14 +33,12 @@ export class AdminAuthController implements IAdminAuthController {
 
     const result = await this._adminAuthService.login(email, password);
     
-    // Set cookies
     this._jwtService.setTokens(res, result.accessToken, result.refreshToken);
     
-    // Return response with DTO
     const response = new AdminLoginResponseDto(result.admin, SuccessMessages.ADMIN_LOGGED_IN);
     res.status(StatusCode.OK).json({
       ...response,
-      accessToken: result.accessToken, // Include token in response
+      accessToken: result.accessToken,
     });
     
     logger.info(`Admin logged in successfully: ${email}`);

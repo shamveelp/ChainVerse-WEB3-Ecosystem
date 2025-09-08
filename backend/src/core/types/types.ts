@@ -9,6 +9,11 @@ const TYPES = {
   IAdminCommunityController: Symbol.for("IAdminCommunityController"),
   ICommunityAdminAuthController: Symbol.for("ICommunityAdminAuthController"),
 
+  IAdminDexController: Symbol.for("IAdminDexController"),
+  IAdminWalletController: Symbol.for("IAdminWalletController"),
+  IDexController: Symbol.for("IDexController"),
+  IWalletController: Symbol.for("IWalletController"),
+
   // Services
   IUserAuthService: Symbol.for("IUserAuthService"),
   IUserService: Symbol.for("IUserService"),
@@ -21,6 +26,12 @@ const TYPES = {
   IJwtService: Symbol.for("IJwtService"),
   IOtpService: Symbol.for("IOtpService"),
   IMailService: Symbol.for("IMailService"),
+  IWalletService: Symbol.for("IWalletService"),
+  ICommunityRequestService: Symbol.for("ICommunityRequestService"),
+  IDexService: Symbol.for("IDexService"),
+  IAdminDexService: Symbol.for("IAdminDexService"),
+  IAdminWalletService: Symbol.for("IAdminWalletService"),
+
 
   // Repositories
   IUserRepository: Symbol.for("IUserRepository"),
@@ -31,6 +42,7 @@ const TYPES = {
   IAdminRepository: Symbol.for("IAdminRepository"),
   ICommunityAdminRepository: Symbol.for("ICommunityAdminRepository"),
   ICommunityRequestRepository: Symbol.for("ICommunityRequestRepository"),
+  IDexRepository: Symbol.for("IDexRepository"),
 
   // Others
   OAuthClient: Symbol.for("OAuthClient"),
