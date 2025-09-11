@@ -1,11 +1,12 @@
 'use client';
 
-import { useAccount, useConfig, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { waitForTransactionReceipt } from '@wagmi/core';
+import { useAccount, useConfig, useReadContract, useWriteContract, useChainId } from 'wagmi';
+import { waitForTransactionReceipt, readContract } from '@wagmi/core';
 import { parseEther, formatEther } from 'viem';
-import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI, NFT_CONTRACT_ADDRESS, NFT_ABI } from '@/lib/web3-config';
+import { MARKETPLACE_ABI, NFT_ABI, getContractAddress } from '@/lib/web3-config';
 import { useState, useEffect, useMemo } from 'react';
 import { fetchMetadata, NFTMetadata } from '@/lib/ipfs';
+import { toast } from 'sonner';
 
 export interface NFTItem {
   itemId: bigint;
@@ -18,20 +19,43 @@ export interface NFTItem {
   metadata?: NFTMetadata;
 }
 
+export interface MarketStats {
+  totalItems: number;
+  soldItems: number;
+  activeItems: number;
+}
+
 export function useMarketplace() {
   const { address } = useAccount();
+  const chainId = useChainId();
   const config = useConfig();
+
+  // Get network-specific contract addresses
+  const MARKETPLACE_ADDRESS = getContractAddress(chainId, 'marketplace') as `0x${string}`;
+  const NFT_CONTRACT_ADDRESS = getContractAddress(chainId, 'nft') as `0x${string}`;
 
   const [marketItems, setMarketItems] = useState<NFTItem[]>([]);
   const [myNFTs, setMyNFTs] = useState<NFTItem[]>([]);
   const [listedItems, setListedItems] = useState<NFTItem[]>([]);
+  const [marketStats, setMarketStats] = useState<MarketStats>({
+    totalItems: 0,
+    soldItems: 0,
+    activeItems: 0,
+  });
   const [loadingData, setLoadingData] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Reads
-  const { data: listingPrice } = useReadContract({
+  // Contract reads with automatic refetch
+  const { data: listingPrice, refetch: refetchListingPrice } = useReadContract({
     address: MARKETPLACE_ADDRESS,
     abi: MARKETPLACE_ABI,
     functionName: 'getListingPrice',
+  });
+
+  const { data: statsData, refetch: refetchStats } = useReadContract({
+    address: MARKETPLACE_ADDRESS,
+    abi: MARKETPLACE_ABI,
+    functionName: 'getMarketStats',
   });
 
   const marketItemsQuery = useReadContract({
@@ -44,7 +68,7 @@ export function useMarketplace() {
     address: MARKETPLACE_ADDRESS,
     abi: MARKETPLACE_ABI,
     functionName: 'fetchMyNFTs',
-    account: address,           // ensures msg.sender is set for view calls that use it
+    account: address,
     query: { enabled: !!address },
   });
 
@@ -52,34 +76,54 @@ export function useMarketplace() {
     address: MARKETPLACE_ADDRESS,
     abi: MARKETPLACE_ABI,
     functionName: 'fetchItemsListed',
-    account: address,           // ensures msg.sender is set
+    account: address,
     query: { enabled: !!address },
   });
 
-  // Writes
+  // Write contract hook
   const { writeContractAsync, isPending: isWriting } = useWriteContract();
 
-  // Optionally, track last tx hash and receipt via hook (if you want UI feedback)
-  // You can set a piece of state `lastTxHash` when writing, then pass here.
-  // const { data: receipt, isLoading: isWaiting } = useWaitForTransactionReceipt({ hash: lastTxHash });
+  // Update market stats
+  useEffect(() => {
+    if (statsData) {
+      const [totalItems, soldItems, activeItems] = statsData as [bigint, bigint, bigint];
+      setMarketStats({
+        totalItems: Number(totalItems),
+        soldItems: Number(soldItems),
+        activeItems: Number(activeItems),
+      });
+    }
+  }, [statsData]);
 
   // Fetch metadata for NFTs
   const loadNFTsWithMetadata = async (items: any[]): Promise<NFTItem[]> => {
     if (!items || items.length === 0) return [];
 
+    console.log('Loading NFTs with metadata:', items);
+
     const itemsWithMetadata = await Promise.all(
       items.map(async (item) => {
         try {
-          const tokenURIResult = await fetch(`/api/tokenURI?tokenId=${item.tokenId}&contract=${item.nftContract}`);
-          const tokenURI = await tokenURIResult.text();
+          // Get token URI from the NFT contract
+          const tokenURI = await readContract(config, {
+            address: item.nftContract as `0x${string}`,
+            abi: NFT_ABI,
+            functionName: 'tokenURI',
+            args: [item.tokenId],
+          }) as string;
+          
+          console.log(`Token URI for ${item.tokenId}:`, tokenURI);
+          
           const metadata = await fetchMetadata(tokenURI);
+          console.log(`Metadata for ${item.tokenId}:`, metadata);
+          
           return { ...item, metadata };
         } catch (error) {
-          console.error('Error fetching metadata:', error);
+          console.error('Error fetching metadata for token:', item.tokenId, error);
           return {
             ...item,
             metadata: {
-              name: 'Unknown NFT',
+              name: `NFT #${item.tokenId}`,
               description: 'Metadata unavailable',
               image: '/placeholder-nft.png',
             },
@@ -88,113 +132,192 @@ export function useMarketplace() {
       })
     );
 
+    console.log('Items with metadata:', itemsWithMetadata);
     return itemsWithMetadata;
   };
 
-  // Load/shape reads into UI state
+  // Load market data with metadata
   useEffect(() => {
     (async () => {
+      console.log('Market items query data:', marketItemsQuery.data);
       if (!marketItemsQuery.data) return;
+      
       setLoadingData(true);
       try {
         const items = await loadNFTsWithMetadata(marketItemsQuery.data as any[]);
+        console.log('Setting market items:', items);
         setMarketItems(items);
+      } catch (error) {
+        console.error('Error loading market items:', error);
+        toast.error('Failed to load marketplace items');
       } finally {
         setLoadingData(false);
       }
     })();
-  }, [marketItemsQuery.data]);
+  }, [marketItemsQuery.data, refreshTrigger]);
 
   useEffect(() => {
     (async () => {
+      console.log('My NFTs query data:', myNFTsQuery.data);
       if (!myNFTsQuery.data) return;
-      const items = await loadNFTsWithMetadata(myNFTsQuery.data as any[]);
-      setMyNFTs(items);
+      
+      try {
+        const items = await loadNFTsWithMetadata(myNFTsQuery.data as any[]);
+        console.log('Setting my NFTs:', items);
+        setMyNFTs(items);
+      } catch (error) {
+        console.error('Error loading my NFTs:', error);
+      }
     })();
-  }, [myNFTsQuery.data]);
+  }, [myNFTsQuery.data, refreshTrigger]);
 
   useEffect(() => {
     (async () => {
+      console.log('Listed items query data:', listedItemsQuery.data);
       if (!listedItemsQuery.data) return;
-      const items = await loadNFTsWithMetadata(listedItemsQuery.data as any[]);
-      setListedItems(items);
+      
+      try {
+        const items = await loadNFTsWithMetadata(listedItemsQuery.data as any[]);
+        console.log('Setting listed items:', items);
+        setListedItems(items);
+      } catch (error) {
+        console.error('Error loading listed items:', error);
+      }
     })();
-  }, [listedItemsQuery.data]);
+  }, [listedItemsQuery.data, refreshTrigger]);
 
   // Actions
   const listNFT = async (tokenId: bigint, price: string) => {
-    // 1) Approve marketplace to transfer NFT
-    const approveHash = await writeContractAsync({
-      address: NFT_CONTRACT_ADDRESS,
-      abi: NFT_ABI,
-      functionName: 'approve',
-      args: [MARKETPLACE_ADDRESS, tokenId],
-    });
+    try {
+      if (!address) throw new Error('Wallet not connected');
+      
+      toast.info('Approving NFT for marketplace...');
+      
+      // 1) Approve marketplace to transfer NFT
+      const approveHash = await writeContractAsync({
+        address: NFT_CONTRACT_ADDRESS,
+        abi: NFT_ABI,
+        functionName: 'approve',
+        args: [MARKETPLACE_ADDRESS, tokenId],
+      });
 
-    await waitForTransactionReceipt(config, { hash: approveHash });
+      await waitForTransactionReceipt(config, { hash: approveHash });
+      
+      toast.info('Creating market listing...');
 
-    // 2) Create market item (pay listing fee)
-    const listingFee = (listingPrice ?? 0n) as bigint;
-    const listHash = await writeContractAsync({
-      address: MARKETPLACE_ADDRESS,
-      abi: MARKETPLACE_ABI,
-      functionName: 'createMarketItem',
-      args: [NFT_CONTRACT_ADDRESS, tokenId, parseEther(price)],
-      value: listingFee,
-    });
+      // 2) Create market item (pay listing fee)
+      const listingFee = (listingPrice ?? 0n) as bigint;
+      const listHash = await writeContractAsync({
+        address: MARKETPLACE_ADDRESS,
+        abi: MARKETPLACE_ABI,
+        functionName: 'createMarketItem',
+        args: [NFT_CONTRACT_ADDRESS, tokenId, parseEther(price)],
+        value: listingFee,
+      });
 
-    await waitForTransactionReceipt(config, { hash: listHash });
+      await waitForTransactionReceipt(config, { hash: listHash });
 
-    // refresh reads
-    await Promise.all([
-      marketItemsQuery.refetch?.(),
-      myNFTsQuery.refetch?.(),
-      listedItemsQuery.refetch?.(),
-    ]);
+      toast.success('NFT successfully listed for sale!');
+      
+      // Refresh all data
+      await refreshData();
+    } catch (error: any) {
+      console.error('Error listing NFT:', error);
+      toast.error(error.shortMessage || error.message || 'Failed to list NFT');
+      throw error;
+    }
   };
 
   const buyNFT = async (itemId: bigint, price: bigint) => {
-    const hash = await writeContractAsync({
-      address: MARKETPLACE_ADDRESS,
-      abi: MARKETPLACE_ABI,
-      functionName: 'createMarketSale',
-      args: [NFT_CONTRACT_ADDRESS, itemId],
-      value: price,
-    });
+    try {
+      if (!address) throw new Error('Wallet not connected');
+      
+      toast.info('Processing purchase...');
+      
+      const hash = await writeContractAsync({
+        address: MARKETPLACE_ADDRESS,
+        abi: MARKETPLACE_ABI,
+        functionName: 'createMarketSale',
+        args: [NFT_CONTRACT_ADDRESS, itemId],
+        value: price,
+      });
 
-    await waitForTransactionReceipt(config, { hash });
-
-    await Promise.all([
-      marketItemsQuery.refetch?.(),
-      myNFTsQuery.refetch?.(),
-      listedItemsQuery.refetch?.(),
-    ]);
+      await waitForTransactionReceipt(config, { hash });
+      
+      toast.success('NFT purchased successfully! 🎉');
+      
+      await refreshData();
+    } catch (error: any) {
+      console.error('Error buying NFT:', error);
+      toast.error(error.shortMessage || error.message || 'Failed to purchase NFT');
+      throw error;
+    }
   };
 
-  const mintAndListNFT = async (tokenURI: string, price: string) => {
-    // Keep parity with old behavior (only mint); extend to approve+list if desired.
-    const hash = await writeContractAsync({
-      address: NFT_CONTRACT_ADDRESS,
-      abi: NFT_ABI,
-      functionName: 'mintNFT',
-      args: [address as `0x${string}`, tokenURI],
-    });
+  const mintAndListNFT = async (tokenURI: string, price?: string) => {
+    try {
+      if (!address) throw new Error('Wallet not connected');
+      
+      if (price && parseFloat(price) > 0) {
+        // Mint and list in one transaction
+        toast.info('Minting and listing NFT...');
+        
+        const listingFee = (listingPrice ?? 0n) as bigint;
+        const hash = await writeContractAsync({
+          address: MARKETPLACE_ADDRESS,
+          abi: MARKETPLACE_ABI,
+          functionName: 'mintAndList',
+          args: [NFT_CONTRACT_ADDRESS, tokenURI, parseEther(price)],
+          value: listingFee,
+        });
 
-    await waitForTransactionReceipt(config, { hash });
+        await waitForTransactionReceipt(config, { hash });
+        
+        toast.success('NFT minted and listed successfully! 🚀');
+      } else {
+        // Just mint
+        toast.info('Minting NFT...');
+        
+        const hash = await writeContractAsync({
+          address: NFT_CONTRACT_ADDRESS,
+          abi: NFT_ABI,
+          functionName: 'mintNFT',
+          args: [address as `0x${string}`, tokenURI],
+        });
 
-    await Promise.all([
-      marketItemsQuery.refetch?.(),
-      myNFTsQuery.refetch?.(),
-      listedItemsQuery.refetch?.(),
-    ]);
+        await waitForTransactionReceipt(config, { hash });
+        
+        toast.success('NFT minted successfully! 🎨');
+      }
+
+      await refreshData();
+    } catch (error: any) {
+      console.error('Error minting NFT:', error);
+      toast.error(error.shortMessage || error.message || 'Failed to mint NFT');
+      throw error;
+    }
   };
 
   const refreshData = async () => {
-    await Promise.all([
-      marketItemsQuery.refetch?.(),
-      myNFTsQuery.refetch?.(),
-      listedItemsQuery.refetch?.(),
-    ]);
+    try {
+      console.log('Refreshing all data...');
+      
+      // Force refresh all queries
+      await Promise.all([
+        marketItemsQuery.refetch?.(),
+        myNFTsQuery.refetch?.(),
+        listedItemsQuery.refetch?.(),
+        refetchStats(),
+        refetchListingPrice(),
+      ]);
+      
+      // Trigger re-render
+      setRefreshTrigger(prev => prev + 1);
+      
+      console.log('Data refresh completed');
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    }
   };
 
   const formattedListingPrice = useMemo(
@@ -206,11 +329,16 @@ export function useMarketplace() {
     marketItems,
     myNFTs,
     listedItems,
+    marketStats,
     listingPrice: formattedListingPrice,
     loading: loadingData || isWriting,
     listNFT,
     buyNFT,
     mintAndListNFT,
     refreshData,
+    contractAddresses: {
+      marketplace: MARKETPLACE_ADDRESS,
+      nft: NFT_CONTRACT_ADDRESS,
+    },
   };
 }

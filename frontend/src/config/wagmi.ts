@@ -5,7 +5,9 @@ import {
   bsc, 
   bscTestnet, 
   polygon, 
-  polygonMumbai 
+  polygonMumbai,
+  base,
+  baseSepolia
 } from 'wagmi/chains'
 import { injected, metaMask, walletConnect } from 'wagmi/connectors'
 
@@ -14,9 +16,11 @@ const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'your-proj
 export const config = createConfig({
   chains: [
     sepolia,
-    mainnet,
-    bsc,
+    baseSepolia,
     bscTestnet,
+    mainnet,
+    base,
+    bsc,
     polygon,
     polygonMumbai,
   ],
@@ -27,9 +31,11 @@ export const config = createConfig({
   ],
   transports: {
     [sepolia.id]: http(),
-    [mainnet.id]: http(),
-    [bsc.id]: http(),
+    [baseSepolia.id]: http(),
     [bscTestnet.id]: http(),
+    [mainnet.id]: http(),
+    [base.id]: http(),
+    [bsc.id]: http(),
     [polygon.id]: http(),
     [polygonMumbai.id]: http(),
   },
