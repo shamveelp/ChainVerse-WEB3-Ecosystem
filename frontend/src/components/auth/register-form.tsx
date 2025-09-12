@@ -94,7 +94,7 @@ export function RegisterForm() {
     try {
       const result = await generateUsername()
       if (result.success) {
-        setFormData((prev) => ({ ...prev, username: result.username }))
+        setFormData((prev: any) => ({ ...prev, username: result.username }))
         setUsernameAvailable(true)
         toast({
           title: "Username Generated",
