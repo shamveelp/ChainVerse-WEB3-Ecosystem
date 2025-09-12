@@ -1,4 +1,4 @@
-export const NFT_MARKETPLACE_ADDRESS = "0x4d0b549946b8572D16D12E1ae8E28e15b9Dc9F9a";
+export const NFT_MARKETPLACE_ADDRESS = "0x9CC3f7761d3a631cC2E1C9495653B7867945A07B"; // Update this after deploying new contract
 
 export const NFT_MARKETPLACE_ABI = [
   {
@@ -110,6 +110,11 @@ export const NFT_MARKETPLACE_ABI = [
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -182,6 +187,25 @@ export const NFT_MARKETPLACE_ABI = [
     "anonymous": false,
     "inputs": [
       {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "seller",
+        "type": "address"
+      }
+    ],
+    "name": "ListingCancelled",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": false,
         "internalType": "uint256",
         "name": "_tokenId",
@@ -214,6 +238,12 @@ export const NFT_MARKETPLACE_ABI = [
       },
       {
         "indexed": false,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
         "internalType": "uint256",
         "name": "price",
         "type": "uint256"
@@ -226,6 +256,49 @@ export const NFT_MARKETPLACE_ABI = [
       }
     ],
     "name": "TokenListedSuccess",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "companyFee",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "creatorRoyalty",
+        "type": "uint256"
+      }
+    ],
+    "name": "TokenSold",
     "type": "event"
   },
   {
@@ -252,6 +325,71 @@ export const NFT_MARKETPLACE_ABI = [
     ],
     "name": "Transfer",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "COMPANY_FEE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "COMPANY_WALLET",
+    "outputs": [
+      {
+        "internalType": "address payable",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "CREATOR_ROYALTY",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MIN_PRICE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "TOTAL_FEES",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [
@@ -293,6 +431,19 @@ export const NFT_MARKETPLACE_ABI = [
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "cancelListing",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "string",
         "name": "tokenURI",
         "type": "string"
@@ -312,6 +463,13 @@ export const NFT_MARKETPLACE_ABI = [
       }
     ],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "emergencyWithdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -349,6 +507,11 @@ export const NFT_MARKETPLACE_ABI = [
             "type": "address"
           },
           {
+            "internalType": "address payable",
+            "name": "creator",
+            "type": "address"
+          },
+          {
             "internalType": "uint256",
             "name": "price",
             "type": "uint256"
@@ -357,6 +520,11 @@ export const NFT_MARKETPLACE_ABI = [
             "internalType": "bool",
             "name": "currentlyListed",
             "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
           }
         ],
         "internalType": "struct NFTMarketplace.ListedToken[]",
@@ -388,6 +556,29 @@ export const NFT_MARKETPLACE_ABI = [
   },
   {
     "inputs": [],
+    "name": "getCompanyStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalTokens",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalSold",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "currentListings",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getCurrentToken",
     "outputs": [
       {
@@ -401,39 +592,12 @@ export const NFT_MARKETPLACE_ABI = [
   },
   {
     "inputs": [],
-    "name": "getLatestIdToListedToken",
+    "name": "getListPrice",
     "outputs": [
       {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address payable",
-            "name": "owner",
-            "type": "address"
-          },
-          {
-            "internalType": "address payable",
-            "name": "seller",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "price",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bool",
-            "name": "currentlyListed",
-            "type": "bool"
-          }
-        ],
-        "internalType": "struct NFTMarketplace.ListedToken",
+        "internalType": "uint256",
         "name": "",
-        "type": "tuple"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -467,6 +631,11 @@ export const NFT_MARKETPLACE_ABI = [
             "type": "address"
           },
           {
+            "internalType": "address payable",
+            "name": "creator",
+            "type": "address"
+          },
+          {
             "internalType": "uint256",
             "name": "price",
             "type": "uint256"
@@ -475,6 +644,11 @@ export const NFT_MARKETPLACE_ABI = [
             "internalType": "bool",
             "name": "currentlyListed",
             "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
           }
         ],
         "internalType": "struct NFTMarketplace.ListedToken",
@@ -487,7 +661,7 @@ export const NFT_MARKETPLACE_ABI = [
   },
   {
     "inputs": [],
-    "name": "getListPrice",
+    "name": "getMinPrice",
     "outputs": [
       {
         "internalType": "uint256",
@@ -520,6 +694,11 @@ export const NFT_MARKETPLACE_ABI = [
             "type": "address"
           },
           {
+            "internalType": "address payable",
+            "name": "creator",
+            "type": "address"
+          },
+          {
             "internalType": "uint256",
             "name": "price",
             "type": "uint256"
@@ -528,11 +707,48 @@ export const NFT_MARKETPLACE_ABI = [
             "internalType": "bool",
             "name": "currentlyListed",
             "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
           }
         ],
         "internalType": "struct NFTMarketplace.ListedToken[]",
         "name": "",
         "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getTokenCreator",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getTotalItemsSold",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -564,12 +780,38 @@ export const NFT_MARKETPLACE_ABI = [
   },
   {
     "inputs": [],
+    "name": "listPrice",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "name",
     "outputs": [
       {
         "internalType": "string",
         "name": "",
         "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address payable",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -765,7 +1007,14 @@ export const NFT_MARKETPLACE_ABI = [
     ],
     "name": "updateListPrice",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "withdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ] as const;
