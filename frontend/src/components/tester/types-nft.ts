@@ -20,7 +20,7 @@ export interface NFTMetadata {
 }
 
 export interface NFTWithMetadata extends ListedToken {
-  metadata?: NFTMetadata;
+  metadata: NFTMetadata | null;
   imageUrl?: string;
   formattedPrice: string;
 }

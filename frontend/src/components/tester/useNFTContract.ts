@@ -60,7 +60,7 @@ export const useNFTContract = () => {
       setError('');
 
       const contract = getContract();
-      
+
       console.log('Buying NFT:', tokenId.toString());
       console.log('Price:', ethers.formatEther(price), 'ETH');
 
@@ -256,7 +256,7 @@ export const useNFTContract = () => {
 
       const contract = getContract();
       const [totalTokens, totalSold, currentListings] = await contract.getCompanyStats();
-      
+
       return {
         totalTokens: Number(totalTokens),
         totalSold: Number(totalSold),
@@ -290,11 +290,11 @@ export const useNFTContract = () => {
 
   const enrichNFTsWithMetadata = async (nfts: ListedToken[]): Promise<NFTWithMetadata[]> => {
     const enrichedNFTs = await Promise.allSettled(
-      nfts.map(async (nft) => {
+      nfts.map(async (nft): Promise<NFTWithMetadata> => {
         const metadata = await fetchNFTMetadata(nft.tokenId);
         return {
           ...nft,
-          metadata: metadata ?? null,
+          metadata: metadata,
           imageUrl: metadata?.image || metadata?.img_url,
           formattedPrice: ethers.formatEther(nft.price),
         };
@@ -302,10 +302,10 @@ export const useNFTContract = () => {
     );
 
     return enrichedNFTs
-      .filter((result): result is PromiseFulfilledResult<NFTWithMetadata> => 
+      .filter((result): result is PromiseFulfilledResult<NFTWithMetadata> =>
         result.status === 'fulfilled'
       )
-      .map(result => result.value as NFTWithMetadata);
+      .map(result => result.value);
   };
 
   const calculateSaleDetails = (price: bigint): SaleDetails => {

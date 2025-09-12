@@ -3,20 +3,24 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Eye, Heart, ShoppingCart, AlertCircle, User, Calendar, DollarSign, Zap } from 'lucide-react';
+import { Eye, Heart, ShoppingCart, AlertCircle, User, Calendar, DollarSign, Zap, Tag, MoreVertical, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { NFTWithMetadata } from './types-nft';
 import Link from 'next/link';
-import { ethers } from 'ethers';
+import { useWallet } from './wallet-provider';
 
 interface NFTCardProps {
   nft: NFTWithMetadata;
   onBuy?: () => void;
+  onRelist?: () => void;
+  onCancelListing?: () => void;
   onView?: () => void;
   showBuyButton?: boolean;
+  showOwnerActions?: boolean;
   className?: string;
   showCreator?: boolean;
 }
@@ -24,13 +28,17 @@ interface NFTCardProps {
 export function NFTCard({
   nft,
   onBuy,
+  onRelist,
+  onCancelListing,
   onView,
   showBuyButton = true,
+  showOwnerActions = true,
   className = "",
   showCreator = true
 }: NFTCardProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const { account } = useWallet();
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -41,8 +49,13 @@ export function NFTCard({
     return date.toLocaleDateString();
   };
 
-  const isCreator = nft.creator && nft.seller && 
+  const isCreator = nft.creator && nft.seller &&
     nft.creator.toLowerCase() === nft.seller.toLowerCase();
+
+  const isOwner = account && nft.owner.toLowerCase() === account.toLowerCase();
+  const isCurrentSeller = account && nft.seller.toLowerCase() === account.toLowerCase();
+  const canRelist = isOwner && !nft.currentlyListed;
+  const canCancelListing = isCurrentSeller && nft.currentlyListed;
 
   return (
     <TooltipProvider>
@@ -80,6 +93,35 @@ export function NFTCard({
 
               {/* Action Buttons */}
               <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {/* Owner Actions Menu */}
+                {showOwnerActions && (canRelist || canCancelListing) && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {canRelist && onRelist && (
+                        <DropdownMenuItem onClick={onRelist}>
+                          <Tag className="mr-2 h-4 w-4" />
+                          Relist for Sale
+                        </DropdownMenuItem>
+                      )}
+                      {canCancelListing && onCancelListing && (
+                        <DropdownMenuItem onClick={onCancelListing}>
+                          <X className="mr-2 h-4 w-4" />
+                          Cancel Listing
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -120,7 +162,7 @@ export function NFTCard({
                 </Tooltip>
               </div>
 
-              {/* Status Badge */}
+              {/* Status Badges */}
               <div className="absolute top-3 left-3 flex flex-col gap-2">
                 {nft.currentlyListed && (
                   <Badge className="bg-green-500/90 hover:bg-green-500">
@@ -131,6 +173,11 @@ export function NFTCard({
                 {isCreator && (
                   <Badge variant="outline" className="bg-purple-500/20 border-purple-500/50">
                     Creator
+                  </Badge>
+                )}
+                {isOwner && (
+                  <Badge variant="outline" className="bg-blue-500/20 border-blue-500/50">
+                    Owned
                   </Badge>
                 )}
               </div>
@@ -155,7 +202,7 @@ export function NFTCard({
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
-                    Price
+                    {nft.currentlyListed ? 'Listed Price' : 'Last Price'}
                   </p>
                   <div className="flex items-baseline gap-1">
                     <span className="font-bold text-lg">
@@ -171,15 +218,30 @@ export function NFTCard({
                   )}
                 </div>
 
-                {showBuyButton && nft.currentlyListed && onBuy && (
-                  <Button
-                    onClick={onBuy}
-                    className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-1" />
-                    Buy Now
-                  </Button>
-                )}
+                <div className="flex flex-col gap-2">
+                  {showBuyButton && nft.currentlyListed && onBuy && !isCurrentSeller && (
+                    <Button
+                      onClick={onBuy}
+                      size="sm"
+                      className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-1" />
+                      Buy Now
+                    </Button>
+                  )}
+                  
+                  {canRelist && onRelist && (
+                    <Button
+                      onClick={onRelist}
+                      size="sm"
+                      variant="outline"
+                      className="border-green-500/50 hover:bg-green-500/20"
+                    >
+                      <Tag className="h-4 w-4 mr-1" />
+                      Sell
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Creator and Owner Info */}
