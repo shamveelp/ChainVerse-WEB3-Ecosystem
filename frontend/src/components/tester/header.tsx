@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Search, Menu, Wallet } from 'lucide-react';
+import { Search, Menu } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useWallet } from './wallet-provider';
+import { ConnectButton } from 'thirdweb/react';
+import { client } from '@/lib/thirdweb-client';
 
 const navigation = [
   { name: 'Home', href: '/trade/nfts-marketplace' },
@@ -20,32 +21,24 @@ const navigation = [
 export function Header() {
   const pathname = usePathname();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { account, isConnected, connectWallet } = useWallet();
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
 
   return (
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
+      transition={{ duration: 0.8, ease: 'easeOut' }}
       className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50"
     >
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Link href="/nft-marketplace" className="flex items-center space-x-3">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link href="/trade/nfts-marketplace" className="flex items-center space-x-3">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-sm">N</span>
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                NFTorium
+                NFTVerse
               </span>
             </Link>
           </motion.div>
@@ -57,9 +50,7 @@ export function Header() {
                 key={item.name}
                 href={item.href}
                 className={`relative px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === item.href
-                    ? 'text-primary'
-                    : 'text-muted-foreground'
+                  pathname === item.href ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
                 {item.name}
@@ -84,10 +75,7 @@ export function Header() {
                   exit={{ width: 0, opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Input
-                    placeholder="Search NFTs..."
-                    className="w-full"
-                  />
+                  <Input placeholder="Search NFTs..." className="w-full" />
                 </motion.div>
               )}
               <Button
@@ -100,16 +88,21 @@ export function Header() {
               </Button>
             </div>
 
-            {/* Wallet Connect */}
-            <Button
-              onClick={connectWallet}
-              className={`bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 ${
-                isConnected ? 'px-3' : 'px-6'
-              }`}
-            >
-              <Wallet className="h-4 w-4 mr-2" />
-              {isConnected ? formatAddress(account!) : 'Connect Wallet'}
-            </Button>
+            {/* Thirdweb Connect Button */}
+            <ConnectButton
+              client={client}
+              appMetadata={{
+                name: 'ChainVerse NFT Marketplace',
+                url: 'https://example.com',
+                description: 'The most advanced decentralized marketplace for digital collectibles',
+                logoUrl: 'https://example.com/logo.png',
+              }}
+              theme="dark"
+              connectModal={{
+                size: 'compact',
+                showThirdwebBranding: false,
+              }}
+            />
 
             {/* Mobile menu */}
             <Sheet>
@@ -118,16 +111,14 @@ export function Header() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
+              <SheetContent>
                 <div className="flex flex-col space-y-4 mt-8">
                   {navigation.map((item) => (
                     <Link
                       key={item.name}
                       href={item.href}
                       className={`px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                        pathname === item.href
-                          ? 'text-primary'
-                          : 'text-muted-foreground'
+                        pathname === item.href ? 'text-primary' : 'text-muted-foreground'
                       }`}
                     >
                       {item.name}

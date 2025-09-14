@@ -1,15 +1,15 @@
-import { WalletProvider } from '@/components/tester/wallet-provider';
+import { CustomThirdwebProvider } from '@/components/tester/thirdweb-provider';
 import { Header } from '@/components/tester/header';
 import { Toaster } from '@/components/ui/sonner';
 import Navbar from '@/components/home/navbar';
 
-export default function NFTMarketplaceLayout({ 
-  children 
-}: { 
-  children: React.ReactNode 
+export default function NFTMarketplaceLayout({
+  children
+}: {
+  children: React.ReactNode
 }) {
   return (
-    <WalletProvider>
+    <CustomThirdwebProvider>
       <Navbar />
       <div className="relative min-h-screen">
         {/* Background Effects */}
@@ -24,6 +24,6 @@ export default function NFTMarketplaceLayout({
         </main>
         <Toaster position="bottom-right" />
       </div>
-    </WalletProvider>
+    </CustomThirdwebProvider>
   );
 }

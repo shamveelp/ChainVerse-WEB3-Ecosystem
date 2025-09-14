@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNFTContract } from '@/hooks/nft/useNFTContract';
 import { uploadFileToIPFS, uploadJSONToIPFS } from '@/lib/nft/ipfs';
-import { useWallet } from '@/components/tester/wallet-provider';
+import { useActiveAccount } from 'thirdweb/react';
 import { toast } from 'sonner';
 
 interface FormData {
@@ -35,7 +35,7 @@ export default function CreatePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const { isConnected } = useWallet();
+  const account = useActiveAccount();
   const { createToken, isLoading, txHash, getListPrice } = useNFTContract();
   const router = useRouter();
 
@@ -80,7 +80,7 @@ export default function CreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isConnected) {
+    if (!account) {
       toast.error('Please connect your wallet first');
       return;
     }
@@ -119,7 +119,7 @@ export default function CreatePage() {
 
       toast.success('NFT created successfully!');
       router.push('/trade/nfts-marketplace/explore');
-      
+
     } catch (error: any) {
       console.error('Error creating NFT:', error);
       toast.error(error.message || 'Failed to create NFT. Please try again.');
@@ -145,7 +145,7 @@ export default function CreatePage() {
           </p>
         </motion.div>
 
-        {!isConnected && (
+        {!account && (
           <Alert className="mb-8">
             <AlertDescription>
               Please connect your wallet to create an NFT.
@@ -280,7 +280,7 @@ export default function CreatePage() {
                 type="submit"
                 size="lg"
                 className="w-full"
-                disabled={!isConnected || isUploading || isLoading}
+                disabled={!account || isUploading || isLoading}
               >
                 {isUploading || isLoading ? (
                   <>

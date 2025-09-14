@@ -11,7 +11,7 @@ import { NFTCard } from './nft-card';
 import { RelistModal } from './relist-modal';
 import { LoadingGrid } from './loading-skeleton';
 import { useNFTContract } from '@/hooks/nft/useNFTContract';
-import { useWallet } from './wallet-provider';
+import { useActiveAccount } from 'thirdweb/react';
 import { NFTWithMetadata } from '../../types/types-nft';
 import { toast } from 'sonner';
 
@@ -25,9 +25,9 @@ export default function ProfilePage() {
   }>({ isOpen: false, nft: null });
   const [listingFee, setListingFee] = useState('0.000001');
 
-  const { account, isConnected } = useWallet();
+  const account = useActiveAccount();
   const {
-    getMyNFTs,
+    getAllNFTs,
     enrichNFTsWithMetadata,
     relistNFT,
     cancelListing,
@@ -36,11 +36,11 @@ export default function ProfilePage() {
   } = useNFTContract();
 
   useEffect(() => {
-    if (isConnected) {
+    if (account) {
       loadMyNFTs();
       loadListingFee();
     }
-  }, [isConnected]);
+  }, [account]);
 
   const loadListingFee = async () => {
     try {
@@ -56,19 +56,47 @@ export default function ProfilePage() {
 
     try {
       setLoading(true);
-      const myNFTs = await getMyNFTs();
-
-      if (myNFTs.length > 0) {
-        const enriched = await enrichNFTsWithMetadata(myNFTs);
-
-        // Separate owned vs listed NFTs
-        const owned = enriched.filter(nft =>
-          nft.owner.toLowerCase() === account.toLowerCase() && !nft.currentlyListed
+      
+      // Get all NFTs and filter by current user
+      const allNFTs = await getAllNFTs();
+      console.log('All NFTs fetched:', allNFTs.length);
+      
+      if (allNFTs.length > 0) {
+        // Filter NFTs that belong to the current user (owned or created by them)
+        const userNFTs = allNFTs.filter(nft => 
+          nft.owner.toLowerCase() === account.address.toLowerCase() ||
+          nft.seller.toLowerCase() === account.address.toLowerCase() ||
+          nft.creator.toLowerCase() === account.address.toLowerCase()
         );
-        const listed = enriched.filter(nft => nft.currentlyListed);
+        
+        console.log('User NFTs filtered:', userNFTs.length);
 
-        setOwnedNFTs(owned);
-        setListedNFTs(listed);
+        if (userNFTs.length > 0) {
+          const enriched = await enrichNFTsWithMetadata(userNFTs);
+          console.log('Enriched NFTs:', enriched.length);
+
+          // Separate owned vs listed NFTs
+          const owned = enriched.filter(nft => {
+            const isOwner = nft.owner.toLowerCase() === account.address.toLowerCase();
+            const isNotListed = !nft.currentlyListed;
+            return isOwner && isNotListed;
+          });
+          
+          const listed = enriched.filter(nft => {
+            const isSeller = nft.seller.toLowerCase() === account.address.toLowerCase();
+            const isListed = nft.currentlyListed;
+            return isSeller && isListed;
+          });
+
+          console.log('Owned NFTs:', owned.length);
+          console.log('Listed NFTs:', listed.length);
+
+          setOwnedNFTs(owned);
+          setListedNFTs(listed);
+        } else {
+          setOwnedNFTs([]);
+          setListedNFTs([]);
+        }
       } else {
         setOwnedNFTs([]);
         setListedNFTs([]);
@@ -83,7 +111,7 @@ export default function ProfilePage() {
 
   const copyAddress = () => {
     if (account) {
-      navigator.clipboard.writeText(account);
+      navigator.clipboard.writeText(account.address);
       toast.success('Address copied to clipboard!');
     }
   };
@@ -121,7 +149,7 @@ export default function ProfilePage() {
     setRelistModal({ isOpen: false, nft: null });
   };
 
-  if (!isConnected) {
+  if (!account) {
     return (
       <div className="px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
@@ -166,7 +194,7 @@ export default function ProfilePage() {
                   <h1 className="text-3xl font-bold mb-2">My Collection</h1>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <span className="font-mono text-sm">
-                      {account?.slice(0, 6)}...{account?.slice(-4)}
+                      {account.address.slice(0, 6)}...{account.address.slice(-4)}
                     </span>
                     <Button
                       variant="ghost"
@@ -180,7 +208,7 @@ export default function ProfilePage() {
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6"
-                      onClick={() => window.open(`https://sepolia.etherscan.io/address/${account}`, '_blank')}
+                      onClick={() => window.open(`https://sepolia.etherscan.io/address/${account.address}`, '_blank')}
                     >
                       <ExternalLink className="h-3 w-3" />
                     </Button>
@@ -318,7 +346,7 @@ export default function ProfilePage() {
             <p className="text-sm text-muted-foreground">
               View your complete NFT collection on{' '}
               <a
-                href={`https://testnets.opensea.io/${account}`}
+                href={`https://testnets.opensea.io/${account.address}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"

@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { NFTWithMetadata } from '../../types/types-nft';
 import Link from 'next/link';
-import { useWallet } from './wallet-provider';
+import { useActiveAccount } from 'thirdweb/react';
 
 interface NFTCardProps {
   nft: NFTWithMetadata;
@@ -38,7 +38,7 @@ export function NFTCard({
 }: NFTCardProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const { account } = useWallet();
+  const account = useActiveAccount();
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -52,8 +52,8 @@ export function NFTCard({
   const isCreator = nft.creator && nft.seller &&
     nft.creator.toLowerCase() === nft.seller.toLowerCase();
 
-  const isOwner = account && nft.owner.toLowerCase() === account.toLowerCase();
-  const isCurrentSeller = account && nft.seller.toLowerCase() === account.toLowerCase();
+  const isOwner = account && nft.owner.toLowerCase() === account.address.toLowerCase();
+  const isCurrentSeller = account && nft.seller.toLowerCase() === account.address.toLowerCase();
   const canRelist = isOwner && !nft.currentlyListed;
   const canCancelListing = isCurrentSeller && nft.currentlyListed;
 
@@ -229,7 +229,7 @@ export function NFTCard({
                       Buy Now
                     </Button>
                   )}
-                  
+
                   {canRelist && onRelist && (
                     <Button
                       onClick={onRelist}

@@ -1,24 +1,32 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { ethers } from 'ethers';
+import { useActiveAccount, useSendTransaction } from 'thirdweb/react';
+import { prepareContractCall, getContract, readContract } from 'thirdweb';
 import { NFT_MARKETPLACE_ADDRESS, NFT_MARKETPLACE_ABI } from '@/lib/nft/contracts';
 import { ListedToken, NFTWithMetadata, NFTMetadata, SaleDetails, MarketplaceStats } from '@/types/types-nft';
-import { useWallet } from '@/components/tester/wallet-provider';
+import { client } from '@/lib/thirdweb-client';
+import { sepolia } from 'thirdweb/chains';
 
 export const useNFTContract = () => {
-  const { signer, isConnected } = useWallet();
+  const account = useActiveAccount();
+  const { mutateAsync: sendTransaction } = useSendTransaction();
   const [isLoading, setIsLoading] = useState(false);
   const [txHash, setTxHash] = useState<string>('');
   const [error, setError] = useState<string>('');
 
-  const getContract = useCallback(() => {
-    if (!signer) throw new Error('Wallet not connected');
-    return new ethers.Contract(NFT_MARKETPLACE_ADDRESS, NFT_MARKETPLACE_ABI, signer);
-  }, [signer]);
+  // Initialize contract with ABI
+  const contract = getContract({
+    client,
+    address: NFT_MARKETPLACE_ADDRESS,
+    chain: sepolia,
+    abi: NFT_MARKETPLACE_ABI,
+  });
 
+  // CREATE TOKEN
   const createToken = async (tokenURI: string, price: string) => {
-    if (!isConnected || !signer) {
+    if (!account) {
       throw new Error('Wallet not connected');
     }
 
@@ -26,21 +34,25 @@ export const useNFTContract = () => {
       setIsLoading(true);
       setError('');
 
-      const contract = getContract();
       const priceInWei = ethers.parseEther(price);
-      const listPrice = await contract.getListPrice();
 
-      console.log('Creating token with price:', price, 'ETH');
-      console.log('Listing fee:', ethers.formatEther(listPrice), 'ETH');
+      const listPrice = await readContract({
+        contract,
+        method: 'getListPrice',
+        params: [],
+      });
 
-      const tx = await contract.createToken(tokenURI, priceInWei, {
+      const transaction = prepareContractCall({
+        contract,
+        method: 'createToken',
+        params: [tokenURI, priceInWei],
         value: listPrice,
       });
 
-      setTxHash(tx.hash);
-      await tx.wait();
+      const result = await sendTransaction(transaction);
+      setTxHash(result.transactionHash);
 
-      return tx;
+      return result;
     } catch (error: any) {
       const message = error.reason || error.message || 'Failed to create token';
       setError(message);
@@ -50,8 +62,9 @@ export const useNFTContract = () => {
     }
   };
 
+  // BUY NFT
   const buyNFT = async (tokenId: bigint, price: bigint) => {
-    if (!isConnected || !signer) {
+    if (!account) {
       throw new Error('Wallet not connected');
     }
 
@@ -59,39 +72,17 @@ export const useNFTContract = () => {
       setIsLoading(true);
       setError('');
 
-      const contract = getContract();
-
-      console.log('Buying NFT:', tokenId.toString());
-      console.log('Price:', ethers.formatEther(price), 'ETH');
-
-      const tx = await contract.executeSale(tokenId, {
+      const transaction = prepareContractCall({
+        contract,
+        method: 'executeSale',
+        params: [tokenId],
         value: price,
       });
 
-      setTxHash(tx.hash);
-      const receipt = await tx.wait();
+      const result = await sendTransaction(transaction);
+      setTxHash(result.transactionHash);
 
-      // Extract sale details from events
-      const saleEvent = receipt.logs.find((log: any) => {
-        try {
-          const parsedLog = contract.interface.parseLog(log);
-          return parsedLog?.name === 'TokenSold';
-        } catch {
-          return false;
-        }
-      });
-
-      if (saleEvent) {
-        const parsedLog = contract.interface.parseLog(saleEvent);
-        console.log('Sale completed:', {
-          tokenId: parsedLog?.args.tokenId.toString(),
-          price: ethers.formatEther(parsedLog?.args.price),
-          companyFee: ethers.formatEther(parsedLog?.args.companyFee),
-          creatorRoyalty: ethers.formatEther(parsedLog?.args.creatorRoyalty)
-        });
-      }
-
-      return tx;
+      return result;
     } catch (error: any) {
       const message = error.reason || error.message || 'Failed to buy NFT';
       setError(message);
@@ -101,8 +92,9 @@ export const useNFTContract = () => {
     }
   };
 
+  // RELIST NFT
   const relistNFT = async (tokenId: bigint, price: string) => {
-    if (!isConnected || !signer) {
+    if (!account) {
       throw new Error('Wallet not connected');
     }
 
@@ -110,22 +102,24 @@ export const useNFTContract = () => {
       setIsLoading(true);
       setError('');
 
-      const contract = getContract();
       const priceInWei = ethers.parseEther(price);
-      const listPrice = await contract.getListPrice();
+      const listPrice = await readContract({
+        contract,
+        method: 'getListPrice',
+        params: [],
+      });
 
-      console.log('Relisting NFT:', tokenId.toString());
-      console.log('New price:', price, 'ETH');
-      console.log('Listing fee:', ethers.formatEther(listPrice), 'ETH');
-
-      const tx = await contract.relistToken(tokenId, priceInWei, {
+      const transaction = prepareContractCall({
+        contract,
+        method: 'relistToken',
+        params: [tokenId, priceInWei],
         value: listPrice,
       });
 
-      setTxHash(tx.hash);
-      await tx.wait();
+      const result = await sendTransaction(transaction);
+      setTxHash(result.transactionHash);
 
-      return tx;
+      return result;
     } catch (error: any) {
       const message = error.reason || error.message || 'Failed to relist NFT';
       setError(message);
@@ -135,8 +129,9 @@ export const useNFTContract = () => {
     }
   };
 
+  // CANCEL LISTING
   const cancelListing = async (tokenId: bigint) => {
-    if (!isConnected || !signer) {
+    if (!account) {
       throw new Error('Wallet not connected');
     }
 
@@ -144,13 +139,16 @@ export const useNFTContract = () => {
       setIsLoading(true);
       setError('');
 
-      const contract = getContract();
-      const tx = await contract.cancelListing(tokenId);
+      const transaction = prepareContractCall({
+        contract,
+        method: 'cancelListing',
+        params: [tokenId],
+      });
 
-      setTxHash(tx.hash);
-      await tx.wait();
+      const result = await sendTransaction(transaction);
+      setTxHash(result.transactionHash);
 
-      return tx;
+      return result;
     } catch (error: any) {
       const message = error.reason || error.message || 'Failed to cancel listing';
       setError(message);
@@ -160,13 +158,16 @@ export const useNFTContract = () => {
     }
   };
 
+  // GET ALL NFTs
   const getAllNFTs = async (): Promise<ListedToken[]> => {
-    if (!signer) return [];
-
     try {
-      const contract = getContract();
-      const result = await contract.getAllNFTs();
-      return result.map((item: any) => ({
+      const result = await readContract({
+        contract,
+        method: 'getAllNFTs',
+        params: [],
+      });
+
+      return (result as any[]).map((item: any) => ({
         tokenId: item.tokenId,
         owner: item.owner,
         seller: item.seller,
@@ -181,13 +182,17 @@ export const useNFTContract = () => {
     }
   };
 
+  // GET MY NFTs
   const getMyNFTs = async (): Promise<ListedToken[]> => {
-    if (!signer) return [];
-
+    if (!account) return [];
     try {
-      const contract = getContract();
-      const result = await contract.getMyNFTs();
-      return result.map((item: any) => ({
+      const result = await readContract({
+        contract,
+        method: 'getMyNFTs',
+        params: [],
+      });
+
+      return (result as any[]).map((item: any) => ({
         tokenId: item.tokenId,
         owner: item.owner,
         seller: item.seller,
@@ -202,21 +207,24 @@ export const useNFTContract = () => {
     }
   };
 
+  // GET LISTED TOKEN FOR ID
   const getListedTokenForId = async (tokenId: bigint): Promise<ListedToken | null> => {
-    if (!signer) return null;
-
     try {
-      const contract = getContract();
-      const item = await contract.getListedTokenForId(tokenId);
-      if (Number(item.tokenId) === 0) return null;
+      const item = await readContract({
+        contract,
+        method: 'getListedTokenForId',
+        params: [tokenId],
+      });
+
+      if (Number((item as any).tokenId) === 0) return null;
       return {
-        tokenId: item.tokenId,
-        owner: item.owner,
-        seller: item.seller,
-        creator: item.creator,
-        price: item.price,
-        currentlyListed: item.currentlyListed,
-        createdAt: item.createdAt,
+        tokenId: (item as any).tokenId,
+        owner: (item as any).owner,
+        seller: (item as any).seller,
+        creator: (item as any).creator,
+        price: (item as any).price,
+        currentlyListed: (item as any).currentlyListed,
+        createdAt: (item as any).createdAt,
       };
     } catch (error: any) {
       console.error(`Error fetching token ${tokenId}:`, error);
@@ -224,12 +232,14 @@ export const useNFTContract = () => {
     }
   };
 
+  // GET LIST PRICE
   const getListPrice = async (): Promise<string> => {
     try {
-      if (!signer) return '0.000001';
-
-      const contract = getContract();
-      const listPrice = await contract.getListPrice();
+      const listPrice = await readContract({
+        contract,
+        method: 'getListPrice',
+        params: [],
+      });
       return ethers.formatEther(listPrice);
     } catch (error: any) {
       console.error('Error fetching list price:', error);
@@ -237,12 +247,14 @@ export const useNFTContract = () => {
     }
   };
 
+  // GET MIN PRICE
   const getMinPrice = async (): Promise<string> => {
     try {
-      if (!signer) return '0.000001';
-
-      const contract = getContract();
-      const minPrice = await contract.getMinPrice();
+      const minPrice = await readContract({
+        contract,
+        method: 'getMinPrice',
+        params: [],
+      });
       return ethers.formatEther(minPrice);
     } catch (error: any) {
       console.error('Error fetching min price:', error);
@@ -250,13 +262,16 @@ export const useNFTContract = () => {
     }
   };
 
+  // MARKETPLACE STATS
   const getMarketplaceStats = async (): Promise<MarketplaceStats> => {
     try {
-      if (!signer) return { totalTokens: 0, totalSold: 0, currentListings: 0 };
+      const result = await readContract({
+        contract,
+        method: 'getCompanyStats',
+        params: [],
+      });
 
-      const contract = getContract();
-      const [totalTokens, totalSold, currentListings] = await contract.getCompanyStats();
-
+      const [totalTokens, totalSold, currentListings] = result as [bigint, bigint, bigint];
       return {
         totalTokens: Number(totalTokens),
         totalSold: Number(totalSold),
@@ -268,16 +283,18 @@ export const useNFTContract = () => {
     }
   };
 
+  // FETCH NFT METADATA
   const fetchNFTMetadata = async (tokenId: bigint): Promise<NFTMetadata | null> => {
-    if (!signer) return null;
-
     try {
-      const contract = getContract();
-      const tokenURI = await contract.tokenURI(tokenId);
+      const tokenURI = await readContract({
+        contract,
+        method: 'tokenURI',
+        params: [tokenId],
+      });
 
       if (!tokenURI) return null;
 
-      const response = await fetch(tokenURI);
+      const response = await fetch(tokenURI as string);
       if (!response.ok) throw new Error('Failed to fetch metadata');
 
       const metadata: NFTMetadata = await response.json();
@@ -288,6 +305,7 @@ export const useNFTContract = () => {
     }
   };
 
+  // ENRICH NFTS WITH METADATA
   const enrichNFTsWithMetadata = async (nfts: ListedToken[]): Promise<NFTWithMetadata[]> => {
     const enrichedNFTs = await Promise.allSettled(
       nfts.map(async (nft): Promise<NFTWithMetadata> => {
@@ -302,12 +320,11 @@ export const useNFTContract = () => {
     );
 
     return enrichedNFTs
-      .filter((result): result is PromiseFulfilledResult<NFTWithMetadata> =>
-        result.status === 'fulfilled'
-      )
-      .map(result => result.value);
+      .filter((result): result is PromiseFulfilledResult<NFTWithMetadata> => result.status === 'fulfilled')
+      .map((result) => result.value);
   };
 
+  // SALE COMPUTATION
   const calculateSaleDetails = (price: bigint): SaleDetails => {
     const companyFee = (price * 250n) / 10000n; // 2.5%
     const creatorRoyalty = (price * 100n) / 10000n; // 1%
@@ -341,6 +358,6 @@ export const useNFTContract = () => {
     isLoading,
     txHash,
     error,
-    isConnected,
+    isConnected: !!account,
   };
 };

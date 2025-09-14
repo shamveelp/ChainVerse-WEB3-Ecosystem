@@ -28,7 +28,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNFTContract } from '@/hooks/nft/useNFTContract';
-import { useWallet } from '@/components/tester/wallet-provider';
+import { useActiveAccount } from 'thirdweb/react';
 import { NFTWithMetadata, SaleDetails } from '@/types/types-nft';
 import { LoadingSpinner } from '@/components/tester/loading-skeleton';
 import { toast } from 'sonner';
@@ -45,7 +45,7 @@ export default function NFTDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [saleDetails, setSaleDetails] = useState<SaleDetails | null>(null);
 
-  const { account, isConnected } = useWallet();
+  const account = useActiveAccount();
   const {
     getListedTokenForId,
     fetchNFTMetadata,
@@ -58,7 +58,7 @@ export default function NFTDetailPage() {
     if (tokenId) {
       loadNFTDetails();
     }
-  }, [tokenId, isConnected]);
+  }, [tokenId, account]);
 
   const loadNFTDetails = async () => {
     try {
@@ -100,12 +100,12 @@ export default function NFTDetailPage() {
   };
 
   const handleBuyNFT = async () => {
-    if (!nft || !isConnected) {
+    if (!nft || !account) {
       toast.error('Please connect your wallet first');
       return;
     }
 
-    if (account && nft.seller.toLowerCase() === account.toLowerCase()) {
+    if (account && nft.seller.toLowerCase() === account.address.toLowerCase()) {
       toast.error('You cannot buy your own NFT');
       return;
     }
@@ -173,10 +173,10 @@ export default function NFTDetailPage() {
     );
   }
 
-  const isOwner = account && nft.owner.toLowerCase() === account.toLowerCase();
-  const isSeller = account && nft.seller.toLowerCase() === account.toLowerCase();
+  const isOwner = account && nft.owner.toLowerCase() === account.address.toLowerCase();
+  const isSeller = account && nft.seller.toLowerCase() === account.address.toLowerCase();
   const isCreator = nft.creator && account && 
-    nft.creator.toLowerCase() === account.toLowerCase();
+    nft.creator.toLowerCase() === account.address.toLowerCase();
 
   return (
     <TooltipProvider>
@@ -340,7 +340,7 @@ export default function NFTDetailPage() {
                       </div>
                     )}
 
-                    {!isOwner && !isSeller && isConnected && (
+                    {!isOwner && !isSeller && account && (
                       <Button
                         size="lg"
                         onClick={handleBuyNFT}
@@ -352,7 +352,7 @@ export default function NFTDetailPage() {
                       </Button>
                     )}
 
-                    {!isConnected && (
+                    {!account && (
                       <Alert>
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>

@@ -10,7 +10,7 @@ import { NFTCard } from '@/components/tester/nft-card';
 import { LoadingGrid } from '@/components/tester/loading-skeleton';
 import { useNFTContract } from '@/hooks/nft/useNFTContract';
 import { NFTWithMetadata } from '@/types/types-nft';
-import { useWallet } from '@/components/tester/wallet-provider';
+import { useActiveAccount } from 'thirdweb/react';
 import { toast } from 'sonner';
 
 const sortOptions = [
@@ -28,7 +28,7 @@ export default function ExplorePage() {
   const [filteredNFTs, setFilteredNFTs] = useState<NFTWithMetadata[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const { isConnected } = useWallet();
+  const account = useActiveAccount();
   const {
     getAllNFTs,
     enrichNFTsWithMetadata,
@@ -38,7 +38,7 @@ export default function ExplorePage() {
 
   useEffect(() => {
     loadNFTs();
-  }, [isConnected]);
+  }, [account]);
 
   const loadNFTs = async () => {
     try {
@@ -94,7 +94,7 @@ export default function ExplorePage() {
   }, [searchTerm, sortBy, enrichedNFTs]);
 
   const handleBuyNFT = async (nft: NFTWithMetadata) => {
-    if (!isConnected) {
+    if (!account) {
       toast.error('Please connect your wallet first');
       return;
     }
@@ -213,7 +213,7 @@ export default function ExplorePage() {
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold mb-2">No NFTs Found</h3>
             <p className="text-muted-foreground">
-              {enrichedNFTs.length === 0 
+              {enrichedNFTs.length === 0
                 ? 'No NFTs have been minted yet. Be the first to create one!'
                 : 'Try adjusting your search or filters'
               }
