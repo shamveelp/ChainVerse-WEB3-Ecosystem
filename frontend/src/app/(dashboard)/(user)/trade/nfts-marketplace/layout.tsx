@@ -1,31 +1,29 @@
-import type { Metadata } from "next";
-import { NavbarT } from "@/components/trade/Navbar";
-import Navbar from "@/components/home/navbar";
-import { Toaster } from "@/components/ui/sonner";
+import { WalletProvider } from '@/components/tester/wallet-provider';
+import { Header } from '@/components/tester/header';
+import { Toaster } from '@/components/ui/sonner';
+import Navbar from '@/components/home/navbar';
 
-export const metadata: Metadata = {
-  title: "ChainVerse NFT Marketplace",
-  description: "Discover, create, and trade unique digital assets on multiple blockchains",
-};
-
-export default function MarketplaceLayout({
-  children,
-}: {
-  children: React.ReactNode;
+export default function NFTMarketplaceLayout({ 
+  children 
+}: { 
+  children: React.ReactNode 
 }) {
   return (
-    <>
+    <WalletProvider>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/20">
-        <NavbarT />
-        <main>{children}</main>
-        <Toaster 
-          theme="dark" 
-          position="bottom-right"
-          expand={false}
-          richColors
-        />
+      <div className="relative min-h-screen">
+        {/* Background Effects */}
+        <div className="fixed inset-0 -z-10">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
+          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]" />
+        </div>
+
+        <Header />
+        <main className="relative">
+          {children}
+        </main>
+        <Toaster position="bottom-right" />
       </div>
-    </>
+    </WalletProvider>
   );
 }

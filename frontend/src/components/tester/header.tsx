@@ -11,10 +11,10 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useWallet } from './wallet-provider';
 
 const navigation = [
-  { name: 'Home', href: '/trade/tester-nft' },
-  { name: 'Explore', href: '/trade/tester-nft/explore' },
-  { name: 'Create', href: '/trade/tester-nft/create' },
-  { name: 'Profile', href: '/trade/tester-nft/profile' },
+  { name: 'Home', href: '/trade/nfts-marketplace' },
+  { name: 'Explore', href: '/trade/nfts-marketplace/explore' },
+  { name: 'Create', href: '/trade/nfts-marketplace/create' },
+  { name: 'Profile', href: '/trade/nfts-marketplace/profile' },
 ];
 
 export function Header() {

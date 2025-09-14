@@ -590,3 +590,4 @@
 2025-09-03T12:49:17.227Z [error]: Error verifying OTP: Invalid verification code
 2025-09-03T12:49:17.229Z [error]: Error verifying OTP: Invalid verification code
 2025-09-08T13:16:45.479Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-09-13T15:33:42.797Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017

@@ -2,9 +2,9 @@
 
 import { useState, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { NFT_MARKETPLACE_ADDRESS, NFT_MARKETPLACE_ABI } from './contracts';
-import { ListedToken, NFTWithMetadata, NFTMetadata, SaleDetails, MarketplaceStats } from './types-nft';
-import { useWallet } from './wallet-provider';
+import { NFT_MARKETPLACE_ADDRESS, NFT_MARKETPLACE_ABI } from '@/lib/nft/contracts';
+import { ListedToken, NFTWithMetadata, NFTMetadata, SaleDetails, MarketplaceStats } from '@/types/types-nft';
+import { useWallet } from '@/components/tester/wallet-provider';
 
 export const useNFTContract = () => {
   const { signer, isConnected } = useWallet();

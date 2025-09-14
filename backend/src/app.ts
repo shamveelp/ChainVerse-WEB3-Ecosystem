@@ -2,6 +2,7 @@ import express from 'express';
 import userRoutes from './routes/user.routes';
 import adminRoutes from './routes/admin.routes';
 import communityAdminRoutes from './routes/communityAdmin.routes';
+import walletRoutes from './routes/wallet.routes';
 // import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/community-admin', communityAdminRoutes)
+app.use('/api/wallet', walletRoutes)
 
 // initAdmin()
 

@@ -10,9 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { NFTCard } from './nft-card';
 import { RelistModal } from './relist-modal';
 import { LoadingGrid } from './loading-skeleton';
-import { useNFTContract } from './useNFTContract';
+import { useNFTContract } from '@/hooks/nft/useNFTContract';
 import { useWallet } from './wallet-provider';
-import { NFTWithMetadata } from './types-nft';
+import { NFTWithMetadata } from '../../types/types-nft';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
@@ -238,10 +238,10 @@ export default function ProfilePage() {
                   </p>
                   <div className="flex gap-4 justify-center">
                     <Button asChild>
-                      <a href="/trade/tester-nft/create">Create NFT</a>
+                      <a href="/trade/nfts-marketplace/create">Create NFT</a>
                     </Button>
                     <Button variant="outline" asChild>
-                      <a href="/trade/tester-nft/explore">Explore NFTs</a>
+                      <a href="/trade/nfts-marketplace/explore">Explore NFTs</a>
                     </Button>
                   </div>
                 </div>

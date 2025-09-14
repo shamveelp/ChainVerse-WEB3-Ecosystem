@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { NFTCard } from '@/components/tester/nft-card';
 import { LoadingGrid } from '@/components/tester/loading-skeleton';
-import { useNFTContract } from '@/components/tester/useNFTContract';
-import { NFTWithMetadata } from '@/components/tester/types-nft';
+import { useNFTContract } from '@/hooks/nft/useNFTContract';
+import { NFTWithMetadata } from '@/types/types-nft';
 import { useWallet } from '@/components/tester/wallet-provider';
 import { toast } from 'sonner';
 

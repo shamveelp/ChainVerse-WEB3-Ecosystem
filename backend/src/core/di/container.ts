@@ -92,7 +92,6 @@ import { WalletService } from "../../services/dex/wallet.service"
 import { IAdminDexService } from "../interfaces/services/admin/IAdminDexService"
 import { AdminDexService } from "../../services/admin/adminDex.service"
 import { IAdminWalletService } from "../interfaces/services/admin/IAdminWalletService"
-import { AdminWalletService } from "../../services/admin/adminWallet.service"
 import { IDexRepository } from "../interfaces/repositories/IDexRepository"
 import { DexRepository } from "../../repositories/dex.repository"
 
@@ -156,13 +155,12 @@ container.bind<IDailyCheckInService>(TYPES.IDailyCheckInService).to(DailyCheckIn
 container.bind<IAdminDexController>(TYPES.IAdminDexController).to(AdminDexController)
 container.bind<IAdminWalletController>(TYPES.IAdminWalletController).to(AdminWalletController)
 container.bind<IDexController>(TYPES.IDexController).to(DexController)
-container.bind<IWalletController>(TYPES.IWalletController).to(WalletController)
+// container.bind<IWalletController>(TYPES.IWalletController).to(WalletController)
 
 // dex - servie
 container.bind<IDexService>(TYPES.IDexService).to(DexService)
 container.bind<IWalletService>(TYPES.IWalletService).to(WalletService)
 container.bind<IAdminDexService>(TYPES.IAdminDexService).to(AdminDexService)
-container.bind<IAdminWalletService>(TYPES.IAdminWalletService).to(AdminWalletService)
 
 // dex repo
 container.bind<IDexRepository>(TYPES.IDexRepository).to(DexRepository)

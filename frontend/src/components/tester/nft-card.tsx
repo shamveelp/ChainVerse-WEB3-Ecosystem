@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { NFTWithMetadata } from './types-nft';
+import { NFTWithMetadata } from '../../types/types-nft';
 import Link from 'next/link';
 import { useWallet } from './wallet-provider';
 
@@ -151,7 +151,7 @@ export function NFTCard({
                       className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm"
                       asChild
                     >
-                      <Link href={`/trade/tester-nft/nft/${nft.tokenId}`}>
+                      <Link href={`/trade/nfts-marketplace/nft/${nft.tokenId}`}>
                         <Eye className="h-4 w-4" />
                       </Link>
                     </Button>

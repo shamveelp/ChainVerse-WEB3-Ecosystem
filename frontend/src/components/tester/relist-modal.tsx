@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { NFTWithMetadata } from './types-nft';
+import { NFTWithMetadata } from '../../types/types-nft';
 
 interface RelistModalProps {
   isOpen: boolean;

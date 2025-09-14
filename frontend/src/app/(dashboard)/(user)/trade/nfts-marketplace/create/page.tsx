@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useNFTContract } from '@/components/tester/useNFTContract';
-import { uploadFileToIPFS, uploadJSONToIPFS } from '@/components/tester/ipfs';
+import { useNFTContract } from '@/hooks/nft/useNFTContract';
+import { uploadFileToIPFS, uploadJSONToIPFS } from '@/lib/nft/ipfs';
 import { useWallet } from '@/components/tester/wallet-provider';
 import { toast } from 'sonner';
 
@@ -118,7 +118,7 @@ export default function CreatePage() {
       setUploadProgress(100);
 
       toast.success('NFT created successfully!');
-      router.push('/trade/tester-nft/explore');
+      router.push('/trade/nfts-marketplace/explore');
       
     } catch (error: any) {
       console.error('Error creating NFT:', error);
@@ -244,7 +244,7 @@ export default function CreatePage() {
                   id="price"
                   name="price"
                   type="number"
-                  step="0.001"
+                  step="0.000001"
                   min="0"
                   value={formData.price}
                   onChange={handleInputChange}
@@ -253,7 +253,7 @@ export default function CreatePage() {
                   required
                 />
                 <p className="text-sm text-muted-foreground">
-                  Listing fee: 0.01 ETH (will be deducted automatically)
+                  Listing fee: 0.0001 ETH (approx. will be deducted automatically)
                 </p>
               </div>
 
