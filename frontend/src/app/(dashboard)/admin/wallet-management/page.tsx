@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { Search, Wallet, TrendingUp, Calendar, Users, Download, Eye } from 'lucide-react';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Search, Wallet, TrendingUp, Calendar, Users, Download, Eye, ChevronLeft, ChevronRight, Loader2, RefreshCw, Shield } from "lucide-react";
+import { getAllWallets, getWalletStats, exportWalletData } from "@/services/adminApiService";
 
 interface WalletData {
   address: string;
@@ -22,27 +27,35 @@ export default function WalletManagement() {
   const [wallets, setWallets] = useState<WalletData[]>([]);
   const [stats, setStats] = useState<WalletStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const walletsPerPage = 20;
+  const router = useRouter();
 
   useEffect(() => {
     fetchWallets();
     fetchStats();
-  }, [currentPage]);
+  }, [currentPage, searchTerm]);
 
   const fetchWallets = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const response = await fetch(`/api/admin/wallets?page=${currentPage}&limit=20`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setWallets(data.data.wallets);
-        setTotalPages(Math.ceil(data.data.total / 20));
+      const response = await getAllWallets(currentPage, walletsPerPage, searchTerm);
+      if (response.success) {
+        setWallets(response.data.wallets || []);
+        setTotalPages(Math.ceil(response.data.total / walletsPerPage) || 1);
+      } else {
+        throw new Error(response.error || "Failed to fetch wallets");
       }
-    } catch (error) {
-      console.error('Error fetching wallets:', error);
+    } catch (err: any) {
+      console.error("Error fetching wallets:", err);
+      setError(err.message || "Failed to fetch wallets. Please try again.");
+      setWallets([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -50,49 +63,62 @@ export default function WalletManagement() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/admin/wallets/stats');
-      const data = await response.json();
-      
-      if (data.success) {
-        setStats(data.data);
+      const response = await getWalletStats();
+      if (response.success) {
+        setStats(response.data);
+      } else {
+        throw new Error(response.error || "Failed to fetch wallet stats");
       }
-    } catch (error) {
-      console.error('Error fetching wallet stats:', error);
+    } catch (err: any) {
+      console.error("Error fetching wallet stats:", err);
+      setError(err.message || "Failed to fetch wallet stats.");
     }
   };
 
-  const exportData = async () => {
+  const handleExportData = async () => {
     try {
-      const response = await fetch('/api/admin/wallets/export');
-      const data = await response.json();
-      
-      if (data.success) {
-        const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
+      const response = await exportWalletData();
+      if (response.success) {
+        const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `wallet-data-${new Date().toISOString().split('T')[0]}.json`;
+        a.download = `wallet-data-${new Date().toISOString().split("T")[0]}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+      } else {
+        throw new Error(response.error || "Failed to export wallet data");
       }
-    } catch (error) {
-      console.error('Error exporting data:', error);
+    } catch (err: any) {
+      console.error("Error exporting data:", err);
+      setError(err.message || "Failed to export wallet data.");
     }
   };
 
-  const filteredWallets = wallets.filter(wallet =>
-    wallet.address.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleSearch = () => {
+    setSearchTerm(searchInput.trim());
+    setCurrentPage(1);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  const handleViewWallet = (address: string) => {
+    router.push(`/admin/wallet-management/${address}`);
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -100,197 +126,294 @@ export default function WalletManagement() {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
+  const getPaginationButtons = () => {
+    const buttons = [];
+    const maxButtons = 5;
+    const halfMax = Math.floor(maxButtons / 2);
+    let startPage = Math.max(1, currentPage - halfMax);
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+    if (endPage - startPage < maxButtons - 1) {
+      startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(i);
+    }
+    return buttons;
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Wallet Management</h1>
-          <p className="text-gray-600">Monitor and manage connected wallets</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-600 bg-clip-text text-transparent flex items-center gap-3">
+            <Wallet className="h-8 w-8 text-cyan-400" />
+            Wallet Management
+          </h1>
+          <p className="text-slate-400 text-lg">
+            Monitor and manage all Web3 ecosystem wallets
+          </p>
         </div>
-
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Wallet className="h-6 w-6 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Wallets</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalWallets}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Active Today</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeToday}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Calendar className="h-6 w-6 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Active This Week</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeThisWeek}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <Users className="h-6 w-6 text-orange-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Active This Month</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeThisMonth}</p>
-                </div>
-              </div>
-            </div>
+        <div className="flex items-center gap-6">
+          <div className="text-right">
+            <p className="text-2xl font-bold text-white">{stats?.totalWallets.toLocaleString() || 0}</p>
+            <p className="text-sm text-slate-400">Total Wallets</p>
           </div>
-        )}
-
-        {/* Actions Bar */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Search wallet addresses..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <button
-              onClick={exportData}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Download className="h-4 w-4" />
-              Export Data
-            </button>
-          </div>
-        </div>
-
-        {/* Wallets Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Connected Wallets</h3>
-          </div>
-          
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading wallets...</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Wallet Address
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Last Connected
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Connections
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      First Connected
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredWallets.map((wallet) => (
-                    <tr key={wallet.address} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <Wallet className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">{truncateAddress(wallet.address)}</p>
-                            <p className="text-xs text-gray-500">{wallet.address}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDate(wallet.lastConnected)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          {wallet.connectionCount}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDate(wallet.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <Link
-                          href={`/admin/wallet-management/${wallet.address}`}
-                          className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
-                        >
-                          <Eye className="h-4 w-4" />
-                          View Details
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              
-              {filteredWallets.length === 0 && (
-                <div className="p-8 text-center text-gray-500">
-                  {searchTerm ? 'No wallets found matching your search.' : 'No wallets connected yet.'}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-gray-700">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
+          <Button
+            onClick={fetchWallets}
+            variant="outline"
+            className="bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-400"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
         </div>
       </div>
+
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+            <CardContent className="p-6 flex items-center">
+              <div className="p-3 bg-blue-500/20 rounded-lg">
+                <Wallet className="h-6 w-6 text-blue-400" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-slate-400">Total Wallets</p>
+                <p className="text-2xl font-bold text-white">{stats.totalWallets}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+            <CardContent className="p-6 flex items-center">
+              <div className="p-3 bg-green-500/20 rounded-lg">
+                <TrendingUp className="h-6 w-6 text-green-400" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-slate-400">Active Today</p>
+                <p className="text-2xl font-bold text-white">{stats.activeToday}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+            <CardContent className="p-6 flex items-center">
+              <div className="p-3 bg-purple-500/20 rounded-lg">
+                <Calendar className="h-6 w-6 text-purple-400" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-slate-400">Active This Week</p>
+                <p className="text-2xl font-bold text-white">{stats.activeThisWeek}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+            <CardContent className="p-6 flex items-center">
+              <div className="p-3 bg-orange-500/20 rounded-lg">
+                <Users className="h-6 w-6 text-orange-400" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-slate-400">Active This Month</p>
+                <p className="text-2xl font-bold text-white">{stats.activeThisMonth}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Search and Export */}
+      <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <div className="flex-1 relative group">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-cyan-400/70 group-focus-within:text-cyan-400 transition-colors" />
+              <Input
+                placeholder="Search wallet addresses..."
+                value={searchInput}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="pl-10 bg-slate-800/50 border-slate-600/50 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400/50 focus:ring-cyan-400/20 backdrop-blur-sm transition-all duration-300"
+              />
+              <div className="absolute inset-0 rounded-md bg-gradient-to-r from-cyan-400/0 via-cyan-400/5 to-cyan-400/0 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
+            </div>
+            <div className="flex gap-4">
+              <Button
+                onClick={handleSearch}
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold px-6 transition-all duration-300 shadow-lg hover:shadow-cyan-400/25"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </Button>
+              <Button
+                onClick={handleExportData}
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold px-6 transition-all duration-300 shadow-lg hover:shadow-cyan-400/25"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export Data
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Wallets Table */}
+      <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+        <CardHeader className="border-b border-slate-700/50">
+          <CardTitle className="text-white flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-cyan-400" />
+              Web3 Wallets Registry
+            </div>
+            <div className="text-sm text-slate-400 font-normal">
+              {loading ? "Loading..." : `Showing ${((currentPage - 1) * walletsPerPage) + 1} - ${Math.min(currentPage * walletsPerPage, stats?.totalWallets || 0)} of ${stats?.totalWallets || 0} wallets`}
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-4">
+                <Loader2 className="h-8 w-8 animate-spin text-cyan-400 mx-auto" />
+                <span className="text-slate-400">Loading blockchain wallets...</span>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 space-y-4">
+              <Shield className="h-12 w-12 text-red-400 mx-auto" />
+              <p className="text-red-400 mb-4">{error}</p>
+              <Button
+                onClick={fetchWallets}
+                className="bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+            </div>
+          ) : wallets.length === 0 ? (
+            <div className="text-center py-12 space-y-4">
+              <Wallet className="h-12 w-12 text-slate-600 mx-auto" />
+              <p className="text-slate-400">
+                {searchTerm ? `No wallets found matching "${searchTerm}"` : "No wallets found in the ecosystem"}
+              </p>
+              {searchTerm && (
+                <Button
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearchTerm("");
+                    setCurrentPage(1);
+                  }}
+                  variant="outline"
+                  className="bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50"
+                >
+                  Clear Search
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-700/50 bg-slate-800/30">
+                      <th className="text-left py-4 px-6 text-slate-400 font-medium">Wallet Address</th>
+                      <th className="text-left py-4 px-6 text-slate-400 font-medium">Last Connected</th>
+                      <th className="text-left py-4 px-6 text-slate-400 font-medium">Connections</th>
+                      <th className="text-left py-4 px-6 text-slate-400 font-medium">First Connected</th>
+                      <th className="text-left py-4 px-6 text-slate-400 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {wallets.map((wallet) => (
+                      <tr
+                        key={wallet.address}
+                        className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors group"
+                      >
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-400 to-purple-600 flex items-center justify-center text-slate-900 font-bold">
+                              {wallet.address.charAt(2).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-white font-medium">{truncateAddress(wallet.address)}</p>
+                              <p className="text-xs text-slate-400 font-mono">{wallet.address}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <p className="text-slate-300 text-sm">{formatDate(wallet.lastConnected)}</p>
+                        </td>
+                        <td className="py-4 px-6">
+                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                            {wallet.connectionCount}
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-6">
+                          <p className="text-slate-300 text-sm">{formatDate(wallet.createdAt)}</p>
+                        </td>
+                        <td className="py-4 px-6">
+                          <Button
+                            variant="outline"
+                            onClick={() => handleViewWallet(wallet.address)}
+                            className="bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-400 transition-all duration-300"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between p-6 border-t border-slate-700/50 bg-slate-800/20">
+                  <div className="text-sm text-slate-400">
+                    Page {currentPage} of {totalPages} • Total {stats?.totalWallets || 0} wallets
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      className="bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {getPaginationButtons().map((pageNum) => (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={
+                            currentPage === pageNum
+                              ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
+                              : "bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-400"
+                          }
+                          size="sm"
+                        >
+                          {pageNum}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                      className="bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

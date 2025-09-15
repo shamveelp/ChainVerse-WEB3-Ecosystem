@@ -1,15 +1,45 @@
 import { IWallet } from "../../../../models/wallet.model";
 import { ITransaction } from "../../../../models/transactions.model";
 
+export interface EtherscanTransaction {
+  hash: string;
+  blockNumber: string;
+  timeStamp: string;
+  from: string;
+  to: string;
+  value: string;
+  gas: string;
+  gasPrice: string;
+  gasUsed: string;
+  isError: string;
+  input: string;
+  contractAddress: string;
+  functionName?: string;
+  methodId?: string;
+}
+
+export interface WalletHistoryResponse {
+  transactions: EtherscanTransaction[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface WalletStatsResponse {
+  totalWallets: number;
+  activeToday: number;
+  activeThisWeek: number;
+  activeThisMonth: number;
+}
+
 export interface IAdminWalletService {
-  getAllWallets(page?: number, limit?: number): Promise<{ wallets: IWallet[], total: number }>;
+  getAllWallets(page?: number, limit?: number): Promise<{ wallets: IWallet[], total: number, page: number, limit: number, totalPages: number }>;
   getWalletDetails(address: string): Promise<IWallet | null>;
-  getWalletStats(): Promise<{
-    totalWallets: number;
-    activeToday: number;
-    activeThisWeek: number;
-    activeThisMonth: number;
-  }>;
+  getWalletStats(): Promise<WalletStatsResponse>;
   getWalletTransactions(address: string, page?: number, limit?: number): Promise<{ transactions: ITransaction[], total: number }>;
+  getWalletHistoryFromEtherscan(address: string, page?: number, limit?: number): Promise<WalletHistoryResponse>;
+  getWalletAppHistory(address: string, page?: number, limit?: number): Promise<WalletHistoryResponse>;
   exportWalletData(): Promise<any[]>;
+  refreshWalletData(address: string): Promise<IWallet | null>;
 }

@@ -5,5 +5,8 @@ export interface IAdminWalletController {
   getWalletDetails(req: Request, res: Response): Promise<void>;
   getWalletStats(req: Request, res: Response): Promise<void>;
   getWalletTransactions(req: Request, res: Response): Promise<void>;
+  getWalletHistoryFromEtherscan(req: Request, res: Response): Promise<void>;
+  getWalletAppHistory(req: Request, res: Response): Promise<void>;
   exportWalletData(req: Request, res: Response): Promise<void>;
+  refreshWalletData(req: Request, res: Response): Promise<void>;
 }

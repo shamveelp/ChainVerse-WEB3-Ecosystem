@@ -14,7 +14,7 @@ import { UserProfileController } from "../../controllers/user/userProfile.contro
 
 // Admin Controllers
 import { IAdminAuthController } from "../interfaces/controllers/admin/IAuthAdmin.controllers"
-import { AdminAuthController } from "../../controllers/admin/adminAuth.controller"
+import { AdminAuthController } from "../../controllers/admin/AdminAuth.controller"
 import { IAdminUserController } from "../interfaces/controllers/admin/IAdminUser.controller"
 import { AdminUserController } from "../../controllers/admin/adminUser.controller"
 import { IAdminCommunityController } from "../interfaces/controllers/admin/IAdminCommunity.controller"
@@ -92,8 +92,10 @@ import { WalletService } from "../../services/dex/wallet.service"
 import { IAdminDexService } from "../interfaces/services/admin/IAdminDexService"
 import { AdminDexService } from "../../services/admin/adminDex.service"
 import { IAdminWalletService } from "../interfaces/services/admin/IAdminWalletService"
+import { AdminWalletService } from "../../services/admin/adminWallet.service"
 import { IDexRepository } from "../interfaces/repositories/IDexRepository"
 import { DexRepository } from "../../repositories/dex.repository"
+import { EtherscanService } from "../../services/etherscan.service"
 
 // Create Container
 const container = new Container()
@@ -141,31 +143,26 @@ container.bind<IAdminRepository>(TYPES.IAdminRepository).to(AdminRepository)
 container.bind<ICommunityAdminRepository>(TYPES.ICommunityAdminRepository).to(CommunityAdminRepository)
 container.bind<ICommunityRequestRepository>(TYPES.ICommunityRequestRepository).to(CommunityRequestRepository)
 
-
-
-
 container.bind<IReferralHistoryService>(TYPES.IReferralHistoryService).to(ReferralHistoryService);
 container.bind<IPointsHistoryService>(TYPES.IPointsHistoryService).to(PointsHistoryService);
 container.bind<IDailyCheckInService>(TYPES.IDailyCheckInService).to(DailyCheckInService);
-
-// Repositories
-
 
 // dex
 container.bind<IAdminDexController>(TYPES.IAdminDexController).to(AdminDexController)
 container.bind<IAdminWalletController>(TYPES.IAdminWalletController).to(AdminWalletController)
 container.bind<IDexController>(TYPES.IDexController).to(DexController)
-// container.bind<IWalletController>(TYPES.IWalletController).to(WalletController)
 
-// dex - servie
+// dex - service
 container.bind<IDexService>(TYPES.IDexService).to(DexService)
 container.bind<IWalletService>(TYPES.IWalletService).to(WalletService)
 container.bind<IAdminDexService>(TYPES.IAdminDexService).to(AdminDexService)
+container.bind<IAdminWalletService>(TYPES.IAdminWalletService).to(AdminWalletService)
 
 // dex repo
 container.bind<IDexRepository>(TYPES.IDexRepository).to(DexRepository)
 
-
+// Etherscan Service
+container.bind<EtherscanService>(TYPES.EtherscanService).to(EtherscanService)
 
 // Bind OAuth Client
 container.bind<OAuthClient>(TYPES.OAuthClient).to(OAuthClient)

@@ -32,7 +32,6 @@ const TYPES = {
   IAdminDexService: Symbol.for("IAdminDexService"),
   IAdminWalletService: Symbol.for("IAdminWalletService"),
 
-
   // Repositories
   IUserRepository: Symbol.for("IUserRepository"),
   IReferralHistoryRepository: Symbol.for("IReferralHistoryRepository"),
@@ -51,13 +50,12 @@ const TYPES = {
   AdminCommunityController: Symbol.for("AdminCommunityController"),
   CommunityAdminAuthController: Symbol.for("CommunityAdminAuthController"),
 
-
-
-  
   IReferralHistoryService: Symbol.for("IReferralHistoryService"),
   IPointsHistoryService: Symbol.for("IPointsHistoryService"),
   IDailyCheckInService: Symbol.for("IDailyCheckInService"),
-  
+
+  // Etherscan Service
+  EtherscanService: Symbol.for("EtherscanService"),
 };
 
 export { TYPES };

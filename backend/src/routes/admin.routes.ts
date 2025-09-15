@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import container from '../core/di/container';
 import { TYPES } from '../core/types/types';
-import { AdminAuthController } from '../controllers/admin/adminAuth.controller';
+import { AdminAuthController } from '../controllers/admin/AdminAuth.controller';
 import { AdminUserController } from '../controllers/admin/adminUser.controller';
 import { AdminCommunityController } from '../controllers/admin/adminCommunity.controller';
 import { authMiddleware, roleMiddleware } from '../middlewares/auth.middleware';
@@ -10,12 +10,14 @@ import { AdminLoginDto, AdminChangePasswordDto } from '../dtos/admin/AdminAuth.d
 import { AdminForgotPasswordDto, AdminVerifyOtpDto, AdminResetPasswordDto } from '../dtos/admin/AdminForgotPassword.dto';
 import { GetUsersQueryDto, UpdateUserStatusDto } from '../dtos/admin/AdminUser.dto';
 import { GetCommunityRequestsQueryDto, RejectCommunityRequestDto } from '../dtos/admin/AdminCommunity.dto';
+import { AdminWalletController } from '../controllers/admin/adminWallet.controller';
 
 const router = Router();
 
 const adminAuthController = container.get<AdminAuthController>(TYPES.IAdminAuthController);
 const adminUserController = container.get<AdminUserController>(TYPES.IAdminUserController);
 const adminCommunityController = container.get<AdminCommunityController>(TYPES.IAdminCommunityController);
+const adminWalletController = container.get<AdminWalletController>(TYPES.IAdminWalletController);
 
 // Auth Routes (Public)
 router.post("/login", validateBody(AdminLoginDto), adminAuthController.login.bind(adminAuthController));
@@ -47,5 +49,18 @@ router.get("/community-requests", authMiddleware, roleMiddleware(['admin']), val
 router.get("/community-requests/:id", authMiddleware, roleMiddleware(['admin']), adminCommunityController.getCommunityRequestById.bind(adminCommunityController));
 router.patch("/community-requests/:id/approve", authMiddleware, roleMiddleware(['admin']), adminCommunityController.approveCommunityRequest.bind(adminCommunityController));
 router.patch("/community-requests/:id/reject", authMiddleware, roleMiddleware(['admin']), validateBody(RejectCommunityRequestDto), adminCommunityController.rejectCommunityRequest.bind(adminCommunityController));
+
+
+// Protected Routes - Wallet Management
+router.get("/wallets", authMiddleware, roleMiddleware(['admin']), adminWalletController.getAllWallets.bind(adminWalletController));
+router.get("/wallets/stats", authMiddleware, roleMiddleware(['admin']), adminWalletController.getWalletStats.bind(adminWalletController));
+router.get("/wallets/export", authMiddleware, roleMiddleware(['admin']), adminWalletController.exportWalletData.bind(adminWalletController));
+router.get("/wallets/:address", authMiddleware, roleMiddleware(['admin']), adminWalletController.getWalletDetails.bind(adminWalletController));
+router.get("/wallets/:address/transactions", authMiddleware, roleMiddleware(['admin']), adminWalletController.getWalletTransactions.bind(adminWalletController));
+router.get("/wallets/:address/history", authMiddleware, roleMiddleware(['admin']), adminWalletController.getWalletHistoryFromEtherscan.bind(adminWalletController));
+router.get("/wallets/:address/app-history", authMiddleware, roleMiddleware(['admin']), adminWalletController.getWalletAppHistory.bind(adminWalletController));
+router.post("/wallets/:address/refresh", authMiddleware, roleMiddleware(['admin']), adminWalletController.refreshWalletData.bind(adminWalletController));
+
+
 
 export default router;

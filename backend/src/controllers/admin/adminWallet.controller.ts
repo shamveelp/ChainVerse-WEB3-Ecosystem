@@ -17,18 +17,19 @@ export class AdminWalletController implements IAdminWalletController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
-      
+
       const result = await this._adminWalletService.getAllWallets(page, limit);
-      
+
       res.status(StatusCode.OK).json({
         success: true,
-        data: result
+        data: result,
+        message: "Wallets retrieved successfully"
       });
     } catch (error) {
       logger.error("Error in getAllWallets:", error);
       const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallets";
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      
+
       res.status(statusCode).json({
         success: false,
         error: errorMessage
@@ -39,32 +40,35 @@ export class AdminWalletController implements IAdminWalletController {
   getWalletDetails = async (req: Request, res: Response) => {
     try {
       const { address } = req.params;
-      
+
       if (!address) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           error: "Wallet address is required"
         });
+        return;
       }
 
       const wallet = await this._adminWalletService.getWalletDetails(address);
-      
+
       if (!wallet) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
           error: "Wallet not found"
         });
+        return;
       }
 
       res.status(StatusCode.OK).json({
         success: true,
-        data: wallet
+        data: wallet,
+        message: "Wallet details retrieved successfully"
       });
     } catch (error) {
       logger.error("Error in getWalletDetails:", error);
       const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallet details";
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      
+
       res.status(statusCode).json({
         success: false,
         error: errorMessage
@@ -75,16 +79,17 @@ export class AdminWalletController implements IAdminWalletController {
   getWalletStats = async (req: Request, res: Response) => {
     try {
       const stats = await this._adminWalletService.getWalletStats();
-      
+
       res.status(StatusCode.OK).json({
         success: true,
-        data: stats
+        data: stats,
+        message: "Wallet statistics retrieved successfully"
       });
     } catch (error) {
       logger.error("Error in getWalletStats:", error);
       const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallet statistics";
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      
+
       res.status(statusCode).json({
         success: false,
         error: errorMessage
@@ -97,25 +102,93 @@ export class AdminWalletController implements IAdminWalletController {
       const { address } = req.params;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
-      
+
       if (!address) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           error: "Wallet address is required"
         });
+        return;
       }
 
       const result = await this._adminWalletService.getWalletTransactions(address, page, limit);
-      
+
       res.status(StatusCode.OK).json({
         success: true,
-        data: result
+        data: result,
+        message: "Wallet transactions retrieved successfully"
       });
     } catch (error) {
       logger.error("Error in getWalletTransactions:", error);
       const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallet transactions";
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      
+
+      res.status(statusCode).json({
+        success: false,
+        error: errorMessage
+      });
+    }
+  };
+
+  getWalletHistoryFromEtherscan = async (req: Request, res: Response) => {
+    try {
+      const { address } = req.params;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      if (!address) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          error: "Wallet address is required"
+        });
+        return;
+      }
+
+      const result = await this._adminWalletService.getWalletHistoryFromEtherscan(address, page, limit);
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        data: result,
+        message: "Wallet history from Etherscan retrieved successfully"
+      });
+    } catch (error) {
+      logger.error("Error in getWalletHistoryFromEtherscan:", error);
+      const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallet history from Etherscan";
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+
+      res.status(statusCode).json({
+        success: false,
+        error: errorMessage
+      });
+    }
+  };
+
+  getWalletAppHistory = async (req: Request, res: Response) => {
+    try {
+      const { address } = req.params;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      if (!address) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          error: "Wallet address is required"
+        });
+        return;
+      }
+
+      const result = await this._adminWalletService.getWalletAppHistory(address, page, limit);
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        data: result,
+        message: "Wallet app history retrieved successfully"
+      });
+    } catch (error) {
+      logger.error("Error in getWalletAppHistory:", error);
+      const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallet app history";
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+
       res.status(statusCode).json({
         success: false,
         error: errorMessage
@@ -126,17 +199,48 @@ export class AdminWalletController implements IAdminWalletController {
   exportWalletData = async (req: Request, res: Response) => {
     try {
       const data = await this._adminWalletService.exportWalletData();
-      
+
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Wallet data exported successfully",
-        data
+        data,
+        message: "Wallet data exported successfully"
       });
     } catch (error) {
       logger.error("Error in exportWalletData:", error);
       const errorMessage = error instanceof CustomError ? error.message : "Failed to export wallet data";
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      
+
+      res.status(statusCode).json({
+        success: false,
+        error: errorMessage
+      });
+    }
+  };
+
+  refreshWalletData = async (req: Request, res: Response) => {
+    try {
+      const { address } = req.params;
+
+      if (!address) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          error: "Wallet address is required"
+        });
+        return;
+      }
+
+      const wallet = await this._adminWalletService.refreshWalletData(address);
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        data: wallet,
+        message: "Wallet data refreshed successfully"
+      });
+    } catch (error) {
+      logger.error("Error in refreshWalletData:", error);
+      const errorMessage = error instanceof CustomError ? error.message : "Failed to refresh wallet data";
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+
       res.status(statusCode).json({
         success: false,
         error: errorMessage

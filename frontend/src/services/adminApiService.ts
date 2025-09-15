@@ -211,3 +211,160 @@ export const rejectCommunityRequest = async (requestId: string, reason: string) 
     }
   }
 }
+
+
+
+
+
+// Wallet Management Services
+export const getAllWallets = async (page: number = 1, limit: number = 20, search: string = "") => {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    const response = await API.get(`/api/admin/wallets?${params.toString()}`);
+    return {
+      success: true,
+      data: response.data.data || {},
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    console.error("Get wallets error:", error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message || "Failed to fetch wallets",
+    };
+  }
+};
+
+export const getWalletDetails = async (address: string) => {
+  try {
+    const response = await API.get(`/api/admin/wallets/${address}`);
+    return {
+      success: true,
+      data: response.data.data || {},
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    console.error("Get wallet details error:", error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message || "Failed to fetch wallet details",
+    };
+  }
+};
+
+export const getWalletStats = async () => {
+  try {
+    const response = await API.get("/api/admin/wallets/stats");
+    return {
+      success: true,
+      data: response.data.data || {},
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    console.error("Get wallet stats error:", error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message || "Failed to fetch wallet statistics",
+    };
+  }
+};
+
+export const getWalletTransactions = async (address: string, page: number = 1, limit: number = 20) => {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    const response = await API.get(`/api/admin/wallets/${address}/transactions?${params.toString()}`);
+    return {
+      success: true,
+      data: response.data.data || {},
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    console.error("Get wallet transactions error:", error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message || "Failed to fetch wallet transactions",
+    };
+  }
+};
+
+export const getWalletHistoryFromEtherscan = async (address: string, page: number = 1, limit: number = 20) => {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    const response = await API.get(`/api/admin/wallets/${address}/history?${params.toString()}`);
+    return {
+      success: true,
+      data: response.data.data || {},
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    console.error("Get wallet Etherscan history error:", error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message || "Failed to fetch wallet history from Etherscan",
+    };
+  }
+};
+
+export const getWalletAppHistory = async (address: string, page: number = 1, limit: number = 20) => {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    const response = await API.get(`/api/admin/wallets/${address}/app-history?${params.toString()}`);
+    return {
+      success: true,
+      data: response.data.data || {},
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    console.error("Get wallet app history error:", error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message || "Failed to fetch wallet app history",
+    };
+  }
+};
+
+export const exportWalletData = async () => {
+  try {
+    const response = await API.get("/api/admin/wallets/export");
+    return {
+      success: true,
+      data: response.data.data || [],
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    console.error("Export wallet data error:", error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message || "Failed to export wallet data",
+    };
+  }
+};
+
+export const refreshWalletData = async (address: string) => {
+  try {
+    const response = await API.post(`/api/admin/wallets/${address}/refresh`);
+    return {
+      success: true,
+      data: response.data.data || {},
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    console.error("Refresh wallet data error:", error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message || "Failed to refresh wallet data",
+    };
+  }
+};
