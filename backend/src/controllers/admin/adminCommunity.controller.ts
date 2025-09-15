@@ -36,11 +36,12 @@ export class AdminCommunityController implements IAdminCommunityController {
       );
       
       res.status(StatusCode.OK).json(response);
-    } catch (error: any) {
-      logger.error("Get community requests error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Get community requests error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
@@ -63,11 +64,12 @@ export class AdminCommunityController implements IAdminCommunityController {
         success: true,
         request: response,
       });
-    } catch (error: any) {
-      logger.error("Get community request by id error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Get community request by id error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
@@ -103,11 +105,12 @@ export class AdminCommunityController implements IAdminCommunityController {
       });
 
       logger.info(`Community request approved: ${id}`);
-    } catch (error: any) {
-      logger.error("Approve community request error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Approve community request error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
@@ -153,11 +156,12 @@ export class AdminCommunityController implements IAdminCommunityController {
       });
 
       logger.info(`Community request rejected: ${id}, reason: ${reason}`);
-    } catch (error: any) {
-      logger.error("Reject community request error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Reject community request error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }

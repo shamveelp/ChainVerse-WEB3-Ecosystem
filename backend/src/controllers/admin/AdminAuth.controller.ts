@@ -42,11 +42,12 @@ export class AdminAuthController implements IAdminAuthController {
     });
     
     logger.info(`Admin logged in successfully: ${email}`);
-  } catch (error: any) {
-    logger.error("Admin login error:", error);
+  } catch (error) {
+    const err = error as Error;
+    logger.error("Admin login error:", err);
     res.status(StatusCode.UNAUTHORIZED).json({
       success: false,
-      message: error.message || ErrorMessages.INVALID_CREDENTIALS,
+      message: err.message || ErrorMessages.INVALID_CREDENTIALS,
     });
   }
 }
@@ -63,8 +64,9 @@ export class AdminAuthController implements IAdminAuthController {
         message: SuccessMessages.ADMIN_LOGGED_OUT,
       });
       logger.info("Admin logged out successfully");
-    } catch (error: any) {
-      logger.error("Admin logout error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Admin logout error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: ErrorMessages.SERVER_ERROR,
@@ -92,11 +94,12 @@ export class AdminAuthController implements IAdminAuthController {
       });
       
       logger.info(`Forgot password OTP sent to admin: ${email}`);
-    } catch (error: any) {
-      logger.error("Admin forgot password error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Admin forgot password error:", err);
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
@@ -128,11 +131,12 @@ export class AdminAuthController implements IAdminAuthController {
       });
       
       logger.info(`Forgot password OTP verified for admin: ${email}`);
-    } catch (error: any) {
-      logger.error("Admin verify forgot password OTP error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Admin verify forgot password OTP error:", err);
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
@@ -157,11 +161,12 @@ export class AdminAuthController implements IAdminAuthController {
       });
       
       logger.info(`Password reset successful for admin: ${email}`);
-    } catch (error: any) {
-      logger.error("Admin reset password error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Admin reset password error:", err);
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
@@ -184,8 +189,9 @@ export class AdminAuthController implements IAdminAuthController {
         success: true,
         admin: response,
       });
-    } catch (error: any) {
-      logger.error("Get admin profile error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Get admin profile error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: ErrorMessages.SERVER_ERROR,
@@ -214,11 +220,12 @@ export class AdminAuthController implements IAdminAuthController {
       });
       
       logger.info(`Password changed for admin: ${adminId}`);
-    } catch (error: any) {
-      logger.error("Admin change password error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Admin change password error:", err);
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
@@ -268,11 +275,12 @@ export class AdminAuthController implements IAdminAuthController {
     });
 
     logger.info(`Token refreshed for admin: ${admin.email}`);
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as Error;
     logger.error("Admin refresh token error:", error);
     res.status(StatusCode.UNAUTHORIZED).json({
       success: false,
-      message: error.message || ErrorMessages.INVALID_TOKEN,
+      message: err.message || ErrorMessages.INVALID_TOKEN,
     });
   }
 }

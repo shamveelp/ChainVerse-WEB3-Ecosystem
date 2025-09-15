@@ -37,11 +37,12 @@ export class AdminUserController implements IAdminUserController {
       );
       
       res.status(StatusCode.OK).json(response);
-    } catch (error: any) {
-      logger.error("Get all users error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Get all users error:", err);
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
@@ -64,8 +65,9 @@ export class AdminUserController implements IAdminUserController {
         success: true,
         user: response,
       });
-    } catch (error: any) {
-      logger.error("Failed to fetch user", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Failed to fetch user", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ 
         success: false,
         message: ErrorMessages.SERVER_ERROR 
@@ -94,8 +96,9 @@ export class AdminUserController implements IAdminUserController {
         message: "User status updated successfully",
         user: response,
       });
-    } catch (error: any) {
-      logger.error("Update user status error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Update user status error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ 
         success: false,
         message: ErrorMessages.SERVER_ERROR 
@@ -124,8 +127,9 @@ export class AdminUserController implements IAdminUserController {
         message: `User ${isBanned ? 'banned' : 'unbanned'} successfully`,
         user: response,
       });
-    } catch (error: any) {
-      logger.error("Update user ban status error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Update user ban status error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ 
         success: false,
         message: ErrorMessages.SERVER_ERROR 
@@ -150,8 +154,9 @@ export class AdminUserController implements IAdminUserController {
         success: true,
         message: "User deleted successfully",
       });
-    } catch (error: any) {
-      logger.error("Delete user error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Delete user error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ 
         success: false,
         message: ErrorMessages.SERVER_ERROR 
@@ -176,11 +181,12 @@ export class AdminUserController implements IAdminUserController {
         limit,
         message: "Referrals retrieved successfully",
       });
-    } catch (error: any) {
-      logger.error("Get user referrals error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Get user referrals error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
@@ -202,11 +208,12 @@ export class AdminUserController implements IAdminUserController {
         limit,
         message: "Points history retrieved successfully",
       });
-    } catch (error: any) {
-      logger.error("Get user points history error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Get user points history error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
@@ -228,11 +235,12 @@ export class AdminUserController implements IAdminUserController {
         limit,
         message: "Check-in history retrieved successfully",
       });
-    } catch (error: any) {
-      logger.error("Get user check-in history error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Get user check-in history error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }
@@ -250,11 +258,12 @@ export class AdminUserController implements IAdminUserController {
         },
         message: "User stats retrieved successfully",
       });
-    } catch (error: any) {
-      logger.error("Get user stats error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Get user stats error:", err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error.message || ErrorMessages.SERVER_ERROR,
+        message: err.message || ErrorMessages.SERVER_ERROR,
       });
     }
   }

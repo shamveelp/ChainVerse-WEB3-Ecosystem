@@ -16,9 +16,9 @@ import { UserProfileController } from "../../controllers/user/userProfile.contro
 import { IAdminAuthController } from "../interfaces/controllers/admin/IAuthAdmin.controllers"
 import { AdminAuthController } from "../../controllers/admin/AdminAuth.controller"
 import { IAdminUserController } from "../interfaces/controllers/admin/IAdminUser.controller"
-import { AdminUserController } from "../../controllers/admin/adminUser.controller"
+import { AdminUserController } from "../../controllers/admin/AdminUser.controller"
 import { IAdminCommunityController } from "../interfaces/controllers/admin/IAdminCommunity.controller"
-import { AdminCommunityController } from "../../controllers/admin/adminCommunity.controller"
+import { AdminCommunityController } from "../../controllers/admin/AdminCommunity.controller"
 
 // Community Admin Controllers
 import { ICommunityAdminAuthController } from "../interfaces/controllers/communityAdmin/ICommunityAdminAuth.controller"
@@ -66,7 +66,7 @@ import { PointsHistoryRepository } from "../../repositories/pointsHistory.reposi
 import type { IOtpRepository } from "../interfaces/repositories/IOtpRepository"
 import { OtpRepository } from "../../repositories/otp.repository"
 import { IAdminRepository } from "../interfaces/repositories/IAdminRepository"
-import { AdminRepository } from "../../repositories/admin.repository"
+import { AdminRepository } from "../../repositories/Admin.repository"
 import { ICommunityAdminRepository } from "../interfaces/repositories/ICommunityAdminRepository"
 import { CommunityAdminRepository } from "../../repositories/communityAdmin.repository"
 import { ICommunityRequestRepository } from "../interfaces/repositories/ICommunityRequestRepository"

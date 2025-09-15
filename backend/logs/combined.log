@@ -10428,3 +10428,55 @@
 2025-09-15T11:56:32.356Z [info]: Role middleware: Checking roles:
 2025-09-15T11:56:32.356Z [info]: Role middleware: User role:
 2025-09-15T11:56:32.356Z [info]: Role middleware: Role check passed
+2025-09-15T13:25:37.523Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:25:37.714Z [info]: MongoDB connected: localhost
+2025-09-15T13:27:16.372Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:27:16.534Z [info]: MongoDB connected: localhost
+2025-09-15T13:27:26.622Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:27:26.793Z [info]: MongoDB connected: localhost
+2025-09-15T13:27:59.962Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:28:00.200Z [info]: MongoDB connected: localhost
+2025-09-15T13:28:43.173Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:28:43.423Z [info]: MongoDB connected: localhost
+2025-09-15T13:28:58.217Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:28:58.383Z [info]: MongoDB connected: localhost
+2025-09-15T13:29:46.780Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:29:47.244Z [info]: MongoDB connected: localhost
+2025-09-15T13:29:47.302Z [info]: Auth middleware: Token present:
+2025-09-15T13:29:47.303Z [info]: Auth middleware: No token provided
+2025-09-15T13:29:47.409Z [info]: Token refreshed for admin: admin@gmail.com
+2025-09-15T13:29:47.427Z [info]: Auth middleware: Token present:
+2025-09-15T13:29:47.428Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-15T13:29:47.429Z [info]: Auth middleware: Looking up admin account
+2025-09-15T13:29:47.435Z [info]: Auth middleware: Account found:
+2025-09-15T13:29:47.436Z [info]: Auth middleware: Token version:
+2025-09-15T13:29:47.436Z [info]: Auth middleware: Authentication successful for user:
+2025-09-15T13:29:47.437Z [info]: Role middleware: Checking roles:
+2025-09-15T13:29:47.437Z [info]: Role middleware: User role:
+2025-09-15T13:29:47.437Z [info]: Role middleware: Role check passed
+2025-09-15T13:29:47.449Z [info]: Admin logged out successfully
+2025-09-15T13:29:50.037Z [error]: Admin login error: Invalid credentials
+2025-09-15T13:29:54.462Z [error]: Admin login error: Invalid credentials
+2025-09-15T13:30:01.116Z [info]: Admin logged in successfully: admin@gmail.com
+2025-09-15T13:30:44.494Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:30:44.674Z [info]: MongoDB connected: localhost
+2025-09-15T13:31:44.698Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:31:44.997Z [info]: MongoDB connected: localhost
+2025-09-15T13:32:32.242Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:32:32.465Z [info]: MongoDB connected: localhost
+2025-09-15T13:34:10.996Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:34:11.330Z [info]: MongoDB connected: localhost
+2025-09-15T13:34:46.709Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:34:46.909Z [info]: MongoDB connected: localhost
+2025-09-15T13:41:00.602Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:41:00.792Z [info]: MongoDB connected: localhost
+2025-09-15T13:41:32.731Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:41:32.926Z [info]: MongoDB connected: localhost
+2025-09-15T13:41:45.206Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:41:45.446Z [info]: MongoDB connected: localhost
+2025-09-15T13:44:50.779Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:44:50.935Z [info]: MongoDB connected: localhost
+2025-09-15T13:45:22.725Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:45:22.908Z [info]: MongoDB connected: localhost
+2025-09-15T13:45:31.675Z [info]: Loaded 2 contract addresses for filtering
+2025-09-15T13:45:31.846Z [info]: MongoDB connected: localhost
