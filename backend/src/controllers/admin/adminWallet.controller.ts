@@ -5,7 +5,7 @@ import { IAdminWalletController } from "../../core/interfaces/controllers/admin/
 import { IAdminWalletService } from "../../core/interfaces/services/admin/IAdminWalletService";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 
 @injectable()
 export class AdminWalletController implements IAdminWalletController {

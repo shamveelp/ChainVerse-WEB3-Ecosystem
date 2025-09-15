@@ -52,7 +52,8 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 success: true,
                 exists: !!(existingRequest || existingAdmin)
             });
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Check email exists error:", error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
@@ -80,8 +81,9 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 success: true,
                 exists: !!existingRequest
             });
-        } catch (error: any) {
-            logger.error("Check username exists error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Check username exists error:", err);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 error: "Failed to check username availability"
@@ -138,11 +140,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.CREATED).json(responseDto);
 
             logger.info(`Community application created for email: ${dto.email}`);
-        } catch (error: any) {
-            logger.error("Create community error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Create community error:", err);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to submit application"
+                error: err.message || "Failed to submit application"
             });
         }
     }
@@ -188,11 +191,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             });
 
             logger.info(`Password set for community admin: ${dto.email}`);
-        } catch (error: any) {
-            logger.error("Set password error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Set password error:", err);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to set password"
+                error: err.message || "Failed to set password"
             });
         }
     }
@@ -216,11 +220,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             });
 
             logger.info(`OTP verified for community admin: ${dto.email}`);
-        } catch (error: any) {
-            logger.error("Verify OTP error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Verify OTP error:", err);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "OTP verification failed"
+                error: err.message || "OTP verification failed"
             });
         }
     }
@@ -256,11 +261,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             });
 
             logger.info(`OTP resent for community admin: ${email}`);
-        } catch (error: any) {
-            logger.error("Resend OTP error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Resend OTP error:", err);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to resend OTP"
+                error: err.message || "Failed to resend OTP"
             });
         }
     }
@@ -294,20 +300,20 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(responseDto);
 
             logger.info(`Community admin logged in: ${dto.email}`);
-        } catch (error: any) {
-            logger.error("Community admin login error:", error);
-            
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Community admin login error:", err);
             // Handle specific error cases for better UX
             let statusCode = StatusCode.UNAUTHORIZED;
-            let errorMessage = error.message || "Login failed";
+            let errorMessage = err.message || "Login failed";
             
-            if (error.message?.includes('under review')) {
+            if (err.message?.includes('under review')) {
                 statusCode = StatusCode.FORBIDDEN;
                 errorMessage = "Your application is still under review";
-            } else if (error.message?.includes('rejected')) {
+            } else if (err.message?.includes('rejected')) {
                 statusCode = StatusCode.FORBIDDEN;
                 errorMessage = "Your application has been rejected";
-            } else if (error.message?.includes('Invalid credentials')) {
+            } else if (err.message?.includes('Invalid credentials')) {
                 statusCode = StatusCode.UNAUTHORIZED;
                 errorMessage = "Invalid email or password";
             }
@@ -342,11 +348,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             });
 
             logger.info(`Forgot password OTP sent to: ${dto.email}`);
-        } catch (error: any) {
-            logger.error("Forgot password error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Forgot password error:", err);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to send reset code"
+                error: err.message || "Failed to send reset code"
             });
         }
     }
@@ -370,11 +377,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             });
 
             logger.info(`Forgot password OTP verified for: ${dto.email}`);
-        } catch (error: any) {
-            logger.error("Verify forgot password OTP error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Verify forgot password OTP error:", err);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "OTP verification failed"
+                error: err.message || "OTP verification failed"
             });
         }
     }
@@ -401,11 +409,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             });
 
             logger.info(`Password reset successful for: ${dto.email}`);
-        } catch (error: any) {
-            logger.error("Reset password error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Reset password error:", err);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to reset password"
+                error: err.message || "Failed to reset password"
             });
         }
     }
@@ -448,8 +457,9 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 message: "Token refreshed successfully"
             });
 
-        } catch (error: any) {
-            logger.error("Refresh token error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Refresh token error:", err);
             res.status(StatusCode.UNAUTHORIZED).json({
                 success: false,
                 error: "Invalid or expired refresh token"
@@ -485,8 +495,9 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 success: true,
                 communityAdmin: responseDto
             });
-        } catch (error: any) {
-            logger.error("Get profile error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Get profile error:", err);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 error: "Failed to get profile"
@@ -527,8 +538,9 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 }
             });
 
-        } catch (error: any) {
-            logger.error("Get community details error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Get community details error:", err);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 error: "Failed to get community details"
@@ -568,11 +580,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             });
 
             logger.info(`Community updated by admin: ${communityAdmin.email}`);
-        } catch (error: any) {
-            logger.error("Update community error:", error);
+        } catch (error) {
+            const err = error as Error;
+            logger.error("Update community error:", err);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to update community"
+                error: err.message || "Failed to update community"
             });
         }
     }

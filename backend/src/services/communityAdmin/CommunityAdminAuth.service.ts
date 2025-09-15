@@ -7,7 +7,7 @@ import { ICommunityAdmin } from "../../models/communityAdmin.model";
 import { ICommunityRequestRepository } from "../../core/interfaces/repositories/ICommunityRequestRepository";
 import CommunityModel from "../../models/community.model";
 import logger from "../../utils/logger";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 
 @injectable()

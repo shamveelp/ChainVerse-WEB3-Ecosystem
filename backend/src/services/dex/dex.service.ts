@@ -4,7 +4,7 @@ import { IDexRepository } from "../../core/interfaces/repositories/IDexRepositor
 import { TYPES } from "../../core/types/types";
 import { ITransaction } from "../../models/transactions.model";
 import { ICoin } from "../../models/coins.model";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 

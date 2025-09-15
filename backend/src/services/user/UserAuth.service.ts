@@ -7,7 +7,7 @@ import { TYPES } from "../../core/types/types";
 import bcrypt from "bcrypt";
 import { IUser } from "../../models/user.models";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 import { IJwtService } from "../../core/interfaces/services/IJwtService";
 import { OAuth2Client } from "google-auth-library";
 import { ReferralCodeService } from "../../utils/referralCode";

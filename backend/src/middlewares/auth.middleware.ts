@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import { StatusCode } from "../enums/statusCode.enum";
-import { CustomError } from "../utils/CustomError";
+import { CustomError } from "../utils/customError";
 import { JwtService } from "../utils/jwt";
 import logger from "../utils/logger";
 import { IUserRepository } from "../core/interfaces/repositories/IUserRepository";

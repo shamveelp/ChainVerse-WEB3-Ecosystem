@@ -3,9 +3,9 @@ import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { IUserProfileController } from "../../core/interfaces/controllers/user/IUserProfile.controller";
 import { IUserService } from "../../core/interfaces/services/user/IUserService";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { updateProfileSchema, checkUsernameSchema } from "../../validations/User.validation";
+import { updateProfileSchema, checkUsernameSchema } from "../../validations/user.validation";
 import { z } from "zod";
 import cloudinary from "../../config/cloudinary";
 import { UploadApiResponse } from "cloudinary";
@@ -49,11 +49,12 @@ export class UserProfileController implements IUserProfileController {
         success: true, 
         data: profile 
       });
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("Get profile controller error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = error.message || "Failed to fetch user profile";
-      logger.error("Get profile error:", { message, stack: error.stack, userId: req.user });
+      const message = err.message || "Failed to fetch user profile";
+      logger.error("Get profile error:", { message, stack: err.stack, userId: req.user });
       res.status(statusCode).json({ 
         success: false, 
         error: message 
@@ -92,8 +93,9 @@ export class UserProfileController implements IUserProfileController {
         data: profile,
         message: "Profile updated successfully"
       });
-    } catch (error: any) {
-      console.error("Update profile controller error:", error);
+    } catch (error) {
+      const err = error as Error;
+      console.error("Update profile controller error:", err);
       if (error instanceof z.ZodError) {
         logger.warn("Update profile validation error:", { issues: error.issues });
         res.status(StatusCode.BAD_REQUEST).json({ 
@@ -103,8 +105,8 @@ export class UserProfileController implements IUserProfileController {
         });
       } else {
         const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-        const message = error.message || "Failed to update user profile";
-        logger.error("Update profile error:", { message, stack: error.stack, userId: req.user });
+        const message = err.message || "Failed to update user profile";
+        logger.error("Update profile error:", { message, stack: err.stack, userId: req.user });
         res.status(statusCode).json({ 
           success: false, 
           error: message 
@@ -133,8 +135,9 @@ export class UserProfileController implements IUserProfileController {
       //   success: true, 
       //   available: isAvailable 
       // });
-    } catch (error: any) {
-      console.error("Check username controller error:", error);
+    } catch (error) {
+      const err = error as Error;
+      console.error("Check username controller error:", err);
       if (error instanceof z.ZodError) {
         logger.warn("Check username validation error:", { issues: error.issues });
         res.status(StatusCode.BAD_REQUEST).json({ 
@@ -144,8 +147,8 @@ export class UserProfileController implements IUserProfileController {
         });
       } else {
         const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-        const message = error.message || "Failed to check username availability";
-        logger.error("Check username error:", { message, stack: error.stack, userId: req.user });
+        const message = err.message || "Failed to check username availability";
+        logger.error("Check username error:", { message, stack: err.stack, userId: req.user });
         res.status(statusCode).json({ 
           success: false, 
           error: message 
@@ -213,11 +216,12 @@ export class UserProfileController implements IUserProfileController {
         data: profile,
         message: "Profile image updated successfully"
       });
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("Upload profile image controller error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = error.message || "Failed to upload profile image";
-      logger.error("Upload profile image error:", { message, stack: error.stack, userId: req.user });
+      const message = err.message || "Failed to upload profile image";
+      logger.error("Upload profile image error:", { message, stack: err.stack, userId: req.user });
       res.status(statusCode).json({ 
         success: false, 
         error: message 

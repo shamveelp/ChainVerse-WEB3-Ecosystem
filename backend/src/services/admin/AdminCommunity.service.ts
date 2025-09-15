@@ -4,7 +4,7 @@ import { ICommunityRequestRepository } from '../../core/interfaces/repositories/
 import { ICommunityAdminAuthService } from '../../core/interfaces/services/communityAdmin/ICommunityAdminAuthService';
 import { ICommunityRequest } from '../../models/communityRequest.model';
 import { TYPES } from '../../core/types/types';
-import { CustomError } from '../../utils/CustomError';
+import { CustomError } from '../../utils/customError';
 import { StatusCode } from '../../enums/statusCode.enum';
 
 @injectable()

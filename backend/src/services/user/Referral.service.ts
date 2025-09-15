@@ -3,7 +3,7 @@ import { IReferralService } from "../../core/interfaces/services/user/IReferralS
 import { IReferralHistoryRepository } from "../../core/interfaces/repositories/IReferralHistoryRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import { TYPES } from "../../core/types/types";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 

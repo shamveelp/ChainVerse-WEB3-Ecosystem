@@ -3,7 +3,7 @@ import { IAdminDexService } from "../../core/interfaces/services/admin/IAdminDex
 import { IDexRepository } from "../../core/interfaces/repositories/IDexRepository";
 import { TYPES } from "../../core/types/types";
 import { ICoin } from "../../models/coins.model";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 

@@ -1,16 +1,16 @@
 import { Container } from "inversify"
 import { TYPES } from "../types/types"
-import { OAuthClient } from "../../utils/OAuthClient"
+import { OAuthClient } from "../../utils/oauthClient"
 
 // Controllers
 import type { IUserAuthController } from "../interfaces/controllers/user/IUserAuth.controllers"
-import { UserAuthController } from "../../controllers/user/userAuth.controller"
+import { UserAuthController } from "../../controllers/user/UserAuth.controller"
 import type { IReferralController } from "../interfaces/controllers/user/IReferral.controller"
-import { ReferralController } from "../../controllers/user/referral.controller"
+import { ReferralController } from "../../controllers/user/Referral.controller"
 import type { IPointsController } from "../interfaces/controllers/user/IPoints.controller"
-import { PointsController } from "../../controllers/user/points.controller"
+import { PointsController } from "../../controllers/user/Points.controller"
 import { IUserProfileController } from "../interfaces/controllers/user/IUserProfile.controller"
-import { UserProfileController } from "../../controllers/user/userProfile.controller"
+import { UserProfileController } from "../../controllers/user/UserProfile.controller"
 
 // Admin Controllers
 import { IAdminAuthController } from "../interfaces/controllers/admin/IAuthAdmin.controllers"
@@ -22,7 +22,7 @@ import { AdminCommunityController } from "../../controllers/admin/AdminCommunity
 
 // Community Admin Controllers
 import { ICommunityAdminAuthController } from "../interfaces/controllers/communityAdmin/ICommunityAdminAuth.controller"
-import { CommunityAdminAuthController } from "../../controllers/communityAdmin/communityAdminAuth.controller"
+import { CommunityAdminAuthController } from "../../controllers/communityAdmin/CommunityAdminAuth.controller"
 
 // Services
 import type { IUserAuthService } from "../interfaces/services/user/IUserAuthService"
@@ -80,10 +80,10 @@ import { DailyCheckInService } from "../../services/DailyCheckInService"
 import { IAdminDexController } from "../interfaces/controllers/admin/IAdminDexController"
 import { AdminDexController } from "../../controllers/admin/adminDex.controller"
 import { IAdminWalletController } from "../interfaces/controllers/admin/IAdminWalletController"
-import { AdminWalletController } from "../../controllers/admin/adminWallet.controller"
+import { AdminWalletController } from "../../controllers/admin/AdminWallet.controller"
 import { DexController } from "../../controllers/dex/dex.controller"
 import { IDexController } from "../interfaces/controllers/dex/IDexController"
-import { WalletController } from "../../controllers/dex/wallet.controller"
+import { WalletController } from "../../controllers/dex/Wallet.controller"
 import { IWalletController } from "../interfaces/controllers/dex/IWalletController"
 import { DexService } from "../../services/dex/dex.service"
 import { IDexService } from "../interfaces/services/dex/IDexService"
@@ -92,7 +92,7 @@ import { WalletService } from "../../services/dex/wallet.service"
 import { IAdminDexService } from "../interfaces/services/admin/IAdminDexService"
 import { AdminDexService } from "../../services/admin/adminDex.service"
 import { IAdminWalletService } from "../interfaces/services/admin/IAdminWalletService"
-import { AdminWalletService } from "../../services/admin/adminWallet.service"
+import { AdminWalletService } from "../../services/admin/AdminWallet.service"
 import { IDexRepository } from "../interfaces/repositories/IDexRepository"
 import { DexRepository } from "../../repositories/dex.repository"
 import { EtherscanService } from "../../services/etherscan.service"

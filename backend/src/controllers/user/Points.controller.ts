@@ -4,7 +4,7 @@ import { TYPES } from "../../core/types/types";
 import { IPointsController } from "../../core/interfaces/controllers/user/IPoints.controller";
 import { IPointsService } from "../../core/interfaces/services/user/IPointsService";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 
 @injectable()
@@ -32,11 +32,12 @@ export class PointsController implements IPointsController {
         success: true, 
         data: result 
       });
-    } catch (error: any) {
-      console.error("PointsController: Daily check-in error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("PointsController: Daily check-in error:", err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = error.message || "Failed to perform daily check-in";
-      logger.error("Daily check-in error:", { message, stack: error.stack, userId: req.user });
+      const message = err.message || "Failed to perform daily check-in";
+      logger.error("Daily check-in error:", { message, stack: err.stack, userId: req.user });
       res.status(statusCode).json({ 
         success: false, 
         error: message 
@@ -63,11 +64,12 @@ export class PointsController implements IPointsController {
         success: true, 
         data: status 
       });
-    } catch (error: any) {
-      console.error("PointsController: Get check-in status error:", error);
+    } catch (error) {
+      const err = error as Error;
+      logger.error("PointsController: Get check-in status error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = error.message || "Failed to get check-in status";
-      logger.error("Get check-in status error:", { message, stack: error.stack, userId: req.user });
+      const message = err.message || "Failed to get check-in status";
+      logger.error("Get check-in status error:", { message, stack: err.stack, userId: req.user });
       res.status(statusCode).json({ 
         success: false, 
         error: message 
@@ -97,11 +99,12 @@ export class PointsController implements IPointsController {
         success: true, 
         data: calendar 
       });
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("PointsController: Get check-in calendar error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = error.message || "Failed to get check-in calendar";
-      logger.error("Get check-in calendar error:", { message, stack: error.stack, userId: req.user });
+      const message = err.message || "Failed to get check-in calendar";
+      logger.error("Get check-in calendar error:", { message, stack: err.stack, userId: req.user });
       res.status(statusCode).json({ 
         success: false, 
         error: message 
@@ -131,11 +134,12 @@ export class PointsController implements IPointsController {
         success: true, 
         data: result 
       });
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("PointsController: Get points history error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = error.message || "Failed to get points history";
-      logger.error("Get points history error:", { message, stack: error.stack, userId: req.user });
+      const message = err.message || "Failed to get points history";
+      logger.error("Get points history error:", { message, stack: err.stack, userId: req.user });
       res.status(statusCode).json({ 
         success: false, 
         error: message 

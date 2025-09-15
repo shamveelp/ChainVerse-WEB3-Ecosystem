@@ -5,7 +5,7 @@ import { IAdminRepository } from '../../core/interfaces/repositories/IAdminRepos
 import { IJwtService } from '../../core/interfaces/services/IJwtService';
 import { IAdmin } from '../../models/admin.model';
 import { TYPES } from '../../core/types/types';
-import { CustomError } from '../../utils/CustomError';
+import { CustomError } from '../../utils/customError';
 import { StatusCode } from '../../enums/statusCode.enum';
 import { ErrorMessages } from '../../enums/messages.enum';
 

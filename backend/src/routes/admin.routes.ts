@@ -10,7 +10,7 @@ import { AdminLoginDto, AdminChangePasswordDto } from '../dtos/admin/AdminAuth.d
 import { AdminForgotPasswordDto, AdminVerifyOtpDto, AdminResetPasswordDto } from '../dtos/admin/AdminForgotPassword.dto';
 import { GetUsersQueryDto, UpdateUserStatusDto } from '../dtos/admin/AdminUser.dto';
 import { GetCommunityRequestsQueryDto, RejectCommunityRequestDto } from '../dtos/admin/AdminCommunity.dto';
-import { AdminWalletController } from '../controllers/admin/adminWallet.controller';
+import { AdminWalletController } from '../controllers/admin/AdminWallet.controller';
 
 const router = Router();
 

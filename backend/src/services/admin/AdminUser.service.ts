@@ -3,7 +3,7 @@ import { IAdminUserService } from '../../core/interfaces/services/admin/IAdminUs
 import { IUserRepository } from '../../core/interfaces/repositories/IUserRepository';
 import { IUser } from '../../models/user.models';
 import { TYPES } from '../../core/types/types';
-import { CustomError } from '../../utils/CustomError';
+import { CustomError } from '../../utils/customError';
 import { StatusCode } from '../../enums/statusCode.enum';
 import { ErrorMessages } from '../../enums/messages.enum';
 

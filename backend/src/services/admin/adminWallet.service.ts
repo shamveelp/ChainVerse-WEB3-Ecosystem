@@ -5,7 +5,7 @@ import { EtherscanService } from "../etherscan.service";
 import { TYPES } from "../../core/types/types";
 import { IWallet } from "../../models/wallet.model";
 import { ITransaction } from "../../models/transactions.model";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 

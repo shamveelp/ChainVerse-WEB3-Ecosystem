@@ -5,7 +5,7 @@ import { IAdminDexController } from "../../core/interfaces/controllers/admin/IAd
 import { IAdminDexService } from "../../core/interfaces/services/admin/IAdminDexService";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 
 @injectable()
 export class AdminDexController implements IAdminDexController {

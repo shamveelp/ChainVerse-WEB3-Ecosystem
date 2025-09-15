@@ -5,7 +5,7 @@ import { IDexController } from "../../core/interfaces/controllers/dex/IDexContro
 import { IDexService } from "../../core/interfaces/services/dex/IDexService";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 
 @injectable()
 export class DexController implements IDexController {

@@ -1,13 +1,12 @@
 import { Router } from 'express';
 import container from '../core/di/container';
-import { UserAuthController } from '../controllers/user/userAuth.controller';
+import { UserAuthController } from '../controllers/user/UserAuth.controller';
 import { TYPES } from '../core/types/types';
 import { authMiddleware, roleMiddleware } from '../middlewares/auth.middleware';
-import { UserProfileController } from '../controllers/user/userProfile.controller';
+import { UserProfileController } from '../controllers/user/UserProfile.controller';
 import multer from 'multer';
-import { createWallet, getWallet } from '../controllers/user/wallet.controller';
-import { ReferralController } from '../controllers/user/referral.controller';
-import { PointsController } from '../controllers/user/points.controller';
+import { ReferralController } from '../controllers/user/Referral.controller';
+import { PointsController } from '../controllers/user/Points.controller';
 import { validateBody } from '../middlewares/validation.middleware';
 import { 
   UserRegisterDto, 

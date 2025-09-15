@@ -7,7 +7,7 @@ import { IMailService } from "../core/interfaces/services/IMailService";
 import logger from "../utils/logger";
 import { IAdminRepository } from "../core/interfaces/repositories/IAdminRepository";
 import { ICommunityAdminRepository } from "../core/interfaces/repositories/ICommunityAdminRepository";
-import { CustomError } from "../utils/CustomError";
+import { CustomError } from "../utils/customError";
 import { StatusCode } from "../enums/statusCode.enum";
 
 @injectable()

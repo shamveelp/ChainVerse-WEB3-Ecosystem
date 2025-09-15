@@ -8,7 +8,7 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 import { OAuth2Client } from "google-auth-library";
 import { IJwtService } from "../../core/interfaces/services/IJwtService";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 import { 
   UserRegisterDto, 
   UserLoginDto, 

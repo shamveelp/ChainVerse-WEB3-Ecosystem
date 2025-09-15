@@ -4,7 +4,7 @@ import { TYPES } from "../../core/types/types";
 import { IReferralController } from "../../core/interfaces/controllers/user/IReferral.controller";
 import { IReferralService } from "../../core/interfaces/services/user/IReferralService";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 
 @injectable()
@@ -35,11 +35,12 @@ export class ReferralController implements IReferralController {
         success: true, 
         data: result 
       });
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("ReferralController: Get referral history error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = error.message || "Failed to fetch referral history";
-      logger.error("Get referral history error:", { message, stack: error.stack, userId: req.user });
+      const message = err.message || "Failed to fetch referral history";
+      logger.error("Get referral history error:", { message, stack: err.stack, userId: req.user });
       res.status(statusCode).json({ 
         success: false, 
         error: message 
@@ -66,11 +67,12 @@ export class ReferralController implements IReferralController {
         success: true, 
         data: stats 
       });
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("ReferralController: Get referral stats error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = error.message || "Failed to fetch referral stats";
-      logger.error("Get referral stats error:", { message, stack: error.stack, userId: req.user });
+      const message = err.message || "Failed to fetch referral stats";
+      logger.error("Get referral stats error:", { message, stack: err.stack, userId: req.user });
       res.status(statusCode).json({ 
         success: false, 
         error: message 

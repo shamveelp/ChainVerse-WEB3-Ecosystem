@@ -4,7 +4,7 @@ import { IDailyCheckInRepository } from "../../core/interfaces/repositories/IDai
 import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistoryRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import { TYPES } from "../../core/types/types";
-import { CustomError } from "../../utils/CustomError";
+import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { format, startOfDay, subDays } from "date-fns";
 import logger from "../../utils/logger";
