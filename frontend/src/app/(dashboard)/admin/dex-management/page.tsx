@@ -1,650 +1,438 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Coins, TrendingUp, Activity, DollarSign, Search, Edit2, Trash2, ToggleLeft, ToggleRight, Wallet } from 'lucide-react';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { injected } from 'wagmi/connectors';
+import { ethers } from 'ethers';
+import { useActiveAccount } from 'thirdweb/react';
+import { Plus, AlertCircle, RefreshCw, Coins, Activity } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { CONTRACTS, ERC20_ABI, DEX_ABI } from '@/lib/dex/contracts';
+import { loadBalances, getExplorerUrl } from '@/lib/dex/utils';
+import { TokenBalance, LiquidityForm, PoolData } from '@/types/types-dex';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import FloatingWalletButton from '@/components/shared/TradeNavbar';
 
-interface Coin {
-  _id: string;
-  name: string;
-  symbol: string;
-  ticker: string;
-  contractAddress: string;
-  decimals: number;
-  totalSupply: string;
-  circulatingSupply: string;
-  isListed: boolean;
-  priceUSD?: number;
-  volume24h?: string;
-  marketCap?: string;
-  createdAt: string;
-}
-
-interface DexStats {
-  totalCoins: number;
-  listedCoins: number;
-  totalTransactions: number;
-  totalVolume: string;
-  activeWallets: number;
-}
-
-interface CreateCoinData {
-  name: string;
-  symbol: string;
-  ticker: string;
-  totalSupply: string;
-  decimals: number;
-  description: string;
-  logoUrl: string;
-  website: string;
-  twitter: string;
-  telegram: string;
-}
-
-export default function DexManagement() {
-  const [coins, setCoins] = useState<Coin[]>([]);
-  const [stats, setStats] = useState<DexStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createLoading, setCreateLoading] = useState(false);
-  
-  const { address, isConnected } = useAccount();
-  const { connect } = useConnect();
-  const { disconnect } = useDisconnect();
-
-  const [newCoin, setNewCoin] = useState<CreateCoinData>({
-    name: '',
-    symbol: '',
-    ticker: '',
-    totalSupply: '',
-    decimals: 18,
-    description: '',
-    logoUrl: '',
-    website: '',
-    twitter: '',
-    telegram: ''
+export default function AdminDexManagementPage() {
+  const account = useActiveAccount();
+  const [balances, setBalances] = useState<TokenBalance>({
+    eth: '0',
+    coinA: '0',
+    coinB: '0',
   });
+  const [poolsData, setPoolsData] = useState<{ [key: string]: PoolData }>({});
+  const [loading, setLoading] = useState(false);
+  const [liquidityForm, setLiquidityForm] = useState<LiquidityForm>({
+    poolType: 'eth-coinA',
+    ethAmount: '',
+    tokenAmount: '',
+    coinAAmount: '',
+    coinBAmount: '',
+  });
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchCoins();
-    fetchStats();
-  }, []);
+  const loadUserBalances = async () => {
+    if (!account?.address || !window.ethereum) return;
 
-  const fetchCoins = async () => {
     try {
-      setLoading(true);
-      const response = await fetch('/api/admin/dex/coins?includeUnlisted=true');
-      const data = await response.json();
-      
-      if (data.success) {
-        setCoins(data.data);
-      }
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const { balances: newBalances, poolsData: newPoolsData } = await loadBalances(provider, account.address);
+      setBalances(newBalances);
+      setPoolsData(newPoolsData);
     } catch (error) {
-      console.error('Error fetching coins:', error);
+      console.error('Failed to load balances:', error);
+      setError('Failed to load balances');
+    }
+  };
+
+  const getTestTokens = async () => {
+    if (!account?.address || !window.ethereum) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const coinAContract = new ethers.Contract(CONTRACTS.coinA, ERC20_ABI, signer);
+      const coinBContract = new ethers.Contract(CONTRACTS.coinB, ERC20_ABI, signer);
+
+      const amount = ethers.parseUnits('1000', 18);
+
+      const txA = await coinAContract.mint(account.address, amount);
+      await txA.wait();
+
+      const txB = await coinBContract.mint(account.address, amount);
+      await txB.wait();
+
+      toast({
+        variant: 'default',
+        title: 'Test Tokens Claimed Successfully!',
+        description: (
+          <div className="space-y-2">
+            <p>Received 1000 CoinA and 1000 CoinB tokens</p>
+            <a
+              href={getExplorerUrl(txB.hash)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center text-blue-400 hover:text-blue-300 underline"
+            >
+              View on Explorer →
+            </a>
+          </div>
+        ),
+      });
+
+      await loadUserBalances();
+    } catch (error: any) {
+      console.error('Get test tokens failed:', error);
+      const errorMessage = 'Failed to claim test tokens (you might not be the owner)';
+      setError(errorMessage);
+      toast({
+        variant: 'destructive',
+        title: 'Claim Failed',
+        description: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchStats = async () => {
-    try {
-      const response = await fetch('/api/admin/dex/stats');
-      const data = await response.json();
-      
-      if (data.success) {
-        setStats(data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
+  const addLiquidity = async () => {
+    if (!account?.address || !window.ethereum) return;
 
-  const handleCreateCoin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isConnected) {
-      alert('Please connect your wallet first');
-      return;
-    }
+    setLoading(true);
+    setError('');
 
     try {
-      setCreateLoading(true);
-      const response = await fetch('/api/admin/dex/coins', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newCoin),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        alert('Coin created successfully! You can now deploy it.');
-        setShowCreateModal(false);
-        setNewCoin({
-          name: '',
-          symbol: '',
-          ticker: '',
-          totalSupply: '',
-          decimals: 18,
-          description: '',
-          logoUrl: '',
-          website: '',
-          twitter: '',
-          telegram: ''
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const dexContract = new ethers.Contract(CONTRACTS.dex, DEX_ABI, signer);
+
+      let tx;
+
+      if (liquidityForm.poolType === 'token-token') {
+        if (!liquidityForm.coinAAmount || !liquidityForm.coinBAmount) return;
+
+        const coinAAmount = ethers.parseUnits(liquidityForm.coinAAmount, 18);
+        const coinBAmount = ethers.parseUnits(liquidityForm.coinBAmount, 18);
+
+        const coinAContract = new ethers.Contract(CONTRACTS.coinA, ERC20_ABI, signer);
+        const coinBContract = new ethers.Contract(CONTRACTS.coinB, ERC20_ABI, signer);
+
+        const coinAAllowance = await coinAContract.allowance(account.address, CONTRACTS.dex);
+        const coinBAllowance = await coinBContract.allowance(account.address, CONTRACTS.dex);
+
+        if (coinAAllowance < coinAAmount) {
+          const approveTx = await coinAContract.approve(CONTRACTS.dex, coinAAmount);
+          await approveTx.wait();
+        }
+
+        if (coinBAllowance < coinBAmount) {
+          const approveTx = await coinBContract.approve(CONTRACTS.dex, coinBAmount);
+          await approveTx.wait();
+        }
+
+        tx = await dexContract.addTokenLiquidity(coinAAmount, coinBAmount, {
+          gasLimit: 400000,
         });
-        fetchCoins();
       } else {
-        alert(data.error || 'Failed to create coin');
+        if (!liquidityForm.ethAmount || !liquidityForm.tokenAmount) return;
+
+        const ethAmount = ethers.parseEther(liquidityForm.ethAmount);
+        const tokenAmount = ethers.parseUnits(liquidityForm.tokenAmount, 18);
+        const tokenAddress = liquidityForm.poolType === 'eth-coinA' ? CONTRACTS.coinA : CONTRACTS.coinB;
+
+        const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+        const allowance = await tokenContract.allowance(account.address, CONTRACTS.dex);
+
+        if (allowance < tokenAmount) {
+          const approveTx = await tokenContract.approve(CONTRACTS.dex, tokenAmount);
+          await approveTx.wait();
+        }
+
+        tx = await dexContract.addLiquidity(tokenAddress, tokenAmount, {
+          value: ethAmount,
+          gasLimit: 400000,
+        });
       }
-    } catch (error) {
-      console.error('Error creating coin:', error);
-      alert('Error creating coin');
+
+      await tx.wait();
+
+      const poolName =
+        liquidityForm.poolType === 'eth-coinA' ? 'ETH/CoinA' : liquidityForm.poolType === 'eth-coinB' ? 'ETH/CoinB' : 'CoinA/CoinB';
+
+      toast({
+        variant: 'default',
+        title: 'Liquidity Added Successfully!',
+        description: (
+          <div className="space-y-2">
+            <p>Successfully added liquidity to {poolName} pool</p>
+            <a
+              href={getExplorerUrl(tx.hash)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center text-blue-400 hover:text-blue-300 underline"
+            >
+              View on Explorer →
+            </a>
+          </div>
+        ),
+      });
+
+      await loadUserBalances();
+      setLiquidityForm({
+        poolType: 'eth-coinA',
+        ethAmount: '',
+        tokenAmount: '',
+        coinAAmount: '',
+        coinBAmount: '',
+      });
+    } catch (error: any) {
+      console.error('Add liquidity failed:', error);
+      const errorMessage = error.reason || error.message || 'Unknown error';
+      setError(`Add liquidity failed: ${errorMessage}`);
+      toast({
+        variant: 'destructive',
+        title: 'Add Liquidity Failed',
+        description: errorMessage,
+      });
     } finally {
-      setCreateLoading(false);
+      setLoading(false);
     }
   };
 
-  const toggleCoinListing = async (contractAddress: string, currentStatus: boolean) => {
-    try {
-      const action = currentStatus ? 'unlist' : 'list';
-      const response = await fetch(`/api/admin/dex/coins/${contractAddress}/${action}`, {
-        method: 'POST',
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        alert(`Coin ${action}ed successfully`);
-        fetchCoins();
-      } else {
-        alert(data.error || `Failed to ${action} coin`);
-      }
-    } catch (error) {
-      console.error(`Error toggling coin listing:`, error);
-      alert('Error updating coin status');
+  useEffect(() => {
+    if (account?.address) {
+      loadUserBalances();
     }
-  };
+  }, [account?.address]);
 
-  const deleteCoin = async (contractAddress: string) => {
-    if (!confirm('Are you sure you want to delete this coin? This action cannot be undone.')) {
-      return;
+  useEffect(() => {
+    if (account?.address) {
+      const interval = setInterval(loadUserBalances, 30000);
+      return () => clearInterval(interval);
     }
-
-    try {
-      const response = await fetch(`/api/admin/dex/coins/${contractAddress}`, {
-        method: 'DELETE',
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        alert('Coin deleted successfully');
-        fetchCoins();
-      } else {
-        alert(data.error || 'Failed to delete coin');
-      }
-    } catch (error) {
-      console.error('Error deleting coin:', error);
-      alert('Error deleting coin');
-    }
-  };
-
-  const filteredCoins = coins.filter(coin =>
-    coin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    coin.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    coin.contractAddress.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  }, [account?.address]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pt-20 px-6">
+      <FloatingWalletButton topOffset="top-16" />
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">DEX Management</h1>
-              <p className="text-gray-600">Manage coins, deployments, and DEX statistics</p>
-            </div>
-            <div className="flex items-center gap-4">
-              {isConnected ? (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-green-100 rounded-lg">
-                    <Wallet className="h-4 w-4 text-green-600" />
-                    <span className="text-sm text-green-800">
-                      {address?.substring(0, 6)}...{address?.substring(address.length - 4)}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => disconnect()}
-                    className="px-3 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                  >
-                    Disconnect
-                  </button>
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-600 bg-clip-text text-transparent flex items-center gap-3">
+              <Activity className="h-8 w-8 text-cyan-400" />
+              Admin DEX Management
+            </h1>
+            <p className="text-slate-400 text-lg">Manage liquidity pools and test tokens</p>
+          </div>
+          <Button
+            onClick={loadUserBalances}
+            variant="outline"
+            className="bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-400"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+
+        {/* Balances & Test Tokens */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+            <CardHeader className="border-b border-slate-700/50">
+              <CardTitle className="text-white flex items-center gap-2">
+                <Coins className="h-5 w-5 text-cyan-400" />
+                Your Balances
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <span className="text-slate-400 text-sm">ETH</span>
+                  <p className="font-semibold text-white">{parseFloat(balances.eth).toFixed(4)}</p>
                 </div>
-              ) : (
-                <button
-                  onClick={() => connect({ connector: injected() })}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                <div className="text-center">
+                  <span className="text-slate-400 text-sm">CoinA</span>
+                  <p className="font-semibold text-white">{parseFloat(balances.coinA).toFixed(2)}</p>
+                </div>
+                <div className="text-center">
+                  <span className="text-slate-400 text-sm">CoinB</span>
+                  <p className="font-semibold text-white">{parseFloat(balances.coinB).toFixed(2)}</p>
+                </div>
+              </div>
+              <Button
+                onClick={getTestTokens}
+                disabled={loading || !account}
+                className="w-full mt-6 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-green-400/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-white"></div>
+                ) : (
+                  <>
+                    <Coins className="h-5 w-5" />
+                    <span>Claim Test Tokens</span>
+                  </>
+                )}
+              </Button>
+              <p className="text-slate-400 text-sm mt-4">
+                Claim 1000 CoinA and 1000 CoinB tokens for testing (only for contract owner)
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Liquidity Management */}
+          <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+            <CardHeader className="border-b border-slate-700/50">
+              <CardTitle className="text-white flex items-center gap-2">
+                <Plus className="h-5 w-5 text-cyan-400" />
+                Add Liquidity
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">Pool Type</label>
+                  <select
+                    className="w-full bg-slate-800/50 border-slate-600/50 rounded-lg px-3 py-3 text-slate-100 focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50 outline-none transition-all duration-300"
+                    value={liquidityForm.poolType}
+                    onChange={(e) => setLiquidityForm((prev) => ({ ...prev, poolType: e.target.value }))}
+                  >
+                    <option value="eth-coinA" className="bg-slate-800">ETH / CoinA</option>
+                    <option value="eth-coinB" className="bg-slate-800">ETH / CoinB</option>
+                    <option value="token-token" className="bg-slate-800">CoinA / CoinB</option>
+                  </select>
+                </div>
+
+                {liquidityForm.poolType === 'token-token' ? (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-300">CoinA Amount</label>
+                      <Input
+                        type="number"
+                        placeholder="0.0"
+                        value={liquidityForm.coinAAmount}
+                        onChange={(e) => setLiquidityForm((prev) => ({ ...prev, coinAAmount: e.target.value }))}
+                        className="bg-slate-800/50 border-slate-600/50 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400/50 focus:ring-cyan-400/20"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-300">CoinB Amount</label>
+                      <Input
+                        type="number"
+                        placeholder="0.0"
+                        value={liquidityForm.coinBAmount}
+                        onChange={(e) => setLiquidityForm((prev) => ({ ...prev, coinBAmount: e.target.value }))}
+                        className="bg-slate-800/50 border-slate-600/50 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400/50 focus:ring-cyan-400/20"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-300">ETH Amount</label>
+                      <Input
+                        type="number"
+                        placeholder="0.0"
+                        value={liquidityForm.ethAmount}
+                        onChange={(e) => setLiquidityForm((prev) => ({ ...prev, ethAmount: e.target.value }))}
+                        className="bg-slate-800/50 border-slate-600/50 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400/50 focus:ring-cyan-400/20"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-300">
+                        {liquidityForm.poolType === 'eth-coinA' ? 'CoinA' : 'CoinB'} Amount
+                      </label>
+                      <Input
+                        type="number"
+                        placeholder="0.0"
+                        value={liquidityForm.tokenAmount}
+                        onChange={(e) => setLiquidityForm((prev) => ({ ...prev, tokenAmount: e.target.value }))}
+                        className="bg-slate-800/50 border-slate-600/50 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400/50 focus:ring-cyan-400/20"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <Button
+                  onClick={addLiquidity}
+                  disabled={
+                    loading ||
+                    !account ||
+                    (liquidityForm.poolType === 'token-token'
+                      ? !liquidityForm.coinAAmount || !liquidityForm.coinBAmount
+                      : !liquidityForm.ethAmount || !liquidityForm.tokenAmount)
+                  }
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-cyan-400/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
-                  <Wallet className="h-4 w-4" />
-                  Connect Wallet
-                </button>
-              )}
-            </div>
-          </div>
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-white"></div>
+                  ) : (
+                    <>
+                      <Plus className="h-5 w-5" />
+                      <span>{!account ? 'Connect Wallet' : 'Add Liquidity'}</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Coins className="h-6 w-6 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Coins</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalCoins}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Listed Coins</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.listedCoins}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Activity className="h-6 w-6 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Trades</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalTransactions}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-orange-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Volume</p>
-                  <p className="text-2xl font-bold text-gray-900">{parseFloat(stats.totalVolume).toFixed(2)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-cyan-100 rounded-lg">
-                  <Wallet className="h-6 w-6 text-cyan-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Active Wallets</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeWallets}</p>
-                </div>
-              </div>
-            </div>
-          </div>
+        {error && (
+          <Card className="bg-red-900/20 border-red-700/50">
+            <CardContent className="p-4 flex items-start space-x-3">
+              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-red-400 text-sm">{error}</p>
+            </CardContent>
+          </Card>
         )}
 
-        {/* Actions Bar */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Search coins..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              Create New Coin
-            </button>
-          </div>
-        </div>
-
-        {/* Coins Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">All Coins</h3>
-          </div>
-          
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading coins...</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Coin
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contract Address
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Supply
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Decimals
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredCoins.map((coin) => (
-                    <tr key={coin._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <Coins className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">{coin.name}</p>
-                            <p className="text-xs text-gray-500">{coin.symbol}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="text-sm font-mono text-gray-900">
-                          {coin.contractAddress ? 
-                            `${coin.contractAddress.substring(0, 6)}...${coin.contractAddress.substring(coin.contractAddress.length - 4)}` 
-                            : 'Not deployed'
-                          }
-                        </p>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {parseInt(coin.totalSupply).toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {coin.decimals}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          coin.isListed 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {coin.isListed ? 'Listed' : 'Unlisted'}
+        {/* Pool Information */}
+        <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+          <CardHeader className="border-b border-slate-700/50">
+            <CardTitle className="text-white flex items-center gap-2">
+              <Activity className="h-5 w-5 text-cyan-400" />
+              Pool Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid md:grid-cols-3 gap-6">
+              {Object.entries(poolsData).map(([key, pool]) => {
+                let poolName = key === 'coinA' ? 'ETH / CoinA' : key === 'coinB' ? 'ETH / CoinB' : 'CoinA / CoinB';
+                return (
+                  <div key={key} className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                    <h4 className="font-semibold text-white mb-4 text-center">{poolName}</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-400">Reserve 1:</span>
+                        <span className="text-slate-200">
+                          {parseFloat(pool.ethReserve).toFixed(4)} {key === 'tokenPool' ? 'CoinA' : 'ETH'}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(coin.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => toggleCoinListing(coin.contractAddress, coin.isListed)}
-                            className="text-blue-600 hover:text-blue-800 transition-colors"
-                            disabled={!coin.contractAddress}
-                          >
-                            {coin.isListed ? (
-                              <ToggleRight className="h-4 w-4" />
-                            ) : (
-                              <ToggleLeft className="h-4 w-4" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => deleteCoin(coin.contractAddress)}
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  
-                  {/* Add KUKA coin row */}
-                  <tr className="hover:bg-gray-50 bg-blue-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="p-2 bg-yellow-100 rounded-lg">
-                          <Coins className="h-4 w-4 text-yellow-600" />
-                        </div>
-                        <div className="ml-3">
-                          <p className="text-sm font-medium text-gray-900">KUKA Coin</p>
-                          <p className="text-xs text-gray-500">KUKA</p>
-                        </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <p className="text-sm font-mono text-gray-900">0x556...B1F</p>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      1,000,000
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      18
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Listed
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      Original
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-400">System Coin</span>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-400">Reserve 2:</span>
+                        <span className="text-slate-200">
+                          {parseFloat(pool.tokenReserve).toFixed(4)} {key === 'coinA' ? 'CoinA' : key === 'coinB' ? 'CoinB' : 'CoinB'}
+                        </span>
                       </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              
-              {filteredCoins.length === 0 && (
-                <div className="p-8 text-center text-gray-500">
-                  {searchTerm ? 'No coins found matching your search.' : 'No coins created yet.'}
-                </div>
-              )}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-400">Total Liquidity:</span>
+                        <span className="text-slate-200">{parseFloat(pool.totalLiquidity).toFixed(4)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-400">Your Liquidity:</span>
+                        <span className="text-green-400 font-semibold">{parseFloat(pool.userLiquidity).toFixed(4)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          )}
-        </div>
-
-        {/* Create Coin Modal */}
-        {showCreateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900">Create New Coin</h2>
-                <p className="text-gray-600 mt-1">Define a new token for deployment</p>
-              </div>
-              
-              <form onSubmit={handleCreateCoin} className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Coin Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={newCoin.name}
-                      onChange={(e) => setNewCoin({...newCoin, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., Bitcoin"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Symbol *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={newCoin.symbol}
-                      onChange={(e) => setNewCoin({...newCoin, symbol: e.target.value.toUpperCase()})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., BTC"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Ticker *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={newCoin.ticker}
-                      onChange={(e) => setNewCoin({...newCoin, ticker: e.target.value.toUpperCase()})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., BTC"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Total Supply *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      value={newCoin.totalSupply}
-                      onChange={(e) => setNewCoin({...newCoin, totalSupply: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., 1000000"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Decimals
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="18"
-                      value={newCoin.decimals}
-                      onChange={(e) => setNewCoin({...newCoin, decimals: parseInt(e.target.value)})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Logo URL
-                    </label>
-                    <input
-                      type="url"
-                      value={newCoin.logoUrl}
-                      onChange={(e) => setNewCoin({...newCoin, logoUrl: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="https://example.com/logo.png"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={newCoin.description}
-                    onChange={(e) => setNewCoin({...newCoin, description: e.target.value})}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Describe your token..."
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Website
-                    </label>
-                    <input
-                      type="url"
-                      value={newCoin.website}
-                      onChange={(e) => setNewCoin({...newCoin, website: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="https://example.com"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Twitter
-                    </label>
-                    <input
-                      type="text"
-                      value={newCoin.twitter}
-                      onChange={(e) => setNewCoin({...newCoin, twitter: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="@username"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Telegram
-                    </label>
-                    <input
-                      type="text"
-                      value={newCoin.telegram}
-                      onChange={(e) => setNewCoin({...newCoin, telegram: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="@channel"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-end gap-4 pt-4 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateModal(false)}
-                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={createLoading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {createLoading ? 'Creating...' : 'Create Coin'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

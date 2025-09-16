@@ -16,6 +16,7 @@ import { toast } from '@/hooks/use-toast'
 import { validateCommunityForm } from '@/validations/communityAdminValidation'
 import { uploadToCloudinary } from '@/lib/cloudinary'
 import { useDebounce } from '@/hooks/useDebounce'
+import { COMMUNITY_ADMIN_ROUTES, COMMON_ROUTES } from '@/routes'
 
 export default function CreateCommunityPage() {
   const router = useRouter()
@@ -25,7 +26,7 @@ export default function CreateCommunityPage() {
   const [usernameChecking, setUsernameChecking] = useState(false)
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null)
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
-  
+
   const [formData, setFormData] = useState({
     email: '',
     communityName: '',
@@ -96,6 +97,7 @@ export default function CreateCommunityPage() {
       checkEmailAvailability(debouncedEmail)
     }
   }, [debouncedEmail, checkEmailAvailability])
+
   // Effect for checking username availability
   useEffect(() => {
     if (debouncedUsername) {
@@ -105,7 +107,7 @@ export default function CreateCommunityPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Validate form
     const validation = validateCommunityForm(formData)
     if (!validation.isValid) {
@@ -138,7 +140,7 @@ export default function CreateCommunityPage() {
     }
 
     setLoading(true)
-    
+
     try {
       let logoUrl = ''
       let bannerUrl = ''
@@ -146,7 +148,7 @@ export default function CreateCommunityPage() {
       if (formData.logo) {
         logoUrl = await uploadToCloudinary(formData.logo, 'community-logos')
       }
-      
+
       if (formData.banner) {
         bannerUrl = await uploadToCloudinary(formData.banner, 'community-banners')
       }
@@ -166,17 +168,17 @@ export default function CreateCommunityPage() {
       }
 
       const result = await communityAdminApiService.submitCommunityApplication(applicationData)
-      
+
       if (result.success) {
         dispatch(setTempEmail(formData.email))
         dispatch(setTempApplicationData(applicationData))
-        
+
         toast({
           title: "Success",
           description: "Community application submitted successfully!",
         })
-        
-        router.push('/comms-admin/set-password')
+
+        router.push(COMMUNITY_ADMIN_ROUTES.SET_PASSWORD)
       } else {
         toast({
           title: "Error",
@@ -221,7 +223,7 @@ export default function CreateCommunityPage() {
 
   const handleFileUpload = (file: File, type: 'logo' | 'banner') => {
     const maxSize = type === 'logo' ? 2 * 1024 * 1024 : 5 * 1024 * 1024
-    
+
     if (file.size > maxSize) {
       toast({
         title: "Error",
@@ -230,7 +232,7 @@ export default function CreateCommunityPage() {
       })
       return
     }
-    
+
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Error",
@@ -239,7 +241,7 @@ export default function CreateCommunityPage() {
       })
       return
     }
-    
+
     setFormData({
       ...formData,
       [type]: file
@@ -272,7 +274,7 @@ export default function CreateCommunityPage() {
       {/* Back Button */}
       <div className="absolute top-6 left-6 z-50">
         <Button
-          onClick={() => router.push('/')}
+          onClick={() => router.push(COMMON_ROUTES.HOME)}
           variant="ghost"
           className="text-red-400 hover:text-red-300 hover:bg-red-950/30 border border-red-800/30 backdrop-blur-sm"
         >
@@ -457,7 +459,7 @@ export default function CreateCommunityPage() {
                   <p className="text-gray-400 text-sm ml-auto">{formData.whyChooseUs.length}/300</p>
                 </div>
               </div>
-                            
+
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <Label className="text-orange-400 font-medium">Community Rules</Label>
@@ -561,7 +563,7 @@ export default function CreateCommunityPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-orange-400 font-medium">Community Logo</Label>
-                  <div 
+                  <div
                     className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-orange-500/50 transition-colors cursor-pointer"
                     onClick={() => document.getElementById('logo-input')?.click()}
                   >
@@ -570,10 +572,10 @@ export default function CreateCommunityPage() {
                       {formData.logo ? formData.logo.name : 'Upload Logo'}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">PNG, JPG or GIF (max 2MB)</p>
-                    <input 
+                    <input
                       id="logo-input"
-                      type="file" 
-                      className="hidden" 
+                      type="file"
+                      className="hidden"
                       accept="image/*"
                       onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'logo')}
                     />
@@ -581,7 +583,7 @@ export default function CreateCommunityPage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-orange-400 font-medium">Community Banner</Label>
-                  <div 
+                  <div
                     className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-orange-500/50 transition-colors cursor-pointer"
                     onClick={() => document.getElementById('banner-input')?.click()}
                   >
@@ -590,10 +592,10 @@ export default function CreateCommunityPage() {
                       {formData.banner ? formData.banner.name : 'Upload Banner'}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">PNG, JPG or GIF (max 5MB)</p>
-                    <input 
+                    <input
                       id="banner-input"
-                      type="file" 
-                      className="hidden" 
+                      type="file"
+                      className="hidden"
                       accept="image/*"
                       onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'banner')}
                     />

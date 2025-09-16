@@ -13,6 +13,7 @@ import { useSelector, useDispatch } from "react-redux"
 import type { RootState } from "@/redux/store"
 import { setTempEmail, setLoading, setTempUserData } from "@/redux/slices/userAuthSlice"
 import API from "@/lib/api-client"
+import { USER_ROUTES, COMMON_ROUTES } from "@/routes"
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("")
@@ -58,7 +59,7 @@ export function ForgotPasswordForm() {
       const response = await API.post("/api/user/forgot-password", { email })
 
       dispatch(setTempEmail(email))
-      dispatch(setTempUserData(null))
+      dispatch(setTempUserData(null as any))
 
       toast({
         title: "Verification Code Sent",
@@ -68,7 +69,7 @@ export function ForgotPasswordForm() {
       setIsCooldown(true)
       setTimeout(() => setIsCooldown(false), 30 * 1000)
 
-      router.push("/user/verify-otp")
+      router.push(USER_ROUTES.VERIFY_OTP)
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message
       toast({
@@ -92,7 +93,7 @@ export function ForgotPasswordForm() {
       {/* Logo */}
       <div className="text-center mb-8">
         <Link
-          href="/"
+          href={COMMON_ROUTES.HOME}
           className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
         >
           ChainVerse
@@ -151,7 +152,7 @@ export function ForgotPasswordForm() {
           <div className="text-center">
             <p className="text-gray-400">
               Remember your password?{" "}
-              <Link href="/user/login" className="text-blue-400 hover:text-blue-300 font-medium">
+              <Link href={USER_ROUTES.LOGIN} className="text-blue-400 hover:text-blue-300 font-medium">
                 Back to Login
               </Link>
             </p>

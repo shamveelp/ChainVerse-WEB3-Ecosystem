@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux"
 import type { RootState } from "@/redux/store"
 import { login as reduxLogin, setLoading } from "@/redux/slices/userAuthSlice"
 import { signup, requestOtp, verifyForgotPasswordOtp } from "@/services/authApiService"
+import { USER_ROUTES, COMMON_ROUTES } from "@/routes"
 
 export function VerifyOtpForm() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
@@ -22,7 +23,7 @@ export function VerifyOtpForm() {
   const { toast } = useToast()
   const { loading, tempEmail, tempUserData } = useSelector((state: RootState) => state.userAuth)
   const searchParams = useSearchParams()
-  const redirectUrl = searchParams.get('redirect') || '/'
+  const redirectUrl = searchParams.get('redirect') || COMMON_ROUTES.HOME
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const verificationType = tempUserData ? "register" : "forgot-password"
@@ -34,7 +35,7 @@ export function VerifyOtpForm() {
         description: "Please restart the verification process",
         variant: "destructive",
       })
-      router.push("/user/login")
+      router.push(USER_ROUTES.LOGIN)
       return
     }
 
@@ -113,18 +114,18 @@ export function VerifyOtpForm() {
           referralCode: tempUserData.referralCode,
           otpValue
         });
-        
+
         const result = await signup(
-          tempUserData.username, 
-          tempUserData.email, 
-          tempUserData.password, 
+          tempUserData.username,
+          tempUserData.email,
+          tempUserData.password,
           tempUserData.name,
           tempUserData.referralCode,
           otpValue
         )
-        
+
         if (result.success) {
-          dispatch(reduxLogin({ user: result.user, token: result.token }))
+          dispatch(reduxLogin({ user: result.user , token: result.token }))
 
           toast({
             title: "Account Created Successfully",
@@ -145,7 +146,7 @@ export function VerifyOtpForm() {
             className: "bg-green-600 text-white border-none",
           })
 
-          router.push(`/user/reset-password?redirect=${encodeURIComponent(redirectUrl)}`)
+          router.push(`${USER_ROUTES.RESET_PASSWORD}?redirect=${encodeURIComponent(redirectUrl)}`)
         } else {
           throw new Error(result.error)
         }
@@ -209,7 +210,7 @@ export function VerifyOtpForm() {
 
       <div className="text-center mb-8">
         <Link
-          href="/"
+          href={COMMON_ROUTES.HOME}
           className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
         >
           ChainVerse

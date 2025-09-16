@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { adminLogin } from "@/services/authApiService";
 import { login } from "@/redux/slices/adminAuthSlice";
+import { ADMIN_ROUTES } from "@/routes";
 
 // ChainVerse Logo Component
 const ChainVerseLogo = ({ className }: { className?: string }) => (
@@ -34,33 +35,33 @@ export default function AdminLogin() {
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const response = await adminLogin(email, password);
-    if (response.success) {
-      dispatch(login({ admin: response.admin, token: response.token })); // Store admin data and token
+    try {
+      const response = await adminLogin(email, password);
+      if (response.success) {
+        dispatch(login({ admin: response.admin, token: response.token })); // Store admin data and token
+        toast({
+          title: "Login Successful",
+          description: response.message || "Welcome to the ChainVerse Admin Portal",
+          className: "bg-green-600 text-white",
+        });
+        router.push(ADMIN_ROUTES.DASHBOARD);
+      } else {
+        throw new Error(response.message  || "Invalid email or password");
+      }
+    } catch (error: any) {
       toast({
-        title: "Login Successful",
-        description: response.message || "Welcome to the ChainVerse Admin Portal",
-        className: "bg-green-600 text-white",
+        title: "Login Failed",
+        description: error.message || "Invalid email or password",
+        variant: "destructive",
+        className: "bg-red-600 text-white",
       });
-      router.push("/admin");
-    } else {
-      throw new Error(response.message  || "Invalid email or password");
+    } finally {
+      setLoading(false);
     }
-  } catch (error: any) {
-    toast({
-      title: "Login Failed",
-      description: error.message || "Invalid email or password",
-      variant: "destructive",
-      className: "bg-red-600 text-white",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
@@ -126,7 +127,7 @@ export default function AdminLogin() {
           <div className="mt-4 text-center">
             <p className="text-sm text-slate-400">
               Forgot password?{" "}
-              <a href="/admin/forgot-password" className="text-cyan-400 hover:underline">
+              <a href={ADMIN_ROUTES.FORGOT_PASSWORD} className="text-cyan-400 hover:underline">
                 Reset here
               </a>
             </p>

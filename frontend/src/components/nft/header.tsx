@@ -10,12 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ConnectButton } from 'thirdweb/react';
 import { client } from '@/lib/thirdweb-client';
+import { USER_ROUTES } from '@/routes';
 
 const navigation = [
-  { name: 'Home', href: '/trade/nfts-marketplace' },
-  { name: 'Explore', href: '/trade/nfts-marketplace/explore' },
-  { name: 'Create', href: '/trade/nfts-marketplace/create' },
-  { name: 'Profile', href: '/trade/nfts-marketplace/profile' },
+  { name: 'Home', href: { pathname: USER_ROUTES.NFT_MARKET } },
+  { name: 'Explore', href: { pathname: USER_ROUTES.NFT_EXPLORE } },
+  { name: 'Create', href: { pathname: USER_ROUTES.NFT_CREATE } },
+  { name: 'Profile', href: { pathname: USER_ROUTES.NFT_PROFILE } },
 ];
 
 export function Header() {
@@ -50,11 +51,11 @@ export function Header() {
                 key={item.name}
                 href={item.href}
                 className={`relative px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === item.href ? 'text-primary' : 'text-muted-foreground'
+                  pathname === item.href.pathname ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
                 {item.name}
-                {pathname === item.href && (
+                {pathname === item.href.pathname && (
                   <motion.div
                     layoutId="navbar-indicator"
                     className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-primary to-transparent"
@@ -118,7 +119,7 @@ export function Header() {
                       key={item.name}
                       href={item.href}
                       className={`px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                        pathname === item.href ? 'text-primary' : 'text-muted-foreground'
+                        pathname === item.href.pathname ? 'text-primary' : 'text-muted-foreground'
                       }`}
                     >
                       {item.name}

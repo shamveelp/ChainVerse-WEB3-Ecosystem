@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { resetPassword } from '@/services/adminApiService'
+import { ADMIN_ROUTES, COMMON_ROUTES } from '@/routes'
 
 const ChainVerseLogo = ({ className }: { className?: string }) => (
   <div className={`flex items-center ${className}`}>
@@ -39,7 +40,7 @@ export default function AdminResetPassword() {
     if (storedEmail) {
       setEmail(storedEmail)
     } else {
-      router.push('/admin/forgot-password')
+      router.push(ADMIN_ROUTES.FORGOT_PASSWORD)
       toast({
         title: "Error",
         description: "Please start the password reset process",
@@ -50,7 +51,7 @@ export default function AdminResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (password !== confirmPassword) {
       toast({
         title: "Error",
@@ -73,7 +74,7 @@ export default function AdminResetPassword() {
 
     try {
       const response = await resetPassword(email, password)
-      
+
       if (response.success) {
         localStorage.removeItem('resetPasswordEmail')
         toast({
@@ -81,7 +82,7 @@ export default function AdminResetPassword() {
           description: "Password reset successfully",
           className: "bg-green-900/90 border-green-500/50 text-green-100"
         })
-        router.push("/admin/login")
+        router.push(ADMIN_ROUTES.LOGIN)
       } else {
         toast({
           title: "Error",
@@ -115,7 +116,7 @@ export default function AdminResetPassword() {
       {/* Back buttons */}
       <div className="absolute top-6 left-6 z-50 flex gap-3">
         <Button
-          onClick={() => router.push('/')}
+          onClick={() => router.push(COMMON_ROUTES.HOME)}
           variant="ghost"
           className="text-cyan-400 hover:text-cyan-300 hover:bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm"
         >
@@ -123,7 +124,7 @@ export default function AdminResetPassword() {
           Home
         </Button>
         <Button
-          onClick={() => router.push('/admin/verify-reset-otp')}
+          onClick={() => router.push(ADMIN_ROUTES.VERIFY_RESET_OTP)}
           variant="ghost"
           className="text-cyan-400 hover:text-cyan-300 hover:bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm"
         >

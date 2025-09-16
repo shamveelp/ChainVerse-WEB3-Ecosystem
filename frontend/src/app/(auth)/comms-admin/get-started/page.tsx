@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux'
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Sparkles, Home, Shield } from 'lucide-react'
 import type { RootState } from "@/redux/store"
+import { COMMUNITY_ADMIN_ROUTES, COMMON_ROUTES } from '@/routes'
 
 export default function LandingPage() {
   const router = useRouter()
@@ -36,7 +37,7 @@ export default function LandingPage() {
       {/* Back to Home Button */}
       <div className="absolute top-6 left-6 z-50">
         <Button
-          onClick={() => router.push('/')}
+          onClick={() => router.push(COMMON_ROUTES.HOME)}
           variant="ghost"
           className="text-red-400 hover:text-red-300 hover:bg-red-950/30 border border-red-800/30 backdrop-blur-sm"
         >
@@ -61,35 +62,33 @@ export default function LandingPage() {
           </p>
         </div>
 
-        
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              onClick={() => router.push('/comms-admin/create-community')}
-              className="group bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white px-6 py-3 text-base font-semibold rounded-lg transition-all duration-300 transform hover:scale-105"
-            >
-              Create Community
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </div>
-        
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              onClick={() => router.push('/comms-admin/create-community')}
-              className="group bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white px-6 py-3 text-base font-semibold rounded-lg transition-all duration-300 transform hover:scale-105"
-            >
-              Get Started
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button
-              onClick={() => router.push('/comms-admin/login')}
-              variant="outline"
-              className="px-6 py-3 text-base font-semibold rounded-lg border-2 border-red-600/50 text-red-400 hover:text-red-300 hover:border-red-500 hover:bg-red-950/30 backdrop-blur-sm transition-all duration-300 transform hover:scale-105"
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Login
-            </Button>
-          </div>
-        
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Button
+            onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.CREATE_COMMUNITY)}
+            className="group bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white px-6 py-3 text-base font-semibold rounded-lg transition-all duration-300 transform hover:scale-105"
+          >
+            Create Community
+            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Button
+            onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.CREATE_COMMUNITY)}
+            className="group bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white px-6 py-3 text-base font-semibold rounded-lg transition-all duration-300 transform hover:scale-105"
+          >
+            Get Started
+            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+          </Button>
+          <Button
+            onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.LOGIN)}
+            variant="outline"
+            className="px-6 py-3 text-base font-semibold rounded-lg border-2 border-red-600/50 text-red-400 hover:text-red-300 hover:border-red-500 hover:bg-red-950/30 backdrop-blur-sm transition-all duration-300 transform hover:scale-105"
+          >
+            <Shield className="h-4 w-4 mr-2" />
+            Login
+          </Button>
+        </div>
       </div>
     </div>
   )

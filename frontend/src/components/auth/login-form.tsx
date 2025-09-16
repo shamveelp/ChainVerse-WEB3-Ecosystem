@@ -16,8 +16,9 @@ import { login as reduxLogin } from "@/redux/slices/userAuthSlice"
 import { useAuthActions } from "@/lib/auth-actions"
 import { useSelector } from "react-redux"
 import type { RootState } from "@/redux/store"
-import { setLoading } from "@/redux/slices/userAuthSlice" 
+import { setLoading } from "@/redux/slices/userAuthSlice"
 import { validateLoginForm } from "@/validations/auth"
+import { USER_ROUTES, COMMON_ROUTES } from "@/routes"
 
 interface LoginData {
   email: string
@@ -37,7 +38,7 @@ export function LoginForm() {
   const dispatch = useDispatch()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectUrl = searchParams.get('redirect') || '/'
+  const redirectUrl = searchParams.get('redirect') || COMMON_ROUTES.HOME
 
   const handleInputChange = (field: keyof LoginData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -147,7 +148,7 @@ export function LoginForm() {
               <label htmlFor="password" className="text-sm font-medium text-gray-300">
                 Password
               </label>
-              <Link href="/user/forgot-password" className="text-sm text-blue-400 hover:text-blue-300">
+              <Link href={USER_ROUTES.FORGOT_PASSWORD} className="text-sm text-blue-400 hover:text-blue-300">
                 Forgot password?
               </Link>
             </div>
@@ -193,7 +194,7 @@ export function LoginForm() {
         <div className="text-center">
           <p className="text-gray-400">
             Don&apos;t have an account?{" "}
-            <Link href={`/user/register?redirect=${encodeURIComponent(redirectUrl)}`} className="text-blue-400 hover:text-blue-300 font-medium">
+            <Link href={`${USER_ROUTES.REGISTER}?redirect=${encodeURIComponent(redirectUrl)}`} className="text-blue-400 hover:text-blue-300 font-medium">
               Create account
             </Link>
           </p>

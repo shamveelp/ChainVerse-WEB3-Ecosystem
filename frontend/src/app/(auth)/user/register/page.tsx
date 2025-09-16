@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { RegisterForm } from "@/components/auth/register-form"
 import { PreventLoggedIn } from "@/redirects/userRedirects"
+import { COMMON_ROUTES } from "@/routes"
 
 export default function RegisterPage() {
   return (
@@ -15,7 +16,7 @@ export default function RegisterPage() {
           {/* Logo and Branding */}
           <div className="text-center mb-10">
             <Link
-              href="/"
+              href={COMMON_ROUTES.HOME}
               className="text-4xl font-extrabold bg-gradient-to-r from-blue-400 via-green-400 to-purple-400 bg-clip-text text-transparent animate-text-glow"
             >
               ChainVerse

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { LoginForm } from "@/components/auth/login-form"
 import { PreventLoggedIn } from "@/redirects/userRedirects"
+import { COMMON_ROUTES } from "@/routes"
 
 export default function LoginPage() {
   return (
@@ -14,7 +15,7 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="text-center mb-8">
             <Link
-              href="/"
+              href={COMMON_ROUTES.HOME}
               className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
             >
               ChainVerse

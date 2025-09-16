@@ -1,318 +1,303 @@
-"use client";
+'use client';
 
-import { toEther, toWei } from "thirdweb";
-import { useActiveAccount, useReadContract, useSendTransaction, useWalletBalance } from "thirdweb/react";
-import { getContract, prepareContractCall } from "thirdweb";
-import { sepolia } from "thirdweb/chains";
-import { client } from "@/lib/thirdweb-client";
-import { NextPage } from "next";
-import { useEffect, useState } from "react";
-import SwapInput from "@/components/user/trade/SwapInput";
-import PairSelector from "@/components/user/trade/PairSelector";
-import { ArrowUpDown, ChevronDown } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+import { useActiveAccount } from 'thirdweb/react';
+import { ArrowUpDown, AlertCircle } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { CONTRACTS, ERC20_ABI, DEX_ABI } from '@/lib/dex/contracts';
+import { loadBalances, calculateSwapOutput, getExplorerUrl } from '@/lib/dex/utils';
+import { TokenBalance, SwapForm } from '@/types/types-dex';
+import TradeNavbar from '@/components/shared/TradeNavbar';
+import Navbar from '@/components/home/navbar';
 
-interface SelectedToken {
-  name: string;
-  symbol: string;
-  contractAddress: string;
-  logoUrl?: string;
-}
-
-const Home: NextPage = () => {
-  const TOKEN_CONTRACT = "0x556156751F9c85F1973284A07E60E796BC032B1F";
-  const DEX_CONTRACT = "0x2Bf89a557BA41f7dC9Ed6a4Ec3c3f60Bad92FbF1";
-
+export default function SwapPage() {
   const account = useActiveAccount();
-  const address = account?.address;
-
-  const tokenContract = getContract({ address: TOKEN_CONTRACT, client, chain: sepolia });
-  const dexContract = getContract({ address: DEX_CONTRACT, client, chain: sepolia });
-
-  const { data: symbol } = useReadContract({
-    contract: tokenContract,
-    method: "function symbol() view returns (string)",
-    params: [],
+  const [balances, setBalances] = useState<TokenBalance>({
+    eth: '0',
+    coinA: '0',
+    coinB: '0'
   });
-
-  const { data: tokenBalance } = useReadContract({
-    contract: tokenContract,
-    method: "function balanceOf(address) view returns (uint256)",
-    params: [address || ""],
+  const [loading, setLoading] = useState(false);
+  const [swapForm, setSwapForm] = useState<SwapForm>({
+    fromToken: 'ETH',
+    toToken: 'CoinA',
+    fromAmount: '',
+    toAmount: '',
+    slippage: '1'
   });
+  const [error, setError] = useState('');
 
-  const { data: contractTokenBalance } = useReadContract({
-    contract: tokenContract,
-    method: "function balanceOf(address) view returns (uint256)",
-    params: [DEX_CONTRACT],
-  });
-
-  const { data: nativeBalance } = useWalletBalance({
-    address: address,
-    client,
-    chain: sepolia,
-  });
-
-  const [contractBalance, setContractBalance] = useState<string>("0");
-  const [nativeValue, setNativeValue] = useState<string>("0");
-  const [tokenValue, setTokenValue] = useState<string>("0");
-  const [currentFrom, setCurrentFrom] = useState<string>("native");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showFromSelector, setShowFromSelector] = useState(false);
-  const [showToSelector, setShowToSelector] = useState(false);
-  
-  const [fromToken, setFromToken] = useState<SelectedToken>({
-    name: 'Ethereum',
-    symbol: 'ETH',
-    contractAddress: 'ETH'
-  });
-  
-  const [toToken, setToToken] = useState<SelectedToken>({
-    name: 'KUKA Coin',
-    symbol: 'KUKA',
-    contractAddress: TOKEN_CONTRACT
-  });
-
-  const { mutateAsync: sendTransaction } = useSendTransaction();
-
-  const { data: amountToGet } = useReadContract({
-    contract: dexContract,
-    method: "function getAmountOfTokens(uint256,uint256,uint256) view returns (uint256)",
-    params: currentFrom === "native"
-      ? [toWei(nativeValue || "0"), toWei(contractBalance || "0"), contractTokenBalance || 0n]
-      : [toWei(tokenValue || "0"), contractTokenBalance || 0n, toWei(contractBalance || "0")],
-  });
-
-  // Track wallet connection
-  useEffect(() => {
-    if (address) {
-      trackWalletConnection(address);
-    }
-  }, [address]);
-
-  const trackWalletConnection = async (walletAddress: string) => {
+  const loadUserBalances = async () => {
+    if (!account?.address || !window.ethereum) return;
+    
     try {
-      await fetch('/api/wallet/connect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ address: walletAddress }),
-      });
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const { balances: newBalances } = await loadBalances(provider, account.address);
+      setBalances(newBalances);
     } catch (error) {
-      console.error('Error tracking wallet connection:', error);
+      console.error('Failed to load balances:', error);
+      setError('Failed to load balances');
     }
   };
 
-  const recordTransaction = async (txHash: string) => {
+  const calculateOutput = async () => {
+    if (!account?.address || !window.ethereum) return;
+    
     try {
-      await fetch('/api/dex/swap', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          walletAddress: address,
-          fromToken: fromToken.contractAddress,
-          toToken: toToken.contractAddress,
-          fromAmount: currentFrom === "native" ? nativeValue : tokenValue,
-          toAmount: currentFrom === "native" ? tokenValue : nativeValue,
-          transactionHash: txHash,
-          network: 'sepolia'
-        }),
-      });
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const output = await calculateSwapOutput(
+        provider,
+        swapForm.fromToken,
+        swapForm.toToken,
+        swapForm.fromAmount
+      );
+      setSwapForm(prev => ({ ...prev, toAmount: output }));
+      setError('');
     } catch (error) {
-      console.error('Error recording transaction:', error);
-    }
-  };
-
-  const fetchContractBalance = async () => {
-    try {
-      const balance = await nativeBalance;
-      setContractBalance(balance?.displayValue || "0");
-    } catch (error) {
-      console.error(error);
+      console.error('Failed to calculate swap output:', error);
+      setError('Failed to calculate swap output');
     }
   };
 
   const executeSwap = async () => {
-    if (!address) return;
-    setIsLoading(true);
+    if (!account?.address || !window.ethereum || !swapForm.fromAmount || !swapForm.toAmount) return;
+    
+    setLoading(true);
+    setError('');
+    
     try {
-      let txHash: string;
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const dexContract = new ethers.Contract(CONTRACTS.dex, DEX_ABI, signer);
       
-      if (currentFrom === "native") {
-        const transaction = prepareContractCall({
-          contract: dexContract,
-          method: "function swapEthToToken() payable",
-          params: [],
-          value: toWei(nativeValue || "0"),
+      const amountIn = ethers.parseUnits(swapForm.fromAmount, 18);
+      const minAmountOut = ethers.parseUnits(swapForm.toAmount, 18) * BigInt(100 - parseInt(swapForm.slippage)) / BigInt(100);
+      
+      let tx;
+      
+      if (swapForm.fromToken === 'ETH') {
+        const tokenAddress = swapForm.toToken === 'CoinA' ? CONTRACTS.coinA : CONTRACTS.coinB;
+        tx = await dexContract.swapEthForTokens(tokenAddress, minAmountOut, { 
+          value: amountIn,
+          gasLimit: 300000
         });
-        const result = await sendTransaction(transaction);
-        txHash = result.transactionHash;
-      } else {
-        const approveTransaction = prepareContractCall({
-          contract: tokenContract,
-          method: "function approve(address,uint256) returns (bool)",
-          params: [DEX_CONTRACT, toWei(tokenValue || "0")],
-        });
-        await sendTransaction(approveTransaction);
+      } else if (swapForm.toToken === 'ETH') {
+        const tokenAddress = swapForm.fromToken === 'CoinA' ? CONTRACTS.coinA : CONTRACTS.coinB;
+        const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+        const allowance = await tokenContract.allowance(account.address, CONTRACTS.dex);
         
-        const swapTransaction = prepareContractCall({
-          contract: dexContract,
-          method: "function swapTokenToEth(uint256)",
-          params: [toWei(tokenValue || "0")],
+        if (allowance < amountIn) {
+          const approveTx = await tokenContract.approve(CONTRACTS.dex, amountIn);
+          await approveTx.wait();
+        }
+        
+        tx = await dexContract.swapTokensForEth(tokenAddress, amountIn, minAmountOut, {
+          gasLimit: 300000
         });
-        const result = await sendTransaction(swapTransaction);
-        txHash = result.transactionHash;
+      } else {
+        const tokenInAddress = swapForm.fromToken === 'CoinA' ? CONTRACTS.coinA : CONTRACTS.coinB;
+        const tokenOutAddress = swapForm.toToken === 'CoinA' ? CONTRACTS.coinA : CONTRACTS.coinB;
+        const tokenContract = new ethers.Contract(tokenInAddress, ERC20_ABI, signer);
+        const allowance = await tokenContract.allowance(account.address, CONTRACTS.dex);
+        
+        if (allowance < amountIn) {
+          const approveTx = await tokenContract.approve(CONTRACTS.dex, amountIn);
+          await approveTx.wait();
+        }
+        
+        tx = await dexContract.swapTokens(tokenInAddress, tokenOutAddress, amountIn, minAmountOut, {
+          gasLimit: 300000
+        });
       }
       
-      // Record transaction in database
-      await recordTransaction(txHash);
-      alert("Swap executed successfully");
-    } catch (error) {
-      console.error(error);
-      alert("An error occurred while trying to execute the swap");
+      await tx.wait();
+      
+      toast({
+        variant: "default",
+        title: "Swap Successful!",
+        description: (
+          <div className="space-y-2">
+            <p>Successfully swapped {swapForm.fromAmount} {swapForm.fromToken} for {swapForm.toAmount} {swapForm.toToken}</p>
+            <a 
+              href={getExplorerUrl(tx.hash)} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center text-blue-400 hover:text-blue-300 underline"
+            >
+              View on Explorer →
+            </a>
+          </div>
+        ),
+      });
+      
+      await loadUserBalances();
+      setSwapForm(prev => ({ ...prev, fromAmount: '', toAmount: '' }));
+    } catch (error: any) {
+      console.error('Swap failed:', error);
+      const errorMessage = error.reason || error.message || 'Unknown error';
+      setError(`Swap failed: ${errorMessage}`);
+      toast({
+        variant: "destructive",
+        title: "Swap Failed",
+        description: errorMessage,
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleSwapTokens = () => {
-    const tempToken = fromToken;
-    setFromToken(toToken);
-    setToToken(tempToken);
-    setCurrentFrom(currentFrom === "native" ? "token" : "native");
-    
-    // Swap values
-    const tempValue = nativeValue;
-    setNativeValue(tokenValue);
-    setTokenValue(tempValue);
-  };
-
   useEffect(() => {
-    fetchContractBalance();
-    const interval = setInterval(fetchContractBalance, 10000);
-    return () => clearInterval(interval);
-  }, [nativeBalance]);
-
-  useEffect(() => {
-    if (!amountToGet) return;
-    if (currentFrom === "native") {
-      setTokenValue(toEther(amountToGet));
-    } else {
-      setNativeValue(toEther(amountToGet));
+    if (account?.address) {
+      loadUserBalances();
     }
-  }, [amountToGet]);
+  }, [account?.address]);
+
+  useEffect(() => {
+    if (swapForm.fromAmount && account?.address) {
+      const timer = setTimeout(calculateOutput, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [swapForm.fromAmount, swapForm.fromToken, swapForm.toToken]);
+
+  useEffect(() => {
+    if (account?.address) {
+      const interval = setInterval(loadUserBalances, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [account?.address]);
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black pt-32">
-      <div className="w-full max-w-md bg-gray-800 bg-opacity-50 rounded-2xl p-8 shadow-2xl backdrop-blur-lg">
-        <div className="space-y-4">
-          {/* From Token */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-300 text-sm">From</span>
+    <>
+      <Navbar />
+      <TradeNavbar topOffset="top-16" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 pt-20 px-6">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-6">
+          {/* Balance Display */}
+          <div className="md:w-1/3 bg-gray-900/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-800">
+            <h3 className="text-lg font-semibold text-gray-100 mb-4">Your Balances</h3>
+            <div className="space-y-4">
+              <div>
+                <span className="text-gray-400 text-sm">ETH</span>
+                <p className="font-semibold text-white">{parseFloat(balances.eth).toFixed(4)}</p>
+              </div>
+              <div>
+                <span className="text-gray-400 text-sm">CoinA</span>
+                <p className="font-semibold text-white">{parseFloat(balances.coinA).toFixed(2)}</p>
+              </div>
+              <div>
+                <span className="text-gray-400 text-sm">CoinB</span>
+                <p className="font-semibold text-white">{parseFloat(balances.coinB).toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Swap Interface */}
+          <div className="md:w-2/3 bg-gray-900/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-800">
+            {error && (
+              <div className="bg-red-900/50 border border-red-700 rounded-xl p-4 flex items-start space-x-3 mb-6">
+                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-red-300 text-sm">{error}</p>
+              </div>
+            )}
+
+            <div className="text-center mb-6">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                Swap Tokens
+              </h1>
+              <p className="text-gray-400 text-sm mt-2">Exchange tokens instantly with best rates</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">From</label>
+                <div className="flex items-center space-x-2 bg-gray-800/50 rounded-xl p-3 border border-gray-700">
+                  <select
+                    className="w-28 bg-transparent border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none"
+                    value={swapForm.fromToken}
+                    onChange={(e) => setSwapForm(prev => ({ ...prev, fromToken: e.target.value }))}
+                  >
+                    <option value="ETH" className="bg-gray-900">ETH</option>
+                    <option value="CoinA" className="bg-gray-900">CoinA</option>
+                    <option value="CoinB" className="bg-gray-900">CoinB</option>
+                  </select>
+                  <input
+                    type="number"
+                    placeholder="0.0"
+                    className="flex-1 bg-transparent text-lg text-gray-100 outline-none"
+                    value={swapForm.fromAmount}
+                    onChange={(e) => setSwapForm(prev => ({ ...prev, fromAmount: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setSwapForm(prev => ({ 
+                    ...prev, 
+                    fromToken: prev.toToken, 
+                    toToken: prev.fromToken,
+                    fromAmount: prev.toAmount,
+                    toAmount: prev.fromAmount
+                  }))}
+                  className="p-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-110"
+                >
+                  <ArrowUpDown className="h-5 w-5 text-white" />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">To</label>
+                <div className="flex items-center space-x-2 bg-gray-800/50 rounded-xl p-3 border border-gray-700">
+                  <select
+                    className="w-28 bg-transparent border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none"
+                    value={swapForm.toToken}
+                    onChange={(e) => setSwapForm(prev => ({ ...prev, toToken: e.target.value }))}
+                  >
+                    <option value="ETH" className="bg-gray-900">ETH</option>
+                    <option value="CoinA" className="bg-gray-900">CoinA</option>
+                    <option value="CoinB" className="bg-gray-900">CoinB</option>
+                  </select>
+                  <input
+                    type="number"
+                    placeholder="0.0"
+                    className="flex-1 bg-transparent text-lg text-gray-100 outline-none"
+                    value={swapForm.toAmount}
+                    readOnly
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Slippage Tolerance (%)</label>
+                <input
+                  type="number"
+                  className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none"
+                  value={swapForm.slippage}
+                  onChange={(e) => setSwapForm(prev => ({ ...prev, slippage: e.target.value }))}
+                  min="0.1"
+                  max="50"
+                  step="0.1"
+                />
+              </div>
+
               <button
-                onClick={() => setShowFromSelector(true)}
-                className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                onClick={executeSwap}
+                disabled={loading || !swapForm.fromAmount || !swapForm.toAmount || swapForm.fromToken === swapForm.toToken || !account}
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-4 rounded-xl font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-105"
               >
-                <span className="text-sm">{fromToken.symbol}</span>
-                <ChevronDown className="h-4 w-4" />
+                {loading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-white"></div>
+                ) : (
+                  <span>
+                    {!account ? 'Connect Wallet' : 'Swap'}
+                  </span>
+                )}
               </button>
             </div>
-            <SwapInput
-              current={currentFrom}
-              type="native"
-              max={nativeBalance?.displayValue}
-              value={nativeValue}
-              setValue={setNativeValue}
-              tokenSymbol={fromToken.symbol}
-              tokenBalance={nativeBalance?.displayValue}
-            />
           </div>
-
-          {/* Swap Button */}
-          <div className="flex justify-center">
-            <button
-              onClick={handleSwapTokens}
-              className="p-3 bg-gray-700 rounded-full hover:bg-gray-600 transition-all duration-300 transform hover:scale-110"
-            >
-              <ArrowUpDown className="w-5 h-5 text-white" />
-            </button>
-          </div>
-
-          {/* To Token */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-300 text-sm">To</span>
-              <button
-                onClick={() => setShowToSelector(true)}
-                className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
-              >
-                <span className="text-sm">{toToken.symbol}</span>
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            </div>
-            <SwapInput
-              current={currentFrom}
-              type="token"
-              max={tokenBalance ? toEther(tokenBalance) : "0"}
-              value={tokenValue}
-              setValue={setTokenValue}
-              tokenSymbol={toToken.symbol}
-              tokenBalance={tokenBalance ? toEther(tokenBalance) : "0"}
-            />
-          </div>
-        </div>
-
-        {/* Swap Button */}
-        <div className="mt-6 text-center">
-          {address ? (
-            <button
-              onClick={executeSwap}
-              disabled={isLoading}
-              className={`w-full py-3 rounded-lg text-lg font-semibold transition-all duration-300 ${
-                isLoading
-                  ? "bg-gray-600 cursor-not-allowed"
-                  : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-              }`}
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-2 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z" />
-                  </svg>
-                  Processing...
-                </span>
-              ) : (
-                `Swap ${fromToken.symbol} for ${toToken.symbol}`
-              )}
-            </button>
-          ) : (
-            <p className="text-gray-400">Connect wallet to exchange.</p>
-          )}
         </div>
       </div>
-
-      {/* Token Selectors */}
-      <PairSelector
-        isOpen={showFromSelector}
-        onClose={() => setShowFromSelector(false)}
-        onSelectToken={setFromToken}
-        currentToken={fromToken}
-        title="Select From Token"
-      />
-      
-      <PairSelector
-        isOpen={showToSelector}
-        onClose={() => setShowToSelector(false)}
-        onSelectToken={setToToken}
-        currentToken={toToken}
-        title="Select To Token"
-      />
-    </main>
+    </>
   );
-};
-
-export default Home;
+}

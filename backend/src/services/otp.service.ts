@@ -49,7 +49,7 @@ export class OtpService implements IOTPService {
             
             logger.info(`Generated OTP: ${otp} for email: ${email}, role: ${role}`);
             
-            // Clear any existing OTPs for this email
+            // Clear existing OTPs for this email
             await this._otpRepository.deleteOtp(email);
             
             // Save new OTP
@@ -81,7 +81,7 @@ export class OtpService implements IOTPService {
 
             logger.info(`Generated forgot password OTP: ${otp} for email: ${email}`);
             
-            // Clear any existing OTPs for this email
+            // Clear existing OTPs for this email
             await this._otpRepository.deleteOtp(email);
             
             // Save new OTP

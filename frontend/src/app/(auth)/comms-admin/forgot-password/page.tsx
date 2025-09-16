@@ -10,6 +10,7 @@ import { Mail, ArrowLeft, Home, Shield, CheckCircle, Loader2, AlertCircle } from
 import { communityAdminApiService } from '@/services/communityAdminApiService'
 import { toast } from '@/hooks/use-toast'
 import { validateEmail } from '@/validations/communityAdminValidation'
+import { COMMON_ROUTES, COMMUNITY_ADMIN_ROUTES } from '@/routes'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
@@ -76,7 +77,7 @@ export default function ForgotPasswordPage() {
       {/* Back Button */}
       <div className="absolute top-6 left-6 z-50">
         <Button
-          onClick={() => router.push('/')}
+          onClick={() => router.push(COMMON_ROUTES.HOME)}
           variant="ghost"
           className="text-red-400 hover:text-red-300 hover:bg-red-950/30 border border-red-800/30 backdrop-blur-sm"
         >
@@ -149,7 +150,7 @@ export default function ForgotPasswordPage() {
                   </p>
                 </div>
                 <Button
-                  onClick={() => router.push('/comms-admin/verify-otp')}
+                  onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.VERIFY_OTP)}
                   className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white py-3 font-semibold rounded-xl shadow-lg shadow-red-900/30 hover:shadow-red-800/40 transition-all duration-300 transform hover:scale-[1.02]"
                 >
                   Continue to Verification
@@ -159,7 +160,7 @@ export default function ForgotPasswordPage() {
             <div className="text-center pt-4 border-t border-red-800/30">
               <Button
                 variant="link"
-                onClick={() => router.push('/comms-admin/login')}
+                onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.LOGIN)}
                 className="text-red-400 hover:text-red-300 p-0 h-auto"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />

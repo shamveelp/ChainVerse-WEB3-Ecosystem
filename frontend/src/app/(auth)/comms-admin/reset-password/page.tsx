@@ -10,6 +10,7 @@ import { Eye, EyeOff, Lock, Home, CheckCircle, Loader2, AlertCircle } from 'luci
 import { communityAdminApiService } from '@/services/communityAdminApiService'
 import { toast } from '@/hooks/use-toast'
 import { validatePassword, validatePasswordMatch } from '@/validations/communityAdminValidation'
+import { COMMON_ROUTES, COMMUNITY_ADMIN_ROUTES } from '@/routes'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -26,7 +27,7 @@ export default function ResetPasswordPage() {
     if (storedEmail) {
       setEmail(storedEmail)
     } else {
-      router.push('/comms-admin/forgot-password')
+      router.push(COMMUNITY_ADMIN_ROUTES.FORGOT_PASSWORD)
       toast({
         title: "Error",
         description: "Please enter your email to reset password first.",
@@ -77,7 +78,7 @@ export default function ResetPasswordPage() {
           description: result.message || "Password reset successfully",
         })
         localStorage.removeItem('forgotPasswordEmail')
-        router.push('/comms-admin/login')
+        router.push(COMMUNITY_ADMIN_ROUTES.LOGIN)
       } else {
         toast({
           title: "Error",
@@ -130,7 +131,7 @@ export default function ResetPasswordPage() {
       {/* Back Button */}
       <div className="absolute top-6 left-6 z-50">
         <Button
-          onClick={() => router.push('/')}
+          onClick={() => router.push(COMMON_ROUTES.HOME)}
           variant="ghost"
           className="text-red-400 hover:text-red-300 hover:bg-red-950/30 border border-red-800/30 backdrop-blur-sm"
         >

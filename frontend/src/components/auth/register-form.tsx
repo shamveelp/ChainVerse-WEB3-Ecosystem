@@ -16,6 +16,7 @@ import type { RootState } from "@/redux/store"
 import { setTempEmail, setTempUserData, setLoading } from "@/redux/slices/userAuthSlice"
 import { validateRegisterForm } from "@/validations/auth"
 import { register, checkUsername, generateUsername } from "@/services/authApiService"
+import { USER_ROUTES, COMMON_ROUTES } from "@/routes"
 
 interface RegisterData {
   username: string
@@ -48,7 +49,7 @@ export function RegisterForm() {
   const { googleLogin } = useAuthActions()
   const { loading } = useSelector((state: RootState) => state.userAuth)
   const searchParams = useSearchParams()
-  const redirectUrl = searchParams.get('redirect') || '/'
+  const redirectUrl = searchParams.get('redirect') || COMMON_ROUTES.HOME
 
   // Check for referral code in URL
   useEffect(() => {
@@ -60,7 +61,7 @@ export function RegisterForm() {
 
   const handleInputChange = async (field: keyof RegisterData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-    
+
     // Clear errors when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }))
@@ -70,7 +71,7 @@ export function RegisterForm() {
     if (field === 'username' && value.length >= 4) {
       setIsCheckingUsername(true)
       setUsernameAvailable(null)
-      
+
       try {
         const result = await checkUsername(value)
         if (result.success) {
@@ -121,10 +122,10 @@ export function RegisterForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Validate form
     const validationErrors = validateRegisterForm(formData, agreeTerms)
-    
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
       return
@@ -153,7 +154,7 @@ export function RegisterForm() {
         name: formData.name,
         referralCode: formData.referralCode
       });
-      
+
       const result = await register(
         formData.username,
         formData.email,
@@ -161,7 +162,7 @@ export function RegisterForm() {
         formData.name,
         formData.referralCode
       )
-      
+
       if (result.success) {
         // Store temp data for OTP verification - include name and referralCode
         dispatch(setTempUserData({
@@ -179,7 +180,7 @@ export function RegisterForm() {
           className: "bg-green-600 text-white border-none",
         })
 
-        router.push(`/user/verify-otp?redirect=${encodeURIComponent(redirectUrl)}`)
+        router.push(`${USER_ROUTES.VERIFY_OTP}?redirect=${encodeURIComponent(redirectUrl)}`)
       } else {
         throw new Error(result.error)
       }
@@ -440,8 +441,8 @@ export function RegisterForm() {
         <div className="text-center">
           <p className="text-gray-400 text-sm">
             Already have an account?{" "}
-            <Link 
-              href={`/user/login?redirect=${encodeURIComponent(redirectUrl)}`} 
+            <Link
+              href={`${USER_ROUTES.LOGIN}?redirect=${encodeURIComponent(redirectUrl)}`}
               className="text-blue-400 hover:text-blue-300 font-medium transition-colors underline"
             >
               Sign In

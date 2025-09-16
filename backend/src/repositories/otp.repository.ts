@@ -9,7 +9,7 @@ import { IOtpRepository } from "../core/interfaces/repositories/IOtpRepository";
 export class OtpRepository implements IOtpRepository {
   async saveOtp(email: string, otp: string, expiresAt: Date): Promise<IOTP> {
     try {
-      // Delete any existing OTP for this email first
+      // Delete  existing OTP for this email first
       await OtpModel.deleteMany({ email }).exec();
       
       // Create new OTP record

@@ -11,11 +11,12 @@ import { communityAdminApiService } from '@/services/communityAdminApiService'
 import { toast } from '@/hooks/use-toast'
 import { validateOtp } from '@/validations/communityAdminValidation'
 import type { RootState } from '@/redux/store'
+import { COMMUNITY_ADMIN_ROUTES, COMMON_ROUTES } from '@/routes'
 
 export default function CommunityOTPVerificationPage() {
   const router = useRouter()
   const { tempEmail } = useSelector((state: RootState) => state.communityAdminAuth)
-  
+
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
@@ -29,7 +30,7 @@ export default function CommunityOTPVerificationPage() {
         description: "No email found. Please start from the beginning.",
         variant: "destructive"
       })
-      router.push('/comms-admin/create-community')
+      router.push(COMMUNITY_ADMIN_ROUTES.CREATE_COMMUNITY)
       return
     }
   }, [tempEmail, router])
@@ -43,11 +44,11 @@ export default function CommunityOTPVerificationPage() {
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) return
-        
+
     const newOtp = [...otp]
     newOtp[index] = value
     setOtp(newOtp)
-    
+
     // Auto-focus next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus()
@@ -62,10 +63,10 @@ export default function CommunityOTPVerificationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     const otpString = otp.join('')
     const otpValidation = validateOtp(otpString)
-    
+
     if (!otpValidation.isValid) {
       toast({
         title: "Error",
@@ -83,18 +84,18 @@ export default function CommunityOTPVerificationPage() {
       })
       return
     }
-        
+
     setLoading(true)
-    
+
     try {
       const result = await communityAdminApiService.verifyOtp(tempEmail, otpString)
-      
+
       if (result.success) {
         toast({
           title: "Success",
           description: "OTP verified successfully! Your application is under review.",
         })
-        router.push('/comms-admin/application-submitted')
+        router.push(COMMUNITY_ADMIN_ROUTES.APPLICATION_SUBMITTED)
       } else {
         toast({
           title: "Error",
@@ -118,13 +119,13 @@ export default function CommunityOTPVerificationPage() {
 
   const handleResend = async () => {
     if (!tempEmail) return
-    
+
     setResending(true)
     setTimer(60)
-    
+
     try {
       const result = await communityAdminApiService.resendOtp(tempEmail)
-      
+
       if (result.success) {
         toast({
           title: "Success",
@@ -160,7 +161,7 @@ export default function CommunityOTPVerificationPage() {
       {/* Back Button */}
       <div className="absolute top-6 left-6 z-50">
         <Button
-          onClick={() => router.push('/')}
+          onClick={() => router.push(COMMON_ROUTES.HOME)}
           variant="ghost"
           className="text-red-400 hover:text-red-300 hover:bg-red-950/30 border border-red-800/30 backdrop-blur-sm"
         >

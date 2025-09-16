@@ -12,6 +12,7 @@ import { useSelector, useDispatch } from "react-redux"
 import type { RootState } from "@/redux/store"
 import { setLoading, clearTempData } from "@/redux/slices/userAuthSlice"
 import API from "@/lib/api-client"
+import { USER_ROUTES, COMMON_ROUTES } from "@/routes"
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState("")
@@ -32,7 +33,7 @@ export function ResetPasswordForm() {
         description: "Please restart the password reset process",
         variant: "destructive",
       })
-      router.push("/user/login")
+      router.push(USER_ROUTES.LOGIN)
       return
     }
   }, [tempEmail, router, toast])
@@ -80,7 +81,7 @@ export function ResetPasswordForm() {
         description: "Reset session not found. Please restart the process.",
         variant: "destructive",
       })
-      router.push("/user/forgot-password")
+      router.push(USER_ROUTES.FORGOT_PASSWORD)
       return
     }
 
@@ -103,7 +104,7 @@ export function ResetPasswordForm() {
         description: "Your password has been updated. You can now log in.",
       })
 
-      router.push("/user/login")
+      router.push(USER_ROUTES.LOGIN)
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message
       toast({
@@ -138,7 +139,7 @@ export function ResetPasswordForm() {
       {/* Logo */}
       <div className="text-center mb-8">
         <Link
-          href="/"
+          href={COMMON_ROUTES.HOME}
           className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
         >
           ChainVerse
@@ -236,7 +237,7 @@ export function ResetPasswordForm() {
           </form>
 
           <div className="text-center">
-            <Link href="/user/login" className="text-blue-400 hover:text-blue-300 text-sm">
+            <Link href={USER_ROUTES.LOGIN} className="text-blue-400 hover:text-blue-300 text-sm">
               Back to Login
             </Link>
           </div>

@@ -21,6 +21,7 @@ import { useSelector } from "react-redux"
 import type { RootState } from "@/redux/store"
 import { useAuthActions } from "@/lib/auth-actions"
 import { useToast } from "@/hooks/use-toast"
+import { COMMON_ROUTES, USER_ROUTES } from "@/routes"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -45,7 +46,7 @@ export default function Navbar() {
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link
-                href="/"
+                href={COMMON_ROUTES.HOME}
                 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
               >
                 ChainVerse
@@ -55,7 +56,7 @@ export default function Navbar() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-8">
                 <Link
-                  href="/user/market"
+                  href={COMMON_ROUTES.MARKET}
                   className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
                 >
                   Market
@@ -66,27 +67,27 @@ export default function Navbar() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-popover border-border">
                     <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
-                      <Link href="/trade/swap">Swap</Link>
+                      <Link href={COMMON_ROUTES.SWAP}>Swap</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
-                      <Link href="/bridge">Bridge</Link>
+                      <Link href={COMMON_ROUTES.LIQUIDITY}>Liquidity</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
-                      <Link href="/buy">Buy</Link>
+                      <Link href={COMMON_ROUTES.BRIDGE}>Bridge</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
-                      <Link href="/sell">Sell</Link>
+                      <Link href={COMMON_ROUTES.BUY}>Buy</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Link
-                  href="/user/community"
+                  href={USER_ROUTES.COMMUNITY}
                   className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
                 >
                   Community
                 </Link>
                 <Link
-                  href="/trade/nfts-marketplace"
+                  href={USER_ROUTES.NFT_MARKET}
                   className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
                 >
                   NFTs
@@ -154,7 +155,7 @@ export default function Navbar() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-popover border-border w-48">
                     <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
-                      <Link href="/my-profile" className="flex items-center w-full">
+                      <Link href={USER_ROUTES.PROFILE} className="flex items-center w-full">
                         <User className="mr-2 h-4 w-4" />
                         Profile
                       </Link>
@@ -171,7 +172,7 @@ export default function Navbar() {
                 </DropdownMenu>
               ) : (
                 <div className="ml-4 flex items-center space-x-4">
-                  <Link href="/user/login">
+                  <Link href={USER_ROUTES.LOGIN}>
                     <Button
                       variant="ghost"
                       className="text-foreground hover:text-primary hover:bg-accent cursor-pointer"
@@ -179,7 +180,7 @@ export default function Navbar() {
                       Login
                     </Button>
                   </Link>
-                  <Link href="/user/register">
+                  <Link href={USER_ROUTES.REGISTER}>
                     <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
                       Register
                     </Button>
@@ -200,7 +201,7 @@ export default function Navbar() {
                 <SheetContent side="right" className="bg-background border-border">
                   <div className="flex flex-col space-y-4 mt-8">
                     <Link
-                      href="/user/market"
+                      href={USER_ROUTES.MARKET}
                       className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium"
                     >
                       Market
@@ -209,27 +210,27 @@ export default function Navbar() {
                       <div className="text-foreground text-sm font-medium mb-2">Trade</div>
                       <div className="ml-4 space-y-2">
                         <Link
-                          href="/user/trade/swap"
+                          href={USER_ROUTES.SWAP}
                           className="block text-muted-foreground hover:text-primary text-sm"
                         >
                           Swap
                         </Link>
-                        <Link href="/bridge" className="block text-muted-foreground hover:text-primary text-sm">
+                        <Link href={USER_ROUTES.BRIDGE} className="block text-muted-foreground hover:text-primary text-sm">
                           Bridge
                         </Link>
-                        <Link href="/buy" className="block text-muted-foreground hover:text-primary text-sm">
+                        <Link href={USER_ROUTES.BUY} className="block text-muted-foreground hover:text-primary text-sm">
                           Buy
                         </Link>
-                        <Link href="/sell" className="block text-muted-foreground hover:text-primary text-sm">
+                        <Link href={USER_ROUTES.SELL} className="block text-muted-foreground hover:text-primary text-sm">
                           Sell
                         </Link>
                       </div>
                     </div>
-                    <Link href="/nfts" className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium">
+                    <Link href={USER_ROUTES.NFT_MARKET} className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium">
                       NFTs
                     </Link>
                     <Link
-                      href="/user/community"
+                      href={USER_ROUTES.COMMUNITY}
                       className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium"
                     >
                       Community
@@ -254,7 +255,7 @@ export default function Navbar() {
                               <span className="text-foreground text-sm font-medium">{user.username}</span>
                             </div>
                           </div>
-                          <Link href="/my-profile">
+                          <Link href={USER_ROUTES.PROFILE}>
                             <Button
                               variant="ghost"
                               className="w-full text-foreground hover:text-primary hover:bg-accent justify-start"
@@ -274,7 +275,7 @@ export default function Navbar() {
                         </>
                       ) : (
                         <>
-                          <Link href="/user/login">
+                          <Link href={USER_ROUTES.LOGIN}>
                             <Button
                               variant="ghost"
                               className="w-full text-foreground hover:text-primary hover:bg-accent"
@@ -282,7 +283,7 @@ export default function Navbar() {
                               Login
                             </Button>
                           </Link>
-                          <Link href="/user/register">
+                          <Link href={USER_ROUTES.REGISTER}>
                             <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
                               Register
                             </Button>

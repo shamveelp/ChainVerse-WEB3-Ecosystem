@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { forgotPassword } from '@/services/adminApiService'
+import { ADMIN_ROUTES, COMMON_ROUTES } from '@/routes'
 
 const ChainVerseLogo = ({ className }: { className?: string }) => (
   <div className={`flex items-center ${className}`}>
@@ -36,7 +37,7 @@ export default function AdminForgotPassword() {
 
     try {
       const response = await forgotPassword(email)
-      
+
       if (response.success) {
         localStorage.setItem('resetPasswordEmail', email)
         toast({
@@ -44,7 +45,7 @@ export default function AdminForgotPassword() {
           description: "Check your email for the verification code",
           className: "bg-green-900/90 border-green-500/50 text-green-100"
         })
-        router.push("/admin/verify-reset-otp")
+        router.push(ADMIN_ROUTES.VERIFY_RESET_OTP)
       } else {
         toast({
           title: "Error",
@@ -77,7 +78,7 @@ export default function AdminForgotPassword() {
       {/* Back buttons */}
       <div className="absolute top-6 left-6 z-50 flex gap-3">
         <Button
-          onClick={() => router.push('/')}
+          onClick={() => router.push(COMMON_ROUTES.HOME)}
           variant="ghost"
           className="text-cyan-400 hover:text-cyan-300 hover:bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm"
         >
@@ -85,7 +86,7 @@ export default function AdminForgotPassword() {
           Home
         </Button>
         <Button
-          onClick={() => router.push('/admin/login')}
+          onClick={() => router.push(ADMIN_ROUTES.LOGIN)}
           variant="ghost"
           className="text-cyan-400 hover:text-cyan-300 hover:bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm"
         >

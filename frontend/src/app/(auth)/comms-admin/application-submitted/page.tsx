@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle, Clock, Mail, Home, ArrowRight } from 'lucide-react'
+import { COMMUNITY_ADMIN_ROUTES, COMMON_ROUTES } from '@/routes'
 
 export default function ApplicationSubmitted() {
   const router = useRouter()
@@ -20,7 +21,7 @@ export default function ApplicationSubmitted() {
       {/* Back Button */}
       <div className="absolute top-6 left-6 z-50">
         <Button
-          onClick={() => router.push('/')}
+          onClick={() => router.push(COMMON_ROUTES.HOME)}
           variant="ghost"
           className="text-green-400 hover:text-green-300 hover:bg-green-950/30 border border-green-800/30 backdrop-blur-sm"
         >
@@ -50,7 +51,7 @@ export default function ApplicationSubmitted() {
                   <span className="text-green-400 font-semibold">Under Review</span>
                 </div>
                 <p className="text-gray-300 leading-relaxed">
-                  Thank you for applying to create a community on ChainVerse! 
+                  Thank you for applying to create a community on ChainVerse!
                   Your application is now under review by our admin team.
                 </p>
               </div>
@@ -61,7 +62,7 @@ export default function ApplicationSubmitted() {
                   <span className="text-blue-400 font-semibold">Email Notification</span>
                 </div>
                 <p className="text-gray-300 leading-relaxed">
-                  We'll notify you via email within <span className="text-blue-400 font-semibold">48 hours</span> 
+                  We'll notify you via email within <span className="text-blue-400 font-semibold">48 hours</span>
                   regarding the status of your application - whether it's approved or if we need additional information.
                 </p>
               </div>
@@ -76,15 +77,15 @@ export default function ApplicationSubmitted() {
 
             <div className="pt-6 space-y-4">
               <Button
-                onClick={() => router.push('/comms-admin/login')}
+                onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.LOGIN)}
                 className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white py-3 font-semibold rounded-xl shadow-lg shadow-green-900/30 hover:shadow-green-800/40 transition-all duration-300"
               >
                 Go to Login
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
-              
+
               <Button
-                onClick={() => router.push('/')}
+                onClick={() => router.push(COMMON_ROUTES.HOME)}
                 variant="outline"
                 className="w-full border-green-600/50 text-green-400 hover:text-green-300 hover:border-green-500 hover:bg-green-950/30 backdrop-blur-sm"
               >
