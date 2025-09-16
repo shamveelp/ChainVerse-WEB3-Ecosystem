@@ -42,9 +42,9 @@ const menuItems = [
     icon: Users,
   },
   {
-    title: "Market",
-    url: "/admin/market-management",
-    icon: ChartBar,
+    title: "Dex Management",
+    url: "/admin/dex-management",
+    icon: Coins,
   },
   {
     title: "Community Requests",
@@ -55,23 +55,23 @@ const menuItems = [
     title: "Wallets",
     url: "/admin/wallet-management",
     icon: Wallet,
+  },
+  {
+    title: "Market",
+    url: "/admin/market-management",
+    icon: ChartBar,
     badge: "1.2K",
   },
-  {
-    title: "Coins",
-    url: "/admin/coins",
-    icon: Coins,
-  },
-  {
-    title: "NFTs",
-    url: "/admin/nfts",
-    icon: FileText,
-  },
-  {
-    title: "Quests",
-    url: "/admin/quests",
-    icon: Calendar,
-  },
+  // {
+  //   title: "NFTs",
+  //   url: "/admin/nfts",
+  //   icon: FileText,
+  // },
+  // {
+  //   title: "Quests",
+  //   url: "/admin/quests",
+  //   icon: Calendar,
+  // },
 ]
 
 export function AppSidebar() {

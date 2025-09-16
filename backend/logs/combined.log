@@ -11331,3 +11331,7 @@
 2025-09-15T17:40:59.476Z [info]: Role middleware: Checking roles:
 2025-09-15T17:40:59.477Z [info]: Role middleware: User role:
 2025-09-15T17:40:59.477Z [info]: Role middleware: Role check passed
+2025-09-16T14:38:28.596Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T14:38:58.942Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-09-16T14:40:16.040Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T14:40:46.189Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
