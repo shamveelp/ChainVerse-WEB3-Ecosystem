@@ -1,5 +1,5 @@
 import { IUser } from '../../../models/user.models';
-import { IBaseRepository } from './iBase.repository';
+import { IBaseRepository } from './IBase.repository';
 
 export interface PaginatedUsers {
   users: IUser[];

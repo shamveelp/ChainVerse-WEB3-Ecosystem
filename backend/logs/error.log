@@ -596,3 +596,9 @@
 2025-09-15T13:46:47.565Z [error]: Admin login error: Invalid credentials
 2025-09-16T14:38:58.942Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
 2025-09-16T14:40:46.189Z [error]: Error connecting to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017, connect ECONNREFUSED ::1:27017
+2025-09-16T21:26:16.580Z [error]: Error in loginUser: Invalid email or password
+2025-09-16T21:26:16.583Z [error]: Error logging in: Invalid email or password
+2025-09-16T21:26:24.663Z [error]: Error in loginUser: Invalid email or password
+2025-09-16T21:26:24.663Z [error]: Error logging in: Invalid email or password
+2025-09-16T21:26:27.539Z [error]: Error in loginUser: Invalid email or password
+2025-09-16T21:26:27.539Z [error]: Error logging in: Invalid email or password

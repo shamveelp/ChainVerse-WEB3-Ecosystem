@@ -11840,3 +11840,124 @@
 2025-09-16T18:11:41.017Z [info]: Loaded 2 contract addresses for filtering
 2025-09-16T18:11:41.198Z [info]: MongoDB connected: localhost
 2025-09-16T20:33:31.133Z [info]: Admin logged in successfully: admin@gmail.com
+2025-09-16T20:39:11.525Z [info]: Auth middleware: Token present:
+2025-09-16T20:39:11.555Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-16T20:39:11.584Z [info]: Auth middleware: Looking up admin account
+2025-09-16T20:39:11.603Z [info]: Auth middleware: Account found:
+2025-09-16T20:39:11.603Z [info]: Auth middleware: Token version:
+2025-09-16T20:39:11.604Z [info]: Auth middleware: Authentication successful for user:
+2025-09-16T20:39:11.605Z [info]: Role middleware: Checking roles:
+2025-09-16T20:39:11.606Z [info]: Role middleware: User role:
+2025-09-16T20:39:11.606Z [info]: Role middleware: Role check passed
+2025-09-16T20:39:11.681Z [info]: Auth middleware: Token present:
+2025-09-16T20:39:11.682Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-16T20:39:11.682Z [info]: Auth middleware: Looking up admin account
+2025-09-16T20:39:11.686Z [info]: Auth middleware: Account found:
+2025-09-16T20:39:11.686Z [info]: Auth middleware: Token version:
+2025-09-16T20:39:11.687Z [info]: Auth middleware: Authentication successful for user:
+2025-09-16T20:39:11.687Z [info]: Role middleware: Checking roles:
+2025-09-16T20:39:11.687Z [info]: Role middleware: User role:
+2025-09-16T20:39:11.687Z [info]: Role middleware: Role check passed
+2025-09-16T21:18:24.919Z [info]: Auth middleware: Token present:
+2025-09-16T21:18:24.964Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-16T21:18:24.969Z [info]: Auth middleware: Token present:
+2025-09-16T21:18:24.971Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-16T21:18:25.027Z [info]: Token refreshed for admin: admin@gmail.com
+2025-09-16T21:18:25.031Z [info]: Token refreshed for admin: admin@gmail.com
+2025-09-16T21:18:25.054Z [info]: Auth middleware: Token present:
+2025-09-16T21:18:25.055Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-16T21:18:25.059Z [info]: Auth middleware: Looking up admin account
+2025-09-16T21:18:25.062Z [info]: Auth middleware: Account found:
+2025-09-16T21:18:25.062Z [info]: Auth middleware: Token version:
+2025-09-16T21:18:25.063Z [info]: Auth middleware: Authentication successful for user:
+2025-09-16T21:18:25.063Z [info]: Role middleware: Checking roles:
+2025-09-16T21:18:25.063Z [info]: Role middleware: User role:
+2025-09-16T21:18:25.063Z [info]: Role middleware: Role check passed
+2025-09-16T21:18:25.091Z [info]: Auth middleware: Token present:
+2025-09-16T21:18:25.093Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-16T21:18:25.093Z [info]: Auth middleware: Looking up admin account
+2025-09-16T21:18:25.096Z [info]: Auth middleware: Account found:
+2025-09-16T21:18:25.096Z [info]: Auth middleware: Token version:
+2025-09-16T21:18:25.096Z [info]: Auth middleware: Authentication successful for user:
+2025-09-16T21:18:25.096Z [info]: Role middleware: Checking roles:
+2025-09-16T21:18:25.096Z [info]: Role middleware: User role:
+2025-09-16T21:18:25.097Z [info]: Role middleware: Role check passed
+2025-09-16T21:18:41.586Z [info]: Auth middleware: Token present:
+2025-09-16T21:18:41.589Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-16T21:18:41.589Z [info]: Auth middleware: Looking up admin account
+2025-09-16T21:18:41.597Z [info]: Auth middleware: Account found:
+2025-09-16T21:18:41.597Z [info]: Auth middleware: Token version:
+2025-09-16T21:18:41.598Z [info]: Auth middleware: Authentication successful for user:
+2025-09-16T21:18:41.599Z [info]: Role middleware: Checking roles:
+2025-09-16T21:18:41.599Z [info]: Role middleware: User role:
+2025-09-16T21:18:41.599Z [info]: Role middleware: Role check passed
+2025-09-16T21:18:41.756Z [info]: Auth middleware: Token present:
+2025-09-16T21:18:41.757Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-16T21:18:41.757Z [info]: Auth middleware: Looking up admin account
+2025-09-16T21:18:41.771Z [info]: Auth middleware: Account found:
+2025-09-16T21:18:41.771Z [info]: Auth middleware: Token version:
+2025-09-16T21:18:41.771Z [info]: Auth middleware: Authentication successful for user:
+2025-09-16T21:18:41.771Z [info]: Role middleware: Checking roles:
+2025-09-16T21:18:41.772Z [info]: Role middleware: User role:
+2025-09-16T21:18:41.772Z [info]: Role middleware: Role check passed
+2025-09-16T21:18:52.131Z [info]: Auth middleware: Token present:
+2025-09-16T21:18:52.134Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-16T21:18:52.134Z [info]: Auth middleware: Looking up admin account
+2025-09-16T21:18:52.147Z [info]: Auth middleware: Token present:
+2025-09-16T21:18:52.149Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-16T21:18:52.149Z [info]: Auth middleware: Looking up admin account
+2025-09-16T21:18:52.152Z [info]: Auth middleware: Account found:
+2025-09-16T21:18:52.153Z [info]: Auth middleware: Token version:
+2025-09-16T21:18:52.153Z [info]: Auth middleware: Authentication successful for user:
+2025-09-16T21:18:52.153Z [info]: Role middleware: Checking roles:
+2025-09-16T21:18:52.153Z [info]: Role middleware: User role:
+2025-09-16T21:18:52.153Z [info]: Role middleware: Role check passed
+2025-09-16T21:18:52.169Z [info]: Auth middleware: Account found:
+2025-09-16T21:18:52.170Z [info]: Auth middleware: Token version:
+2025-09-16T21:18:52.170Z [info]: Auth middleware: Authentication successful for user:
+2025-09-16T21:18:52.170Z [info]: Role middleware: Checking roles:
+2025-09-16T21:18:52.170Z [info]: Role middleware: User role:
+2025-09-16T21:18:52.171Z [info]: Role middleware: Role check passed
+2025-09-16T21:18:52.197Z [info]: Auth middleware: Token present:
+2025-09-16T21:18:52.198Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-16T21:18:52.199Z [info]: Auth middleware: Looking up admin account
+2025-09-16T21:18:52.201Z [info]: Auth middleware: Token present:
+2025-09-16T21:18:52.202Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-16T21:18:52.203Z [info]: Auth middleware: Looking up admin account
+2025-09-16T21:18:52.205Z [info]: Auth middleware: Account found:
+2025-09-16T21:18:52.205Z [info]: Auth middleware: Token version:
+2025-09-16T21:18:52.205Z [info]: Auth middleware: Authentication successful for user:
+2025-09-16T21:18:52.206Z [info]: Role middleware: Checking roles:
+2025-09-16T21:18:52.206Z [info]: Role middleware: User role:
+2025-09-16T21:18:52.206Z [info]: Role middleware: Role check passed
+2025-09-16T21:18:52.214Z [info]: Auth middleware: Account found:
+2025-09-16T21:18:52.214Z [info]: Auth middleware: Token version:
+2025-09-16T21:18:52.214Z [info]: Auth middleware: Authentication successful for user:
+2025-09-16T21:18:52.214Z [info]: Role middleware: Checking roles:
+2025-09-16T21:18:52.214Z [info]: Role middleware: User role:
+2025-09-16T21:18:52.215Z [info]: Role middleware: Role check passed
+2025-09-16T21:25:21.684Z [info]: Starting registration validation for email: bamusthafa320@gmail.com, username: bamusthafa
+2025-09-16T21:25:21.694Z [info]: Validating registration data for: bamusthafa320@gmail.com, username: bamusthafa
+2025-09-16T21:25:21.736Z [info]: Registration validation successful for:
+2025-09-16T21:25:21.744Z [info]: Generated OTP: 856198 for email: bamusthafa320@gmail.com, role: user
+2025-09-16T21:25:21.780Z [info]: OTP deleted for: bamusthafa320@gmail.com
+2025-09-16T21:25:21.908Z [info]: OTP saved for email: bamusthafa320@gmail.com
+2025-09-16T21:25:21.913Z [info]: === DEVELOPMENT EMAIL ===
+2025-09-16T21:25:21.913Z [info]: To: bamusthafa320@gmail.com
+2025-09-16T21:25:21.913Z [info]: Subject: Email Verification OTP
+2025-09-16T21:25:21.914Z [info]: OTP: 856198
+2025-09-16T21:25:21.914Z [info]: === END EMAIL ===
+2025-09-16T21:25:22.923Z [info]: OTP sent successfully to: bamusthafa320@gmail.com
+2025-09-16T21:25:50.172Z [info]: Verifying OTP for email: bamusthafa320@gmail.com, username: bamusthafa
+2025-09-16T21:25:50.184Z [info]: Finding OTP for email: bamusthafa320@gmail.com, found: yes
+2025-09-16T21:25:50.191Z [info]: OTP deleted for: 68c9d5c13b9a87f9c7c25164
+2025-09-16T21:25:50.191Z [info]: OTP verified successfully for: bamusthafa320@gmail.com
+2025-09-16T21:25:50.193Z [info]: Creating user account after OTP verification: bamusthafa320@gmail.com, username: bamusthafa
+2025-09-16T21:25:50.477Z [info]: User created successfully: 68c9d5de3b9a87f9c7c2516b
+2025-09-16T21:25:57.183Z [info]: User logged out successfully
+2025-09-16T21:26:16.580Z [error]: Error in loginUser: Invalid email or password
+2025-09-16T21:26:16.583Z [error]: Error logging in: Invalid email or password
+2025-09-16T21:26:24.663Z [error]: Error in loginUser: Invalid email or password
+2025-09-16T21:26:24.663Z [error]: Error logging in: Invalid email or password
+2025-09-16T21:26:27.539Z [error]: Error in loginUser: Invalid email or password
+2025-09-16T21:26:27.539Z [error]: Error logging in: Invalid email or password
