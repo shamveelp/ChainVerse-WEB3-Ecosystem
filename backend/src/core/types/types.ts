@@ -54,6 +54,10 @@ const TYPES = {
   IPointsHistoryService: Symbol.for("IPointsHistoryService"),
   IDailyCheckInService: Symbol.for("IDailyCheckInService"),
 
+  IPaymentRepository: Symbol.for("IPaymentRepository"),
+  IPaymentService: Symbol.for("IPaymentService"),
+  IUserDexService: Symbol.for("IUserDexService"),
+
   // Etherscan Service
   EtherscanService: Symbol.for("EtherscanService"),
 };

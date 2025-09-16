@@ -1,227 +1,167 @@
-import { inject, injectable } from "inversify";
+import { injectable, inject } from "inversify";
 import { IAdminDexService } from "../../core/interfaces/services/admin/IAdminDexService";
-import { IDexRepository } from "../../core/interfaces/repositories/IDexRepository";
+import { IPaymentRepository } from "../../core/interfaces/repositories/IPaymentRepository";
 import { TYPES } from "../../core/types/types";
-import { ICoin } from "../../models/coins.model";
-import { CustomError } from "../../utils/customError";
+import { IPayment } from "../../models/payment.model";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 
 @injectable()
 export class AdminDexService implements IAdminDexService {
   constructor(
-    @inject(TYPES.IDexRepository) private _dexRepository: IDexRepository
+    @inject(TYPES.IPaymentRepository) private _paymentRepository: IPaymentRepository
   ) {}
 
-  async createCoin(coinData: {
-    name: string;
-    symbol: string;
-    ticker: string;
-    totalSupply: string;
-    decimals?: number;
-    description?: string;
-    logoUrl?: string;
-    website?: string;
-    twitter?: string;
-    telegram?: string;
-    createdBy: string;
-  }): Promise<ICoin> {
+  async getAllPayments(page: number = 1, limit: number = 10, status?: string) {
     try {
-      const validation = this.validateCoinData(coinData);
-      if (!validation.isValid) {
-        throw new CustomError(`Validation failed: ${validation.errors.join(', ')}`, StatusCode.BAD_REQUEST);
-      }
-
-      // Check if coin already exists
-      const existingCoin = await this._dexRepository.findCoinBySymbol(coinData.symbol);
-      if (existingCoin) {
-        throw new CustomError("Coin with this symbol already exists", StatusCode.BAD_REQUEST);
-      }
-
-      const coin = await this._dexRepository.createCoin({
-        ...coinData,
-        circulatingSupply: coinData.totalSupply, // Initially same as total supply
-        network: 'sepolia',
-        isListed: false, // Not listed until deployed
-      });
-
-      logger.info(`Coin created: ${coin.symbol} (${coin.name})`);
-      return coin;
+      return await this._paymentRepository.findAllWithPagination(page, limit, status);
     } catch (error) {
-      logger.error("Error creating coin:", error);
-      if (error instanceof CustomError) throw error;
-      throw new CustomError("Failed to create coin", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error("Error getting all payments:", error);
+      throw new CustomError("Failed to retrieve payments", StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async deployCoin(contractAddress: string, deploymentTxHash: string): Promise<ICoin> {
+  async approvePayment(
+    paymentId: string,
+    adminId: string,
+    adminNote?: string,
+    transactionHash?: string
+  ): Promise<IPayment> {
     try {
-      // Check if contract address is already used
-      const existingCoin = await this._dexRepository.findCoinByAddress(contractAddress);
-      if (existingCoin) {
-        throw new CustomError("Contract address already in use", StatusCode.BAD_REQUEST);
+      const payment = await this._paymentRepository.findById(paymentId);
+      if (!payment) {
+        throw new CustomError("Payment not found", StatusCode.NOT_FOUND);
       }
 
-      // This should be called after successful deployment
-      const coin = await this._dexRepository.updateCoin(contractAddress, {
-        deploymentTxHash,
-        isListed: true,
-      });
-
-      if (!coin) {
-        throw new CustomError("Coin not found", StatusCode.NOT_FOUND);
+      if (payment.status !== 'success') {
+        throw new CustomError("Only successful payments can be approved", StatusCode.BAD_REQUEST);
       }
 
-      logger.info(`Coin deployed: ${coin.symbol} at ${contractAddress}`);
-      return coin;
+      const updatedPayment = await this._paymentRepository.updateStatus(
+        paymentId,
+        'fulfilled',
+        {
+          approvedBy: adminId,
+          approvedAt: new Date(),
+          adminNote,
+          transactionHash
+        }
+      );
+
+      logger.info(`Payment approved: ${paymentId} by admin: ${adminId}`);
+      return updatedPayment!;
     } catch (error) {
-      logger.error("Error deploying coin:", error);
-      if (error instanceof CustomError) throw error;
-      throw new CustomError("Failed to deploy coin", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error("Error approving payment:", error);
+      throw error instanceof CustomError ? error : new CustomError("Failed to approve payment", StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async updateCoin(contractAddress: string, updateData: Partial<ICoin>): Promise<ICoin> {
+  async rejectPayment(
+    paymentId: string,
+    adminId: string,
+    reason: string
+  ): Promise<IPayment> {
     try {
-      const coin = await this._dexRepository.updateCoin(contractAddress, updateData);
-      if (!coin) {
-        throw new CustomError("Coin not found", StatusCode.NOT_FOUND);
+      const payment = await this._paymentRepository.findById(paymentId);
+      if (!payment) {
+        throw new CustomError("Payment not found", StatusCode.NOT_FOUND);
       }
 
-      logger.info(`Coin updated: ${contractAddress}`);
-      return coin;
-    } catch (error) {
-      logger.error("Error updating coin:", error);
-      if (error instanceof CustomError) throw error;
-      throw new CustomError("Failed to update coin", StatusCode.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async deleteCoin(contractAddress: string): Promise<boolean> {
-    try {
-      const success = await this._dexRepository.deleteCoin(contractAddress);
-      if (!success) {
-        throw new CustomError("Coin not found or could not be deleted", StatusCode.NOT_FOUND);
+      if (payment.status !== 'success') {
+        throw new CustomError("Only successful payments can be rejected", StatusCode.BAD_REQUEST);
       }
 
-      logger.info(`Coin deleted: ${contractAddress}`);
-      return success;
+      const updatedPayment = await this._paymentRepository.updateStatus(
+        paymentId,
+        'rejected',
+        {
+          approvedBy: adminId,
+          rejectedAt: new Date(),
+          adminNote: reason
+        }
+      );
+
+      logger.info(`Payment rejected: ${paymentId} by admin: ${adminId}`);
+      return updatedPayment!;
     } catch (error) {
-      logger.error("Error deleting coin:", error);
-      if (error instanceof CustomError) throw error;
-      throw new CustomError("Failed to delete coin", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error("Error rejecting payment:", error);
+      throw error instanceof CustomError ? error : new CustomError("Failed to reject payment", StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async listCoin(contractAddress: string): Promise<ICoin> {
+  async fulfillPayment(
+    paymentId: string,
+    adminId: string,
+    transactionHash: string
+  ): Promise<IPayment> {
     try {
-      const coin = await this._dexRepository.toggleCoinListing(contractAddress, true);
-      if (!coin) {
-        throw new CustomError("Coin not found", StatusCode.NOT_FOUND);
+      const payment = await this._paymentRepository.findById(paymentId);
+      if (!payment) {
+        throw new CustomError("Payment not found", StatusCode.NOT_FOUND);
       }
 
-      logger.info(`Coin listed: ${coin.symbol}`);
-      return coin;
-    } catch (error) {
-      logger.error("Error listing coin:", error);
-      if (error instanceof CustomError) throw error;
-      throw new CustomError("Failed to list coin", StatusCode.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async unlistCoin(contractAddress: string): Promise<ICoin> {
-    try {
-      const coin = await this._dexRepository.toggleCoinListing(contractAddress, false);
-      if (!coin) {
-        throw new CustomError("Coin not found", StatusCode.NOT_FOUND);
+      if (payment.status !== 'success') {
+        throw new CustomError("Only successful payments can be fulfilled", StatusCode.BAD_REQUEST);
       }
 
-      logger.info(`Coin unlisted: ${coin.symbol}`);
-      return coin;
+      const updatedPayment = await this._paymentRepository.updateStatus(
+        paymentId,
+        'fulfilled',
+        {
+          approvedBy: adminId,
+          fulfilledAt: new Date(),
+          transactionHash,
+          adminNote: 'Payment fulfilled and crypto sent'
+        }
+      );
+
+      logger.info(`Payment fulfilled: ${paymentId} by admin: ${adminId}`);
+      return updatedPayment!;
     } catch (error) {
-      logger.error("Error unlisting coin:", error);
-      if (error instanceof CustomError) throw error;
-      throw new CustomError("Failed to unlist coin", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error("Error fulfilling payment:", error);
+      throw error instanceof CustomError ? error : new CustomError("Failed to fulfill payment", StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async getAllCoins(includeUnlisted: boolean = false): Promise<ICoin[]> {
+  async getPaymentStats() {
     try {
-      return await this._dexRepository.getAllCoins(includeUnlisted);
-    } catch (error) {
-      logger.error("Error getting all coins:", error);
-      throw new CustomError("Failed to get coins", StatusCode.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async getCoinDetails(contractAddress: string): Promise<ICoin | null> {
-    try {
-      return await this._dexRepository.findCoinByAddress(contractAddress);
-    } catch (error) {
-      logger.error("Error getting coin details:", error);
-      throw new CustomError("Failed to get coin details", StatusCode.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async getDexStats(): Promise<{
-    totalCoins: number;
-    listedCoins: number;
-    totalTransactions: number;
-    totalVolume: string;
-    activeWallets: number;
-  }> {
-    try {
-      const [coins, walletStats, transactionStats] = await Promise.all([
-        this._dexRepository.getAllCoins(true),
-        this._dexRepository.getWalletStats(),
-        this._dexRepository.getTransactionStats()
+      const [
+        totalPayments,
+        pendingCount,
+        successCount,
+        failedCount,
+        fulfilledCount,
+        rejectedCount
+      ] = await Promise.all([
+        this._paymentRepository.count(),
+        this._paymentRepository.countByStatus('pending'),
+        this._paymentRepository.countByStatus('success'),
+        this._paymentRepository.countByStatus('failed'),
+        this._paymentRepository.countByStatus('fulfilled'),
+        this._paymentRepository.countByStatus('rejected')
       ]);
 
-      const listedCoins = coins.filter(coin => coin.isListed);
-
       return {
-        totalCoins: coins.length,
-        listedCoins: listedCoins.length,
-        totalTransactions: transactionStats.totalTransactions,
-        totalVolume: transactionStats.monthlyVolume,
-        activeWallets: walletStats.activeThisMonth,
+        totalPayments,
+        pendingCount,
+        successCount,
+        failedCount,
+        fulfilledCount,
+        rejectedCount
       };
     } catch (error) {
-      logger.error("Error getting DEX stats:", error);
-      throw new CustomError("Failed to get DEX statistics", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error("Error getting payment stats:", error);
+      throw new CustomError("Failed to get payment statistics", StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
-  validateCoinData(coinData: any): { isValid: boolean; errors: string[] } {
-    const errors: string[] = [];
-
-    if (!coinData.name || coinData.name.trim().length < 2) {
-      errors.push("Name must be at least 2 characters long");
+  async getPendingPayments(): Promise<IPayment[]> {
+    try {
+      return await this._paymentRepository.findPendingPayments();
+    } catch (error) {
+      logger.error("Error getting pending payments:", error);
+      throw new CustomError("Failed to get pending payments", StatusCode.INTERNAL_SERVER_ERROR);
     }
-
-    if (!coinData.symbol || coinData.symbol.trim().length < 2) {
-      errors.push("Symbol must be at least 2 characters long");
-    }
-
-    if (!coinData.ticker || coinData.ticker.trim().length < 2) {
-      errors.push("Ticker must be at least 2 characters long");
-    }
-
-    if (!coinData.totalSupply || parseFloat(coinData.totalSupply) <= 0) {
-      errors.push("Total supply must be greater than zero");
-    }
-
-    if (coinData.decimals && (coinData.decimals < 0 || coinData.decimals > 18)) {
-      errors.push("Decimals must be between 0 and 18");
-    }
-
-    if (!coinData.createdBy) {
-      errors.push("Created by admin ID is required");
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
   }
 }

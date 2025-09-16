@@ -96,6 +96,8 @@ import { AdminWalletService } from "../../services/admin/AdminWallet.service"
 import { IDexRepository } from "../interfaces/repositories/IDexRepository"
 import { DexRepository } from "../../repositories/dex.repository"
 import { EtherscanService } from "../../services/etherscan.service"
+import { IPaymentRepository } from "../interfaces/repositories/IPaymentRepository"
+import { PaymentRepository } from "../../repositories/payment.repository"
 
 // Create Container
 const container = new Container()
@@ -148,14 +150,14 @@ container.bind<IPointsHistoryService>(TYPES.IPointsHistoryService).to(PointsHist
 container.bind<IDailyCheckInService>(TYPES.IDailyCheckInService).to(DailyCheckInService);
 
 // dex
-container.bind<IAdminDexController>(TYPES.IAdminDexController).to(AdminDexController)
+// container.bind<IAdminDexController>(TYPES.IAdminDexController).to(AdminDexController)
 container.bind<IAdminWalletController>(TYPES.IAdminWalletController).to(AdminWalletController)
 container.bind<IDexController>(TYPES.IDexController).to(DexController)
 
 // dex - service
 container.bind<IDexService>(TYPES.IDexService).to(DexService)
 container.bind<IWalletService>(TYPES.IWalletService).to(WalletService)
-container.bind<IAdminDexService>(TYPES.IAdminDexService).to(AdminDexService)
+// container.bind<IAdminDexService>(TYPES.IAdminDexService).to(AdminDexService)
 container.bind<IAdminWalletService>(TYPES.IAdminWalletService).to(AdminWalletService)
 
 // dex repo
@@ -166,5 +168,12 @@ container.bind<EtherscanService>(TYPES.EtherscanService).to(EtherscanService)
 
 // Bind OAuth Client
 container.bind<OAuthClient>(TYPES.OAuthClient).to(OAuthClient)
+
+
+// admin dex
+container.bind<IAdminDexController>(TYPES.IAdminDexController).to(AdminDexController)
+container.bind<IAdminDexService>(TYPES.IAdminDexService).to(AdminDexService)
+
+container.bind<IPaymentRepository>(TYPES.IPaymentRepository).to(PaymentRepository)
 
 export default container

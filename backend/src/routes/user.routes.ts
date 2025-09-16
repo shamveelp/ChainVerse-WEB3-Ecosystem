@@ -147,4 +147,6 @@ router.get('/points/history',
   pointsController.getPointsHistory.bind(pointsController)
 );
 
+
+
 export default router;

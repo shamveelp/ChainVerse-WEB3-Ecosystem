@@ -1,35 +1,40 @@
-import { ICoin } from "../../../../models/coins.model";
+import { IPayment } from "../../../../models/payment.model";
+import { PaginatedPayments } from "../../repositories/IPaymentRepository";
 
 export interface IAdminDexService {
-  createCoin(coinData: {
-    name: string;
-    symbol: string;
-    ticker: string;
-    totalSupply: string;
-    decimals?: number;
-    description?: string;
-    logoUrl?: string;
-    website?: string;
-    twitter?: string;
-    telegram?: string;
-    createdBy: string;
-  }): Promise<ICoin>;
+  getAllPayments(
+    page: number,
+    limit: number,
+    status?: string
+  ): Promise<PaginatedPayments>;
   
-  deployCoin(contractAddress: string, deploymentTxHash: string): Promise<ICoin>;
-  updateCoin(contractAddress: string, updateData: Partial<ICoin>): Promise<ICoin>;
-  deleteCoin(contractAddress: string): Promise<boolean>;
-  listCoin(contractAddress: string): Promise<ICoin>;
-  unlistCoin(contractAddress: string): Promise<ICoin>;
-  getAllCoins(includeUnlisted?: boolean): Promise<ICoin[]>;
-  getCoinDetails(contractAddress: string): Promise<ICoin | null>;
+  approvePayment(
+    paymentId: string,
+    adminId: string,
+    adminNote?: string,
+    transactionHash?: string
+  ): Promise<IPayment>;
   
-  getDexStats(): Promise<{
-    totalCoins: number;
-    listedCoins: number;
-    totalTransactions: number;
-    totalVolume: string;
-    activeWallets: number;
+  rejectPayment(
+    paymentId: string,
+    adminId: string,
+    reason: string
+  ): Promise<IPayment>;
+  
+  fulfillPayment(
+    paymentId: string,
+    adminId: string,
+    transactionHash: string
+  ): Promise<IPayment>;
+  
+  getPaymentStats(): Promise<{
+    totalPayments: number;
+    pendingCount: number;
+    successCount: number;
+    failedCount: number;
+    fulfilledCount: number;
+    rejectedCount: number;
   }>;
   
-  validateCoinData(coinData: any): { isValid: boolean; errors: string[] };
+  getPendingPayments(): Promise<IPayment[]>;
 }

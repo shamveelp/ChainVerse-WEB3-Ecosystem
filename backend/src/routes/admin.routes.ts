@@ -11,6 +11,7 @@ import { AdminForgotPasswordDto, AdminVerifyOtpDto, AdminResetPasswordDto } from
 import { GetUsersQueryDto, UpdateUserStatusDto } from '../dtos/admin/AdminUser.dto';
 import { GetCommunityRequestsQueryDto, RejectCommunityRequestDto } from '../dtos/admin/AdminCommunity.dto';
 import { AdminWalletController } from '../controllers/admin/AdminWallet.controller';
+import { AdminDexController } from '../controllers/admin/adminDex.controller';
 
 const router = Router();
 
@@ -18,6 +19,7 @@ const adminAuthController = container.get<AdminAuthController>(TYPES.IAdminAuthC
 const adminUserController = container.get<AdminUserController>(TYPES.IAdminUserController);
 const adminCommunityController = container.get<AdminCommunityController>(TYPES.IAdminCommunityController);
 const adminWalletController = container.get<AdminWalletController>(TYPES.IAdminWalletController);
+const adminDexController = container.get<AdminDexController>(TYPES.IAdminDexController);
 
 // Auth Routes (Public)
 router.post("/login", validateBody(AdminLoginDto), adminAuthController.login.bind(adminAuthController));
@@ -61,6 +63,14 @@ router.get("/wallets/:address/history", authMiddleware, roleMiddleware(['admin']
 router.get("/wallets/:address/app-history", authMiddleware, roleMiddleware(['admin']), adminWalletController.getWalletAppHistory.bind(adminWalletController));
 router.post("/wallets/:address/refresh", authMiddleware, roleMiddleware(['admin']), adminWalletController.refreshWalletData.bind(adminWalletController));
 
+
+// Dex Payment Routes
+router.get("/dex/payments", authMiddleware, roleMiddleware(['admin']), adminDexController.getAllPayments.bind(adminDexController));
+router.post("/dex/approve-payment", authMiddleware, roleMiddleware(['admin']), adminDexController.approvePayment.bind(adminDexController));
+router.post("/dex/reject-payment", authMiddleware, roleMiddleware(['admin']),  adminDexController.rejectPayment.bind(adminDexController));
+router.post("/dex/fulfill-payment", authMiddleware, roleMiddleware(['admin']),  adminDexController.fulfillPayment.bind(adminDexController));
+router.get("/dex/stats", authMiddleware, roleMiddleware(['admin']), adminDexController.getPaymentStats.bind(adminDexController));
+router.get("/dex/pending", authMiddleware, roleMiddleware(['admin']), adminDexController.getPendingPayments.bind(adminDexController));
 
 
 export default router;

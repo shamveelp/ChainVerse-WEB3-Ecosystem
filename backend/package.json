@@ -60,6 +60,7 @@
     "nodemailer": "^7.0.5",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "razorpay": "^2.9.6",
     "redis": "^5.8.2",
     "winston": "^3.17.0",
     "zod": "^4.1.3"

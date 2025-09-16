@@ -11961,3 +11961,48 @@
 2025-09-16T21:26:24.663Z [error]: Error logging in: Invalid email or password
 2025-09-16T21:26:27.539Z [error]: Error in loginUser: Invalid email or password
 2025-09-16T21:26:27.539Z [error]: Error logging in: Invalid email or password
+2025-09-16T22:11:24.084Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:11:24.257Z [info]: MongoDB connected: localhost
+2025-09-16T22:23:35.929Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:23:36.127Z [info]: MongoDB connected: localhost
+2025-09-16T22:24:06.111Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:24:06.308Z [info]: MongoDB connected: localhost
+2025-09-16T22:24:59.084Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:24:59.236Z [info]: MongoDB connected: localhost
+2025-09-16T22:25:37.214Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:25:37.441Z [info]: MongoDB connected: localhost
+2025-09-16T22:25:49.398Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:25:49.550Z [info]: MongoDB connected: localhost
+2025-09-16T22:25:59.088Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:25:59.259Z [info]: MongoDB connected: localhost
+2025-09-16T22:26:23.225Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:26:23.387Z [info]: MongoDB connected: localhost
+2025-09-16T22:27:11.510Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:27:11.720Z [info]: MongoDB connected: localhost
+2025-09-16T22:27:31.184Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:27:31.352Z [info]: MongoDB connected: localhost
+2025-09-16T22:30:54.048Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:30:54.255Z [info]: MongoDB connected: localhost
+2025-09-16T22:31:38.667Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:31:38.838Z [info]: MongoDB connected: localhost
+2025-09-16T22:31:49.100Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:31:49.268Z [info]: MongoDB connected: localhost
+2025-09-16T22:32:28.797Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:32:28.978Z [info]: MongoDB connected: localhost
+2025-09-16T22:32:42.129Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:32:42.293Z [info]: MongoDB connected: localhost
+2025-09-16T22:33:03.322Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:33:03.479Z [info]: MongoDB connected: localhost
+2025-09-16T22:41:01.612Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:41:01.948Z [info]: MongoDB connected: localhost
+2025-09-16T22:41:13.176Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:41:13.341Z [info]: MongoDB connected: localhost
+2025-09-16T22:43:45.715Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:43:45.876Z [info]: MongoDB connected: localhost
+2025-09-16T22:46:07.130Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:46:07.276Z [info]: MongoDB connected: localhost
+2025-09-16T22:46:21.498Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:46:21.715Z [info]: MongoDB connected: localhost
+2025-09-16T22:49:48.197Z [info]: User logged in successfully: superman@gmail.com
+2025-09-16T22:52:54.034Z [info]: Loaded 2 contract addresses for filtering
+2025-09-16T22:52:54.196Z [info]: MongoDB connected: localhost

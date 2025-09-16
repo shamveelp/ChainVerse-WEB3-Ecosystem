@@ -1,99 +1,116 @@
-interface SwapData {
-  walletAddress: string;
-  fromToken: string;
-  toToken: string;
-  fromAmount: string;
-  toAmount: string;
-  transactionHash: string;
-  network?: string;
-}
+import axios from 'axios';
 
-interface QuoteParams {
-  fromToken: string;
-  toToken: string;
-  amount: string;
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-class DexApiService {
-  private baseUrl = '/api/dex';
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+});
 
-  async executeSwap(swapData: SwapData) {
-    const response = await fetch(`${this.baseUrl}/swap`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(swapData),
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('userToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export const dexApiService = {
+  // Get ETH price
+  getEthPrice: async () => {
+    const response = await apiClient.get('/api/user/dex/eth-price');
+    return response.data;
+  },
+
+  // Calculate estimate
+  calculateEstimate: async (amount: number, currency: string = 'INR') => {
+    const response = await apiClient.post('/api/user/dex/calculate-estimate', {
+      amount,
+      currency
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to execute swap');
-    }
-    
-    return response.json();
-  }
+    return response.data;
+  },
 
-  async getSwapQuote(params: QuoteParams) {
-    const queryParams = new URLSearchParams({
-      fromToken: params.fromToken,
-      toToken: params.toToken,
-      amount: params.amount,
+  // Create payment order
+  createPaymentOrder: async (orderData: {
+    walletAddress: string;
+    currency: string;
+    amountInCurrency: number;
+    estimatedEth: number;
+    ethPriceAtTime: number;
+  }) => {
+    const response = await apiClient.post('/api/user/dex/create-order', orderData);
+    return response.data;
+  },
+
+  // Verify payment
+  verifyPayment: async (paymentData: {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+  }) => {
+    const response = await apiClient.post('/api/user/dex/verify-payment', paymentData);
+    return response.data;
+  },
+
+  // Get user payments
+  getUserPayments: async (page: number = 1, limit: number = 10) => {
+    const response = await apiClient.get(`/api/user/dex/payments?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+};
+
+export const adminDexApiService = {
+  // Get all payments
+  getAllPayments: async (page: number = 1, limit: number = 10, status?: string) => {
+    const url = `/admin/dex/payments?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`;
+    const response = await apiClient.get(url);
+    return response.data;
+  },
+
+  // Approve payment
+  approvePayment: async (paymentId: string, adminNote?: string, transactionHash?: string) => {
+    const response = await apiClient.post('/api/admin/dex/approve-payment', {
+      paymentId,
+      adminNote,
+      transactionHash
     });
-    
-    const response = await fetch(`${this.baseUrl}/quote?${queryParams}`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to get swap quote');
-    }
-    
-    return response.json();
-  }
+    return response.data;
+  },
 
-  async getTransactionHistory(walletAddress: string, page: number = 1, limit: number = 20) {
-    const response = await fetch(`${this.baseUrl}/transactions/${walletAddress}?page=${page}&limit=${limit}`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to get transaction history');
-    }
-    
-    return response.json();
-  }
-
-  async getTransactionDetails(hash: string) {
-    const response = await fetch(`${this.baseUrl}/transaction/${hash}`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to get transaction details');
-    }
-    
-    return response.json();
-  }
-
-  async getAvailablePairs() {
-    const response = await fetch(`${this.baseUrl}/pairs`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to get available pairs');
-    }
-    
-    return response.json();
-  }
-
-  async updateTransactionStatus(hash: string, status: 'completed' | 'failed', additionalData?: any) {
-    const response = await fetch(`${this.baseUrl}/transaction/${hash}/status`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ status, ...additionalData }),
+  // Reject payment
+  rejectPayment: async (paymentId: string, reason: string) => {
+    const response = await apiClient.post('/api/admin/dex/reject-payment', {
+      paymentId,
+      reason
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to update transaction status');
-    }
-    
-    return response.json();
-  }
-}
+    return response.data;
+  },
 
-export const dexApiService = new DexApiService();
+  // Fulfill payment
+  fulfillPayment: async (paymentId: string, transactionHash: string) => {
+    const response = await apiClient.post('/api/admin/dex/fulfill-payment', {
+      paymentId,
+      transactionHash
+    });
+    return response.data;
+  },
+
+  // Get payment stats
+  getPaymentStats: async () => {
+    const response = await apiClient.get('/api/admin/dex/stats');
+    return response.data;
+  },
+
+  // Get pending payments
+  getPendingPayments: async () => {
+    const response = await apiClient.get('/api/admin/dex/pending');
+    return response.data;
+  },
+};
