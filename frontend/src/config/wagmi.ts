@@ -7,7 +7,8 @@ import {
   polygon, 
   polygonMumbai,
   base,
-  baseSepolia
+  baseSepolia,
+  arbitrumSepolia
 } from 'wagmi/chains'
 import { injected, metaMask, walletConnect } from 'wagmi/connectors'
 
@@ -23,6 +24,7 @@ export const config = createConfig({
     bsc,
     polygon,
     polygonMumbai,
+    arbitrumSepolia
   ],
   connectors: [
     injected(),
@@ -38,5 +40,6 @@ export const config = createConfig({
     [bsc.id]: http(),
     [polygon.id]: http(),
     [polygonMumbai.id]: http(),
+    [arbitrumSepolia.id]: http(),
   },
 })

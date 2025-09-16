@@ -30,7 +30,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNFTContract } from '@/hooks/nft/useNFTContract';
 import { useActiveAccount } from 'thirdweb/react';
 import { NFTWithMetadata, SaleDetails } from '@/types/types-nft';
-import { LoadingSpinner } from '@/components/tester/loading-skeleton';
+import { LoadingSpinner } from '@/components/nft/loading-skeleton';
 import { toast } from 'sonner';
 import { ethers } from 'ethers';
 

@@ -1,5 +1,5 @@
-import NavbarTW from '@/components/tester/wallet-tester/NavbarTW';
-import { WagmiProviderFn } from '@/components/tester/wallet-tester/WagmiProvider';
+import NavbarTW from '@/components/nft/wallet-tester/NavbarTW';
+import { WagmiProviderFn } from '@/components/nft/wallet-tester/WagmiProvider';
 
 export default function Home() {
   return (

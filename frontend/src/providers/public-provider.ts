@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { NFT_MARKETPLACE_ADDRESS, NFT_MARKETPLACE_ABI } from '../../lib/nft/contracts';
+import { NFT_MARKETPLACE_ADDRESS, NFT_MARKETPLACE_ABI } from '../lib/nft/contracts';
 
 // Public providers for read-only operations
 const SEPOLIA_RPC = 'https://sepolia.infura.io/v3/84842078b09946638c03157f83405213';

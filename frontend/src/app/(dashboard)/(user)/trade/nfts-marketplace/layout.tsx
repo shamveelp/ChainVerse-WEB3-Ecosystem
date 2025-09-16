@@ -1,5 +1,5 @@
-import { CustomThirdwebProvider } from '@/components/tester/thirdweb-provider';
-import { Header } from '@/components/tester/header';
+import { CustomThirdwebProvider } from '@/components/nft/thirdweb-provider';
+import { Header } from '@/components/nft/header';
 import { Toaster } from '@/components/ui/sonner';
 import Navbar from '@/components/home/navbar';
 

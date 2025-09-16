@@ -4,7 +4,7 @@ import { ThirdwebProvider } from 'thirdweb/react';
 import { client } from '@/lib/thirdweb-client';
 import { ReactNode, useEffect, useRef } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
-import { saveWallet } from '@/components/tester/wallet-tester/WalletApiService';
+import { saveWallet } from '@/components/nft/wallet-tester/WalletApiService';
 
 function WalletSaver({ children }: { children: ReactNode }) {
   const account = useActiveAccount();

@@ -2,7 +2,7 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { useEffect, useRef, useState } from 'react';
-import { saveWallet } from '@/components/tester/wallet-tester/WalletApiService';
+import { saveWallet } from '@/components/nft/wallet-tester/WalletApiService';
 
 export default function WalletConnect() {
   const { address, isConnected } = useAccount();
