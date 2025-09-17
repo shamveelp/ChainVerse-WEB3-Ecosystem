@@ -42,10 +42,8 @@ export class UserAuthController implements IUserAuthController {
       
       logger.info(`Starting registration validation for email: ${email}, username: ${username}`);
       
-      // Validate registration data and check availability
       await this._userAuthService.registerUser(username!, email!, password!, name!, referralCode);
       
-      // Send OTP for email verification
       await this._otpService.requestOtp(email!, "user");
       
       const response = new RegisterResponseDto("Registration data validated. OTP sent to your email.");
@@ -89,10 +87,8 @@ export class UserAuthController implements IUserAuthController {
       
       logger.info(`Verifying OTP for email: ${email}, username: ${username}`);
       
-      // First verify the OTP
       await this._otpService.verifyOtp(email!, otp!);
       
-      // Then create the user account
       const { user, accessToken, refreshToken } = await this._userAuthService.verifyAndRegisterUser(
         username!,
         email!,
@@ -101,7 +97,6 @@ export class UserAuthController implements IUserAuthController {
         referralCode
       );
       
-      // Set tokens in cookies
       this._jwtService.setTokens(res, accessToken, refreshToken);
       
       const response = new LoginResponseDto(user, accessToken, "Account created successfully");

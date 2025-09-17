@@ -140,7 +140,7 @@ export class UserDexController implements IUserDexController {
           success: false,
           error: "Invalid amount"
         });
-        return; // Explicit return to satisfy TypeScript
+        return;
       }
 
       const ethPrice = await this._userDexService.getEthPrice();
