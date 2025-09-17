@@ -57,6 +57,11 @@ const menuItems = [
     icon: Wallet,
   },
   {
+    title: "Buy Crypto Requests",
+    url: "/admin/buy-crypto-management",
+    icon: Activity,
+  },
+  {
     title: "Market",
     url: "/admin/market-management",
     icon: ChartBar,
