@@ -57,6 +57,8 @@ const TYPES = {
   IPaymentRepository: Symbol.for("IPaymentRepository"),
   IPaymentService: Symbol.for("IPaymentService"),
   IUserDexService: Symbol.for("IUserDexService"),
+  IUserDexController: Symbol.for("IUserDexController"),
+  
 
   // Etherscan Service
   EtherscanService: Symbol.for("EtherscanService"),

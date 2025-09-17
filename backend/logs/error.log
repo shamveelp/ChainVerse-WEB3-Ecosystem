@@ -602,3 +602,9 @@
 2025-09-16T21:26:24.663Z [error]: Error logging in: Invalid email or password
 2025-09-16T21:26:27.539Z [error]: Error in loginUser: Invalid email or password
 2025-09-16T21:26:27.539Z [error]: Error logging in: Invalid email or password
+2025-09-17T03:51:57.679Z [error]: Error creating payment order:
+2025-09-17T03:51:57.680Z [error]: Error creating payment order: Failed to create payment order
+2025-09-17T03:52:36.390Z [error]: Error creating payment order:
+2025-09-17T03:52:36.391Z [error]: Error creating payment order: Failed to create payment order
+2025-09-17T03:54:08.254Z [error]: Error creating payment order:
+2025-09-17T03:54:08.255Z [error]: Error creating payment order: Failed to create payment order

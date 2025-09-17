@@ -21,6 +21,7 @@ export class UserDexController implements IUserDexController {
 
   createPaymentOrder = async (req: Request, res: Response) => {
     try {
+      logger.info("Creating payment order ithanne");
       const createPaymentDto = req.body as CreatePaymentDto;
       const userId = (req as any).user.id;
       
@@ -112,6 +113,7 @@ export class UserDexController implements IUserDexController {
 
   getEthPrice = async (req: Request, res: Response) => {
     try {
+      console.log("Hello")
       const ethPrice = await this._userDexService.getEthPrice();
       
       const response = new PaymentResponseDto("ETH price retrieved successfully", {

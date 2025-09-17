@@ -18,6 +18,7 @@ import {
   RequestOtpDto,
   GoogleLoginDto
 } from '../dtos/users/UserAuth.dto';
+import { UserDexController } from '../controllers/user/UserDex.controller';
 
 // Configure Multer for file uploads
 const storage = multer.memoryStorage();
@@ -40,6 +41,7 @@ const userAuthController = container.get<UserAuthController>(TYPES.IUserAuthCont
 const userProfileController = container.get<UserProfileController>(TYPES.IUserProfileController);
 const referralController = container.get<ReferralController>(TYPES.IReferralController);
 const pointsController = container.get<PointsController>(TYPES.IPointsController);
+const userDexController = container.get<UserDexController>(TYPES.IUserDexController);
 
 // Auth Routes with DTO validation
 router.post("/register", 
@@ -145,6 +147,40 @@ router.get('/points/history',
   authMiddleware, 
   roleMiddleware(['user']), 
   pointsController.getPointsHistory.bind(pointsController)
+);
+
+
+
+//  Buy crypto
+// DEX Routes (protected)
+router.get('/dex/eth-price', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  userDexController.getEthPrice.bind(userDexController)
+);
+
+router.post('/dex/calculate-estimate', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  userDexController.calculateEstimate.bind(userDexController)
+);
+
+router.post('/dex/create-order', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  userDexController.createPaymentOrder.bind(userDexController)
+);
+
+router.post('/dex/verify-payment', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  userDexController.verifyPayment.bind(userDexController)
+);
+
+router.get('/dex/payments', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  userDexController.getUserPayments.bind(userDexController)
 );
 
 

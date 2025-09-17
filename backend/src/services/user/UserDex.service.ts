@@ -19,8 +19,8 @@ export class UserDexService implements IUserDexService {
     @inject(TYPES.IPaymentRepository) private _paymentRepository: IPaymentRepository
   ) {
     this.razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID!,
-      key_secret: process.env.RAZORPAY_KEY_SECRET!,
+      key_id: 'rzp_test_RIWXl802XaTvlw',
+      key_secret: process.env.RAZORPAY_KEY_SECRET || '',
     });
   }
 
@@ -40,21 +40,20 @@ export class UserDexService implements IUserDexService {
         throw new CustomError("Only INR payments are currently supported", StatusCode.BAD_REQUEST);
       }
 
-      // Calculate fees
+
       const fees = this.calculateFees(estimatedEth);
 
-      // Create Razorpay order
       const options = {
-        amount: Math.round(amountInCurrency * 100), // Amount in paise
+        amount: Math.round(amountInCurrency * 100), 
         currency: currency,
         receipt: `order_${Date.now()}`,
       };
 
       const razorpayOrder = await this.razorpay.orders.create(options);
 
-      // Create payment record
+
       const paymentData: Partial<IPayment> = {
-        userId: new Types.ObjectId(userId), // Convert string to ObjectId
+        userId: new Types.ObjectId(userId),
         walletAddress,
         currency: currency as 'INR',
         amountInCurrency,

@@ -1,36 +1,20 @@
 import axios from 'axios';
+import API from "@/lib/api-client";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true,
-});
 
-// Request interceptor to add auth token
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('userToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 export const dexApiService = {
   // Get ETH price
   getEthPrice: async () => {
-    const response = await apiClient.get('/api/user/dex/eth-price');
+    const response = await API.get('/api/user/dex/eth-price');
     return response.data;
   },
 
   // Calculate estimate
   calculateEstimate: async (amount: number, currency: string = 'INR') => {
-    const response = await apiClient.post('/api/user/dex/calculate-estimate', {
+    const response = await API.post('/api/user/dex/calculate-estimate', {
       amount,
       currency
     });
@@ -45,7 +29,7 @@ export const dexApiService = {
     estimatedEth: number;
     ethPriceAtTime: number;
   }) => {
-    const response = await apiClient.post('/api/user/dex/create-order', orderData);
+    const response = await API.post('/api/user/dex/create-order', orderData);
     return response.data;
   },
 
@@ -55,13 +39,13 @@ export const dexApiService = {
     razorpayPaymentId: string;
     razorpaySignature: string;
   }) => {
-    const response = await apiClient.post('/api/user/dex/verify-payment', paymentData);
+    const response = await API.post('/api/user/dex/verify-payment', paymentData);
     return response.data;
   },
 
   // Get user payments
   getUserPayments: async (page: number = 1, limit: number = 10) => {
-    const response = await apiClient.get(`/api/user/dex/payments?page=${page}&limit=${limit}`);
+    const response = await API.get(`/api/user/dex/payments?page=${page}&limit=${limit}`);
     return response.data;
   },
 };
@@ -70,13 +54,13 @@ export const adminDexApiService = {
   // Get all payments
   getAllPayments: async (page: number = 1, limit: number = 10, status?: string) => {
     const url = `/admin/dex/payments?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`;
-    const response = await apiClient.get(url);
+    const response = await API.get(url);
     return response.data;
   },
 
   // Approve payment
   approvePayment: async (paymentId: string, adminNote?: string, transactionHash?: string) => {
-    const response = await apiClient.post('/api/admin/dex/approve-payment', {
+    const response = await API.post('/api/admin/dex/approve-payment', {
       paymentId,
       adminNote,
       transactionHash
@@ -86,7 +70,7 @@ export const adminDexApiService = {
 
   // Reject payment
   rejectPayment: async (paymentId: string, reason: string) => {
-    const response = await apiClient.post('/api/admin/dex/reject-payment', {
+    const response = await API.post('/api/admin/dex/reject-payment', {
       paymentId,
       reason
     });
@@ -95,7 +79,7 @@ export const adminDexApiService = {
 
   // Fulfill payment
   fulfillPayment: async (paymentId: string, transactionHash: string) => {
-    const response = await apiClient.post('/api/admin/dex/fulfill-payment', {
+    const response = await API.post('/api/admin/dex/fulfill-payment', {
       paymentId,
       transactionHash
     });
@@ -104,13 +88,13 @@ export const adminDexApiService = {
 
   // Get payment stats
   getPaymentStats: async () => {
-    const response = await apiClient.get('/api/admin/dex/stats');
+    const response = await API.get('/api/admin/dex/stats');
     return response.data;
   },
 
   // Get pending payments
   getPendingPayments: async () => {
-    const response = await apiClient.get('/api/admin/dex/pending');
+    const response = await API.get('/api/admin/dex/pending');
     return response.data;
   },
 };

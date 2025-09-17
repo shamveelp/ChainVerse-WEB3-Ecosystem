@@ -12006,3 +12006,113 @@
 2025-09-16T22:49:48.197Z [info]: User logged in successfully: superman@gmail.com
 2025-09-16T22:52:54.034Z [info]: Loaded 2 contract addresses for filtering
 2025-09-16T22:52:54.196Z [info]: MongoDB connected: localhost
+2025-09-17T03:33:22.233Z [info]: Loaded 2 contract addresses for filtering
+2025-09-17T03:33:22.780Z [info]: MongoDB connected: localhost
+2025-09-17T03:35:10.581Z [info]: Loaded 2 contract addresses for filtering
+2025-09-17T03:35:10.753Z [info]: MongoDB connected: localhost
+2025-09-17T03:43:25.614Z [info]: Loaded 2 contract addresses for filtering
+2025-09-17T03:43:25.776Z [info]: MongoDB connected: localhost
+2025-09-17T03:44:14.291Z [info]: Auth middleware: Token present:
+2025-09-17T03:44:14.292Z [info]: Auth middleware: No token provided
+2025-09-17T03:44:14.300Z [info]: Auth middleware: Token present:
+2025-09-17T03:44:14.303Z [info]: Auth middleware: No token provided
+2025-09-17T03:45:58.866Z [info]: Auth middleware: Token present:
+2025-09-17T03:45:58.867Z [info]: Auth middleware: No token provided
+2025-09-17T03:45:58.869Z [info]: Auth middleware: Token present:
+2025-09-17T03:45:58.870Z [info]: Auth middleware: No token provided
+2025-09-17T03:47:10.082Z [info]: Loaded 2 contract addresses for filtering
+2025-09-17T03:47:10.236Z [info]: MongoDB connected: localhost
+2025-09-17T03:50:18.287Z [info]: Auth middleware: Token present:
+2025-09-17T03:50:18.303Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-17T03:50:18.308Z [info]: Auth middleware: Token present:
+2025-09-17T03:50:18.310Z [info]: Auth middleware: Token verification failed: Access token expired
+2025-09-17T03:50:18.468Z [info]: Auth middleware: Token present:
+2025-09-17T03:50:18.470Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-17T03:50:18.471Z [info]: Auth middleware: Looking up user account
+2025-09-17T03:50:18.492Z [info]: Auth middleware: Account found:
+2025-09-17T03:50:18.493Z [info]: Auth middleware: Token version:
+2025-09-17T03:50:18.493Z [info]: Auth middleware: Authentication successful for user:
+2025-09-17T03:50:18.494Z [info]: Role middleware: Checking roles:
+2025-09-17T03:50:18.494Z [info]: Role middleware: User role:
+2025-09-17T03:50:18.494Z [info]: Role middleware: Role check passed
+2025-09-17T03:50:26.005Z [info]: Auth middleware: Token present:
+2025-09-17T03:50:26.007Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-17T03:50:26.007Z [info]: Auth middleware: Looking up user account
+2025-09-17T03:50:26.010Z [info]: Auth middleware: Account found:
+2025-09-17T03:50:26.010Z [info]: Auth middleware: Token version:
+2025-09-17T03:50:26.010Z [info]: Auth middleware: Authentication successful for user:
+2025-09-17T03:50:26.010Z [info]: Role middleware: Checking roles:
+2025-09-17T03:50:26.010Z [info]: Role middleware: User role:
+2025-09-17T03:50:26.011Z [info]: Role middleware: Role check passed
+2025-09-17T03:50:31.041Z [info]: Auth middleware: Token present:
+2025-09-17T03:50:31.043Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-17T03:50:31.043Z [info]: Auth middleware: Looking up user account
+2025-09-17T03:50:31.047Z [info]: Auth middleware: Account found:
+2025-09-17T03:50:31.047Z [info]: Auth middleware: Token version:
+2025-09-17T03:50:31.047Z [info]: Auth middleware: Authentication successful for user:
+2025-09-17T03:50:31.048Z [info]: Role middleware: Checking roles:
+2025-09-17T03:50:31.048Z [info]: Role middleware: User role:
+2025-09-17T03:50:31.048Z [info]: Role middleware: Role check passed
+2025-09-17T03:51:15.928Z [info]: Loaded 2 contract addresses for filtering
+2025-09-17T03:51:16.131Z [info]: MongoDB connected: localhost
+2025-09-17T03:51:56.735Z [info]: Auth middleware: Token present:
+2025-09-17T03:51:56.744Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-17T03:51:56.745Z [info]: Auth middleware: Looking up user account
+2025-09-17T03:51:56.769Z [info]: Auth middleware: Account found:
+2025-09-17T03:51:56.770Z [info]: Auth middleware: Token version:
+2025-09-17T03:51:56.770Z [info]: Auth middleware: Authentication successful for user:
+2025-09-17T03:51:56.770Z [info]: Role middleware: Checking roles:
+2025-09-17T03:51:56.771Z [info]: Role middleware: User role:
+2025-09-17T03:51:56.771Z [info]: Role middleware: Role check passed
+2025-09-17T03:51:56.771Z [info]: Creating payment order for user: 68b6697f27e447e3fdf256e4, amount: 500 INR
+2025-09-17T03:51:57.679Z [error]: Error creating payment order:
+2025-09-17T03:51:57.680Z [error]: Error creating payment order: Failed to create payment order
+2025-09-17T03:52:33.081Z [info]: Loaded 2 contract addresses for filtering
+2025-09-17T03:52:33.292Z [info]: MongoDB connected: localhost
+2025-09-17T03:52:34.181Z [info]: Auth middleware: Token present:
+2025-09-17T03:52:34.184Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-17T03:52:34.185Z [info]: Auth middleware: Looking up user account
+2025-09-17T03:52:34.202Z [info]: Auth middleware: Account found:
+2025-09-17T03:52:34.204Z [info]: Auth middleware: Token version:
+2025-09-17T03:52:34.204Z [info]: Auth middleware: Authentication successful for user:
+2025-09-17T03:52:34.205Z [info]: Role middleware: Checking roles:
+2025-09-17T03:52:34.205Z [info]: Role middleware: User role:
+2025-09-17T03:52:34.206Z [info]: Role middleware: Role check passed
+2025-09-17T03:52:34.206Z [info]: Creating payment order
+2025-09-17T03:52:34.206Z [info]: Creating payment order for user: 68b6697f27e447e3fdf256e4, amount: 500 INR
+2025-09-17T03:52:36.390Z [error]: Error creating payment order:
+2025-09-17T03:52:36.391Z [error]: Error creating payment order: Failed to create payment order
+2025-09-17T03:53:32.349Z [info]: Loaded 2 contract addresses for filtering
+2025-09-17T03:53:32.513Z [info]: MongoDB connected: localhost
+2025-09-17T03:54:07.613Z [info]: Auth middleware: Token present:
+2025-09-17T03:54:07.616Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-17T03:54:07.616Z [info]: Auth middleware: Looking up user account
+2025-09-17T03:54:07.632Z [info]: Auth middleware: Account found:
+2025-09-17T03:54:07.632Z [info]: Auth middleware: Token version:
+2025-09-17T03:54:07.633Z [info]: Auth middleware: Authentication successful for user:
+2025-09-17T03:54:07.633Z [info]: Role middleware: Checking roles:
+2025-09-17T03:54:07.633Z [info]: Role middleware: User role:
+2025-09-17T03:54:07.634Z [info]: Role middleware: Role check passed
+2025-09-17T03:54:07.634Z [info]: Creating payment order ithanne
+2025-09-17T03:54:07.634Z [info]: Creating payment order for user: 68b6697f27e447e3fdf256e4, amount: 500 INR
+2025-09-17T03:54:08.254Z [error]: Error creating payment order:
+2025-09-17T03:54:08.255Z [error]: Error creating payment order: Failed to create payment order
+2025-09-17T03:54:48.545Z [info]: Admin logged in successfully: admin@gmail.com
+2025-09-17T03:54:51.745Z [info]: Auth middleware: Token present:
+2025-09-17T03:54:51.747Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-17T03:54:51.747Z [info]: Auth middleware: Looking up admin account
+2025-09-17T03:54:51.750Z [info]: Auth middleware: Account found:
+2025-09-17T03:54:51.751Z [info]: Auth middleware: Token version:
+2025-09-17T03:54:51.751Z [info]: Auth middleware: Authentication successful for user:
+2025-09-17T03:54:51.751Z [info]: Role middleware: Checking roles:
+2025-09-17T03:54:51.751Z [info]: Role middleware: User role:
+2025-09-17T03:54:51.751Z [info]: Role middleware: Role check passed
+2025-09-17T03:54:51.810Z [info]: Auth middleware: Token present:
+2025-09-17T03:54:51.811Z [info]: Auth middleware: Token decoded successfully for user:
+2025-09-17T03:54:51.812Z [info]: Auth middleware: Looking up admin account
+2025-09-17T03:54:51.815Z [info]: Auth middleware: Account found:
+2025-09-17T03:54:51.815Z [info]: Auth middleware: Token version:
+2025-09-17T03:54:51.815Z [info]: Auth middleware: Authentication successful for user:
+2025-09-17T03:54:51.816Z [info]: Role middleware: Checking roles:
+2025-09-17T03:54:51.816Z [info]: Role middleware: User role:
+2025-09-17T03:54:51.816Z [info]: Role middleware: Role check passed

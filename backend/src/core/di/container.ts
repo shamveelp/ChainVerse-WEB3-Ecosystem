@@ -98,6 +98,10 @@ import { DexRepository } from "../../repositories/dex.repository"
 import { EtherscanService } from "../../services/etherscan.service"
 import { IPaymentRepository } from "../interfaces/repositories/IPaymentRepository"
 import { PaymentRepository } from "../../repositories/payment.repository"
+import { IUserDexService } from "../interfaces/services/user/IUserDexService"
+import { UserDexService } from "../../services/user/UserDex.service"
+import { IUserDexController } from "../interfaces/controllers/user/IUserDex.controller"
+import { UserDexController } from "../../controllers/user/UserDex.controller"
 
 // Create Container
 const container = new Container()
@@ -175,5 +179,8 @@ container.bind<IAdminDexController>(TYPES.IAdminDexController).to(AdminDexContro
 container.bind<IAdminDexService>(TYPES.IAdminDexService).to(AdminDexService)
 
 container.bind<IPaymentRepository>(TYPES.IPaymentRepository).to(PaymentRepository)
+
+container.bind<IUserDexService>(TYPES.IUserDexService).to(UserDexService)
+container.bind<IUserDexController>(TYPES.IUserDexController).to(UserDexController)
 
 export default container
