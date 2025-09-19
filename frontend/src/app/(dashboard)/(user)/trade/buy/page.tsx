@@ -40,12 +40,40 @@ export default function BuyCryptoPage() {
   const [fees, setFees] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [calculating, setCalculating] = useState(false);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
 
   const currencies: Currency[] = [
     { code: 'INR', name: 'Indian Rupee', symbol: '₹', available: true },
     { code: 'USD', name: 'US Dollar', symbol: '$', available: false },
     { code: 'RIY', name: 'Saudi Riyal', symbol: 'ر.س', available: false },
   ];
+
+  // Load Razorpay script
+  useEffect(() => {
+    const loadRazorpayScript = () => {
+      if (typeof window !== 'undefined' && !window.Razorpay) {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        script.onload = () => {
+          setScriptLoaded(true);
+        };
+        script.onerror = () => {
+          console.error('Failed to load Razorpay script');
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load payment gateway. Please refresh and try again.",
+          });
+        };
+        document.body.appendChild(script);
+      } else if (window.Razorpay) {
+        setScriptLoaded(true);
+      }
+    };
+
+    loadRazorpayScript();
+  }, []);
 
   // Load ETH price on component mount
   useEffect(() => {
@@ -66,7 +94,11 @@ export default function BuyCryptoPage() {
   const loadEthPrice = async () => {
     try {
       const response = await dexApiService.getEthPrice();
-      setEthPrice(response.data.price);
+      if (response.success && response.data?.price) {
+        setEthPrice(response.data.price);
+      } else {
+        throw new Error('Invalid price response');
+      }
     } catch (error) {
       console.error('Failed to load ETH price:', error);
       toast({
@@ -74,6 +106,8 @@ export default function BuyCryptoPage() {
         title: "Error",
         description: "Failed to load current ETH price. Please try again.",
       });
+      // Set fallback price
+      setEthPrice(200000);
     }
   };
 
@@ -82,8 +116,12 @@ export default function BuyCryptoPage() {
       setCalculating(true);
       const response = await dexApiService.calculateEstimate(parseFloat(amount), selectedCurrency.code);
       
-      setEstimatedEth(response.data.estimatedEth);
-      setFees(response.data);
+      if (response.success && response.data) {
+        setEstimatedEth(response.data.estimatedEth);
+        setFees(response.data);
+      } else {
+        throw new Error('Invalid estimate response');
+      }
     } catch (error) {
       console.error('Failed to calculate estimate:', error);
       toast({
@@ -133,6 +171,15 @@ export default function BuyCryptoPage() {
       return;
     }
 
+    if (!scriptLoaded || !window.Razorpay) {
+      toast({
+        variant: "destructive",
+        title: "Payment Gateway Loading",
+        description: "Please wait for the payment gateway to load and try again.",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -145,6 +192,10 @@ export default function BuyCryptoPage() {
         ethPriceAtTime: ethPrice
       });
 
+      if (!orderResponse.success || !orderResponse.data) {
+        throw new Error('Failed to create payment order');
+      }
+
       // Initialize Razorpay
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -155,29 +206,37 @@ export default function BuyCryptoPage() {
         order_id: orderResponse.data.orderId,
         handler: async function (response: any) {
           try {
+            setLoading(true);
             // Verify payment
-            await dexApiService.verifyPayment({
+            const verifyResponse = await dexApiService.verifyPayment({
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature
             });
 
-            toast({
-              variant: "default",
-              title: "Payment Successful!",
-              description: "Your wallet will receive the crypto within 24 hours after approval.",
-            });
+            if (verifyResponse.success) {
+              toast({
+                variant: "default",
+                title: "Payment Successful!",
+                description: "Your wallet will receive the crypto within 24 hours after approval.",
+              });
 
-            // Reset form
-            setAmount('');
-            setEstimatedEth(0);
-            setFees(null);
-          } catch (error) {
+              // Reset form
+              setAmount('');
+              setEstimatedEth(0);
+              setFees(null);
+            } else {
+              throw new Error('Payment verification failed');
+            }
+          } catch (error: any) {
+            console.error('Payment verification error:', error);
             toast({
               variant: "destructive",
               title: "Payment Verification Failed",
               description: "Please contact support if amount was deducted.",
             });
+          } finally {
+            setLoading(false);
           }
         },
         prefill: {
@@ -189,6 +248,7 @@ export default function BuyCryptoPage() {
         },
         modal: {
           ondismiss: function() {
+            setLoading(false);
             toast({
               variant: "destructive",
               title: "Payment Cancelled",
@@ -205,9 +265,8 @@ export default function BuyCryptoPage() {
       toast({
         variant: "destructive",
         title: "Payment Failed",
-        description: error.response?.data?.error || "Failed to initiate payment. Please try again.",
+        description: error.response?.data?.error || error.message || "Failed to initiate payment. Please try again.",
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -232,9 +291,6 @@ export default function BuyCryptoPage() {
     <>
       <Navbar />
       <TradeNavbar topOffset="top-16" />
-      
-      {/* Razorpay Script */}
-      <script src="https://checkout.razorpay.com/v1/checkout.js" async />
       
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 pt-20 px-6">
         <div className="max-w-4xl mx-auto">
@@ -313,11 +369,26 @@ export default function BuyCryptoPage() {
                 </div>
               )}
 
+              {!scriptLoaded && (
+                <div className="mb-6 p-4 bg-blue-900/30 border border-blue-700 rounded-xl flex items-center space-x-3">
+                  <Clock className="h-5 w-5 text-blue-400" />
+                  <p className="text-blue-300 text-sm">Loading payment gateway...</p>
+                </div>
+              )}
+
               {/* Buy Button */}
               <button
                 onClick={initiatePayment}
-                disabled={loading || calculating || !amount || parseFloat(amount) < 100 || !selectedCurrency.available || !account?.address}
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-4 rounded-xl font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-105"
+                disabled={
+                  loading || 
+                  calculating || 
+                  !amount || 
+                  parseFloat(amount) < 100 || 
+                  !selectedCurrency.available || 
+                  !account?.address ||
+                  !scriptLoaded
+                }
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-4 rounded-xl font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transform hover:scale-105 disabled:hover:scale-100"
               >
                 {loading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-white"></div>
@@ -327,6 +398,7 @@ export default function BuyCryptoPage() {
                     <span>
                       {!account?.address ? 'Connect Wallet' : 
                        !selectedCurrency.available ? 'Currency Not Available' :
+                       !scriptLoaded ? 'Loading Payment Gateway...' :
                        'Buy Crypto'}
                     </span>
                   </>
@@ -402,7 +474,7 @@ export default function BuyCryptoPage() {
                       
                       <div className="flex items-center space-x-2">
                         <Shield className="h-4 w-4 text-green-400" />
-                        <p>Price will be calculated at the time of sending, not purchase</p>
+                        <p>Price calculated at time of purchase</p>
                       </div>
                       
                       <div className="flex items-center space-x-2">

@@ -1,10 +1,6 @@
 import axios from 'axios';
 import API from "@/lib/api-client";
 
-// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-
-
 export const dexApiService = {
   // Get ETH price
   getEthPrice: async () => {
@@ -53,12 +49,12 @@ export const dexApiService = {
 export const adminDexApiService = {
   // Get all payments
   getAllPayments: async (page: number = 1, limit: number = 10, status?: string) => {
-    const url = `/admin/dex/payments?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`;
+    const url = `/api/admin/dex/payments?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`;
     const response = await API.get(url);
     return response.data;
   },
 
-  // Approve payment
+  // Approve payment (deprecated - use fulfillPayment instead)
   approvePayment: async (paymentId: string, adminNote?: string, transactionHash?: string) => {
     const response = await API.post('/api/admin/dex/approve-payment', {
       paymentId,
@@ -77,11 +73,12 @@ export const adminDexApiService = {
     return response.data;
   },
 
-  // Fulfill payment
-  fulfillPayment: async (paymentId: string, transactionHash: string) => {
+  // Fulfill payment (this is what should be used for approval)
+  fulfillPayment: async (paymentId: string, transactionHash: string, adminNote?: string) => {
     const response = await API.post('/api/admin/dex/fulfill-payment', {
       paymentId,
-      transactionHash
+      transactionHash,
+      adminNote
     });
     return response.data;
   },

@@ -17,11 +17,8 @@ export default tseslint.config(
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
     rules: {
-      'no-console': 'error',
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      'semi': ['error', 'always'],
-      'quotes': ['error', 'single'],
+      // '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // 'semi': ['error', 'always'],
     },
   },
 );

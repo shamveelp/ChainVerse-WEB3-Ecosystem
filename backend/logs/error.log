@@ -608,3 +608,9 @@
 2025-09-17T03:52:36.391Z [error]: Error creating payment order: Failed to create payment order
 2025-09-17T03:54:08.254Z [error]: Error creating payment order:
 2025-09-17T03:54:08.255Z [error]: Error creating payment order: Failed to create payment order
+2025-09-17T05:05:59.374Z [error]: Error fetching ETH price: Request failed with status code 429
+2025-09-17T05:06:12.100Z [error]: Error fetching ETH price: Request failed with status code 429
+2025-09-17T05:06:27.516Z [error]: Error fetching ETH price: Request failed with status code 429
+2025-09-17T05:06:56.446Z [error]: Error fetching ETH price: Request failed with status code 429
+2025-09-17T05:06:57.590Z [error]: Error fetching ETH price: Request failed with status code 429
+2025-09-17T05:39:19.188Z [error]: Error fetching ETH price: Request failed with status code 429

@@ -58,7 +58,7 @@ export class ReferralService implements IReferralService {
       const stats = await this._referralHistoryRepository.getReferralStats(userId);
       
       const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-      const referralLink = `${baseUrl}/register?ref=${user.refferalCode}`;
+      const referralLink = `${baseUrl}/user/register?ref=${user.refferalCode}`;
       
       return {
         totalReferrals: stats.totalReferrals,

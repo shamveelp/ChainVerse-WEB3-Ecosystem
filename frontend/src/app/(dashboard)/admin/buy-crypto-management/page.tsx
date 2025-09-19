@@ -14,7 +14,8 @@ import {
   TrendingUp,
   Eye,
   Send,
-  Ban
+  Ban,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { adminDexApiService } from '@/services/dexApiService';
@@ -40,7 +41,7 @@ interface Payment {
   ethPriceAtTime: number;
   adminNote?: string;
   approvedBy?: any;
-  transactionHash?: string; // Added to match backend IPayment
+  transactionHash?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -55,7 +56,7 @@ interface PaymentStats {
 }
 
 export default function BuyCryptoManagementPage() {
-  const { admin } = useSelector((state: RootState) => state.adminAuth); // Changed 'user' to 'admin'
+  const { admin } = useSelector((state: RootState) => state.adminAuth);
   
   const [activeTab, setActiveTab] = useState<'requests' | 'history'>('requests');
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -70,6 +71,7 @@ export default function BuyCryptoManagementPage() {
   const [modalType, setModalType] = useState<'approve' | 'reject' | 'view'>('view');
   const [adminNote, setAdminNote] = useState('');
   const [transactionHash, setTransactionHash] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     loadStats();
@@ -79,9 +81,16 @@ export default function BuyCryptoManagementPage() {
   const loadStats = async () => {
     try {
       const response = await adminDexApiService.getPaymentStats();
-      setStats(response.data);
+      if (response.success && response.data) {
+        setStats(response.data);
+      }
     } catch (error) {
       console.error('Failed to load stats:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load payment statistics",
+      });
     }
   };
 
@@ -91,77 +100,107 @@ export default function BuyCryptoManagementPage() {
       const statusFilter = activeTab === 'requests' ? 'success' : selectedStatus;
       const response = await adminDexApiService.getAllPayments(currentPage, 10, statusFilter);
       
-      setPayments(response.data.payments);
-      setTotalPages(response.data.totalPages);
-    } catch (error) {
+      if (response.success && response.data) {
+        setPayments(response.data.payments || []);
+        setTotalPages(response.data.totalPages || 1);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error: any) {
       console.error('Failed to load payments:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to load payments",
+        description: error.response?.data?.error || "Failed to load payments",
       });
+      setPayments([]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleApprovePayment = async () => {
-    if (!selectedPayment || !transactionHash.trim()) return;
-
-    try {
-      await adminDexApiService.fulfillPayment(
-        selectedPayment._id,
-        transactionHash,
-        // Added adminNote to match AdminDexService
-      );
-
-      toast({
-        variant: "default",
-        title: "Success",
-        description: "Payment approved and fulfilled successfully",
-      });
-
-      setShowModal(false);
-      setSelectedPayment(null);
-      setAdminNote('');
-      setTransactionHash('');
-      loadPayments();
-      loadStats();
-    } catch (error: any) {
+    if (!selectedPayment || !transactionHash.trim()) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.response?.data?.error || "Failed to approve payment",
+        description: "Transaction hash is required",
       });
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const response = await adminDexApiService.fulfillPayment(
+        selectedPayment._id,
+        transactionHash,
+        adminNote.trim() || 'Payment approved and fulfilled'
+      );
+
+      if (response.success) {
+        toast({
+          variant: "default",
+          title: "Success",
+          description: "Payment approved and fulfilled successfully",
+        });
+
+        closeModal();
+        loadPayments();
+        loadStats();
+      } else {
+        throw new Error(response.error || 'Failed to approve payment');
+      }
+    } catch (error: any) {
+      console.error('Error approving payment:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.response?.data?.error || error.message || "Failed to approve payment",
+      });
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleRejectPayment = async () => {
-    if (!selectedPayment || !adminNote.trim()) return;
+    if (!selectedPayment || !adminNote.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Rejection reason is required",
+      });
+      return;
+    }
 
     try {
-      await adminDexApiService.rejectPayment(
+      setActionLoading(true);
+      const response = await adminDexApiService.rejectPayment(
         selectedPayment._id,
         adminNote
       );
 
-      toast({
-        variant: "default",
-        title: "Success",
-        description: "Payment rejected successfully",
-      });
+      if (response.success) {
+        toast({
+          variant: "default",
+          title: "Success",
+          description: "Payment rejected successfully",
+        });
 
-      setShowModal(false);
-      setSelectedPayment(null);
-      setAdminNote('');
-      loadPayments();
-      loadStats();
+        closeModal();
+        loadPayments();
+        loadStats();
+      } else {
+        throw new Error(response.error || 'Failed to reject payment');
+      }
     } catch (error: any) {
+      console.error('Error rejecting payment:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.response?.data?.error || "Failed to reject payment",
+        description: error.response?.data?.error || error.message || "Failed to reject payment",
       });
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -169,12 +208,16 @@ export default function BuyCryptoManagementPage() {
     setSelectedPayment(payment);
     setModalType(type);
     setShowModal(true);
-    if (payment.adminNote) {
-      setAdminNote(payment.adminNote);
-    }
-    if (payment.transactionHash) {
-      setTransactionHash(payment.transactionHash);
-    }
+    setAdminNote(payment.adminNote || '');
+    setTransactionHash(payment.transactionHash || '');
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedPayment(null);
+    setAdminNote('');
+    setTransactionHash('');
+    setActionLoading(false);
   };
 
   const getStatusBadge = (status: string) => {
@@ -198,9 +241,9 @@ export default function BuyCryptoManagementPage() {
   };
 
   const filteredPayments = payments.filter(payment => 
-    payment.userId.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    payment.userId.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    payment.walletAddress.toLowerCase().includes(searchTerm.toLowerCase())
+    payment.userId?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    payment.userId?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    payment.walletAddress?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (!admin) {
@@ -393,24 +436,24 @@ export default function BuyCryptoManagementPage() {
                     <tr key={payment._id} className="border-t border-gray-700/50 hover:bg-white/5">
                       <td className="p-4">
                         <div>
-                          <p className="text-white font-medium">{payment.userId.name}</p>
-                          <p className="text-gray-400 text-sm">{payment.userId.email}</p>
-                          <p className="text-gray-500 text-xs">{payment.walletAddress.slice(0, 10)}...</p>
+                          <p className="text-white font-medium">{payment.userId?.name || 'N/A'}</p>
+                          <p className="text-gray-400 text-sm">{payment.userId?.email || 'N/A'}</p>
+                          <p className="text-gray-500 text-xs">{payment.walletAddress?.slice(0, 10)}...</p>
                         </div>
                       </td>
                       <td className="p-4">
                         <div>
                           <p className="text-white font-medium">
-                            ₹{payment.amountInCurrency.toLocaleString()}
+                            ₹{payment.amountInCurrency?.toLocaleString()}
                           </p>
                           <p className="text-gray-400 text-sm">{payment.currency}</p>
                         </div>
                       </td>
                       <td className="p-4">
                         <div>
-                          <p className="text-white font-medium">{payment.actualEthToSend.toFixed(6)} ETH</p>
+                          <p className="text-white font-medium">{payment.actualEthToSend?.toFixed(6)} ETH</p>
                           <p className="text-gray-400 text-sm">
-                            Est: {payment.estimatedEth.toFixed(6)} ETH
+                            Est: {payment.estimatedEth?.toFixed(6)} ETH
                           </p>
                         </div>
                       </td>
@@ -430,6 +473,7 @@ export default function BuyCryptoManagementPage() {
                           <button
                             onClick={() => openModal(payment, 'view')}
                             className="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
+                            title="View Details"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -439,12 +483,14 @@ export default function BuyCryptoManagementPage() {
                               <button
                                 onClick={() => openModal(payment, 'approve')}
                                 className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors"
+                                title="Approve Payment"
                               >
                                 <CheckCircle className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => openModal(payment, 'reject')}
                                 className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+                                title="Reject Payment"
                               >
                                 <XCircle className="h-4 w-4" />
                               </button>
@@ -500,8 +546,8 @@ export default function BuyCryptoManagementPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-400 text-sm mb-1">User</label>
-                  <p className="text-white">{selectedPayment.userId.name}</p>
-                  <p className="text-gray-400 text-sm">{selectedPayment.userId.email}</p>
+                  <p className="text-white">{selectedPayment.userId?.name || 'N/A'}</p>
+                  <p className="text-gray-400 text-sm">{selectedPayment.userId?.email || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="block text-gray-400 text-sm mb-1">Wallet Address</label>
@@ -509,11 +555,11 @@ export default function BuyCryptoManagementPage() {
                 </div>
                 <div>
                   <label className="block text-gray-400 text-sm mb-1">Amount Paid</label>
-                  <p className="text-white">₹{selectedPayment.amountInCurrency.toLocaleString()}</p>
+                  <p className="text-white">₹{selectedPayment.amountInCurrency?.toLocaleString()}</p>
                 </div>
                 <div>
                   <label className="block text-gray-400 text-sm mb-1">ETH to Send</label>
-                  <p className="text-white">{selectedPayment.actualEthToSend.toFixed(6)} ETH</p>
+                  <p className="text-white">{selectedPayment.actualEthToSend?.toFixed(6)} ETH</p>
                 </div>
                 <div>
                   <label className="block text-gray-400 text-sm mb-1">Status</label>
@@ -551,14 +597,18 @@ export default function BuyCryptoManagementPage() {
             {modalType === 'approve' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-gray-400 text-sm mb-2">Transaction Hash *</label>
+                  <label className="block text-gray-400 text-sm mb-2">
+                    Transaction Hash <span className="text-red-400">*</span>
+                  </label>
                   <input
                     type="text"
                     placeholder="Enter transaction hash after sending crypto"
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-green-500 outline-none"
                     value={transactionHash}
                     onChange={(e) => setTransactionHash(e.target.value)}
+                    disabled={actionLoading}
                   />
+                  <p className="text-gray-400 text-xs mt-1">This will be visible to the user</p>
                 </div>
                 <div>
                   <label className="block text-gray-400 text-sm mb-2">Admin Note (Optional)</label>
@@ -568,6 +618,7 @@ export default function BuyCryptoManagementPage() {
                     rows={3}
                     value={adminNote}
                     onChange={(e) => setAdminNote(e.target.value)}
+                    disabled={actionLoading}
                   />
                 </div>
               </div>
@@ -575,13 +626,16 @@ export default function BuyCryptoManagementPage() {
 
             {modalType === 'reject' && (
               <div>
-                <label className="block text-gray-400 text-sm mb-2">Rejection Reason *</label>
+                <label className="block text-gray-400 text-sm mb-2">
+                  Rejection Reason <span className="text-red-400">*</span>
+                </label>
                 <textarea
                   placeholder="Explain why this payment is being rejected"
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-red-500 outline-none resize-none"
                   rows={4}
                   value={adminNote}
                   onChange={(e) => setAdminNote(e.target.value)}
+                  disabled={actionLoading}
                 />
               </div>
             )}
@@ -589,13 +643,9 @@ export default function BuyCryptoManagementPage() {
             {/* Modal Actions */}
             <div className="flex justify-end space-x-3 mt-6">
               <button
-                onClick={() => {
-                  setShowModal(false);
-                  setSelectedPayment(null);
-                  setAdminNote('');
-                  setTransactionHash('');
-                }}
-                className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                onClick={closeModal}
+                disabled={actionLoading}
+                className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -603,20 +653,22 @@ export default function BuyCryptoManagementPage() {
               {modalType === 'approve' && (
                 <button
                   onClick={handleApprovePayment}
-                  disabled={!transactionHash.trim()}
-                  className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  disabled={!transactionHash.trim() || actionLoading}
+                  className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
                 >
-                  Approve & Send Crypto
+                  {actionLoading && <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>}
+                  <span>Approve & Send Crypto</span>
                 </button>
               )}
 
               {modalType === 'reject' && (
                 <button
                   onClick={handleRejectPayment}
-                  disabled={!adminNote.trim()}
-                  className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  disabled={!adminNote.trim() || actionLoading}
+                  className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
                 >
-                  Reject Payment
+                  {actionLoading && <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>}
+                  <span>Reject Payment</span>
                 </button>
               )}
             </div>

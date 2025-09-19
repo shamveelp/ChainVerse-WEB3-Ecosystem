@@ -3,7 +3,8 @@ import { ValidationError } from "class-validator";
 import logger from "../utils/logger";
 import { StatusCode } from "../enums/statusCode.enum";
 import { ErrorMessages } from "../enums/messages.enum";
-import { CustomError } from "../utils/CustomError";
+import { CustomError } from "../utils/customError";
+
 
 export const errorHandler = (
     err: any,

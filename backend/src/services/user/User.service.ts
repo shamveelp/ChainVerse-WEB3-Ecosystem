@@ -29,7 +29,6 @@ export class UserService implements IUserService {
         throw new CustomError("User profile not found", StatusCode.NOT_FOUND);
       }
 
-      // Transform the user data to ensure proper format
       const profileData = {
         _id: user._id,
         username: user.username,
@@ -75,7 +74,6 @@ export class UserService implements IUserService {
         throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
       }
 
-      // Check if username is being changed and is unique
       if (data.username) {
         const existingUser = await this._userRepository.findByUsername(data.username);
         if (existingUser && existingUser._id.toString() !== userId) {
@@ -83,15 +81,12 @@ export class UserService implements IUserService {
         }
       }
 
-      // Remove sensitive fields that shouldn't be updated directly
       const { password, email, isEmailVerified, role, googleId, tokenVersion, ...updateData } = data;
 
       console.log("UserService: Filtered update data:", updateData);
       
-      // Update the user
       await this._userRepository.update(userId, updateData);
       
-      // Fetch and return the updated user
       const updatedUser = await this._userRepository.findById(userId);
       
       if (!updatedUser) {

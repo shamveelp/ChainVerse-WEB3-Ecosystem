@@ -20,7 +20,7 @@ export class UserDexService implements IUserDexService {
   ) {
     this.razorpay = new Razorpay({
       key_id: 'rzp_test_RIWXl802XaTvlw',
-      key_secret: process.env.RAZORPAY_KEY_SECRET || '',
+      key_secret: 'X170fnyIQ5snVRsl94Bv4oD2',
     });
   }
 

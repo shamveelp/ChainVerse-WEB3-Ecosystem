@@ -28,9 +28,12 @@ export class AdminDexController implements IAdminDexController {
       res.status(StatusCode.OK).json(response);
     } catch (error) {
       logger.error("Error getting all payments:", error);
-      res.status(StatusCode.BAD_REQUEST).json({ 
+      const errorMessage = error instanceof CustomError ? error.message : "Failed to retrieve payments";
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.BAD_REQUEST;
+      
+      res.status(statusCode).json({ 
         success: false,
-        error: "Failed to retrieve payments" 
+        error: errorMessage 
       });
     }
   };
@@ -39,6 +42,14 @@ export class AdminDexController implements IAdminDexController {
     try {
       const { paymentId, adminNote, transactionHash } = req.body;
       const adminId = (req as any).user.id;
+      
+      if (!paymentId) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          error: "Payment ID is required"
+        });
+        return;
+      }
       
       const payment = await this._adminDexService.approvePayment(
         paymentId,
@@ -66,6 +77,14 @@ export class AdminDexController implements IAdminDexController {
       const { paymentId, reason } = req.body;
       const adminId = (req as any).user.id;
       
+      if (!paymentId || !reason) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          error: "Payment ID and reason are required"
+        });
+        return;
+      }
+      
       const payment = await this._adminDexService.rejectPayment(
         paymentId,
         adminId,
@@ -88,8 +107,16 @@ export class AdminDexController implements IAdminDexController {
 
   fulfillPayment = async (req: Request, res: Response) => {
     try {
-      const { paymentId, transactionHash } = req.body;
+      const { paymentId, transactionHash, adminNote } = req.body;
       const adminId = (req as any).user.id;
+      
+      if (!paymentId || !transactionHash) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          error: "Payment ID and transaction hash are required"
+        });
+        return;
+      }
       
       const payment = await this._adminDexService.fulfillPayment(
         paymentId,
@@ -119,9 +146,12 @@ export class AdminDexController implements IAdminDexController {
       res.status(StatusCode.OK).json(response);
     } catch (error) {
       logger.error("Error getting payment stats:", error);
-      res.status(StatusCode.BAD_REQUEST).json({ 
+      const errorMessage = error instanceof CustomError ? error.message : "Failed to get payment statistics";
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.BAD_REQUEST;
+      
+      res.status(statusCode).json({ 
         success: false,
-        error: "Failed to get payment statistics" 
+        error: errorMessage 
       });
     }
   };
@@ -134,9 +164,12 @@ export class AdminDexController implements IAdminDexController {
       res.status(StatusCode.OK).json(response);
     } catch (error) {
       logger.error("Error getting pending payments:", error);
-      res.status(StatusCode.BAD_REQUEST).json({ 
+      const errorMessage = error instanceof CustomError ? error.message : "Failed to get pending payments";
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.BAD_REQUEST;
+      
+      res.status(statusCode).json({ 
         success: false,
-        error: "Failed to get pending payments" 
+        error: errorMessage 
       });
     }
   };

@@ -1,23 +1,19 @@
 import { customAlphabet } from 'nanoid';
 import { UserModel } from '../models/user.models';
 
-// Create a custom alphabet for referral codes (alphanumeric, no special chars)
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const nanoid = customAlphabet(alphabet, 8);
 
-// Utility class for generating and validating referral codes
 export class ReferralCodeService {
-  // Generate a unique 8-character referral code
   static async generateUniqueReferralCode(): Promise<string> {
     let referralCode: string;
     let isUnique = false;
     let attempts = 0;
-    const maxAttempts = 20; // Increased attempts
+    const maxAttempts = 20;
 
     while (!isUnique && attempts < maxAttempts) {
       referralCode = nanoid();
       
-      // Check if this code already exists
       const existingUser = await UserModel.findOne({ refferalCode: referralCode }).exec();
       if (!existingUser) {
         isUnique = true;
@@ -32,7 +28,6 @@ export class ReferralCodeService {
     return referralCode!;
   }
 
-  // Validate a referral code and return the referrer's ID
   static async validateReferralCode(referralCode: string): Promise<string | null> {
     try {
       if (!referralCode || referralCode.trim().length !== 8) {
@@ -41,7 +36,6 @@ export class ReferralCodeService {
 
       const cleanReferralCode = referralCode.trim();
       
-      // Find user with this referral code
       const user = await UserModel.findOne({ refferalCode: cleanReferralCode }).exec();
       
       if (user) {
@@ -57,11 +51,11 @@ export class ReferralCodeService {
     }
   }
 
-  // Get referral statistics for a user
+
   static async getReferralStats(userId: string) {
     try {
       const referrals = await UserModel.countDocuments({ refferedBy: userId });
-      const totalPointsEarned = referrals * 100; // 100 points per referral
+      const totalPointsEarned = referrals * 100;
       
       return {
         totalReferrals: referrals,
@@ -76,7 +70,7 @@ export class ReferralCodeService {
     }
   }
 
-  // Get list of users referred by a specific user
+
   static async getReferredUsers(userId: string, page = 1, limit = 10) {
     try {
       const skip = (page - 1) * limit;

@@ -20,14 +20,12 @@ export const validateDto = (
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Transform plain object to class instance
       const dto = plainToClass(dtoClass, req[source], {
         enableImplicitConversion: true,
         excludeExtraneousValues: false,
       });
       logger.debug(`Validating DTO for ${req.path} [${source}]`, { dto });
 
-      // Validate the DTO
       const errors: ValidationError[] = await validate(dto, {
         whitelist: true,
         forbidNonWhitelisted: false,
@@ -63,11 +61,9 @@ export const validateDto = (
         return res.status(StatusCode.BAD_REQUEST).json(response);
       }
 
-      // ✅ Only overwrite body
       if (source === 'body') {
         req.body = dto;
       } else {
-        // ✅ Merge validated fields into query/params instead of overwriting
         Object.assign(req[source], dto);
       }
 

@@ -24,15 +24,11 @@ export class PointsService implements IPointsService {
     message: string;
   }> {
     try {
-      console.log("PointsService: Performing daily check-in for user:", userId);
-      
-      // Check if user already checked in today
       const todayCheckIn = await this._dailyCheckInRepository.findTodayCheckIn(userId);
       if (todayCheckIn) {
         throw new CustomError("You have already checked in today", StatusCode.BAD_REQUEST);
       }
 
-      // Get last check-in to calculate streak
       const lastCheckIn = await this._dailyCheckInRepository.getLastCheckIn(userId);
       let streakCount = 1;
       
@@ -41,16 +37,13 @@ export class PointsService implements IPointsService {
         const lastCheckInDate = startOfDay(lastCheckIn.checkInDate);
         
         if (lastCheckInDate.getTime() === yesterday.getTime()) {
-          // Consecutive day
           streakCount = lastCheckIn.streakCount + 1;
         }
-        // If not consecutive, streak resets to 1 (already set above)
       }
 
-      const pointsAwarded = 10; // Base points for daily check-in
+      const pointsAwarded = 10;
       const today = new Date();
 
-      // Create check-in record
       const checkIn = await this._dailyCheckInRepository.createCheckIn({
         userId,
         checkInDate: today,
@@ -58,7 +51,6 @@ export class PointsService implements IPointsService {
         streakCount,
       });
 
-      // Create points history record
       await this._pointsHistoryRepository.createPointsHistory({
         userId,
         type: 'daily_checkin',
@@ -67,7 +59,6 @@ export class PointsService implements IPointsService {
         relatedId: checkIn._id.toString(),
       });
 
-      // Update user's total points
       const user = await this._userRepository.findById(userId);
       if (user) {
         await this._userRepository.update(userId, {
@@ -169,7 +160,6 @@ export class PointsService implements IPointsService {
       
       const result = await this._pointsHistoryRepository.getPointsHistory(userId, page, limit);
       
-      // Get points summary by type
       const pointsByType = {
         daily_checkin: await this._pointsHistoryRepository.getTotalPointsByType(userId, 'daily_checkin'),
         referral_bonus: await this._pointsHistoryRepository.getTotalPointsByType(userId, 'referral_bonus'),

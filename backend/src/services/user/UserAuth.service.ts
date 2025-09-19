@@ -31,19 +31,16 @@ export class UserAuthService implements IUserAuthService {
     try {
       logger.info(`Validating registration data for: ${email}, username: ${username}`);
       
-      // Check if email already exists
       const existingUserByEmail = await this._userRepository.findByEmail(email);
       if (existingUserByEmail) {
         throw new CustomError("Email already exists", StatusCode.BAD_REQUEST);
       }
 
-      // Check if username already exists
       const existingUserByUsername = await this._userRepository.findByUsername(username);
       if (existingUserByUsername) {
         throw new CustomError("Username already exists", StatusCode.BAD_REQUEST);
       }
 
-      // Validate referral code if provided
       if (referralCode && referralCode.trim()) {
         const referrerId = await ReferralCodeService.validateReferralCode(referralCode);
         if (!referrerId) {
@@ -63,7 +60,6 @@ export class UserAuthService implements IUserAuthService {
     try {
       logger.info(`Creating user account after OTP verification: ${email}, username: ${username}`);
       
-      // Double-check that user doesn't exist (race condition protection)
       const existingUserByEmail = await this._userRepository.findByEmail(email);
       if (existingUserByEmail) {
         throw new CustomError("Email already exists", StatusCode.BAD_REQUEST);
@@ -74,13 +70,10 @@ export class UserAuthService implements IUserAuthService {
         throw new CustomError("Username already exists", StatusCode.BAD_REQUEST);
       }
 
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 12);
       
-      // Generate unique referral code for new user
       const userReferralCode = await ReferralCodeService.generateUniqueReferralCode();
 
-      // Handle referral logic
       let refferedById: string | null = null;
       if (referralCode && referralCode.trim()) {
         refferedById = await ReferralCodeService.validateReferralCode(referralCode);
@@ -90,7 +83,6 @@ export class UserAuthService implements IUserAuthService {
         logger.info(`Processing referral for new user from: ${refferedById}`);
       }
 
-      // Create user data
       const userData = {
         username,
         email,
@@ -104,16 +96,13 @@ export class UserAuthService implements IUserAuthService {
         tokenVersion: 0,
       };
 
-      // Create user
       const user = await this._userRepository.create(userData);
       logger.info(`User created successfully: ${user._id}`);
 
-      // Handle referral rewards in the background
       if (refferedById) {
         this.processReferralReward(refferedById, user._id.toString(), username, referralCode!);
       }
 
-      // Generate tokens
       const accessToken = this._jwtService.generateAccessToken(
         user._id.toString(), 
         user.role, 
@@ -147,7 +136,6 @@ export class UserAuthService implements IUserAuthService {
     try {
       logger.info(`Processing referral reward for referrer: ${referrerId}`);
       
-      // Award 100 points to the referrer
       const referrer = await this._userRepository.findById(referrerId);
       if (referrer) {
         const newTotalPoints = (referrer.totalPoints || 0) + 100;
@@ -155,7 +143,6 @@ export class UserAuthService implements IUserAuthService {
           totalPoints: newTotalPoints,
         });
 
-        // Create referral history record
         await this._referralHistoryRepository.createReferralHistory({
           referrer: referrerId,
           referred: newUserId,
@@ -163,7 +150,6 @@ export class UserAuthService implements IUserAuthService {
           pointsAwarded: 100,
         });
 
-        // Create points history for referrer
         await this._pointsHistoryRepository.createPointsHistory({
           userId: referrerId,
           type: 'referral_bonus',
@@ -176,7 +162,6 @@ export class UserAuthService implements IUserAuthService {
       }
     } catch (referralError) {
       logger.error("Error processing referral reward:", referralError);
-      // Don't fail registration if referral reward fails
     }
   }
 
@@ -258,7 +243,6 @@ export class UserAuthService implements IUserAuthService {
         throw new CustomError("Invalid email or password", StatusCode.UNAUTHORIZED);
       }
 
-      // Update last login
       await this._userRepository.updateLastLogin(user._id.toString());
 
       const accessToken = this._jwtService.generateAccessToken(
@@ -331,7 +315,6 @@ export class UserAuthService implements IUserAuthService {
       }
 
       if (!user) {
-        // Create new user from Google account
         const username = email.split("@")[0] + Math.floor(Math.random() * 1000);
         const userReferralCode = await ReferralCodeService.generateUniqueReferralCode();
         
