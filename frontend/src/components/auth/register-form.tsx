@@ -1,3 +1,4 @@
+
 "use client"
 import type React from "react"
 import { useState, useEffect } from "react"
@@ -100,7 +101,7 @@ export function RegisterForm() {
         toast({
           title: "Username Generated",
           description: `Generated username: ${result.username}`,
-          className: "bg-green-600 text-white border-none",
+          className: "bg-gradient-to-r from-green-500 to-teal-500 text-white border-none",
         })
       } else {
         toast({
@@ -148,13 +149,6 @@ export function RegisterForm() {
     dispatch(setLoading(true))
 
     try {
-      console.log("Submitting registration with data:", {
-        username: formData.username,
-        email: formData.email,
-        name: formData.name,
-        referralCode: formData.referralCode
-      });
-
       const result = await register(
         formData.username,
         formData.email,
@@ -164,7 +158,6 @@ export function RegisterForm() {
       )
 
       if (result.success) {
-        // Store temp data for OTP verification - include name and referralCode
         dispatch(setTempUserData({
           username: formData.username,
           email: formData.email,
@@ -177,7 +170,7 @@ export function RegisterForm() {
         toast({
           title: "OTP Sent",
           description: "Check your email for the verification code",
-          className: "bg-green-600 text-white border-none",
+          className: "bg-gradient-to-r from-green-500 to-teal-500 text-white border-none",
         })
 
         router.push(`${USER_ROUTES.VERIFY_OTP}?redirect=${encodeURIComponent(redirectUrl)}`)
@@ -197,7 +190,7 @@ export function RegisterForm() {
   }
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
-    // Implementation for Google OAuth can be added here
+    // Implementation for Google OAuth
   }
 
   const handleGoogleError = () => {
@@ -222,20 +215,27 @@ export function RegisterForm() {
   }
 
   return (
-    <Card className="bg-gray-900/80 backdrop-blur-xl border border-blue-500/20 shadow-xl shadow-blue-500/10">
-      <CardHeader className="text-center pb-4">
-        <CardTitle className="text-3xl font-bold text-white">Join ChainVerse</CardTitle>
-        <p className="text-gray-400 text-sm mt-2">Securely create your trading account</p>
+    <Card className="bg-gray-950/90 backdrop-blur-2xl border border-blue-600/30 shadow-2xl shadow-blue-600/20 rounded-2xl overflow-hidden">
+      <CardHeader className="text-center pb-4 bg-gradient-to-b from-blue-900/20 to-transparent">
+        <CardTitle className="text-4xl font-bold text-white tracking-tight">Join ChainVerse</CardTitle>
+        <p className="text-gray-300 text-sm mt-2 font-medium">Your gateway to trading and social networking</p>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 p-6">
         <div className="w-full flex justify-center">
-          <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+          <GoogleLogin 
+            onSuccess={handleGoogleSuccess} 
+            onError={handleGoogleError}
+            theme="filled_black"
+            size="large"
+            text="signup_with"
+            shape="pill"
+          />
         </div>
 
         <div className="relative">
-          <Separator className="bg-gray-700" />
-          <div className="absolute inset-0 flex justify-center">
-            <span className="bg-gray-900 px-4 text-sm text-gray-400">or register with email</span>
+          <Separator className="bg-blue-600/30" />
+          <div className="absolute inset-0 flex justify-center items-center">
+            <span className="bg-gray-950 px-4 text-sm text-gray-300">or join with email</span>
           </div>
         </div>
 
@@ -244,18 +244,18 @@ export function RegisterForm() {
             <label htmlFor="name" className="text-sm font-medium text-gray-200">
               Full Name
             </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
+            <div className="relative group">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
               <Input
                 id="name"
                 type="text"
                 placeholder="Enter your full name"
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
               />
             </div>
-            {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
+            {errors.name && <p className="text-red-400 text-sm animate-pulse">{errors.name}</p>}
           </div>
 
           <div className="space-y-2">
@@ -263,15 +263,15 @@ export function RegisterForm() {
               Username
             </label>
             <div className="relative flex gap-2">
-              <div className="relative flex-1">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
+              <div className="relative flex-1 group">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Choose a username"
+                  placeholder="Choose a unique username"
                   value={formData.username}
                   onChange={(e) => handleInputChange("username", e.target.value)}
-                  className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 pr-10 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 pr-10 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   {getUsernameStatusIcon()}
@@ -283,25 +283,25 @@ export function RegisterForm() {
                 size="icon"
                 onClick={handleGenerateUsername}
                 disabled={isGeneratingUsername}
-                className="h-12 w-12 bg-gray-800/50 border-blue-500/30 hover:bg-gray-700/50"
+                className="h-12 w-12 bg-gray-900/50 border-blue-600/30 hover:bg-blue-600/20 hover:border-blue-500/50 rounded-xl transition-all duration-300"
                 title="Generate random username"
               >
                 {isGeneratingUsername ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
                 ) : (
-                  <Wand2 className="h-4 w-4" />
+                  <Wand2 className="h-4 w-4 text-blue-400" />
                 )}
               </Button>
             </div>
-            {errors.username && <p className="text-red-400 text-sm">{errors.username}</p>}
+            {errors.username && <p className="text-red-400 text-sm animate-pulse">{errors.username}</p>}
             {usernameAvailable === false && (
-              <p className="text-red-400 text-sm">Username not available</p>
+              <p className="text-red-400 text-sm animate-pulse">Username not available</p>
             )}
             {usernameAvailable === true && (
-              <p className="text-green-400 text-sm">Username available</p>
+              <p className="text-green-400 text-sm animate-pulse">Username available</p>
             )}
             {isCheckingUsername && (
-              <p className="text-yellow-400 text-sm">Checking availability...</p>
+              <p className="text-yellow-400 text-sm animate-pulse">Checking availability...</p>
             )}
           </div>
 
@@ -309,80 +309,80 @@ export function RegisterForm() {
             <label htmlFor="email" className="text-sm font-medium text-gray-200">
               Email Address
             </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
+            <div className="relative group">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
               <Input
                 id="email"
                 type="email"
                 placeholder="Enter your email address"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
               />
             </div>
-            {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
+            {errors.email && <p className="text-red-400 text-sm animate-pulse">{errors.email}</p>}
           </div>
 
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium text-gray-200">
               Password
             </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
+            <div className="relative group">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a strong password"
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
-                className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 pr-12 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 pr-12 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-400"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-300 transition-colors"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </Button>
             </div>
-            {errors.password && <p className="text-red-400 text-sm">{errors.password}</p>}
+            {errors.password && <p className="text-red-400 text-sm animate-pulse">{errors.password}</p>}
           </div>
 
           <div className="space-y-2">
             <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-200">
               Confirm Password
             </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
+            <div className="relative group">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm your password"
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 pr-12 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 pr-12 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-400"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-300 transition-colors"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
                 {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </Button>
             </div>
-            {errors.confirmPassword && <p className="text-red-400 text-sm">{errors.confirmPassword}</p>}
+            {errors.confirmPassword && <p className="text-red-400 text-sm animate-pulse">{errors.confirmPassword}</p>}
           </div>
 
           <div className="space-y-2">
             <label htmlFor="referralCode" className="text-sm font-medium text-gray-200">
               Referral Code <span className="text-gray-500">(Optional)</span>
             </label>
-            <div className="relative">
-              <Bitcoin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
+            <div className="relative group">
+              <Bitcoin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
               <Input
                 id="referralCode"
                 type="text"
@@ -390,12 +390,12 @@ export function RegisterForm() {
                 value={formData.referralCode}
                 onChange={(e) => handleInputChange("referralCode", e.target.value.toUpperCase())}
                 maxLength={8}
-                className="bg-gray-800/50 border border-blue-500/30 text-white h-12 pl-10 rounded-lg focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
               />
             </div>
-            {errors.referralCode && <p className="text-red-400 text-sm">{errors.referralCode}</p>}
+            {errors.referralCode && <p className="text-red-400 text-sm animate-pulse">{errors.referralCode}</p>}
             {formData.referralCode && formData.referralCode.length === 8 && (
-              <p className="text-blue-400 text-sm">Get 100 bonus points if this referral code is valid!</p>
+              <p className="text-blue-400 text-sm animate-pulse">Earn 100 bonus points with a valid referral code!</p>
             )}
           </div>
 
@@ -405,7 +405,7 @@ export function RegisterForm() {
               id="terms"
               checked={agreeTerms}
               onChange={() => setAgreeTerms(!agreeTerms)}
-              className="h-4 w-4 rounded accent-blue-600 border-blue-500/30 mt-0.5"
+              className="h-4 w-4 rounded accent-blue-600 border-blue-600/30 mt-0.5 transition-colors"
             />
             <label htmlFor="terms" className="text-gray-300 leading-relaxed">
               I agree to the{" "}
@@ -422,7 +422,7 @@ export function RegisterForm() {
           <Button
             type="submit"
             disabled={loading || usernameAvailable !== true || !agreeTerms}
-            className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white h-12 rounded-lg font-semibold shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white h-12 rounded-xl font-semibold shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
           >
             {loading ? (
               <>
@@ -432,14 +432,14 @@ export function RegisterForm() {
             ) : (
               <>
                 <Bitcoin className="mr-2 h-5 w-5" />
-                JOIN CHAINVERSE
+                Join ChainVerse
               </>
             )}
           </Button>
         </form>
 
         <div className="text-center">
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-300 text-sm">
             Already have an account?{" "}
             <Link
               href={`${USER_ROUTES.LOGIN}?redirect=${encodeURIComponent(redirectUrl)}`}

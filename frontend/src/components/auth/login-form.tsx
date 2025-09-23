@@ -1,4 +1,5 @@
 "use client"
+
 import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
@@ -108,81 +109,92 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="bg-slate-800/50 backdrop-blur-md border-blue-800/30">
-      <CardHeader className="text-center pb-4">
-        <CardTitle className="text-2xl font-bold text-gray-200">Sign In</CardTitle>
+    <Card className="bg-gray-950/90 backdrop-blur-2xl border border-blue-600/30 shadow-2xl shadow-blue-600/20 rounded-2xl overflow-hidden">
+      <CardHeader className="text-center pb-4 bg-gradient-to-b from-blue-900/20 to-transparent">
+        <CardTitle className="text-4xl font-bold text-white tracking-tight">Sign In to ChainVerse</CardTitle>
+        <p className="text-gray-300 text-sm mt-2 font-medium">Access your trading and social hub</p>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 p-6">
         <div className="w-full flex justify-center">
-          <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+          <GoogleLogin 
+            onSuccess={handleGoogleSuccess} 
+            onError={handleGoogleError}
+            theme="filled_black"
+            size="large"
+            text="signin_with"
+            shape="pill"
+          />
         </div>
 
         <div className="relative">
-          <Separator className="bg-slate-700" />
-          <div className="absolute inset-0 flex justify-center">
-            <span className="bg-slate-800 px-3 text-sm text-gray-400">or sign in with email</span>
+          <Separator className="bg-blue-600/30" />
+          <div className="absolute inset-0 flex justify-center items-center">
+            <span className="bg-gray-950 px-4 text-sm text-gray-300">or sign in with email</span>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-gray-300">
+            <label htmlFor="email" className="text-sm font-medium text-gray-200">
               Email
             </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <div className="relative group">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
               <Input
                 id="email"
                 type="email"
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                className="bg-slate-700/50 border-slate-600 text-white h-12 pl-10"
+                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
               />
             </div>
-            {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
+            {errors.email && <p className="text-red-400 text-sm animate-pulse">{errors.email}</p>}
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label htmlFor="password" className="text-sm font-medium text-gray-300">
+              <label htmlFor="password" className="text-sm font-medium text-gray-200">
                 Password
               </label>
-              <Link href={USER_ROUTES.FORGOT_PASSWORD} className="text-sm text-blue-400 hover:text-blue-300">
+              <Link 
+                href={USER_ROUTES.FORGOT_PASSWORD} 
+                className="text-sm text-blue-400 hover:text-blue-300 transition-colors underline"
+              >
                 Forgot password?
               </Link>
             </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <div className="relative group">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
-                className="bg-slate-700/50 border-slate-600 text-white h-12 pl-10 pr-12"
+                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 pr-12 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-300 transition-colors"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </Button>
             </div>
-            {errors.password && <p className="text-red-400 text-sm">{errors.password}</p>}
+            {errors.password && <p className="text-red-400 text-sm animate-pulse">{errors.password}</p>}
           </div>
 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white h-12 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white h-12 rounded-xl font-semibold shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
           >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Signing In...
               </>
             ) : (
@@ -192,9 +204,12 @@ export function LoginForm() {
         </form>
 
         <div className="text-center">
-          <p className="text-gray-400">
+          <p className="text-gray-300 text-sm">
             Don&apos;t have an account?{" "}
-            <Link href={`${USER_ROUTES.REGISTER}?redirect=${encodeURIComponent(redirectUrl)}`} className="text-blue-400 hover:text-blue-300 font-medium">
+            <Link 
+              href={`${USER_ROUTES.REGISTER}?redirect=${encodeURIComponent(redirectUrl)}`} 
+              className="text-blue-400 hover:text-blue-300 font-medium transition-colors underline"
+            >
               Create account
             </Link>
           </p>
