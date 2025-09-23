@@ -13868,3 +13868,7 @@
 2025-09-19T06:05:03.567Z [info]: Creating payment order ithanne
 2025-09-19T06:05:03.567Z [info]: Creating payment order for user: 68b6697f27e447e3fdf256e4, amount: 100 INR
 2025-09-19T06:05:04.947Z [info]: Payment order created: 68ccf29039ba8aebd6f10b0b
+2025-09-21T09:40:12.799Z [info]: Loaded 2 contract addresses for filtering
+2025-09-21T09:40:12.970Z [info]: MongoDB connected: localhost
+2025-09-22T05:04:20.466Z [info]: Loaded 2 contract addresses for filtering
+2025-09-22T05:04:20.717Z [info]: MongoDB connected: localhost
