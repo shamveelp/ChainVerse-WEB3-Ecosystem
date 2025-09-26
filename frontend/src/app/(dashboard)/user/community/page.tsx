@@ -3,17 +3,17 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSelector } from 'react-redux'
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { LogIn, Shield, Plus, Sparkles } from 'lucide-react'
+import { LogIn, Shield, Sparkles } from 'lucide-react'
 import type { RootState } from "@/redux/store"
-import Navbar from "@/components/home/navbar"
 import Sidebar from "@/components/community/sidebar"
 import Feed from "@/components/community/feed"
+import RightSidebar from "@/components/community/right-sidebar"
 
 export default function CommunityPage() {
   const router = useRouter()
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.userAuth)
+  const { isAuthenticated } = useSelector((state: RootState) => state.userAuth)
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState('home')
 
@@ -29,10 +29,6 @@ export default function CommunityPage() {
     router.push('/comms-admin/login')
   }
 
-  const handleCreateCommunity = () => {
-    router.push('/comms-admin/get-started')
-  }
-
   if (!mounted) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -42,10 +38,9 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <>
       {!isAuthenticated ? (
-        <>
-
+        <div className="min-h-screen bg-slate-950 relative">
           {/* Animated Background */}
           <div className="fixed inset-0 overflow-hidden pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-purple-900/20" />
@@ -55,7 +50,6 @@ export default function CommunityPage() {
 
           <div className="relative z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              {/* Not Logged In View */}
               <div className="text-center space-y-12">
                 {/* Hero Section */}
                 <div className="space-y-6">
@@ -108,7 +102,7 @@ export default function CommunityPage() {
                           className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white"
                         >
                           <Shield className="h-4 w-4 mr-2" />
-                          Login as a Community Admin / Create
+                          Login as Community Admin
                         </Button>
                       </div>
                     </Card>
@@ -117,50 +111,20 @@ export default function CommunityPage() {
               </div>
             </div>
           </div>
-        </>
+        </div>
       ) : (
-        // Logged In Twitter-like View
-        <div className="flex">
-          {/* Sidebar */}
+        // Logged In View
+        <div className="flex min-h-screen bg-slate-950">
+          {/* Left Sidebar */}
           <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
           
           {/* Main Content Feed */}
           <Feed activeTab={activeTab} />
           
-          {/* Right Sidebar (Optional - for trending/suggestions) */}
-          <aside className="hidden xl:block w-80 p-6 space-y-6">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-white mb-4">Trending in Web3</h3>
-              <div className="space-y-3">
-                {['#DeFi', '#NFTs', '#Ethereum', '#Bitcoin', '#Web3'].map((tag) => (
-                  <div key={tag} className="text-cyan-400 hover:text-cyan-300 cursor-pointer transition-colors">
-                    {tag}
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-white mb-4">Suggested Communities</h3>
-              <div className="space-y-3">
-                {['DeFi Builders', 'NFT Artists', 'Crypto Traders'].map((community) => (
-                  <div key={community} className="text-slate-300 hover:text-white cursor-pointer transition-colors text-sm">
-                    {community}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Button
-              onClick={handleCreateCommunity}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Community
-            </Button>
-          </aside>
+          {/* Right Sidebar */}
+          <RightSidebar />
         </div>
       )}
-    </div>
+    </>
   )
 }

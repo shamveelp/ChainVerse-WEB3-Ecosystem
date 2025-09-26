@@ -1,7 +1,20 @@
 "use client"
 
-import { MessageCircle, User } from 'lucide-react'
+import { useState } from 'react'
+import { MessageCircle, User, Search, Clock, TrendingUp } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import Post from './post'
+import CreatePost from './create-post'
+import ExploreContent from './explore-content'
+import NotificationsContent from './notification-content'
+import CommunitiesContent from './communities-content'
+import MessagesContent from './messages-content'
+import ProfileContent from './profile-content'
+import BookmarksContent from './bookmarks-content'
 
 const mockPosts = [
   {
@@ -102,72 +115,39 @@ export default function Feed({ activeTab }: FeedProps) {
       case 'home':
         return (
           <div className="space-y-6">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Home Feed</h2>
-              <p className="text-slate-400">Stay updated with the latest from your Web3 community</p>
+            <div className="sticky top-0 bg-slate-950/80 backdrop-blur-xl border-b border-slate-700/50 p-4 z-10">
+              <h2 className="text-2xl font-bold text-white">Home</h2>
+              <p className="text-slate-400">Stay updated with your Web3 community</p>
             </div>
-            {mockPosts.map((post) => (
-              <Post key={post.id} {...post} />
-            ))}
-          </div>
-        )
-      case 'explore':
-        return (
-          <div className="space-y-6">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Explore</h2>
-              <p className="text-slate-400">Discover trending topics and new voices in Web3</p>
+            <div className="px-4">
+              <CreatePost />
             </div>
-            {mockPosts.filter(post => post.trending).map((post) => (
-              <Post key={post.id} {...post} />
-            ))}
-          </div>
-        )
-      case 'communities':
-        return (
-          <div className="space-y-6">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Communities</h2>
-              <p className="text-slate-400">Connect with like-minded Web3 enthusiasts</p>
-            </div>
-            <div className="grid gap-4">
-              {['DeFi Builders', 'NFT Creators', 'Smart Contract Developers', 'Crypto Traders'].map((community) => (
-                <div key={community} className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4 hover:border-slate-600/50 transition-colors cursor-pointer">
-                  <h3 className="text-lg font-semibold text-white">{community}</h3>
-                  <p className="text-slate-400 text-sm">Active community discussing the latest trends</p>
-                </div>
+            <div className="px-4 space-y-6">
+              {mockPosts.map((post) => (
+                <Post key={post.id} {...post} />
               ))}
             </div>
           </div>
         )
+      
+      case 'explore':
+        return <ExploreContent />
+      
+      case 'notifications':
+        return <NotificationsContent />
+      
+      case 'communities':
+        return <CommunitiesContent />
+      
       case 'messages':
-        return (
-          <div className="space-y-6">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Messages</h2>
-              <p className="text-slate-400">Your private conversations</p>
-            </div>
-            <div className="text-center py-12 text-slate-400">
-              <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">No messages yet</p>
-              <p className="text-sm">Start a conversation with someone from the community</p>
-            </div>
-          </div>
-        )
+        return <MessagesContent />
+      
+      case 'bookmarks':
+        return <BookmarksContent />
+      
       case 'profile':
-        return (
-          <div className="space-y-6">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Profile</h2>
-              <p className="text-slate-400">Manage your Web3 identity</p>
-            </div>
-            <div className="text-center py-12 text-slate-400">
-              <User className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">Profile settings coming soon</p>
-              <p className="text-sm">Customize your Web3 presence</p>
-            </div>
-          </div>
-        )
+        return <ProfileContent />
+      
       default:
         return null
     }
@@ -175,7 +155,7 @@ export default function Feed({ activeTab }: FeedProps) {
 
   return (
     <main className="flex-1 lg:ml-80 min-h-screen bg-slate-950">
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="max-w-2xl mx-auto">
         {renderContent()}
       </div>
     </main>
