@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Heart, MessageCircle, Repeat2, UserPlus, TrendingUp, Bell, Settings } from 'lucide-react'
 
 const notifications = [
@@ -37,20 +36,6 @@ const notifications = [
   },
   {
     id: '3',
-    type: 'repost',
-    user: {
-      name: 'Balaji Srinivasan',
-      username: 'balajis',
-      avatar: 'https://images.pexels.com/photos/697509/pexels-photo-697509.jpeg?auto=compress&cs=tinysrgb&w=100',
-      verified: true
-    },
-    action: 'reposted your post',
-    content: 'Smart contract security is paramount for Web3 adoption',
-    timestamp: '12m',
-    read: false
-  },
-  {
-    id: '4',
     type: 'comment',
     user: {
       name: 'Hayden Adams',
@@ -62,84 +47,29 @@ const notifications = [
     content: 'Great insights on DEX architecture! Have you considered implementing concentrated liquidity?',
     timestamp: '1h',
     read: true
-  },
-  {
-    id: '5',
-    type: 'mention',
-    user: {
-      name: 'ChainLink Oracle',
-      username: 'chainlink',
-      avatar: 'https://images.pexels.com/photos/712513/pexels-photo-712513.jpeg?auto=compress&cs=tinysrgb&w=100',
-      verified: true
-    },
-    action: 'mentioned you in a post',
-    content: 'Thanks to @alexchen_dev for the amazing oracle integration tutorial!',
-    timestamp: '2h',
-    read: true
-  },
-  {
-    id: '6',
-    type: 'community',
-    user: {
-      name: 'DeFi Builders',
-      username: 'defibuilders',
-      avatar: 'https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg?auto=compress&cs=tinysrgb&w=100',
-      verified: false
-    },
-    action: 'Your post is trending in',
-    content: 'DeFi Protocol Analysis: Breaking down the latest yield farming strategies',
-    timestamp: '3h',
-    read: true
-  },
-  {
-    id: '7',
-    type: 'like',
-    user: {
-      name: 'Polygon',
-      username: 'polygon',
-      avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
-      verified: true
-    },
-    action: 'and 47 others liked your post',
-    content: 'Layer 2 solutions are the key to scaling Ethereum',
-    timestamp: '6h',
-    read: true
-  },
-  {
-    id: '8',
-    type: 'follow',
-    user: {
-      name: 'Web3 Foundation',
-      username: 'web3foundation',
-      avatar: 'https://images.pexels.com/photos/159888/pexels-photo-159888.jpeg?auto=compress&cs=tinysrgb&w=100',
-      verified: true
-    },
-    action: 'started following you',
-    timestamp: '1d',
-    read: true
   }
 ]
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
     case 'like':
-      return <Heart className="h-5 w-5 text-red-400" />
+      return <Heart className="h-4 sm:h-5 w-4 sm:w-5 text-red-400" />
     case 'comment':
-      return <MessageCircle className="h-5 w-5 text-blue-400" />
+      return <MessageCircle className="h-4 sm:h-5 w-4 sm:w-5 text-blue-400" />
     case 'repost':
-      return <Repeat2 className="h-5 w-5 text-green-400" />
+      return <Repeat2 className="h-4 sm:h-5 w-4 sm:w-5 text-green-400" />
     case 'follow':
-      return <UserPlus className="h-5 w-5 text-purple-400" />
+      return <UserPlus className="h-4 sm:h-5 w-4 sm:w-5 text-purple-400" />
     case 'mention':
-      return <Bell className="h-5 w-5 text-cyan-400" />
+      return <Bell className="h-4 sm:h-5 w-4 sm:w-5 text-cyan-400" />
     case 'community':
-      return <TrendingUp className="h-5 w-5 text-orange-400" />
+      return <TrendingUp className="h-4 sm:h-5 w-4 sm:w-5 text-orange-400" />
     default:
-      return <Bell className="h-5 w-5 text-slate-400" />
+      return <Bell className="h-4 sm:h-5 w-4 sm:w-5 text-slate-400" />
   }
 }
 
-export default function NotificationsContent() {
+export default function NotificationsPage() {
   const [filter, setFilter] = useState('all')
   const [markAllRead, setMarkAllRead] = useState(false)
 
@@ -155,8 +85,8 @@ export default function NotificationsContent() {
     setMarkAllRead(true)
   }
 
-  const filteredNotifications = filter === 'all' 
-    ? notifications 
+  const filteredNotifications = filter === 'all'
+    ? notifications
     : notifications.filter(n => {
         if (filter === 'mentions') return n.type === 'mention'
         if (filter === 'likes') return n.type === 'like'
@@ -169,7 +99,7 @@ export default function NotificationsContent() {
     <div className="space-y-6">
       {/* Header */}
       <div className="sticky top-0 bg-slate-950/80 backdrop-blur-xl border-b border-slate-700/50 p-4 z-10">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <h2 className="text-2xl font-bold text-white">Notifications</h2>
           <div className="flex items-center gap-3">
             <Button
@@ -187,14 +117,14 @@ export default function NotificationsContent() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex space-x-1 bg-slate-900/50 rounded-lg p-1">
+        <div className="flex space-x-1 bg-slate-900/50 rounded-lg p-1 overflow-x-auto">
           {filters.map((filterItem) => (
             <Button
               key={filterItem.id}
               variant={filter === filterItem.id ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setFilter(filterItem.id)}
-              className={`flex-1 ${
+              className={`flex-shrink-0 ${
                 filter === filterItem.id
                   ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30'
                   : 'text-slate-400 hover:text-white'
@@ -208,8 +138,8 @@ export default function NotificationsContent() {
 
       <div className="px-4 space-y-2">
         {filteredNotifications.map((notification) => (
-          <Card 
-            key={notification.id} 
+          <Card
+            key={notification.id}
             className={`p-4 cursor-pointer transition-all duration-200 hover:border-slate-600/50 ${
               (!notification.read && !markAllRead)
                 ? 'bg-slate-900/70 border-cyan-400/20 hover:bg-slate-900/90'
@@ -220,20 +150,20 @@ export default function NotificationsContent() {
               <div className="flex-shrink-0 mt-1">
                 {getNotificationIcon(notification.type)}
               </div>
-              
-              <Avatar className="w-10 h-10 ring-2 ring-slate-700/50">
+
+              <Avatar className="w-8 sm:w-10 h-8 sm:h-10 ring-2 ring-slate-700/50 flex-shrink-0">
                 <AvatarImage src={notification.user.avatar} alt={notification.user.name} />
                 <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-sm">
                   {notification.user.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              
+
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="font-semibold text-white truncate">{notification.user.name}</p>
+                <div className="flex flex-wrap items-center gap-1 mb-1">
+                  <p className="font-semibold text-white truncate text-sm sm:text-base">{notification.user.name}</p>
                   {notification.user.verified && (
-                    <div className="w-4 h-4 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="w-3 sm:w-4 h-3 sm:h-4 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg className="w-2 sm:w-2.5 h-2 sm:h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
@@ -241,14 +171,14 @@ export default function NotificationsContent() {
                   <span className="text-slate-400 text-sm">{notification.action}</span>
                   <span className="text-slate-500 text-sm">• {notification.timestamp}</span>
                 </div>
-                
+
                 {notification.content && (
-                  <p className="text-slate-300 text-sm bg-slate-800/30 rounded-lg p-2 mt-2">
+                  <p className="text-slate-300 text-sm bg-slate-800/30 rounded-lg p-2 sm:p-3 mt-2">
                     {notification.content}
                   </p>
                 )}
               </div>
-              
+
               {(!notification.read && !markAllRead) && (
                 <div className="w-2 h-2 bg-cyan-400 rounded-full flex-shrink-0 mt-2"></div>
               )}

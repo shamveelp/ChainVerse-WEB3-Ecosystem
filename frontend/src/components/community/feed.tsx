@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import Post from './post'
 import CreatePost from './create-post'
 import ExploreContent from './explore-content'
-import NotificationsContent from './notification-content'
+import NotificationsContent from './notifications'
 import CommunitiesContent from './communities-content'
 import MessagesContent from './messages-content'
 import ProfileContent from './profile-content'

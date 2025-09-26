@@ -35,12 +35,6 @@ const suggestedCommunities = [
     avatar: 'https://images.pexels.com/photos/159888/pexels-photo-159888.jpeg?auto=compress&cs=tinysrgb&w=100',
     category: 'Trading',
     verified: true
-  },
-  {
-    name: 'Blockchain Researchers',
-    members: '5.2K',
-    avatar: 'https://images.pexels.com/photos/159775/pexels-photo-159775.jpeg?auto=compress&cs=tinysrgb&w=100',
-    category: 'Research'
   }
 ]
 
@@ -82,13 +76,6 @@ const whoToFollow = [
     avatar: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100',
     verified: true,
     followers: '945K'
-  },
-  {
-    name: 'Polygon',
-    username: 'polygon',
-    avatar: 'https://images.pexels.com/photos/697509/pexels-photo-697509.jpeg?auto=compress&cs=tinysrgb&w=100',
-    verified: true,
-    followers: '1.3M'
   }
 ]
 
@@ -96,16 +83,16 @@ export default function RightSidebar() {
   const [followedUsers, setFollowedUsers] = useState<string[]>([])
 
   const handleFollow = (username: string) => {
-    setFollowedUsers(prev => 
-      prev.includes(username) 
+    setFollowedUsers(prev =>
+      prev.includes(username)
         ? prev.filter(u => u !== username)
         : [...prev, username]
     )
   }
 
   return (
-    <aside className="hidden xl:block w-80 border-l border-slate-700/50 bg-slate-950">
-      <div className="sticky top-0 h-screen overflow-y-auto scrollbar-thin scrollbar-track-slate-900 scrollbar-thumb-slate-700">
+    <aside className="hidden xl:block w-80 border-l border-slate-700/50 bg-slate-950 fixed top-0 right-0 h-screen z-30">
+      <div className="h-full overflow-y-auto scrollbar-thin scrollbar-track-slate-900 scrollbar-thumb-slate-700">
         <div className="p-4 space-y-6">
           {/* Trending Topics */}
           <Card className="bg-slate-900/50 backdrop-blur-sm border-slate-700/50">
@@ -118,13 +105,13 @@ export default function RightSidebar() {
                 {trendingTopics.map((topic, index) => (
                   <div key={topic.tag} className="group cursor-pointer hover:bg-slate-800/30 rounded-lg p-2 transition-colors">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <p className="text-cyan-400 font-semibold group-hover:text-cyan-300">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-cyan-400 font-semibold group-hover:text-cyan-300 truncate">
                           {topic.tag}
                         </p>
                         <p className="text-slate-500 text-sm">{topic.posts} posts</p>
                       </div>
-                      <Badge variant="secondary" className="bg-green-500/10 text-green-400 border-green-500/20">
+                      <Badge variant="secondary" className="bg-green-500/10 text-green-400 border-green-500/20 ml-2 flex-shrink-0">
                         {topic.change}
                       </Badge>
                     </div>
@@ -148,7 +135,7 @@ export default function RightSidebar() {
                 {suggestedCommunities.map((community, index) => (
                   <div key={community.name} className="group cursor-pointer hover:bg-slate-800/30 rounded-lg p-3 transition-colors">
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10">
+                      <Avatar className="w-10 h-10 flex-shrink-0">
                         <AvatarImage src={community.avatar} alt={community.name} />
                         <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-600 text-white text-xs">
                           {community.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
@@ -165,14 +152,14 @@ export default function RightSidebar() {
                             </div>
                           )}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-slate-400 text-xs">{community.members} members</p>
                           <Badge variant="outline" className="text-xs px-1.5 py-0.5 border-slate-600 text-slate-300">
                             {community.category}
                           </Badge>
                         </div>
                       </div>
-                      <Button size="sm" variant="outline" className="border-slate-600 hover:bg-purple-500/20 hover:border-purple-400 text-xs">
+                      <Button size="sm" variant="outline" className="border-slate-600 hover:bg-purple-500/20 hover:border-purple-400 text-xs flex-shrink-0">
                         Join
                       </Button>
                     </div>
@@ -193,17 +180,17 @@ export default function RightSidebar() {
                 {upcomingEvents.map((event, index) => (
                   <div key={event.title} className="group cursor-pointer hover:bg-slate-800/30 rounded-lg p-3 transition-colors">
                     <div className="flex justify-between items-start mb-2">
-                      <p className="font-semibold text-white text-sm group-hover:text-cyan-300">{event.title}</p>
-                      <ExternalLink className="h-3 w-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <p className="font-semibold text-white text-sm group-hover:text-cyan-300 line-clamp-2">{event.title}</p>
+                      <ExternalLink className="h-3 w-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1" />
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-slate-400 text-xs">{event.date} • {event.time}</p>
                         <p className="text-slate-500 text-xs">{event.attendees} attending</p>
                       </div>
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs px-2 py-0.5 ${
+                      <Badge
+                        variant="outline"
+                        className={`text-xs px-2 py-0.5 flex-shrink-0 ${
                           event.type === 'Virtual' ? 'border-blue-500/30 text-blue-400' :
                           event.type === 'Hybrid' ? 'border-purple-500/30 text-purple-400' :
                           'border-green-500/30 text-green-400'
@@ -229,7 +216,7 @@ export default function RightSidebar() {
                 {whoToFollow.map((user, index) => (
                   <div key={user.username} className="group cursor-pointer hover:bg-slate-800/30 rounded-lg p-3 transition-colors">
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10">
+                      <Avatar className="w-10 h-10 flex-shrink-0">
                         <AvatarImage src={user.avatar} alt={user.name} />
                         <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-sm">
                           {user.name.charAt(0)}
@@ -246,8 +233,8 @@ export default function RightSidebar() {
                             </div>
                           )}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-slate-400 text-xs">@{user.username}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-slate-400 text-xs truncate">@{user.username}</p>
                           <p className="text-slate-500 text-xs">{user.followers} followers</p>
                         </div>
                       </div>
@@ -255,7 +242,7 @@ export default function RightSidebar() {
                         size="sm"
                         variant={followedUsers.includes(user.username) ? "secondary" : "outline"}
                         onClick={() => handleFollow(user.username)}
-                        className="border-slate-600 hover:bg-cyan-500/20 hover:border-cyan-400 text-xs"
+                        className="border-slate-600 hover:bg-cyan-500/20 hover:border-cyan-400 text-xs flex-shrink-0"
                       >
                         {followedUsers.includes(user.username) ? 'Following' : 'Follow'}
                       </Button>
@@ -271,7 +258,7 @@ export default function RightSidebar() {
             <div className="p-4 text-center">
               <Plus className="h-8 w-8 text-purple-400 mx-auto mb-3" />
               <h3 className="text-lg font-bold text-white mb-2">Start Your Community</h3>
-              <p className="text-slate-300 text-sm mb-4">
+              <p className="text-slate-300 text-sm mb-4 leading-relaxed">
                 Build and grow your own Web3 community with powerful tools and insights.
               </p>
               <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white">
