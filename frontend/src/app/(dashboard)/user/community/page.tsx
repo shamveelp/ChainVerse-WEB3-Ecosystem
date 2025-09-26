@@ -45,8 +45,6 @@ export default function CommunityPage() {
     <div className="min-h-screen bg-slate-950">
       {!isAuthenticated ? (
         <>
-          {/* Navbar Component */}
-          <Navbar />
 
           {/* Animated Background */}
           <div className="fixed inset-0 overflow-hidden pointer-events-none">
