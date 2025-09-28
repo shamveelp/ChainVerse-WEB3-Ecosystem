@@ -168,3 +168,19 @@
   animation: text-glow 3s ease-in-out infinite;
 }
 
+
+
+/* Hide scrollbar for Chrome, Safari, and Edge */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for Firefox */
+.scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+/* Ensure scrolling still works */
+.scrollbar-hidden {
+  -ms-overflow-style: none; /* IE and Edge */
+}

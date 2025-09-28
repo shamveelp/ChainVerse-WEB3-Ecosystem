@@ -6,8 +6,8 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar, MapPin, Link2, MessageCircle, MoveHorizontal as MoreHorizontal, Settings, Loader2, RefreshCw, AlertCircle } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Calendar, MapPin, Link2, MessageCircle, MoreHorizontal, Settings, Loader2, RefreshCw, AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useCommunityProfile } from '@/hooks/useCommunityProfile'
 import { communityApiService } from '@/services/communityApiService'
@@ -179,7 +179,7 @@ export default function ProfilePage({ username }: ProfilePageProps) {
       
       {/* Main Content */}
       <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen">
-        <div className="max-w-2xl mx-auto h-screen overflow-y-auto scrollbar-thin scrollbar-track-slate-900 scrollbar-thumb-slate-700">
+        <div className="max-w-2xl mx-auto h-screen overflow-y-auto scrollbar-hidden">
           <div className="space-y-0">
             {/* Header */}
             <div className="sticky top-0 bg-slate-950/80 backdrop-blur-xl border-b border-slate-700/50 p-4 z-10">
