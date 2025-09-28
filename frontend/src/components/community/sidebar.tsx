@@ -1,11 +1,16 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Chrome as Home, Search, Users, MessageCircle, User, Settings, LogOut, Menu, X, Bell, Bookmark } from 'lucide-react'
+import { Chrome as Home, Search, Users, MessageCircle, User, Settings, LogOut, Menu, X, Bell, Bookmark, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import { useCommunityProfile } from '@/hooks/useCommunityProfile'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/redux/store'
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { communityApiService } from '@/services/communityApiService'
 
 const navigationItems = [
   { id: 'home', label: 'Home', icon: Home, path: '/user/community' },
@@ -17,22 +22,26 @@ const navigationItems = [
   { id: 'profile', label: 'Profile', icon: User, path: '/user/community/profile' },
 ]
 
-const userData = {
-  name: 'Alex Chen',
-  username: 'alexchen_dev',
-  avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100',
-  verified: true,
-  followers: '2.4K',
-  following: '1.2K'
-}
-
 export default function Sidebar() {
   const router = useRouter()
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  // Fetch profile data
+  const storeState = useSelector((state: RootState) => state)
+  const { profile, loading, error, fetchCommunityProfile, clearError, retry } = useCommunityProfile()
+
+  // Fetch profile on mount
+  useEffect(() => {
+    if (!profile && !loading) {
+      console.log('Fetching own community profile...')
+      fetchCommunityProfile()
+    }
+  }, [profile, loading, fetchCommunityProfile])
+
   const handleLogout = () => {
     router.push('/')
+    setIsMobileMenuOpen(false)
   }
 
   const handleNavigation = (path: string) => {
@@ -42,47 +51,75 @@ export default function Sidebar() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="p-4 border-b border-slate-700/50">
-        <h2 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-          ChainVerse
-        </h2>
-      </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="p-3 border-b border-slate-700/50 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-500 mx-auto" />
+          <p className="text-slate-400 text-sm mt-2">Loading profile...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !profile && (
+        <div className="p-3 border-b border-slate-700/50">
+          <Alert className="border-red-500/50 bg-red-500/10">
+            <AlertCircle className="h-4 w-4 text-red-400" />
+            <AlertDescription className="text-red-300 text-sm">{error}</AlertDescription>
+          </Alert>
+          <Button
+            onClick={retry}
+            variant="outline"
+            className="w-full mt-2 border-slate-600 hover:bg-slate-800 text-sm"
+          >
+            Try Again
+          </Button>
+        </div>
+      )}
 
       {/* User Profile Card */}
-      <div className="p-3 border-b border-slate-700/50">
-        <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors cursor-pointer">
-          <Avatar className="w-10 h-10 ring-2 ring-cyan-400/30">
-            <AvatarImage src={userData.avatar} alt={userData.name} />
-            <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
-              {userData.name.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1">
-              <p className="font-semibold text-sm text-white truncate">{userData.name}</p>
-              {userData.verified && (
-                <div className="w-3.5 h-3.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
-                  <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              )}
+      {profile && !loading && !error && (
+        <div className="p-3 border-b border-slate-700/50">
+          <div
+            className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors cursor-pointer"
+            onClick={() => handleNavigation('/user/community/profile')}
+          >
+            <Avatar className="w-10 h-10 ring-2 ring-cyan-400/30">
+              <AvatarImage src={profile.profilePic || ''} alt={profile.name} />
+              <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
+                {profile.name?.charAt(0)?.toUpperCase() || profile.username?.charAt(0)?.toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1">
+                <p className="font-semibold text-sm text-white truncate">{profile.name}</p>
+                {profile.isVerified && (
+                  <div className="w-3.5 h-3.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
+                    <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <p className="text-slate-400 text-xs">@{profile.username}</p>
             </div>
-            <p className="text-slate-400 text-xs">@{userData.username}</p>
+          </div>
+          <div className="flex justify-center gap-4 mt-2 text-xs">
+            <div className="text-center">
+              <p className="font-semibold text-white">
+                {communityApiService.formatStats(profile.followingCount)}
+              </p>
+              <p className="text-slate-400">Following</p>
+            </div>
+            <div className="text-center">
+              <p className="font-semibold text-white">
+                {communityApiService.formatStats(profile.followersCount)}
+              </p>
+              <p className="text-slate-400">Followers</p>
+            </div>
           </div>
         </div>
-        <div className="flex justify-center gap-4 mt-2 text-xs">
-          <div className="text-center">
-            <p className="font-semibold text-white">{userData.following}</p>
-            <p className="text-slate-400">Following</p>
-          </div>
-          <div className="text-center">
-            <p className="font-semibold text-white">{userData.followers}</p>
-            <p className="text-slate-400">Followers</p>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1">
@@ -128,6 +165,7 @@ export default function Sidebar() {
           <Button
             variant="ghost"
             className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800/50 text-sm"
+            onClick={() => handleNavigation('/user/community/settings')}
           >
             <Settings className="h-4 w-4 mr-2" />
             Settings & Privacy
@@ -158,7 +196,7 @@ export default function Sidebar() {
       </Button>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex fixed left-0 top-0 w-72 bg-slate-900/80 backdrop-blur-xl border-r border-slate-700/50 h-screen z-40">
+      <aside className="hidden lg:flex fixed left-0 top-0 w-72 pt-20 bg-slate-900/80 backdrop-blur-xl border-r border-slate-700/50 h-screen z-40 overflow-y-auto scrollbar-hidden">
         <SidebarContent />
       </aside>
 
@@ -166,7 +204,7 @@ export default function Sidebar() {
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="relative w-72 bg-slate-900/95 backdrop-blur-xl h-full">
+          <aside className="relative w-72 pt-20 bg-slate-900/95 backdrop-blur-xl h-full overflow-y-auto scrollbar-hidden">
             <SidebarContent />
           </aside>
         </div>
