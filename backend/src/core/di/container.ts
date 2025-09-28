@@ -24,6 +24,10 @@ import { AdminCommunityController } from "../../controllers/admin/AdminCommunity
 import { ICommunityAdminAuthController } from "../interfaces/controllers/communityAdmin/ICommunityAdminAuth.controller"
 import { CommunityAdminAuthController } from "../../controllers/communityAdmin/CommunityAdminAuth.controller"
 
+// Community Controllers
+import { ICommunityUserProfileController } from "../interfaces/controllers/community/ICommunityUserProfile.controller"
+import { CommunityUserProfileController } from "../../controllers/community/CommunityUserProfile.controller"
+
 // Services
 import type { IUserAuthService } from "../interfaces/services/user/IUserAuthService"
 import { UserAuthService } from "../../services/user/UserAuth.service"
@@ -45,6 +49,10 @@ import { AdminCommunityService } from "../../services/admin/AdminCommunity.servi
 // Community Admin Services
 import { ICommunityAdminAuthService } from "../interfaces/services/communityAdmin/ICommunityAdminAuthService"
 import { CommunityAdminAuthService } from "../../services/communityAdmin/CommunityAdminAuth.service"
+
+// Community Services
+import { ICommunityUserService } from "../interfaces/services/community/ICommunityUserService"
+import { CommunityUserService } from "../../services/community/CommunityUser.service"
 
 // Other Services
 import { JwtService } from "../../utils/jwt"
@@ -71,6 +79,8 @@ import { ICommunityAdminRepository } from "../interfaces/repositories/ICommunity
 import { CommunityAdminRepository } from "../../repositories/communityAdmin.repository"
 import { ICommunityRequestRepository } from "../interfaces/repositories/ICommunityRequestRepository"
 import { CommunityRequestRepository } from "../../repositories/communityRequest.repository"
+import { ICommunityRepository } from "../interfaces/repositories/ICommunityRepository"
+import { CommunityRepository } from "../../repositories/community.repository"
 import { IReferralHistoryService } from "../interfaces/services/IReferralHistoryService"
 import { ReferralHistoryService } from "../../services/referralHistory.service"
 import { IPointsHistoryService } from "../interfaces/services/IPointsHistoryService"
@@ -120,6 +130,9 @@ container.bind<IAdminCommunityController>(TYPES.IAdminCommunityController).to(Ad
 // Bind Community Admin Controllers
 container.bind<ICommunityAdminAuthController>(TYPES.ICommunityAdminAuthController).to(CommunityAdminAuthController)
 
+// Bind Community Controllers
+container.bind<ICommunityUserProfileController>(TYPES.ICommunityUserProfileController).to(CommunityUserProfileController)
+
 // Bind Services
 container.bind<IUserAuthService>(TYPES.IUserAuthService).to(UserAuthService)
 container.bind<IUserService>(TYPES.IUserService).to(UserService)
@@ -133,6 +146,9 @@ container.bind<IAdminCommunityService>(TYPES.IAdminCommunityService).to(AdminCom
 
 // Bind Community Admin Services
 container.bind<ICommunityAdminAuthService>(TYPES.ICommunityAdminAuthService).to(CommunityAdminAuthService)
+
+// Bind Community Services
+container.bind<ICommunityUserService>(TYPES.ICommunityUserService).to(CommunityUserService)
 
 // Bind Other Services
 container.bind<IJwtService>(TYPES.IJwtService).to(JwtService)
@@ -148,20 +164,19 @@ container.bind<IOtpRepository>(TYPES.IOtpRepository).to(OtpRepository)
 container.bind<IAdminRepository>(TYPES.IAdminRepository).to(AdminRepository)
 container.bind<ICommunityAdminRepository>(TYPES.ICommunityAdminRepository).to(CommunityAdminRepository)
 container.bind<ICommunityRequestRepository>(TYPES.ICommunityRequestRepository).to(CommunityRequestRepository)
+container.bind<ICommunityRepository>(TYPES.ICommunityRepository).to(CommunityRepository)
 
 container.bind<IReferralHistoryService>(TYPES.IReferralHistoryService).to(ReferralHistoryService);
 container.bind<IPointsHistoryService>(TYPES.IPointsHistoryService).to(PointsHistoryService);
 container.bind<IDailyCheckInService>(TYPES.IDailyCheckInService).to(DailyCheckInService);
 
 // dex
-// container.bind<IAdminDexController>(TYPES.IAdminDexController).to(AdminDexController)
 container.bind<IAdminWalletController>(TYPES.IAdminWalletController).to(AdminWalletController)
 container.bind<IDexController>(TYPES.IDexController).to(DexController)
 
 // dex - service
 container.bind<IDexService>(TYPES.IDexService).to(DexService)
 container.bind<IWalletService>(TYPES.IWalletService).to(WalletService)
-// container.bind<IAdminDexService>(TYPES.IAdminDexService).to(AdminDexService)
 container.bind<IAdminWalletService>(TYPES.IAdminWalletService).to(AdminWalletService)
 
 // dex repo
@@ -172,7 +187,6 @@ container.bind<EtherscanService>(TYPES.EtherscanService).to(EtherscanService)
 
 // Bind OAuth Client
 container.bind<OAuthClient>(TYPES.OAuthClient).to(OAuthClient)
-
 
 // admin dex
 container.bind<IAdminDexController>(TYPES.IAdminDexController).to(AdminDexController)

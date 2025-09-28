@@ -4,34 +4,40 @@ const TYPES = {
   IUserProfileController: Symbol.for("IUserProfileController"),
   IReferralController: Symbol.for("IReferralController"),
   IPointsController: Symbol.for("IPointsController"),
+  
+  // Admin Controllers
   IAdminAuthController: Symbol.for("IAdminAuthController"),
   IAdminUserController: Symbol.for("IAdminUserController"),
   IAdminCommunityController: Symbol.for("IAdminCommunityController"),
+  
+  // Community Admin Controllers
   ICommunityAdminAuthController: Symbol.for("ICommunityAdminAuthController"),
-
-  IAdminDexController: Symbol.for("IAdminDexController"),
-  IAdminWalletController: Symbol.for("IAdminWalletController"),
-  IDexController: Symbol.for("IDexController"),
-  IWalletController: Symbol.for("IWalletController"),
-
+  
+  // Community Controllers
+  ICommunityUserProfileController: Symbol.for("ICommunityUserProfileController"),
+  
   // Services
   IUserAuthService: Symbol.for("IUserAuthService"),
   IUserService: Symbol.for("IUserService"),
   IReferralService: Symbol.for("IReferralService"),
   IPointsService: Symbol.for("IPointsService"),
+  
+  // Admin Services
   IAdminAuthService: Symbol.for("IAdminAuthService"),
   IAdminUserService: Symbol.for("IAdminUserService"),
   IAdminCommunityService: Symbol.for("IAdminCommunityService"),
+  
+  // Community Admin Services
   ICommunityAdminAuthService: Symbol.for("ICommunityAdminAuthService"),
+  
+  // Community Services
+  ICommunityUserService: Symbol.for("ICommunityUserService"),
+  
+  // Other Services
   IJwtService: Symbol.for("IJwtService"),
   IOtpService: Symbol.for("IOtpService"),
   IMailService: Symbol.for("IMailService"),
-  IWalletService: Symbol.for("IWalletService"),
-  ICommunityRequestService: Symbol.for("ICommunityRequestService"),
-  IDexService: Symbol.for("IDexService"),
-  IAdminDexService: Symbol.for("IAdminDexService"),
-  IAdminWalletService: Symbol.for("IAdminWalletService"),
-
+  
   // Repositories
   IUserRepository: Symbol.for("IUserRepository"),
   IReferralHistoryRepository: Symbol.for("IReferralHistoryRepository"),
@@ -41,27 +47,34 @@ const TYPES = {
   IAdminRepository: Symbol.for("IAdminRepository"),
   ICommunityAdminRepository: Symbol.for("ICommunityAdminRepository"),
   ICommunityRequestRepository: Symbol.for("ICommunityRequestRepository"),
-  IDexRepository: Symbol.for("IDexRepository"),
-
-  // Others
-  OAuthClient: Symbol.for("OAuthClient"),
-  AdminAuthController: Symbol.for("AdminAuthController"),
-  AdminUserController: Symbol.for("AdminUserController"),
-  AdminCommunityController: Symbol.for("AdminCommunityController"),
-  CommunityAdminAuthController: Symbol.for("CommunityAdminAuthController"),
-
+  ICommunityRepository: Symbol.for("ICommunityRepository"),
+  
+  // History Services
   IReferralHistoryService: Symbol.for("IReferralHistoryService"),
   IPointsHistoryService: Symbol.for("IPointsHistoryService"),
   IDailyCheckInService: Symbol.for("IDailyCheckInService"),
-
-  IPaymentRepository: Symbol.for("IPaymentRepository"),
-  IPaymentService: Symbol.for("IPaymentService"),
+  
+  // DEX
+  IAdminDexController: Symbol.for("IAdminDexController"),
+  IAdminWalletController: Symbol.for("IAdminWalletController"),
+  IDexController: Symbol.for("IDexController"),
+  IWalletController: Symbol.for("IWalletController"),
+  
+  // DEX Services
+  IDexService: Symbol.for("IDexService"),
+  IWalletService: Symbol.for("IWalletService"),
+  IAdminDexService: Symbol.for("IAdminDexService"),
+  IAdminWalletService: Symbol.for("IAdminWalletService"),
   IUserDexService: Symbol.for("IUserDexService"),
   IUserDexController: Symbol.for("IUserDexController"),
   
-
-  // Etherscan Service
+  // DEX Repositories
+  IDexRepository: Symbol.for("IDexRepository"),
+  IPaymentRepository: Symbol.for("IPaymentRepository"),
+  
+  // External Services
   EtherscanService: Symbol.for("EtherscanService"),
+  OAuthClient: Symbol.for("OAuthClient"),
 };
 
 export { TYPES };

@@ -4,6 +4,7 @@ import { UserAuthController } from '../controllers/user/UserAuth.controller';
 import { TYPES } from '../core/types/types';
 import { authMiddleware, roleMiddleware } from '../middlewares/auth.middleware';
 import { UserProfileController } from '../controllers/user/UserProfile.controller';
+import { CommunityUserProfileController } from '../controllers/community/CommunityUserProfile.controller';
 import multer from 'multer';
 import { ReferralController } from '../controllers/user/Referral.controller';
 import { PointsController } from '../controllers/user/Points.controller';
@@ -39,6 +40,7 @@ const router = Router();
 
 const userAuthController = container.get<UserAuthController>(TYPES.IUserAuthController);
 const userProfileController = container.get<UserProfileController>(TYPES.IUserProfileController);
+const communityUserProfileController = container.get<CommunityUserProfileController>(TYPES.ICommunityUserProfileController);
 const referralController = container.get<ReferralController>(TYPES.IReferralController);
 const pointsController = container.get<PointsController>(TYPES.IPointsController);
 const userDexController = container.get<UserDexController>(TYPES.IUserDexController);
@@ -111,6 +113,30 @@ router.post('/upload-profile-image',
   userProfileController.uploadProfileImage.bind(userProfileController)
 );
 
+// Community Profile Routes (protected)
+router.get('/community/profile', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  communityUserProfileController.getCommunityProfile.bind(communityUserProfileController)
+);
+
+router.get('/community/profile/username/:username', 
+  communityUserProfileController.getCommunityProfileByUsername.bind(communityUserProfileController)
+);
+
+router.put('/community/profile', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  communityUserProfileController.updateCommunityProfile.bind(communityUserProfileController)
+);
+
+router.post('/community/upload-banner-image', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  upload.single('bannerImage'), 
+  communityUserProfileController.uploadBannerImage.bind(communityUserProfileController)
+);
+
 // Referral Routes (protected)
 router.get('/referrals/history', 
   authMiddleware, 
@@ -149,10 +175,7 @@ router.get('/points/history',
   pointsController.getPointsHistory.bind(pointsController)
 );
 
-
-
-//  Buy crypto
-// DEX Routes (protected)
+// Buy crypto - DEX Routes (protected)
 router.get('/dex/eth-price', 
   authMiddleware, 
   roleMiddleware(['user']), 
@@ -182,7 +205,5 @@ router.get('/dex/payments',
   roleMiddleware(['user']), 
   userDexController.getUserPayments.bind(userDexController)
 );
-
-
 
 export default router;
