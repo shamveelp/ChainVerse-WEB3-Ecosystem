@@ -5,10 +5,11 @@ import { TYPES } from '../core/types/types';
 import { authMiddleware, roleMiddleware } from '../middlewares/auth.middleware';
 import { UserProfileController } from '../controllers/user/UserProfile.controller';
 import { CommunityUserProfileController } from '../controllers/community/CommunityUserProfile.controller';
+import { FollowController } from '../controllers/community/Follow.controller';
 import multer from 'multer';
 import { ReferralController } from '../controllers/user/Referral.controller';
 import { PointsController } from '../controllers/user/Points.controller';
-import { validateBody } from '../middlewares/validation.middleware';
+import { validateBody, validateQuery, validateParams } from '../middlewares/validation.middleware';
 import { 
   UserRegisterDto, 
   UserLoginDto, 
@@ -19,6 +20,13 @@ import {
   RequestOtpDto,
   GoogleLoginDto
 } from '../dtos/users/UserAuth.dto';
+import { 
+  FollowUserDto, 
+  UnfollowUserDto, 
+  GetFollowersDto, 
+  GetFollowingDto, 
+  FollowStatusDto 
+} from '../dtos/community/Follow.dto';
 import { UserDexController } from '../controllers/user/UserDex.controller';
 
 // Configure Multer for file uploads
@@ -41,6 +49,7 @@ const router = Router();
 const userAuthController = container.get<UserAuthController>(TYPES.IUserAuthController);
 const userProfileController = container.get<UserProfileController>(TYPES.IUserProfileController);
 const communityUserProfileController = container.get<CommunityUserProfileController>(TYPES.ICommunityUserProfileController);
+const followController = container.get<FollowController>(TYPES.IFollowController);
 const referralController = container.get<ReferralController>(TYPES.IReferralController);
 const pointsController = container.get<PointsController>(TYPES.IPointsController);
 const userDexController = container.get<UserDexController>(TYPES.IUserDexController);
@@ -113,7 +122,7 @@ router.post('/upload-profile-image',
   userProfileController.uploadProfileImage.bind(userProfileController)
 );
 
-// Community Profile Routes (protected)
+// Community Profile Routes
 router.get('/community/profile', 
   authMiddleware, 
   roleMiddleware(['user']), 
@@ -135,6 +144,57 @@ router.post('/community/upload-banner-image',
   roleMiddleware(['user']), 
   upload.single('bannerImage'), 
   communityUserProfileController.uploadBannerImage.bind(communityUserProfileController)
+);
+
+// Follow Routes (protected)
+router.post('/community/follow', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  validateBody(FollowUserDto),
+  followController.followUser.bind(followController)
+);
+
+router.post('/community/unfollow', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  validateBody(UnfollowUserDto),
+  followController.unfollowUser.bind(followController)
+);
+
+router.get('/community/followers', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  validateQuery(GetFollowersDto),
+  followController.getFollowers.bind(followController)
+);
+
+router.get('/community/following', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  validateQuery(GetFollowingDto),
+  followController.getFollowing.bind(followController)
+);
+
+router.get('/community/follow-status/:username', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  followController.getFollowStatus.bind(followController)
+);
+
+router.get('/community/follow-stats', 
+  authMiddleware, 
+  roleMiddleware(['user']), 
+  followController.getFollowStats.bind(followController)
+);
+
+router.get('/community/user/:username/followers', 
+  validateQuery(GetFollowersDto),
+  followController.getUserFollowers.bind(followController)
+);
+
+router.get('/community/user/:username/following', 
+  validateQuery(GetFollowingDto),
+  followController.getUserFollowing.bind(followController)
 );
 
 // Referral Routes (protected)

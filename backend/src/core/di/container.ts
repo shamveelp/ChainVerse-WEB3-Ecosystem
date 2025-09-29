@@ -27,6 +27,8 @@ import { CommunityAdminAuthController } from "../../controllers/communityAdmin/C
 // Community Controllers
 import { ICommunityUserProfileController } from "../interfaces/controllers/community/ICommunityUserProfile.controller"
 import { CommunityUserProfileController } from "../../controllers/community/CommunityUserProfile.controller"
+import { IFollowController } from "../interfaces/controllers/community/IFollow.controller"
+import { FollowController } from "../../controllers/community/Follow.controller"
 
 // Services
 import type { IUserAuthService } from "../interfaces/services/user/IUserAuthService"
@@ -53,6 +55,8 @@ import { CommunityAdminAuthService } from "../../services/communityAdmin/Communi
 // Community Services
 import { ICommunityUserService } from "../interfaces/services/community/ICommunityUserService"
 import { CommunityUserService } from "../../services/community/CommunityUser.service"
+import { IFollowService } from "../interfaces/services/community/IFollowService"
+import { FollowService } from "../../services/community/Follow.service"
 
 // Other Services
 import { JwtService } from "../../utils/jwt"
@@ -132,6 +136,7 @@ container.bind<ICommunityAdminAuthController>(TYPES.ICommunityAdminAuthControlle
 
 // Bind Community Controllers
 container.bind<ICommunityUserProfileController>(TYPES.ICommunityUserProfileController).to(CommunityUserProfileController)
+container.bind<IFollowController>(TYPES.IFollowController).to(FollowController)
 
 // Bind Services
 container.bind<IUserAuthService>(TYPES.IUserAuthService).to(UserAuthService)
@@ -149,6 +154,7 @@ container.bind<ICommunityAdminAuthService>(TYPES.ICommunityAdminAuthService).to(
 
 // Bind Community Services
 container.bind<ICommunityUserService>(TYPES.ICommunityUserService).to(CommunityUserService)
+container.bind<IFollowService>(TYPES.IFollowService).to(FollowService)
 
 // Bind Other Services
 container.bind<IJwtService>(TYPES.IJwtService).to(JwtService)

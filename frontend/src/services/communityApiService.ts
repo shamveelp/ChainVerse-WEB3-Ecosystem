@@ -29,6 +29,33 @@ export interface CommunityProfile {
   };
   joinDate: Date | string;
   isOwnProfile: boolean;
+  isFollowing?: boolean;
+}
+
+export interface UserFollowInfo {
+  _id: string;
+  username: string;
+  name: string;
+  profilePic: string;
+  isVerified: boolean;
+  bio: string;
+  isFollowing: boolean;
+  followedAt?: Date;
+}
+
+export interface FollowListResponse {
+  users: UserFollowInfo[];
+  hasMore: boolean;
+  nextCursor?: string;
+  totalCount: number;
+}
+
+export interface FollowResponse {
+  success: boolean;
+  message: string;
+  isFollowing: boolean;
+  followersCount: number;
+  followingCount: number;
 }
 
 export interface UpdateCommunityProfileData {
@@ -96,7 +123,8 @@ export const communityApiService = {
               showFollowingCount: data.settings?.showFollowingCount ?? true
             },
             joinDate: data.joinDate || new Date().toISOString(),
-            isOwnProfile: data.isOwnProfile || false
+            isOwnProfile: data.isOwnProfile || false,
+            isFollowing: data.isFollowing || false
           },
         };
       }
@@ -155,7 +183,8 @@ export const communityApiService = {
               showFollowingCount: data.settings?.showFollowingCount ?? true
             },
             joinDate: data.joinDate || new Date().toISOString(),
-            isOwnProfile: data.isOwnProfile || false
+            isOwnProfile: data.isOwnProfile || false,
+            isFollowing: data.isFollowing || false
           },
         };
       }
@@ -173,6 +202,141 @@ export const communityApiService = {
       }
       
       throw new Error(errorMessage);
+    }
+  },
+
+  // Follow user
+  followUser: async (username: string): Promise<FollowResponse> => {
+    try {
+      console.log("Following user:", username);
+      const response = await API.post("/api/user/community/follow", { username });
+      console.log("Follow user API response:", response.data);
+      
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data.error || "Failed to follow user");
+    } catch (error: any) {
+      console.error("Follow user error:", error.response?.data || error.message);
+      throw new Error(error.response?.data?.error || error.message || "Failed to follow user");
+    }
+  },
+
+  // Unfollow user
+  unfollowUser: async (username: string): Promise<FollowResponse> => {
+    try {
+      console.log("Unfollowing user:", username);
+      const response = await API.post("/api/user/community/unfollow", { username });
+      console.log("Unfollow user API response:", response.data);
+      
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data.error || "Failed to unfollow user");
+    } catch (error: any) {
+      console.error("Unfollow user error:", error.response?.data || error.message);
+      throw new Error(error.response?.data?.error || error.message || "Failed to unfollow user");
+    }
+  },
+
+  // Get followers
+  getFollowers: async (cursor?: string, limit: number = 20): Promise<FollowListResponse> => {
+    try {
+      console.log("Getting followers...");
+      const params = new URLSearchParams();
+      if (cursor) params.append('cursor', cursor);
+      params.append('limit', limit.toString());
+      
+      const response = await API.get(`/api/user/community/followers?${params.toString()}`);
+      console.log("Get followers API response:", response.data);
+      
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data.error || "Failed to get followers");
+    } catch (error: any) {
+      console.error("Get followers error:", error.response?.data || error.message);
+      throw new Error(error.response?.data?.error || error.message || "Failed to get followers");
+    }
+  },
+
+  // Get following
+  getFollowing: async (cursor?: string, limit: number = 20): Promise<FollowListResponse> => {
+    try {
+      console.log("Getting following...");
+      const params = new URLSearchParams();
+      if (cursor) params.append('cursor', cursor);
+      params.append('limit', limit.toString());
+      
+      const response = await API.get(`/api/user/community/following?${params.toString()}`);
+      console.log("Get following API response:", response.data);
+      
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data.error || "Failed to get following");
+    } catch (error: any) {
+      console.error("Get following error:", error.response?.data || error.message);
+      throw new Error(error.response?.data?.error || error.message || "Failed to get following");
+    }
+  },
+
+  // Get user followers by username
+  getUserFollowers: async (username: string, cursor?: string, limit: number = 20): Promise<FollowListResponse> => {
+    try {
+      console.log("Getting user followers for:", username);
+      const params = new URLSearchParams();
+      if (cursor) params.append('cursor', cursor);
+      params.append('limit', limit.toString());
+      
+      const response = await API.get(`/api/user/community/user/${username}/followers?${params.toString()}`);
+      console.log("Get user followers API response:", response.data);
+      
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data.error || "Failed to get user followers");
+    } catch (error: any) {
+      console.error("Get user followers error:", error.response?.data || error.message);
+      throw new Error(error.response?.data?.error || error.message || "Failed to get user followers");
+    }
+  },
+
+  // Get user following by username
+  getUserFollowing: async (username: string, cursor?: string, limit: number = 20): Promise<FollowListResponse> => {
+    try {
+      console.log("Getting user following for:", username);
+      const params = new URLSearchParams();
+      if (cursor) params.append('cursor', cursor);
+      params.append('limit', limit.toString());
+      
+      const response = await API.get(`/api/user/community/user/${username}/following?${params.toString()}`);
+      console.log("Get user following API response:", response.data);
+      
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data.error || "Failed to get user following");
+    } catch (error: any) {
+      console.error("Get user following error:", error.response?.data || error.message);
+      throw new Error(error.response?.data?.error || error.message || "Failed to get user following");
+    }
+  },
+
+  // Get follow status
+  getFollowStatus: async (username: string): Promise<{ isFollowing: boolean }> => {
+    try {
+      console.log("Getting follow status for:", username);
+      const response = await API.get(`/api/user/community/follow-status/${username}`);
+      console.log("Get follow status API response:", response.data);
+      
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data.error || "Failed to get follow status");
+    } catch (error: any) {
+      console.error("Get follow status error:", error.response?.data || error.message);
+      throw new Error(error.response?.data?.error || error.message || "Failed to get follow status");
     }
   },
 
@@ -220,7 +384,8 @@ export const communityApiService = {
               showFollowingCount: data.settings?.showFollowingCount ?? true
             },
             joinDate: data.joinDate || new Date().toISOString(),
-            isOwnProfile: data.isOwnProfile || false
+            isOwnProfile: data.isOwnProfile || false,
+            isFollowing: data.isFollowing || false
           },
           message: response.data.message || "Community profile updated successfully",
         };
@@ -289,7 +454,8 @@ export const communityApiService = {
               showFollowingCount: data.settings?.showFollowingCount ?? true
             },
             joinDate: data.joinDate || new Date().toISOString(),
-            isOwnProfile: data.isOwnProfile || false
+            isOwnProfile: data.isOwnProfile || false,
+            isFollowing: data.isFollowing || false
           },
           message: response.data.message || "Banner image uploaded successfully",
         };

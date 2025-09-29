@@ -15,20 +15,26 @@ export class CommunityUserService implements ICommunityUserService {
     async getCommunityProfile(userId: string, viewerUserId?: string): Promise<CommunityProfileResponseDto | null> {
         try {
             console.log("CommunityUserService: Getting community profile for user:", userId);
-            
+
             if (!userId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
             }
 
             const user = await this._communityRepository.findUserById(userId);
             console.log("CommunityUserService: User found:", user ? "Yes" : "No");
-            
+
             if (!user) {
                 throw new CustomError("User profile not found", StatusCode.NOT_FOUND);
             }
 
             if (!user.community.settings.isProfilePublic && viewerUserId !== userId) {
                 throw new CustomError("Profile is private", StatusCode.FORBIDDEN);
+            }
+
+            // Check if viewer is following this user (if viewer is authenticated and different user)
+            let isFollowing = false;
+            if (viewerUserId && viewerUserId !== userId) {
+                isFollowing = await this._communityRepository.checkIfFollowing(viewerUserId, userId);
             }
 
             const profileData: CommunityProfileResponseDto = {
@@ -59,7 +65,8 @@ export class CommunityUserService implements ICommunityUserService {
                     showFollowingCount: user.community.settings.showFollowingCount
                 },
                 joinDate: user.createdAt,
-                isOwnProfile: viewerUserId === userId
+                isOwnProfile: viewerUserId === userId,
+                isFollowing: isFollowing
             };
 
             console.log("CommunityUserService: Returning community profile data");
@@ -76,13 +83,13 @@ export class CommunityUserService implements ICommunityUserService {
     async getCommunityProfileByUsername(username: string, viewerUserId?: string): Promise<CommunityProfileResponseDto | null> {
         try {
             console.log("CommunityUserService: Getting community profile by username:", username);
-            
+
             if (!username) {
                 throw new CustomError("Username is required", StatusCode.BAD_REQUEST);
             }
 
             const user = await this._communityRepository.findUserByUsername(username);
-            
+
             if (!user) {
                 throw new CustomError("User profile not found", StatusCode.NOT_FOUND);
             }
@@ -100,7 +107,7 @@ export class CommunityUserService implements ICommunityUserService {
     async updateCommunityProfile(userId: string, data: UpdateCommunityProfileDto): Promise<CommunityProfileResponseDto | null> {
         try {
             console.log("CommunityUserService: Updating community profile for user:", userId, "with data:", data);
-            
+
             if (!userId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
             }
@@ -121,9 +128,9 @@ export class CommunityUserService implements ICommunityUserService {
             };
 
             console.log("CommunityUserService: Filtered update data:", updateData);
-            
+
             const updatedUser = await this._communityRepository.updateCommunityProfile(userId, updateData as any);
-            
+
             if (!updatedUser) {
                 throw new CustomError("User profile not found after update", StatusCode.NOT_FOUND);
             }
@@ -142,7 +149,7 @@ export class CommunityUserService implements ICommunityUserService {
     async uploadBannerImage(userId: string, bannerUrl: string): Promise<CommunityProfileResponseDto | null> {
         try {
             console.log("CommunityUserService: Uploading banner image for user:", userId);
-            
+
             if (!userId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
             }
@@ -152,7 +159,7 @@ export class CommunityUserService implements ICommunityUserService {
             }
 
             const updatedUser = await this._communityRepository.updateCommunityProfile(userId, { bannerImage: bannerUrl });
-            
+
             if (!updatedUser) {
                 throw new CustomError("User profile not found after update", StatusCode.NOT_FOUND);
             }

@@ -15,6 +15,8 @@ const TYPES = {
   
   // Community Controllers
   ICommunityUserProfileController: Symbol.for("ICommunityUserProfileController"),
+  IFollowController: Symbol.for("IFollowController"),
+  
   
   // Services
   IUserAuthService: Symbol.for("IUserAuthService"),
@@ -32,6 +34,7 @@ const TYPES = {
   
   // Community Services
   ICommunityUserService: Symbol.for("ICommunityUserService"),
+  IFollowService : Symbol.for("IFollowService"),
   
   // Other Services
   IJwtService: Symbol.for("IJwtService"),

@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Calendar, MapPin, Link2, MessageCircle, MoreHorizontal, Settings, Loader2, RefreshCw, AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useCommunityProfile } from '@/hooks/useCommunityProfile'
+import { useFollow } from '@/hooks/useFollow'
 import { communityApiService } from '@/services/communityApiService'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
@@ -17,9 +18,18 @@ import Post from '@/components/community/post'
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
 
-export default function ProfilePage() {
+interface ProfilePageProps {
+  params: {
+    username: string
+  }
+}
+
+export default function ProfilePage({ params }: ProfilePageProps) {
   const router = useRouter()
+  const { username } = params
   const [activeTab, setActiveTab] = useState('posts')
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [followStats, setFollowStats] = useState({ followersCount: 0, followingCount: 0 })
 
   // Check if store is properly initialized
   const storeState = useSelector((state: RootState) => state);
@@ -29,23 +39,53 @@ export default function ProfilePage() {
     profile,
     loading,
     error,
+    viewedProfile,
+    viewedProfileLoading,
     updating,
     uploadingBanner,
     fetchCommunityProfile,
+    fetchCommunityProfileByUsername,
+    updateCommunityProfile,
+    uploadBannerImage,
+    clearViewedProfileData,
     clearError,
     retry
   } = useCommunityProfile()
 
+  const { followUser, unfollowUser, loading: followLoading } = useFollow()
+
+  // Determine which profile to display
+  const displayProfile = viewedProfile
+  const isLoading = viewedProfileLoading
+  const isOwnProfile = profile && displayProfile && profile._id === displayProfile._id
+
+  // Update isFollowing and stats when profile data changes
+  useEffect(() => {
+    if (displayProfile) {
+      setIsFollowing(displayProfile.isFollowing || false)
+      setFollowStats({
+        followersCount: displayProfile.followersCount,
+        followingCount: displayProfile.followingCount
+      })
+    }
+  }, [displayProfile])
+
   // Fetch profile data
   useEffect(() => {
-    console.log('ProfilePage useEffect - profile:', profile, 'loading:', loading);
+    console.log('ProfilePage useEffect - username:', username, 'profile:', profile, 'loading:', loading);
 
-    if (!profile && !loading) {
-      // Fetch own profile if not already loaded
-      console.log('Fetching own community profile...');
-      fetchCommunityProfile()
+    if (username) {
+      // Viewing another user's profile
+      fetchCommunityProfileByUsername(username).catch(err => {
+        console.error('Failed to fetch profile:', err)
+      })
     }
-  }, [profile, loading])
+
+    // Cleanup when component unmounts or username changes
+    return () => {
+      clearViewedProfileData()
+    }
+  }, [username])
 
   // Format join date
   const formatJoinDate = (dateString: string | Date) => {
@@ -57,6 +97,35 @@ export default function ProfilePage() {
     })
   }
 
+  // Handle follow/unfollow
+  const handleFollowToggle = async () => {
+    if (!displayProfile) return
+
+    try {
+      if (isFollowing) {
+        const success = await unfollowUser(displayProfile.username)
+        if (success) {
+          setIsFollowing(false)
+          setFollowStats(prev => ({
+            ...prev,
+            followersCount: Math.max(0, prev.followersCount - 1)
+          }))
+        }
+      } else {
+        const success = await followUser(displayProfile.username)
+        if (success) {
+          setIsFollowing(true)
+          setFollowStats(prev => ({
+            ...prev,
+            followersCount: prev.followersCount + 1
+          }))
+        }
+      }
+    } catch (error) {
+      console.error('Follow/unfollow error:', error)
+    }
+  }
+
   // Handle settings click
   const handleSettingsClick = () => {
     router.push('/user/community/profile/edit')
@@ -64,20 +133,16 @@ export default function ProfilePage() {
 
   // Navigate to followers page
   const handleFollowersClick = () => {
-    if (profile) {
-      router.push(`/user/community/${profile.username}/followers`)
-    }
+    router.push(`/user/community/${username}/followers`)
   }
 
   // Navigate to following page
   const handleFollowingClick = () => {
-    if (profile) {
-      router.push(`/user/community/${profile.username}/following`)
-    }
+    router.push(`/user/community/${username}/following`)
   }
 
   // Show loading while store is initializing or profile is loading
-  if (loading || !storeState) {
+  if (isLoading || !storeState) {
     return (
       <div className="flex min-h-screen bg-slate-950">
         <Sidebar />
@@ -97,7 +162,7 @@ export default function ProfilePage() {
   }
 
   // Error state
-  if (error && !profile) {
+  if (error && !displayProfile) {
     return (
       <div className="flex min-h-screen bg-slate-950">
         <Sidebar />
@@ -127,7 +192,7 @@ export default function ProfilePage() {
   }
 
   // No profile data
-  if (!profile) {
+  if (!displayProfile) {
     return (
       <div className="flex min-h-screen bg-slate-950">
         <Sidebar />
@@ -165,8 +230,8 @@ export default function ProfilePage() {
             <div className="sticky top-0 bg-slate-950/80 backdrop-blur-xl border-b border-slate-700/50 p-4 z-10">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-white">{profile.name}</h2>
-                  <p className="text-slate-400">{communityApiService.formatStats(profile.postsCount)} posts</p>
+                  <h2 className="text-2xl font-bold text-white">{displayProfile.name}</h2>
+                  <p className="text-slate-400">{communityApiService.formatStats(displayProfile.postsCount)} posts</p>
                 </div>
                 <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
                   <MoreHorizontal className="h-5 w-5" />
@@ -177,7 +242,7 @@ export default function ProfilePage() {
             {/* Banner */}
             <div className="relative h-48 md:h-64">
               <img
-                src={profile.bannerImage || 'https://images.pexels.com/photos/924824/pexels-photo-924824.jpeg?auto=compress&cs=tinysrgb&w=1200&h=300'}
+                src={displayProfile.bannerImage || 'https://images.pexels.com/photos/924824/pexels-photo-924824.jpeg?auto=compress&cs=tinysrgb&w=1200&h=300'}
                 alt="Profile banner"
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -193,15 +258,15 @@ export default function ProfilePage() {
               <div className="relative -mt-16 md:-mt-20 mb-4">
                 <Avatar className="w-32 h-32 md:w-40 md:h-40 ring-4 ring-slate-950 bg-slate-950">
                   <AvatarImage
-                    src={profile.profilePic || ''}
-                    alt={profile.name}
+                    src={displayProfile.profilePic || ''}
+                    alt={displayProfile.name}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
                       target.style.display = 'none'
                     }}
                   />
                   <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-4xl">
-                    {profile.name?.charAt(0)?.toUpperCase() || profile.username?.charAt(0)?.toUpperCase() || 'U'}
+                    {displayProfile.name?.charAt(0)?.toUpperCase() || displayProfile.username?.charAt(0)?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
               </div>
@@ -210,8 +275,8 @@ export default function ProfilePage() {
                 <div className="space-y-3">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <h1 className="text-2xl md:text-3xl font-bold text-white">{profile.name}</h1>
-                      {profile.isVerified && (
+                      <h1 className="text-2xl md:text-3xl font-bold text-white">{displayProfile.name}</h1>
+                      {displayProfile.isVerified && (
                         <div className="w-6 h-6 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
                           <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -219,67 +284,67 @@ export default function ProfilePage() {
                         </div>
                       )}
                     </div>
-                    <p className="text-slate-400 mb-2">@{profile.username}</p>
+                    <p className="text-slate-400 mb-2">@{displayProfile.username}</p>
                   </div>
 
-                  {profile.bio && (
-                    <p className="text-white text-lg leading-relaxed max-w-2xl">{profile.bio}</p>
+                  {displayProfile.bio && (
+                    <p className="text-white text-lg leading-relaxed max-w-2xl">{displayProfile.bio}</p>
                   )}
 
                   <div className="flex flex-wrap gap-4 text-slate-400">
-                    {profile.location && (
+                    {displayProfile.location && (
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
-                        <span className="text-sm">{profile.location}</span>
+                        <span className="text-sm">{displayProfile.location}</span>
                       </div>
                     )}
-                    {profile.website && (
+                    {displayProfile.website && (
                       <div className="flex items-center gap-1">
                         <Link2 className="w-4 h-4" />
                         <a
-                          href={communityApiService.cleanWebsiteUrl(profile.website)}
+                          href={communityApiService.cleanWebsiteUrl(displayProfile.website)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm text-cyan-400 hover:text-cyan-300"
                         >
-                          {profile.website.replace(/^https?:\/\//, '')}
+                          {displayProfile.website.replace(/^https?:\/\//, '')}
                         </a>
                       </div>
                     )}
-                    {profile.joinDate && (
+                    {displayProfile.joinDate && (
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        <span className="text-sm">Joined {formatJoinDate(profile.joinDate)}</span>
+                        <span className="text-sm">Joined {formatJoinDate(displayProfile.joinDate)}</span>
                       </div>
                     )}
                   </div>
 
                   <div className="flex gap-6 text-sm">
-                    {profile.settings.showFollowingCount && (
+                    {displayProfile.settings.showFollowingCount && (
                       <div 
                         className="hover:underline cursor-pointer"
                         onClick={handleFollowingClick}
                       >
                         <span className="font-semibold text-white">
-                          {communityApiService.formatStats(profile.followingCount)}
+                          {communityApiService.formatStats(followStats.followingCount)}
                         </span>
                         <span className="text-slate-400 ml-1">Following</span>
                       </div>
                     )}
-                    {profile.settings.showFollowersCount && (
+                    {displayProfile.settings.showFollowersCount && (
                       <div 
                         className="hover:underline cursor-pointer"
                         onClick={handleFollowersClick}
                       >
                         <span className="font-semibold text-white">
-                          {communityApiService.formatStats(profile.followersCount)}
+                          {communityApiService.formatStats(followStats.followersCount)}
                         </span>
                         <span className="text-slate-400 ml-1">Followers</span>
                       </div>
                     )}
                     <div>
                       <span className="font-semibold text-white">
-                        {communityApiService.formatStats(profile.likesReceived)}
+                        {communityApiService.formatStats(displayProfile.likesReceived)}
                       </span>
                       <span className="text-slate-400 ml-1">Likes Received</span>
                     </div>
@@ -287,24 +352,47 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleSettingsClick}
-                    className="border-slate-600 hover:bg-slate-800"
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Edit Profile
-                  </Button>
+                  {!isOwnProfile ? (
+                    <>
+                      {displayProfile.settings.allowDirectMessages && (
+                        <Button variant="outline" className="border-slate-600 hover:bg-slate-800">
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Message
+                        </Button>
+                      )}
+                      <Button
+                        onClick={handleFollowToggle}
+                        disabled={followLoading}
+                        className={`${
+                          isFollowing
+                            ? 'bg-slate-800 text-white hover:bg-red-600 hover:text-white border border-slate-600'
+                            : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white'
+                        }`}
+                      >
+                        {followLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                        {isFollowing ? 'Following' : 'Follow'}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={handleSettingsClick}
+                      className="border-slate-600 hover:bg-slate-800"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                  )}
                 </div>
               </div>
 
               {/* Social Links */}
-              {(profile.socialLinks.twitter || profile.socialLinks.instagram ||
-                profile.socialLinks.linkedin || profile.socialLinks.github) && (
+              {(displayProfile.socialLinks.twitter || displayProfile.socialLinks.instagram ||
+                displayProfile.socialLinks.linkedin || displayProfile.socialLinks.github) && (
                 <div className="flex gap-4 mb-6 text-slate-400">
-                  {profile.socialLinks.twitter && (
+                  {displayProfile.socialLinks.twitter && (
                     <a
-                      href={`https://twitter.com/${profile.socialLinks.twitter}`}
+                      href={`https://twitter.com/${displayProfile.socialLinks.twitter}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-cyan-400 hover:text-cyan-300 text-sm"
@@ -312,9 +400,9 @@ export default function ProfilePage() {
                       Twitter
                     </a>
                   )}
-                  {profile.socialLinks.instagram && (
+                  {displayProfile.socialLinks.instagram && (
                     <a
-                      href={`https://instagram.com/${profile.socialLinks.instagram}`}
+                      href={`https://instagram.com/${displayProfile.socialLinks.instagram}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-cyan-400 hover:text-cyan-300 text-sm"
@@ -322,9 +410,9 @@ export default function ProfilePage() {
                       Instagram
                     </a>
                   )}
-                  {profile.socialLinks.linkedin && (
+                  {displayProfile.socialLinks.linkedin && (
                     <a
-                      href={`https://linkedin.com/in/${profile.socialLinks.linkedin}`}
+                      href={`https://linkedin.com/in/${displayProfile.socialLinks.linkedin}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-cyan-400 hover:text-cyan-300 text-sm"
@@ -332,9 +420,9 @@ export default function ProfilePage() {
                       LinkedIn
                     </a>
                   )}
-                  {profile.socialLinks.github && (
+                  {displayProfile.socialLinks.github && (
                     <a
-                      href={`https://github.com/${profile.socialLinks.github}`}
+                      href={`https://github.com/${displayProfile.socialLinks.github}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-cyan-400 hover:text-cyan-300 text-sm"
@@ -364,7 +452,7 @@ export default function ProfilePage() {
 
                 <div className="mt-6 pb-6">
                   <TabsContent value="posts" className="space-y-6">
-                    {profile.postsCount > 0 ? (
+                    {displayProfile.postsCount > 0 ? (
                       <div className="text-center py-12">
                         <p className="text-slate-400">Posts will be loaded here</p>
                         <p className="text-sm text-slate-500">Integration with posts API needed</p>
@@ -374,7 +462,7 @@ export default function ProfilePage() {
                         <MessageCircle className="h-16 w-16 mx-auto mb-4 text-slate-600" />
                         <p className="text-lg text-slate-400">No posts yet</p>
                         <p className="text-sm text-slate-500">
-                          Start sharing your thoughts!
+                          {isOwnProfile ? "Start sharing your thoughts!" : `${displayProfile.name} hasn't posted anything yet`}
                         </p>
                       </div>
                     )}

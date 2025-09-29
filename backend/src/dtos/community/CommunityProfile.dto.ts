@@ -82,7 +82,7 @@ export class CommunityProfileResponseDto {
     profilePic: string | undefined;
     followersCount: number | undefined;
     followingCount: number | undefined;
-    bio: string | undefined;  
+    bio: string | undefined;
     location: string | undefined;
     website: string | undefined;
     bannerImage: string | undefined;
@@ -91,6 +91,7 @@ export class CommunityProfileResponseDto {
     likesReceived: number | undefined;
     socialLinks: SocialLinksDto | undefined;
     settings: CommunitySettingsDto | undefined;
-    joinDate: Date | undefined; 
+    joinDate: Date | undefined;
     isOwnProfile: boolean | undefined;
+    isFollowing?: boolean | undefined; // Added for follow status
 }

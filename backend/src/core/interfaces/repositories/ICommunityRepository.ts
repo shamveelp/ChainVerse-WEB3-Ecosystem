@@ -1,4 +1,5 @@
 import { IUser } from "../../../models/user.models";
+import { FollowListResponseDto } from "../../../dtos/community/Follow.dto";
 
 export interface ICommunityRepository {
     findUserById(userId: string): Promise<IUser | null>;
@@ -8,4 +9,15 @@ export interface ICommunityRepository {
     incrementLikesReceived(userId: string, count: number): Promise<void>;
     updateFollowersCount(userId: string, count: number): Promise<void>;
     updateFollowingCount(userId: string, count: number): Promise<void>;
+    
+    // Follow-related methods
+    createFollow(followerId: string, followingId: string): Promise<void>;
+    removeFollow(followerId: string, followingId: string): Promise<void>;
+    checkIfFollowing(followerId: string, followingId: string): Promise<boolean>;
+    getFollowers(userId: string, viewerUserId?: string, cursor?: string, limit?: number): Promise<FollowListResponseDto>;
+    getFollowing(userId: string, viewerUserId?: string, cursor?: string, limit?: number): Promise<FollowListResponseDto>;
+    incrementFollowersCount(userId: string): Promise<void>;
+    decrementFollowersCount(userId: string): Promise<void>;
+    incrementFollowingCount(userId: string): Promise<void>;
+    decrementFollowingCount(userId: string): Promise<void>;
 }
