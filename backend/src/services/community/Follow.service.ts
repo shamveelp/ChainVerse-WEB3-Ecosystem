@@ -4,11 +4,11 @@ import { ICommunityRepository } from "../../core/interfaces/repositories/ICommun
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { 
-    FollowResponseDto, 
-    FollowListResponseDto, 
-    UserFollowInfo, 
-    FollowStatsDto 
+import {
+    FollowResponseDto,
+    FollowListResponseDto,
+    UserFollowInfo,
+    FollowStatsDto
 } from "../../dtos/community/Follow.dto";
 
 @injectable()
@@ -19,8 +19,6 @@ export class FollowService implements IFollowService {
 
     async followUser(followerId: string, targetUsername: string): Promise<FollowResponseDto> {
         try {
-            console.log("FollowService: Following user:", targetUsername, "by:", followerId);
-
             if (!followerId || !targetUsername) {
                 throw new CustomError("Follower ID and target username are required", StatusCode.BAD_REQUEST);
             }
@@ -42,16 +40,33 @@ export class FollowService implements IFollowService {
                 throw new CustomError("You are already following this user", StatusCode.BAD_REQUEST);
             }
 
-            // Create follow relationship
-            await this._communityRepository.createFollow(followerId, targetUser._id.toString());
-
-            // Update follower and following counts
-            await this._communityRepository.incrementFollowingCount(followerId);
-            await this._communityRepository.incrementFollowersCount(targetUser._id.toString());
+            // Use transaction-like operation for consistency
+            try {
+                // Create follow relationship first
+                await this._communityRepository.createFollow(followerId, targetUser._id.toString());
+                
+                // Update counts atomically
+                await Promise.all([
+                    this._communityRepository.incrementFollowingCount(followerId),
+                    this._communityRepository.incrementFollowersCount(targetUser._id.toString())
+                ]);
+            } catch (error) {
+                // If follow creation fails, counts won't be updated
+                // If count update fails, we need to clean up the follow relationship
+                try {
+                    await this._communityRepository.removeFollow(followerId, targetUser._id.toString());
+                } catch (cleanupError) {
+                    // Log cleanup error but don't throw
+                    console.error("Failed to cleanup follow relationship:", cleanupError);
+                }
+                throw error;
+            }
 
             // Get updated counts
-            const followerUser = await this._communityRepository.findUserById(followerId);
-            const updatedTargetUser = await this._communityRepository.findUserById(targetUser._id.toString());
+            const [followerUser, updatedTargetUser] = await Promise.all([
+                this._communityRepository.findUserById(followerId),
+                this._communityRepository.findUserById(targetUser._id.toString())
+            ]);
 
             return {
                 success: true,
@@ -71,8 +86,6 @@ export class FollowService implements IFollowService {
 
     async unfollowUser(followerId: string, targetUsername: string): Promise<FollowResponseDto> {
         try {
-            console.log("FollowService: Unfollowing user:", targetUsername, "by:", followerId);
-
             if (!followerId || !targetUsername) {
                 throw new CustomError("Follower ID and target username are required", StatusCode.BAD_REQUEST);
             }
@@ -94,16 +107,32 @@ export class FollowService implements IFollowService {
                 throw new CustomError("You are not following this user", StatusCode.BAD_REQUEST);
             }
 
-            // Remove follow relationship
-            await this._communityRepository.removeFollow(followerId, targetUser._id.toString());
-
-            // Update follower and following counts
-            await this._communityRepository.decrementFollowingCount(followerId);
-            await this._communityRepository.decrementFollowersCount(targetUser._id.toString());
+            // Use transaction-like operation for consistency
+            try {
+                // Remove follow relationship first
+                await this._communityRepository.removeFollow(followerId, targetUser._id.toString());
+                
+                // Update counts atomically
+                await Promise.all([
+                    this._communityRepository.decrementFollowingCount(followerId),
+                    this._communityRepository.decrementFollowersCount(targetUser._id.toString())
+                ]);
+            } catch (error) {
+                // If removal fails, we need to restore the follow relationship
+                try {
+                    await this._communityRepository.createFollow(followerId, targetUser._id.toString());
+                } catch (restoreError) {
+                    // Log restore error but don't throw
+                    console.error("Failed to restore follow relationship:", restoreError);
+                }
+                throw error;
+            }
 
             // Get updated counts
-            const followerUser = await this._communityRepository.findUserById(followerId);
-            const updatedTargetUser = await this._communityRepository.findUserById(targetUser._id.toString());
+            const [followerUser, updatedTargetUser] = await Promise.all([
+                this._communityRepository.findUserById(followerId),
+                this._communityRepository.findUserById(targetUser._id.toString())
+            ]);
 
             return {
                 success: true,
@@ -123,8 +152,6 @@ export class FollowService implements IFollowService {
 
     async getFollowers(userId: string, viewerUserId?: string, cursor?: string, limit: number = 20): Promise<FollowListResponseDto> {
         try {
-            console.log("FollowService: Getting followers for user:", userId);
-
             if (!userId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
             }
@@ -142,8 +169,6 @@ export class FollowService implements IFollowService {
 
     async getFollowing(userId: string, viewerUserId?: string, cursor?: string, limit: number = 20): Promise<FollowListResponseDto> {
         try {
-            console.log("FollowService: Getting following for user:", userId);
-
             if (!userId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
             }
@@ -161,8 +186,6 @@ export class FollowService implements IFollowService {
 
     async getUserFollowers(username: string, viewerUserId?: string, cursor?: string, limit: number = 20): Promise<FollowListResponseDto> {
         try {
-            console.log("FollowService: Getting followers for username:", username);
-
             if (!username) {
                 throw new CustomError("Username is required", StatusCode.BAD_REQUEST);
             }
@@ -184,8 +207,6 @@ export class FollowService implements IFollowService {
 
     async getUserFollowing(username: string, viewerUserId?: string, cursor?: string, limit: number = 20): Promise<FollowListResponseDto> {
         try {
-            console.log("FollowService: Getting following for username:", username);
-
             if (!username) {
                 throw new CustomError("Username is required", StatusCode.BAD_REQUEST);
             }
@@ -207,8 +228,6 @@ export class FollowService implements IFollowService {
 
     async getFollowStatus(viewerUserId: string, targetUsername: string): Promise<{ isFollowing: boolean }> {
         try {
-            console.log("FollowService: Getting follow status for:", targetUsername, "by:", viewerUserId);
-
             if (!viewerUserId || !targetUsername) {
                 throw new CustomError("Viewer ID and target username are required", StatusCode.BAD_REQUEST);
             }
@@ -232,8 +251,6 @@ export class FollowService implements IFollowService {
 
     async getFollowStats(userId: string): Promise<FollowStatsDto> {
         try {
-            console.log("FollowService: Getting follow stats for user:", userId);
-
             if (!userId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
             }

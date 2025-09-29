@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { communityApiService, FollowListResponse, UserFollowInfo } from '@/services/communityApiService';
 
@@ -9,15 +9,30 @@ export const useFollow = () => {
   const [loadingFollowers, setLoadingFollowers] = useState(false);
   const [loadingFollowing, setLoadingFollowing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  
+  // Use refs to store the latest values for callbacks
+  const followersDataRef = useRef<FollowListResponse | null>(null);
+  const followingDataRef = useRef<FollowListResponse | null>(null);
+  const loadingMoreRef = useRef(false);
+  
+  // Update refs whenever state changes
+  followersDataRef.current = followersData;
+  followingDataRef.current = followingData;
+  loadingMoreRef.current = loadingMore;
 
   const followUser = useCallback(async (username: string): Promise<boolean> => {
+    if (!username) return false;
+    
     setLoading(true);
     try {
       const result = await communityApiService.followUser(username);
       toast.success(result.message || `You are now following @${username}`);
       return true;
     } catch (error: any) {
-      toast.error("Failed to follow user", { description: error.message });
+      console.error('Follow user error:', error);
+      toast.error("Failed to follow user", { 
+        description: error.message || "Please try again" 
+      });
       return false;
     } finally {
       setLoading(false);
@@ -25,13 +40,18 @@ export const useFollow = () => {
   }, []);
 
   const unfollowUser = useCallback(async (username: string): Promise<boolean> => {
+    if (!username) return false;
+    
     setLoading(true);
     try {
       const result = await communityApiService.unfollowUser(username);
       toast.success(result.message || `You unfollowed @${username}`);
       return true;
     } catch (error: any) {
-      toast.error("Failed to unfollow user", { description: error.message });
+      console.error('Unfollow user error:', error);
+      toast.error("Failed to unfollow user", { 
+        description: error.message || "Please try again" 
+      });
       return false;
     } finally {
       setLoading(false);
@@ -44,7 +64,11 @@ export const useFollow = () => {
       const result = await communityApiService.getFollowers(cursor);
       setFollowersData(result);
     } catch (error: any) {
-      toast.error("Failed to load followers", { description: error.message });
+      console.error('Get followers error:', error);
+      toast.error("Failed to load followers", { 
+        description: error.message || "Please try again" 
+      });
+      setFollowersData(null);
     } finally {
       setLoadingFollowers(false);
     }
@@ -56,92 +80,134 @@ export const useFollow = () => {
       const result = await communityApiService.getFollowing(cursor);
       setFollowingData(result);
     } catch (error: any) {
-      toast.error("Failed to load following", { description: error.message });
+      console.error('Get following error:', error);
+      toast.error("Failed to load following", { 
+        description: error.message || "Please try again" 
+      });
+      setFollowingData(null);
     } finally {
       setLoadingFollowing(false);
     }
   }, []);
 
   const getUserFollowers = useCallback(async (username: string, cursor?: string): Promise<void> => {
+    if (!username) return;
+    
     setLoadingFollowers(true);
     try {
       const result = await communityApiService.getUserFollowers(username, cursor);
       setFollowersData(result);
     } catch (error: any) {
-      toast.error("Failed to load followers", { description: error.message });
+      console.error('Get user followers error:', error);
+      toast.error("Failed to load followers", { 
+        description: error.message || "Please try again" 
+      });
+      setFollowersData(null);
     } finally {
       setLoadingFollowers(false);
     }
   }, []);
 
   const getUserFollowing = useCallback(async (username: string, cursor?: string): Promise<void> => {
+    if (!username) return;
+    
     setLoadingFollowing(true);
     try {
       const result = await communityApiService.getUserFollowing(username, cursor);
       setFollowingData(result);
     } catch (error: any) {
-      toast.error("Failed to load following", { description: error.message });
+      console.error('Get user following error:', error);
+      toast.error("Failed to load following", { 
+        description: error.message || "Please try again" 
+      });
+      setFollowingData(null);
     } finally {
       setLoadingFollowing(false);
     }
   }, []);
 
   const loadMoreFollowers = useCallback(async (username?: string): Promise<void> => {
-    if (!followersData?.hasMore || loadingMore) return;
+    const currentData = followersDataRef.current;
+    const isLoadingMore = loadingMoreRef.current;
+    
+    if (!currentData?.hasMore || isLoadingMore) return;
 
     setLoadingMore(true);
     try {
       const result = username 
-        ? await communityApiService.getUserFollowers(username, followersData.nextCursor)
-        : await communityApiService.getFollowers(followersData.nextCursor);
+        ? await communityApiService.getUserFollowers(username, currentData.nextCursor)
+        : await communityApiService.getFollowers(currentData.nextCursor);
       
-      setFollowersData(prev => prev ? {
-        ...result,
-        users: [...prev.users, ...result.users]
-      } : result);
+      setFollowersData(prev => {
+        if (!prev) return result;
+        return {
+          ...result,
+          users: [...prev.users, ...result.users]
+        };
+      });
     } catch (error: any) {
-      toast.error("Failed to load more followers", { description: error.message });
+      console.error('Load more followers error:', error);
+      toast.error("Failed to load more followers", { 
+        description: error.message || "Please try again" 
+      });
     } finally {
       setLoadingMore(false);
     }
-  }, [followersData, loadingMore]);
+  }, []);
 
   const loadMoreFollowing = useCallback(async (username?: string): Promise<void> => {
-    if (!followingData?.hasMore || loadingMore) return;
+    const currentData = followingDataRef.current;
+    const isLoadingMore = loadingMoreRef.current;
+    
+    if (!currentData?.hasMore || isLoadingMore) return;
 
     setLoadingMore(true);
     try {
       const result = username 
-        ? await communityApiService.getUserFollowing(username, followingData.nextCursor)
-        : await communityApiService.getFollowing(followingData.nextCursor);
+        ? await communityApiService.getUserFollowing(username, currentData.nextCursor)
+        : await communityApiService.getFollowing(currentData.nextCursor);
       
-      setFollowingData(prev => prev ? {
-        ...result,
-        users: [...prev.users, ...result.users]
-      } : result);
+      setFollowingData(prev => {
+        if (!prev) return result;
+        return {
+          ...result,
+          users: [...prev.users, ...result.users]
+        };
+      });
     } catch (error: any) {
-      toast.error("Failed to load more following", { description: error.message });
+      console.error('Load more following error:', error);
+      toast.error("Failed to load more following", { 
+        description: error.message || "Please try again" 
+      });
     } finally {
       setLoadingMore(false);
     }
-  }, [followingData, loadingMore]);
+  }, []);
 
   const updateUserFollowStatus = useCallback((userId: string, isFollowing: boolean): void => {
+    if (!userId) return;
+    
     // Update followers list
-    setFollowersData(prev => prev ? {
-      ...prev,
-      users: prev.users.map(user => 
-        user._id === userId ? { ...user, isFollowing } : user
-      )
-    } : null);
+    setFollowersData(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        users: prev.users.map(user => 
+          user._id === userId ? { ...user, isFollowing } : user
+        )
+      };
+    });
 
     // Update following list
-    setFollowingData(prev => prev ? {
-      ...prev,
-      users: prev.users.map(user => 
-        user._id === userId ? { ...user, isFollowing } : user
-      )
-    } : null);
+    setFollowingData(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        users: prev.users.map(user => 
+          user._id === userId ? { ...user, isFollowing } : user
+        )
+      };
+    });
   }, []);
 
   const clearFollowersData = useCallback(() => {
@@ -150,6 +216,15 @@ export const useFollow = () => {
 
   const clearFollowingData = useCallback(() => {
     setFollowingData(null);
+  }, []);
+
+  const clearAllData = useCallback(() => {
+    setFollowersData(null);
+    setFollowingData(null);
+    setLoading(false);
+    setLoadingFollowers(false);
+    setLoadingFollowing(false);
+    setLoadingMore(false);
   }, []);
 
   return {
@@ -169,7 +244,8 @@ export const useFollow = () => {
     loadMoreFollowing,
     updateUserFollowStatus,
     clearFollowersData,
-    clearFollowingData
+    clearFollowingData,
+    clearAllData
   };
 };
 

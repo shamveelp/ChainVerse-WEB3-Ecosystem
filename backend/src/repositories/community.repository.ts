@@ -111,7 +111,7 @@ export class CommunityRepository implements ICommunityRepository {
       }
 
       await UserModel.findByIdAndUpdate(userId, {
-        $set: { followersCount: count },
+        $set: { followersCount: Math.max(0, count) },
       }).exec();
     } catch (error) {
       throw new CustomError(
@@ -128,7 +128,7 @@ export class CommunityRepository implements ICommunityRepository {
       }
 
       await UserModel.findByIdAndUpdate(userId, {
-        $set: { followingCount: count },
+        $set: { followingCount: Math.max(0, count) },
       }).exec();
     } catch (error) {
       throw new CustomError(
@@ -138,7 +138,7 @@ export class CommunityRepository implements ICommunityRepository {
     }
   }
 
-  // Follow-related methods
+  // Follow-related methods with atomic operations
   async createFollow(followerId: string, followingId: string): Promise<void> {
     try {
       if (
@@ -146,6 +146,10 @@ export class CommunityRepository implements ICommunityRepository {
         !Types.ObjectId.isValid(followingId)
       ) {
         throw new CustomError("Invalid user IDs", StatusCode.BAD_REQUEST);
+      }
+
+      if (followerId === followingId) {
+        throw new CustomError("Cannot follow yourself", StatusCode.BAD_REQUEST);
       }
 
       const follow = new FollowModel({
@@ -236,7 +240,7 @@ export class CommunityRepository implements ICommunityRepository {
       const query: any = { following: new Types.ObjectId(userId) };
 
       // Add cursor-based pagination
-      if (cursor) {
+      if (cursor && Types.ObjectId.isValid(cursor)) {
         query._id = { $lt: new Types.ObjectId(cursor) };
       }
 
@@ -248,23 +252,32 @@ export class CommunityRepository implements ICommunityRepository {
         })
         .sort({ _id: -1 })
         .limit(limit + 1)
+        .lean()
         .exec();
 
       const hasMore = follows.length > limit;
       const followersList = follows.slice(0, limit);
 
-      // Check follow status for viewer
+      // Check follow status for viewer in batch
       const users: UserFollowInfo[] = [];
+      const userIds = followersList.map((follow: any) => follow.follower._id.toString());
+      
+      let followStatusMap: { [key: string]: boolean } = {};
+      if (viewerUserId && Types.ObjectId.isValid(viewerUserId)) {
+        const viewerFollowing = await FollowModel.find({
+          follower: new Types.ObjectId(viewerUserId),
+          following: { $in: userIds.map(id => new Types.ObjectId(id)) }
+        }).lean().exec();
+        
+        followStatusMap = viewerFollowing.reduce((acc, follow) => {
+          acc[follow.following.toString()] = true;
+          return acc;
+        }, {} as { [key: string]: boolean });
+      }
+
       for (const follow of followersList) {
         const follower = follow.follower as any;
-        let isFollowing = false;
-
-        if (viewerUserId && viewerUserId !== follower._id.toString()) {
-          isFollowing = await this.checkIfFollowing(
-            viewerUserId,
-            follower._id.toString()
-          );
-        }
+        const isFollowing = viewerUserId ? (followStatusMap[follower._id.toString()] || false) : false;
 
         users.push({
           _id: follower._id.toString(),
@@ -314,7 +327,7 @@ export class CommunityRepository implements ICommunityRepository {
       const query: any = { follower: new Types.ObjectId(userId) };
 
       // Add cursor-based pagination
-      if (cursor) {
+      if (cursor && Types.ObjectId.isValid(cursor)) {
         query._id = { $lt: new Types.ObjectId(cursor) };
       }
 
@@ -326,23 +339,32 @@ export class CommunityRepository implements ICommunityRepository {
         })
         .sort({ _id: -1 })
         .limit(limit + 1)
+        .lean()
         .exec();
 
       const hasMore = follows.length > limit;
       const followingList = follows.slice(0, limit);
 
-      // Check follow status for viewer
+      // Check follow status for viewer in batch
       const users: UserFollowInfo[] = [];
+      const userIds = followingList.map((follow: any) => follow.following._id.toString());
+      
+      let followStatusMap: { [key: string]: boolean } = {};
+      if (viewerUserId && Types.ObjectId.isValid(viewerUserId)) {
+        const viewerFollowing = await FollowModel.find({
+          follower: new Types.ObjectId(viewerUserId),
+          following: { $in: userIds.map(id => new Types.ObjectId(id)) }
+        }).lean().exec();
+        
+        followStatusMap = viewerFollowing.reduce((acc, follow) => {
+          acc[follow.following.toString()] = true;
+          return acc;
+        }, {} as { [key: string]: boolean });
+      }
+
       for (const follow of followingList) {
         const following = follow.following as any;
-        let isFollowing = false;
-
-        if (viewerUserId && viewerUserId !== following._id.toString()) {
-          isFollowing = await this.checkIfFollowing(
-            viewerUserId,
-            following._id.toString()
-          );
-        }
+        const isFollowing = viewerUserId ? (followStatusMap[following._id.toString()] || false) : false;
 
         users.push({
           _id: following._id.toString(),
@@ -384,9 +406,11 @@ export class CommunityRepository implements ICommunityRepository {
         throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
       }
 
-      await UserModel.findByIdAndUpdate(userId, {
-        $inc: { followersCount: 1 },
-      }).exec();
+      await UserModel.findByIdAndUpdate(
+        userId, 
+        { $inc: { followersCount: 1 } },
+        { new: true }
+      ).exec();
     } catch (error) {
       throw new CustomError(
         "Database error while incrementing followers count",
@@ -401,10 +425,20 @@ export class CommunityRepository implements ICommunityRepository {
         throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
       }
 
-      await UserModel.findByIdAndUpdate(userId, {
-        $inc: { followersCount: -1 },
-        $max: { followersCount: 0 }, // Ensure count doesn't go below 0
-      }).exec();
+      // Use $max to ensure count doesn't go below 0
+      await UserModel.findByIdAndUpdate(
+        userId,
+        [
+          {
+            $set: {
+              followersCount: {
+                $max: [{ $subtract: ["$followersCount", 1] }, 0]
+              }
+            }
+          }
+        ],
+        { new: true }
+      ).exec();
     } catch (error) {
       throw new CustomError(
         "Database error while decrementing followers count",
@@ -419,9 +453,11 @@ export class CommunityRepository implements ICommunityRepository {
         throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
       }
 
-      await UserModel.findByIdAndUpdate(userId, {
-        $inc: { followingCount: 1 },
-      }).exec();
+      await UserModel.findByIdAndUpdate(
+        userId, 
+        { $inc: { followingCount: 1 } },
+        { new: true }
+      ).exec();
     } catch (error) {
       throw new CustomError(
         "Database error while incrementing following count",
@@ -436,10 +472,20 @@ export class CommunityRepository implements ICommunityRepository {
         throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
       }
 
-      await UserModel.findByIdAndUpdate(userId, {
-        $inc: { followingCount: -1 },
-        $max: { followingCount: 0 }, // Ensure count doesn't go below 0
-      }).exec();
+      // Use $max to ensure count doesn't go below 0
+      await UserModel.findByIdAndUpdate(
+        userId,
+        [
+          {
+            $set: {
+              followingCount: {
+                $max: [{ $subtract: ["$followingCount", 1] }, 0]
+              }
+            }
+          }
+        ],
+        { new: true }
+      ).exec();
     } catch (error) {
       throw new CustomError(
         "Database error while decrementing following count",

@@ -19,7 +19,6 @@ const navigationItems = [
   { id: 'communities', label: 'My Communities', icon: Users, path: '/user/community/communities' },
   { id: 'messages', label: 'Messages', icon: MessageCircle, path: '/user/community/messages' },
   { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark, path: '/user/community/bookmarks' },
-  { id: 'profile', label: 'Profile', icon: User, path: '/user/community/profile' },
 ]
 
 export default function Sidebar() {
@@ -27,17 +26,17 @@ export default function Sidebar() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  // Fetch profile data
-  const storeState = useSelector((state: RootState) => state)
+  // Get current user from auth state
+  const currentUser = useSelector((state: RootState) => state.userAuth?.user)
   const { profile, loading, error, fetchCommunityProfile, clearError, retry } = useCommunityProfile()
 
   // Fetch profile on mount
   useEffect(() => {
-    if (!profile && !loading) {
-      console.log('Fetching own community profile...')
+    if (currentUser && !profile && !loading) {
+      console.log('Sidebar: Fetching community profile...')
       fetchCommunityProfile()
     }
-  }, [profile, loading, fetchCommunityProfile])
+  }, [currentUser, profile, loading, fetchCommunityProfile])
 
   const handleLogout = () => {
     router.push('/')
@@ -49,75 +48,89 @@ export default function Sidebar() {
     setIsMobileMenuOpen(false)
   }
 
+  const handleProfileClick = () => {
+    if (currentUser?.username) {
+      handleNavigation(`/user/community/${currentUser.username}`)
+    }
+  }
+
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-
-      {/* Loading State */}
-      {loading && (
-        <div className="p-3 border-b border-slate-700/50 text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-500 mx-auto" />
-          <p className="text-slate-400 text-sm mt-2">Loading profile...</p>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && !profile && (
-        <div className="p-3 border-b border-slate-700/50">
-          <Alert className="border-red-500/50 bg-red-500/10">
-            <AlertCircle className="h-4 w-4 text-red-400" />
-            <AlertDescription className="text-red-300 text-sm">{error}</AlertDescription>
-          </Alert>
-          <Button
-            onClick={retry}
-            variant="outline"
-            className="w-full mt-2 border-slate-600 hover:bg-slate-800 text-sm"
-          >
-            Try Again
-          </Button>
-        </div>
-      )}
-
       {/* User Profile Card */}
-      {profile && !loading && !error && (
+      {currentUser && (
         <div className="p-3 border-b border-slate-700/50">
-          <div
-            className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors cursor-pointer"
-            onClick={() => handleNavigation('/user/community/profile')}
-          >
-            <Avatar className="w-10 h-10 ring-2 ring-cyan-400/30">
-              <AvatarImage src={profile.profilePic || ''} alt={profile.name} />
-              <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
-                {profile.name?.charAt(0)?.toUpperCase() || profile.username?.charAt(0)?.toUpperCase() || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1">
-                <p className="font-semibold text-sm text-white truncate">{profile.name}</p>
-                {profile.isVerified && (
-                  <div className="w-3.5 h-3.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
-                    <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                )}
+          {loading && !profile && (
+            <div className="text-center py-4">
+              <Loader2 className="h-6 w-6 animate-spin text-cyan-500 mx-auto" />
+              <p className="text-slate-400 text-xs mt-2">Loading profile...</p>
+            </div>
+          )}
+
+          {error && !profile && (
+            <div className="py-2">
+              <Alert className="border-red-500/50 bg-red-500/10 p-2">
+                <AlertCircle className="h-3 w-3 text-red-400" />
+                <AlertDescription className="text-red-300 text-xs">{error}</AlertDescription>
+              </Alert>
+              <Button
+                onClick={retry}
+                variant="outline"
+                size="sm"
+                className="w-full mt-2 border-slate-600 hover:bg-slate-800 text-xs h-7"
+              >
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {(profile || (!loading && !error)) && (
+            <div
+              className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors cursor-pointer"
+              onClick={handleProfileClick}
+            >
+              <Avatar className="w-10 h-10 ring-2 ring-cyan-400/30">
+                <AvatarImage 
+                  src={profile?.profilePic || ''} 
+                  alt={profile?.name || currentUser.name || currentUser.username} 
+                />
+                <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
+                  {(profile?.name || currentUser.name || currentUser.username)?.charAt(0)?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1">
+                  <p className="font-semibold text-sm text-white truncate">
+                    {profile?.name || currentUser.name || currentUser.username}
+                  </p>
+                  {profile?.isVerified && (
+                    <div className="w-3.5 h-3.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
+                      <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <p className="text-slate-400 text-xs">@{currentUser.username}</p>
               </div>
-              <p className="text-slate-400 text-xs">@{profile.username}</p>
             </div>
-          </div>
-          <div className="flex justify-center gap-4 mt-2 text-xs">
-            <div className="text-center">
-              <p className="font-semibold text-white">
-                {communityApiService.formatStats(profile.followingCount)}
-              </p>
-              <p className="text-slate-400">Following</p>
+          )}
+
+          {profile && (
+            <div className="flex justify-center gap-4 mt-2 text-xs">
+              <div className="text-center">
+                <p className="font-semibold text-white">
+                  {communityApiService.formatStats(profile.followingCount || 0)}
+                </p>
+                <p className="text-slate-400">Following</p>
+              </div>
+              <div className="text-center">
+                <p className="font-semibold text-white">
+                  {communityApiService.formatStats(profile.followersCount || 0)}
+                </p>
+                <p className="text-slate-400">Followers</p>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="font-semibold text-white">
-                {communityApiService.formatStats(profile.followersCount)}
-              </p>
-              <p className="text-slate-400">Followers</p>
-            </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -153,6 +166,26 @@ export default function Sidebar() {
             </Button>
           )
         })}
+
+        {/* Profile Navigation Item */}
+        {currentUser?.username && (
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start text-left p-3 h-auto group transition-all duration-200 relative",
+              pathname === `/user/community/${currentUser.username}`
+                ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+            )}
+            onClick={handleProfileClick}
+          >
+            <User className={cn(
+              "h-5 w-5 mr-3 transition-colors",
+              pathname === `/user/community/${currentUser.username}` ? "text-cyan-400" : "group-hover:text-cyan-400"
+            )} />
+            <span className="text-base font-medium">Profile</span>
+          </Button>
+        )}
       </nav>
 
       {/* Create Post & Settings */}

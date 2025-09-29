@@ -30,23 +30,18 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [activeTab, setActiveTab] = useState('posts')
   const [isFollowing, setIsFollowing] = useState(false)
   const [followStats, setFollowStats] = useState({ followersCount: 0, followingCount: 0 })
+  const [followActionInProgress, setFollowActionInProgress] = useState(false)
 
-  // Check if store is properly initialized
-  const storeState = useSelector((state: RootState) => state);
-  console.log('Store state:', storeState);
-
+  // Get current user info
+  const currentUser = useSelector((state: RootState) => state.userAuth?.user)
+  
   const {
-    profile,
-    loading,
-    error,
+    profile: ownProfile,
+    loading: ownProfileLoading,
     viewedProfile,
     viewedProfileLoading,
-    updating,
-    uploadingBanner,
-    fetchCommunityProfile,
     fetchCommunityProfileByUsername,
-    updateCommunityProfile,
-    uploadBannerImage,
+    fetchCommunityProfile,
     clearViewedProfileData,
     clearError,
     retry
@@ -54,38 +49,47 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   const { followUser, unfollowUser, loading: followLoading } = useFollow()
 
-  // Determine which profile to display
-  const displayProfile = viewedProfile
-  const isLoading = viewedProfileLoading
-  const isOwnProfile = profile && displayProfile && profile._id === displayProfile._id
+  // Determine if this is own profile
+  const isOwnProfile = currentUser?.username === username
+  const displayProfile = isOwnProfile ? ownProfile : viewedProfile
+  const isLoading = isOwnProfile ? ownProfileLoading : viewedProfileLoading
 
   // Update isFollowing and stats when profile data changes
   useEffect(() => {
     if (displayProfile) {
       setIsFollowing(displayProfile.isFollowing || false)
       setFollowStats({
-        followersCount: displayProfile.followersCount,
-        followingCount: displayProfile.followingCount
+        followersCount: displayProfile.followersCount || 0,
+        followingCount: displayProfile.followingCount || 0
       })
     }
   }, [displayProfile])
 
   // Fetch profile data
   useEffect(() => {
-    console.log('ProfilePage useEffect - username:', username, 'profile:', profile, 'loading:', loading);
+    console.log('ProfilePage useEffect - username:', username, 'currentUser:', currentUser?.username);
 
-    if (username) {
-      // Viewing another user's profile
+    if (isOwnProfile) {
+      // Load own profile if not already loaded
+      if (!ownProfile && !ownProfileLoading) {
+        console.log('Fetching own profile...');
+        fetchCommunityProfile()
+      }
+    } else {
+      // Load other user's profile
+      console.log('Fetching profile for username:', username);
       fetchCommunityProfileByUsername(username).catch(err => {
         console.error('Failed to fetch profile:', err)
       })
     }
 
-    // Cleanup when component unmounts or username changes
+    // Cleanup when username changes
     return () => {
-      clearViewedProfileData()
+      if (!isOwnProfile) {
+        clearViewedProfileData()
+      }
     }
-  }, [username])
+  }, [username, isOwnProfile, currentUser])
 
   // Format join date
   const formatJoinDate = (dateString: string | Date) => {
@@ -99,8 +103,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   // Handle follow/unfollow
   const handleFollowToggle = async () => {
-    if (!displayProfile) return
+    if (!displayProfile || isOwnProfile || followActionInProgress) return
 
+    setFollowActionInProgress(true)
     try {
       if (isFollowing) {
         const success = await unfollowUser(displayProfile.username)
@@ -123,12 +128,14 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       }
     } catch (error) {
       console.error('Follow/unfollow error:', error)
+    } finally {
+      setFollowActionInProgress(false)
     }
   }
 
   // Handle settings click
   const handleSettingsClick = () => {
-    router.push('/user/community/profile/edit')
+    router.push(`/user/community/${username}/edit`)
   }
 
   // Navigate to followers page
@@ -141,8 +148,13 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     router.push(`/user/community/${username}/following`)
   }
 
-  // Show loading while store is initializing or profile is loading
-  if (isLoading || !storeState) {
+  const handleMessageClick = () => {
+    if (!displayProfile) return
+    router.push(`/user/community/messages/${username}`)
+  }
+
+  // Show loading
+  if (isLoading) {
     return (
       <div className="flex min-h-screen bg-slate-950">
         <Sidebar />
@@ -153,36 +165,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                 <Loader2 className="h-12 w-12 animate-spin text-cyan-500 mx-auto" />
                 <p className="text-slate-400">Loading profile...</p>
               </div>
-            </div>
-          </div>
-        </main>
-        <RightSidebar />
-      </div>
-    )
-  }
-
-  // Error state
-  if (error && !displayProfile) {
-    return (
-      <div className="flex min-h-screen bg-slate-950">
-        <Sidebar />
-        <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen">
-          <div className="max-w-2xl mx-auto h-screen overflow-y-auto p-4">
-            <Alert className="border-red-500/50 bg-red-500/10">
-              <AlertCircle className="h-4 w-4 text-red-400" />
-              <AlertDescription className="text-red-300">
-                {error}
-              </AlertDescription>
-            </Alert>
-            <div className="flex justify-center mt-4">
-              <Button
-                onClick={retry}
-                variant="outline"
-                className="border-slate-600 hover:bg-slate-800"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Try Again
-              </Button>
             </div>
           </div>
         </main>
@@ -231,7 +213,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-white">{displayProfile.name}</h2>
-                  <p className="text-slate-400">{communityApiService.formatStats(displayProfile.postsCount)} posts</p>
+                  <p className="text-slate-400">{communityApiService.formatStats(displayProfile.postsCount || 0)} posts</p>
                 </div>
                 <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
                   <MoreHorizontal className="h-5 w-5" />
@@ -320,7 +302,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   </div>
 
                   <div className="flex gap-6 text-sm">
-                    {displayProfile.settings.showFollowingCount && (
+                    {displayProfile.settings?.showFollowingCount && (
                       <div 
                         className="hover:underline cursor-pointer"
                         onClick={handleFollowingClick}
@@ -331,7 +313,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                         <span className="text-slate-400 ml-1">Following</span>
                       </div>
                     )}
-                    {displayProfile.settings.showFollowersCount && (
+                    {displayProfile.settings?.showFollowersCount && (
                       <div 
                         className="hover:underline cursor-pointer"
                         onClick={handleFollowersClick}
@@ -344,7 +326,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                     )}
                     <div>
                       <span className="font-semibold text-white">
-                        {communityApiService.formatStats(displayProfile.likesReceived)}
+                        {communityApiService.formatStats(displayProfile.likesReceived || 0)}
                       </span>
                       <span className="text-slate-400 ml-1">Likes Received</span>
                     </div>
@@ -354,22 +336,22 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                 <div className="flex gap-3">
                   {!isOwnProfile ? (
                     <>
-                      {displayProfile.settings.allowDirectMessages && (
-                        <Button variant="outline" className="border-slate-600 hover:bg-slate-800">
+                      {displayProfile.settings?.allowDirectMessages && (
+                        <Button onClick={handleMessageClick} variant="outline" className="border-slate-600 hover:bg-slate-800">
                           <MessageCircle className="w-4 h-4 mr-2" />
                           Message
                         </Button>
                       )}
                       <Button
                         onClick={handleFollowToggle}
-                        disabled={followLoading}
+                        disabled={followActionInProgress}
                         className={`${
                           isFollowing
                             ? 'bg-slate-800 text-white hover:bg-red-600 hover:text-white border border-slate-600'
                             : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white'
                         }`}
                       >
-                        {followLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                        {followActionInProgress && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                         {isFollowing ? 'Following' : 'Follow'}
                       </Button>
                     </>
@@ -387,8 +369,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               </div>
 
               {/* Social Links */}
-              {(displayProfile.socialLinks.twitter || displayProfile.socialLinks.instagram ||
-                displayProfile.socialLinks.linkedin || displayProfile.socialLinks.github) && (
+              {(displayProfile.socialLinks?.twitter || displayProfile.socialLinks?.instagram ||
+                displayProfile.socialLinks?.linkedin || displayProfile.socialLinks?.github) && (
                 <div className="flex gap-4 mb-6 text-slate-400">
                   {displayProfile.socialLinks.twitter && (
                     <a
@@ -452,7 +434,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
                 <div className="mt-6 pb-6">
                   <TabsContent value="posts" className="space-y-6">
-                    {displayProfile.postsCount > 0 ? (
+                    {(displayProfile.postsCount || 0) > 0 ? (
                       <div className="text-center py-12">
                         <p className="text-slate-400">Posts will be loaded here</p>
                         <p className="text-sm text-slate-500">Integration with posts API needed</p>
