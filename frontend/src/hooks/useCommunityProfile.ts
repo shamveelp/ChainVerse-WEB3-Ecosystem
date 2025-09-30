@@ -13,7 +13,8 @@ import {
   clearViewedProfile,
   setUpdating,
   setUploadingBanner,
-  clearCommunityProfileData
+  clearCommunityProfileData,
+  updateViewedProfileFollowStatus
 } from '@/redux/slices/communityProfileSlice';
 import { logout } from '@/redux/slices/userAuthSlice';
 import { communityApiService, CommunityProfile, UpdateCommunityProfileData } from '@/services/communityApiService';
@@ -40,30 +41,30 @@ export const useCommunityProfile = () => {
   } = communityProfileState;
   
   const { user = null } = userAuthState;
-  
-  // Use refs to track the latest values for callbacks
-  const profileRef = useRef(profile);
-  const loadingRef = useRef(loading);
-  profileRef.current = profile;
-  loadingRef.current = loading;
 
-  // Fetch own community profile
-  const fetchCommunityProfile = useCallback(async (): Promise<CommunityProfile | null> => {
+  // Fetch own community profile with force refresh option
+  const fetchCommunityProfile = useCallback(async (forceRefresh: boolean = false): Promise<CommunityProfile | null> => {
     if (!user) {
       console.log('No user found, redirecting to login');
       router.replace("/user/login");
       return null;
     }
 
-    if (loadingRef.current) {
+    // If we already have profile and not forcing refresh, return existing
+    if (profile && !forceRefresh && !loading) {
+      return profile;
+    }
+
+    if (loading && !forceRefresh) {
       console.log('Already loading, skipping request');
-      return profileRef.current;
+      return profile;
     }
 
     dispatch(setLoading(true));
     dispatch(clearError());
     
     try {
+      console.log('Fetching community profile for user:', user._id);
       const response = await communityApiService.getCommunityProfile();
       dispatch(setProfile(response.data));
       setRetryCount(0);
@@ -83,11 +84,11 @@ export const useCommunityProfile = () => {
       dispatch(setError(errorMessage));
       
       // Retry logic with exponential backoff
-      if (retryCount < maxRetries) {
+      if (retryCount < maxRetries && !forceRefresh) {
         const delay = Math.pow(2, retryCount) * 1000;
         setTimeout(() => {
           setRetryCount(prev => prev + 1);
-          fetchCommunityProfile();
+          fetchCommunityProfile(true);
         }, delay);
       } else {
         toast.error("Error loading profile", { description: errorMessage });
@@ -97,17 +98,23 @@ export const useCommunityProfile = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  }, [user, dispatch, router, retryCount, maxRetries]);
+  }, [user, dispatch, router, retryCount, maxRetries, profile, loading]);
 
-  // Fetch community profile by username
-  const fetchCommunityProfileByUsername = useCallback(async (username: string): Promise<CommunityProfile | null> => {
+  // Fetch community profile by username with better caching
+  const fetchCommunityProfileByUsername = useCallback(async (username: string, forceRefresh: boolean = false): Promise<CommunityProfile | null> => {
     if (!username) {
       toast.error("Invalid username");
       return null;
     }
 
+    // Check if this is for the currently viewed profile and we don't need to refresh
+    if (viewedProfile && viewedProfile.username === username && !forceRefresh && !viewedProfileLoading) {
+      return viewedProfile;
+    }
+
     dispatch(setViewedProfileLoading(true));
     try {
+      console.log('Fetching profile for username:', username);
       const response = await communityApiService.getCommunityProfileByUsername(username);
       dispatch(setViewedProfile(response.data));
       return response.data;
@@ -127,6 +134,27 @@ export const useCommunityProfile = () => {
     } finally {
       dispatch(setViewedProfileLoading(false));
     }
+  }, [dispatch, viewedProfile, viewedProfileLoading]);
+
+  // Update follow status for viewed profile
+  const updateFollowStatus = useCallback((username: string, isFollowing: boolean, followersCount: number) => {
+    if (viewedProfile && viewedProfile.username === username) {
+      dispatch(updateViewedProfileFollowStatus({ isFollowing, followersCount }));
+    }
+    
+    // Also update own profile if we're viewing our own profile
+    if (profile && profile.username === username) {
+      dispatch(setProfile({
+        ...profile,
+        isFollowing,
+        followersCount
+      }));
+    }
+  }, [dispatch, viewedProfile, profile]);
+
+  // Clear profile data when user logs out
+  const clearProfileData = useCallback(() => {
+    dispatch(clearCommunityProfileData());
   }, [dispatch]);
 
   // Update community profile
@@ -208,7 +236,7 @@ export const useCommunityProfile = () => {
   const retry = useCallback(() => {
     dispatch(clearError());
     setRetryCount(0);
-    return fetchCommunityProfile();
+    return fetchCommunityProfile(true);
   }, [dispatch, fetchCommunityProfile]);
 
   // Clear error
@@ -228,6 +256,8 @@ export const useCommunityProfile = () => {
     fetchCommunityProfileByUsername,
     updateCommunityProfile,
     uploadBannerImage,
+    updateFollowStatus,
+    clearProfileData,
     clearViewedProfileData,
     clearError: clearProfileError,
     retry

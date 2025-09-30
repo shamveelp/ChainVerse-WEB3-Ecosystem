@@ -29,6 +29,7 @@ export interface CommunityProfile {
   };
   joinDate: Date | string;
   isOwnProfile: boolean;
+  isFollowing?: boolean; // Add this property to fix the type error
 }
 
 interface CommunityProfileState {
@@ -92,6 +93,12 @@ export const communityProfileSlice = createSlice({
     clearViewedProfile: (state) => {
       state.viewedProfile = null;
     },
+    updateViewedProfileFollowStatus: (state, action: PayloadAction<{ isFollowing: boolean; followersCount: number }>) => {
+      if (state.viewedProfile) {
+        state.viewedProfile.isFollowing = action.payload.isFollowing;
+        state.viewedProfile.followersCount = action.payload.followersCount;
+      }
+    },
     
     // Update states
     setUpdating: (state, action: PayloadAction<boolean>) => {
@@ -145,6 +152,7 @@ export const {
   setViewedProfileLoading,
   setViewedProfile,
   clearViewedProfile,
+  updateViewedProfileFollowStatus,
   setUpdating,
   setUploadingBanner,
   updateFollowersCount,

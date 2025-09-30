@@ -86,7 +86,14 @@ export interface ApiResponse<T> {
 
 // Helper function to handle API errors consistently
 const handleApiError = (error: any, defaultMessage: string) => {
-  console.error("API Error:", error.response?.data || error.message);
+  console.error("Community API Error:", {
+    status: error.response?.status,
+    statusText: error.response?.statusText,
+    data: error.response?.data,
+    message: error.message,
+    url: error.config?.url,
+    method: error.config?.method
+  });
   
   if (error.response?.status === 401) {
     throw new Error("User not authenticated");
@@ -104,32 +111,43 @@ const handleApiError = (error: any, defaultMessage: string) => {
     throw new Error("Too many requests. Please try again later");
   }
   
-  const errorMessage = error.response?.data?.error || error.message || defaultMessage;
+  if (error.response?.status >= 500) {
+    throw new Error("Server error. Please try again later");
+  }
+  
+  const errorMessage = error.response?.data?.error || 
+                       error.response?.data?.message || 
+                       error.message || 
+                       defaultMessage;
   throw new Error(errorMessage);
 };
 
-// Helper function to transform profile data
+// Helper function to transform profile data with better error handling
 const transformProfileData = (data: any): CommunityProfile => {
+  if (!data || typeof data !== 'object') {
+    throw new Error('Invalid profile data received');
+  }
+
   return {
-    _id: data._id,
-    username: data.username,
-    name: data.name || "",
-    email: data.email,
-    profilePic: data.profilePic || "",
-    followersCount: data.followersCount || 0,
-    followingCount: data.followingCount || 0,
-    bio: data.bio || "",
-    location: data.location || "",
-    website: data.website || "",
-    bannerImage: data.bannerImage || "",
-    isVerified: data.isVerified || false,
-    postsCount: data.postsCount || 0,
-    likesReceived: data.likesReceived || 0,
+    _id: data._id || '',
+    username: data.username || '',
+    name: data.name || data.username || '',
+    email: data.email || '',
+    profilePic: data.profilePic || '',
+    followersCount: Number(data.followersCount) || 0,
+    followingCount: Number(data.followingCount) || 0,
+    bio: data.bio || '',
+    location: data.location || '',
+    website: data.website || '',
+    bannerImage: data.bannerImage || '',
+    isVerified: Boolean(data.isVerified),
+    postsCount: Number(data.postsCount) || 0,
+    likesReceived: Number(data.likesReceived) || 0,
     socialLinks: {
-      twitter: data.socialLinks?.twitter || "",
-      instagram: data.socialLinks?.instagram || "",
-      linkedin: data.socialLinks?.linkedin || "",
-      github: data.socialLinks?.github || ""
+      twitter: data.socialLinks?.twitter || '',
+      instagram: data.socialLinks?.instagram || '',
+      linkedin: data.socialLinks?.linkedin || '',
+      github: data.socialLinks?.github || ''
     },
     settings: {
       isProfilePublic: data.settings?.isProfilePublic ?? true,
@@ -137,9 +155,9 @@ const transformProfileData = (data: any): CommunityProfile => {
       showFollowersCount: data.settings?.showFollowersCount ?? true,
       showFollowingCount: data.settings?.showFollowingCount ?? true
     },
-    joinDate: data.joinDate || new Date().toISOString(),
-    isOwnProfile: data.isOwnProfile || false,
-    isFollowing: data.isFollowing || false
+    joinDate: data.joinDate || data.createdAt || new Date().toISOString(),
+    isOwnProfile: Boolean(data.isOwnProfile),
+    isFollowing: Boolean(data.isFollowing)
   };
 };
 
@@ -147,36 +165,46 @@ export const communityApiService = {
   // Get own community profile
   getCommunityProfile: async (): Promise<{ data: CommunityProfile }> => {
     try {
+      console.log('API: Fetching own community profile...');
       const response = await API.get("/api/user/community/profile");
+      console.log('API: Profile response:', response.data);
       
-      if (response.data.success && response.data.data) {
-        return {
-          data: transformProfileData(response.data.data)
-        };
+      if (response.data?.success && response.data?.data) {
+        const transformedData = transformProfileData(response.data.data);
+        console.log('API: Transformed profile data:', transformedData);
+        return { data: transformedData };
       }
-      throw new Error(response.data.error || "Failed to fetch community profile");
+      
+      throw new Error(response.data?.error || response.data?.message || "No profile data received");
     } catch (error: any) {
+      console.error('API: Get community profile failed:', error);
       handleApiError(error, "Failed to fetch community profile");
-      throw error; // This will never reach due to handleApiError throwing
+      throw error;
     }
   },
 
   // Get community profile by username
   getCommunityProfileByUsername: async (username: string): Promise<{ data: CommunityProfile }> => {
-    if (!username || typeof username !== 'string') {
+    if (!username || typeof username !== 'string' || username.trim() === '') {
       throw new Error("Valid username is required");
     }
 
     try {
-      const response = await API.get(`/api/user/community/profile/username/${encodeURIComponent(username)}`);
+      const cleanUsername = username.trim();
+      console.log(`API: Fetching profile for username: ${cleanUsername}`);
       
-      if (response.data.success && response.data.data) {
-        return {
-          data: transformProfileData(response.data.data)
-        };
+      const response = await API.get(`/api/user/community/profile/username/${encodeURIComponent(cleanUsername)}`);
+      console.log(`API: Profile response for ${cleanUsername}:`, response.data);
+      
+      if (response.data?.success && response.data?.data) {
+        const transformedData = transformProfileData(response.data.data);
+        console.log(`API: Transformed profile data for ${cleanUsername}:`, transformedData);
+        return { data: transformedData };
       }
-      throw new Error(response.data.error || "Failed to fetch community profile");
+      
+      throw new Error(response.data?.error || response.data?.message || "Profile not found");
     } catch (error: any) {
+      console.error(`API: Get profile by username failed for ${username}:`, error);
       handleApiError(error, "Failed to fetch community profile");
       throw error;
     }
@@ -184,18 +212,24 @@ export const communityApiService = {
 
   // Follow user
   followUser: async (username: string): Promise<FollowResponse> => {
-    if (!username || typeof username !== 'string') {
+    if (!username || typeof username !== 'string' || username.trim() === '') {
       throw new Error("Valid username is required");
     }
 
     try {
-      const response = await API.post("/api/user/community/follow", { username });
+      const cleanUsername = username.trim();
+      console.log(`API: Following user: ${cleanUsername}`);
       
-      if (response.data.success && response.data.data) {
+      const response = await API.post("/api/user/community/follow", { username: cleanUsername });
+      console.log(`API: Follow response for ${cleanUsername}:`, response.data);
+      
+      if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      throw new Error(response.data.error || "Failed to follow user");
+      
+      throw new Error(response.data?.error || response.data?.message || "Failed to follow user");
     } catch (error: any) {
+      console.error(`API: Follow user failed for ${username}:`, error);
       handleApiError(error, "Failed to follow user");
       throw error;
     }
@@ -203,18 +237,24 @@ export const communityApiService = {
 
   // Unfollow user
   unfollowUser: async (username: string): Promise<FollowResponse> => {
-    if (!username || typeof username !== 'string') {
+    if (!username || typeof username !== 'string' || username.trim() === '') {
       throw new Error("Valid username is required");
     }
 
     try {
-      const response = await API.post("/api/user/community/unfollow", { username });
+      const cleanUsername = username.trim();
+      console.log(`API: Unfollowing user: ${cleanUsername}`);
       
-      if (response.data.success && response.data.data) {
+      const response = await API.post("/api/user/community/unfollow", { username: cleanUsername });
+      console.log(`API: Unfollow response for ${cleanUsername}:`, response.data);
+      
+      if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      throw new Error(response.data.error || "Failed to unfollow user");
+      
+      throw new Error(response.data?.error || response.data?.message || "Failed to unfollow user");
     } catch (error: any) {
+      console.error(`API: Unfollow user failed for ${username}:`, error);
       handleApiError(error, "Failed to unfollow user");
       throw error;
     }
@@ -224,16 +264,20 @@ export const communityApiService = {
   getFollowers: async (cursor?: string, limit: number = 20): Promise<FollowListResponse> => {
     try {
       const params = new URLSearchParams();
-      if (cursor) params.append('cursor', cursor);
-      params.append('limit', Math.min(Math.max(limit, 1), 50).toString()); // Clamp between 1 and 50
+      if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
+      params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       
+      console.log('API: Fetching followers with params:', params.toString());
       const response = await API.get(`/api/user/community/followers?${params.toString()}`);
+      console.log('API: Followers response:', response.data);
       
-      if (response.data.success && response.data.data) {
+      if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      throw new Error(response.data.error || "Failed to get followers");
+      
+      throw new Error(response.data?.error || response.data?.message || "Failed to get followers");
     } catch (error: any) {
+      console.error('API: Get followers failed:', error);
       handleApiError(error, "Failed to get followers");
       throw error;
     }
@@ -243,16 +287,20 @@ export const communityApiService = {
   getFollowing: async (cursor?: string, limit: number = 20): Promise<FollowListResponse> => {
     try {
       const params = new URLSearchParams();
-      if (cursor) params.append('cursor', cursor);
+      if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       
+      console.log('API: Fetching following with params:', params.toString());
       const response = await API.get(`/api/user/community/following?${params.toString()}`);
+      console.log('API: Following response:', response.data);
       
-      if (response.data.success && response.data.data) {
+      if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      throw new Error(response.data.error || "Failed to get following");
+      
+      throw new Error(response.data?.error || response.data?.message || "Failed to get following");
     } catch (error: any) {
+      console.error('API: Get following failed:', error);
       handleApiError(error, "Failed to get following");
       throw error;
     }
@@ -260,22 +308,27 @@ export const communityApiService = {
 
   // Get user followers by username
   getUserFollowers: async (username: string, cursor?: string, limit: number = 20): Promise<FollowListResponse> => {
-    if (!username || typeof username !== 'string') {
+    if (!username || typeof username !== 'string' || username.trim() === '') {
       throw new Error("Valid username is required");
     }
 
     try {
+      const cleanUsername = username.trim();
       const params = new URLSearchParams();
-      if (cursor) params.append('cursor', cursor);
+      if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       
-      const response = await API.get(`/api/user/community/user/${encodeURIComponent(username)}/followers?${params.toString()}`);
+      console.log(`API: Fetching followers for ${cleanUsername} with params:`, params.toString());
+      const response = await API.get(`/api/user/community/user/${encodeURIComponent(cleanUsername)}/followers?${params.toString()}`);
+      console.log(`API: User followers response for ${cleanUsername}:`, response.data);
       
-      if (response.data.success && response.data.data) {
+      if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      throw new Error(response.data.error || "Failed to get user followers");
+      
+      throw new Error(response.data?.error || response.data?.message || "Failed to get user followers");
     } catch (error: any) {
+      console.error(`API: Get user followers failed for ${username}:`, error);
       handleApiError(error, "Failed to get user followers");
       throw error;
     }
@@ -283,22 +336,27 @@ export const communityApiService = {
 
   // Get user following by username
   getUserFollowing: async (username: string, cursor?: string, limit: number = 20): Promise<FollowListResponse> => {
-    if (!username || typeof username !== 'string') {
+    if (!username || typeof username !== 'string' || username.trim() === '') {
       throw new Error("Valid username is required");
     }
 
     try {
+      const cleanUsername = username.trim();
       const params = new URLSearchParams();
-      if (cursor) params.append('cursor', cursor);
+      if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       
-      const response = await API.get(`/api/user/community/user/${encodeURIComponent(username)}/following?${params.toString()}`);
+      console.log(`API: Fetching following for ${cleanUsername} with params:`, params.toString());
+      const response = await API.get(`/api/user/community/user/${encodeURIComponent(cleanUsername)}/following?${params.toString()}`);
+      console.log(`API: User following response for ${cleanUsername}:`, response.data);
       
-      if (response.data.success && response.data.data) {
+      if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      throw new Error(response.data.error || "Failed to get user following");
+      
+      throw new Error(response.data?.error || response.data?.message || "Failed to get user following");
     } catch (error: any) {
+      console.error(`API: Get user following failed for ${username}:`, error);
       handleApiError(error, "Failed to get user following");
       throw error;
     }
@@ -306,18 +364,24 @@ export const communityApiService = {
 
   // Get follow status
   getFollowStatus: async (username: string): Promise<{ isFollowing: boolean }> => {
-    if (!username || typeof username !== 'string') {
+    if (!username || typeof username !== 'string' || username.trim() === '') {
       throw new Error("Valid username is required");
     }
 
     try {
-      const response = await API.get(`/api/user/community/follow-status/${encodeURIComponent(username)}`);
+      const cleanUsername = username.trim();
+      console.log(`API: Getting follow status for: ${cleanUsername}`);
       
-      if (response.data.success && response.data.data) {
+      const response = await API.get(`/api/user/community/follow-status/${encodeURIComponent(cleanUsername)}`);
+      console.log(`API: Follow status response for ${cleanUsername}:`, response.data);
+      
+      if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      throw new Error(response.data.error || "Failed to get follow status");
+      
+      throw new Error(response.data?.error || response.data?.message || "Failed to get follow status");
     } catch (error: any) {
+      console.error(`API: Get follow status failed for ${username}:`, error);
       handleApiError(error, "Failed to get follow status");
       throw error;
     }
@@ -335,23 +399,28 @@ export const communityApiService = {
     }
 
     try {
+      console.log('API: Updating community profile with data:', profileData);
       const response = await API.put("/api/user/community/profile", profileData);
+      console.log('API: Update profile response:', response.data);
       
-      if (response.data.success && response.data.data) {
+      if (response.data?.success && response.data?.data) {
+        const transformedData = transformProfileData(response.data.data);
         return {
           success: true,
-          data: transformProfileData(response.data.data),
+          data: transformedData,
           message: response.data.message || "Community profile updated successfully",
         };
       }
+      
       return { 
         success: false, 
-        error: response.data.error || "Failed to update community profile" 
+        error: response.data?.error || response.data?.message || "Failed to update community profile" 
       };
     } catch (error: any) {
+      console.error('API: Update community profile failed:', error);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to update community profile",
+        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to update community profile",
       };
     }
   },
@@ -368,6 +437,7 @@ export const communityApiService = {
     }
 
     try {
+      console.log('API: Uploading banner image:', file.name, file.size);
       const formData = new FormData();
       formData.append("bannerImage", file);
 
@@ -376,22 +446,26 @@ export const communityApiService = {
           "Content-Type": "multipart/form-data",
         },
       });
+      console.log('API: Upload banner response:', response.data);
 
-      if (response.data.success && response.data.data) {
+      if (response.data?.success && response.data?.data) {
+        const transformedData = transformProfileData(response.data.data);
         return {
           success: true,
-          data: transformProfileData(response.data.data),
+          data: transformedData,
           message: response.data.message || "Banner image uploaded successfully",
         };
       }
+      
       return { 
         success: false, 
-        error: response.data.error || "Failed to upload banner image" 
+        error: response.data?.error || response.data?.message || "Failed to upload banner image" 
       };
     } catch (error: any) {
+      console.error('API: Upload banner image failed:', error);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to upload banner image",
+        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to upload banner image",
       };
     }
   },

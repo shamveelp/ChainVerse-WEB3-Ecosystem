@@ -26,14 +26,10 @@ export const useFollow = () => {
     setLoading(true);
     try {
       const result = await communityApiService.followUser(username);
-      toast.success(result.message || `You are now following @${username}`);
       return true;
     } catch (error: any) {
       console.error('Follow user error:', error);
-      toast.error("Failed to follow user", { 
-        description: error.message || "Please try again" 
-      });
-      return false;
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -45,14 +41,10 @@ export const useFollow = () => {
     setLoading(true);
     try {
       const result = await communityApiService.unfollowUser(username);
-      toast.success(result.message || `You unfollowed @${username}`);
       return true;
     } catch (error: any) {
       console.error('Unfollow user error:', error);
-      toast.error("Failed to unfollow user", { 
-        description: error.message || "Please try again" 
-      });
-      return false;
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -99,10 +91,7 @@ export const useFollow = () => {
       setFollowersData(result);
     } catch (error: any) {
       console.error('Get user followers error:', error);
-      toast.error("Failed to load followers", { 
-        description: error.message || "Please try again" 
-      });
-      setFollowersData(null);
+      throw error;
     } finally {
       setLoadingFollowers(false);
     }
@@ -117,10 +106,7 @@ export const useFollow = () => {
       setFollowingData(result);
     } catch (error: any) {
       console.error('Get user following error:', error);
-      toast.error("Failed to load following", { 
-        description: error.message || "Please try again" 
-      });
-      setFollowingData(null);
+      throw error;
     } finally {
       setLoadingFollowing(false);
     }

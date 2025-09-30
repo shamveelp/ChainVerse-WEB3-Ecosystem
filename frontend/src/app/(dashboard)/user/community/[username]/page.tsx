@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Calendar, MapPin, Link2, MessageCircle, MoreHorizontal, Settings, Loader2, RefreshCw, AlertCircle } from 'lucide-react'
+import { Calendar, MapPin, Link2, MessageCircle, MoveHorizontal as MoreHorizontal, Settings, Loader as Loader2, RefreshCw, CircleAlert as AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useCommunityProfile } from '@/hooks/useCommunityProfile'
 import { useFollow } from '@/hooks/useFollow'
@@ -17,20 +17,33 @@ import { RootState } from '@/redux/store'
 import Post from '@/components/community/post'
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
+import { toast } from 'sonner'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface ProfilePageProps {
-  params: {
+  params: Promise<{
     username: string
-  }
+  }>
 }
 
 export default function ProfilePage({ params }: ProfilePageProps) {
   const router = useRouter()
-  const { username } = params
+  const resolvedParams = use(params)
+  const { username } = resolvedParams
+  
   const [activeTab, setActiveTab] = useState('posts')
   const [isFollowing, setIsFollowing] = useState(false)
   const [followStats, setFollowStats] = useState({ followersCount: 0, followingCount: 0 })
   const [followActionInProgress, setFollowActionInProgress] = useState(false)
+  const [showUnfollowDialog, setShowUnfollowDialog] = useState(false)
+  const [profileKey, setProfileKey] = useState(0) // Force re-render key
 
   // Get current user info
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
@@ -42,6 +55,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     viewedProfileLoading,
     fetchCommunityProfileByUsername,
     fetchCommunityProfile,
+    updateFollowStatus,
     clearViewedProfileData,
     clearError,
     retry
@@ -54,7 +68,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const displayProfile = isOwnProfile ? ownProfile : viewedProfile
   const isLoading = isOwnProfile ? ownProfileLoading : viewedProfileLoading
 
-  // Update isFollowing and stats when profile data changes
+  // Update local states when profile data changes
   useEffect(() => {
     if (displayProfile) {
       setIsFollowing(displayProfile.isFollowing || false)
@@ -63,24 +77,49 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         followingCount: displayProfile.followingCount || 0
       })
     }
-  }, [displayProfile])
+  }, [displayProfile, profileKey])
 
-  // Fetch profile data
+  // Fetch profile data with proper cleanup and refresh logic
   useEffect(() => {
     console.log('ProfilePage useEffect - username:', username, 'currentUser:', currentUser?.username);
 
-    if (isOwnProfile) {
-      // Load own profile if not already loaded
-      if (!ownProfile && !ownProfileLoading) {
-        console.log('Fetching own profile...');
-        fetchCommunityProfile()
-      }
-    } else {
-      // Load other user's profile
-      console.log('Fetching profile for username:', username);
-      fetchCommunityProfileByUsername(username).catch(err => {
+    const fetchData = async () => {
+      try {
+        if (isOwnProfile) {
+          // Load own profile if not already loaded or if user changed
+          if (!ownProfile || ownProfile.username !== currentUser?.username) {
+            console.log('Fetching own profile...');
+            await fetchCommunityProfile(true) // Force refresh
+          }
+        } else {
+          // Always fetch other user's profile to get fresh data
+          console.log('Fetching profile for username:', username);
+          const profileData = await fetchCommunityProfileByUsername(username, true) // Force refresh
+          
+          if (profileData) {
+            // Get fresh follow status
+            try {
+              const followStatus = await communityApiService.getFollowStatus(username)
+              if (followStatus.isFollowing !== profileData.isFollowing) {
+                // Update the profile with correct follow status
+                updateFollowStatus(username, followStatus.isFollowing, profileData.followersCount)
+                setIsFollowing(followStatus.isFollowing)
+              }
+            } catch (error) {
+              console.error('Failed to get follow status:', error)
+            }
+          }
+        }
+      } catch (err: any) {
         console.error('Failed to fetch profile:', err)
-      })
+        toast.error('Failed to load profile', {
+          description: err.message || 'Please try again'
+        })
+      }
+    }
+
+    if (currentUser) {
+      fetchData()
     }
 
     // Cleanup when username changes
@@ -89,7 +128,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         clearViewedProfileData()
       }
     }
-  }, [username, isOwnProfile, currentUser])
+  }, [username, isOwnProfile, currentUser?.username, currentUser?._id])
+
+  // Force component update when user changes (handles logout/login with different user)
+  useEffect(() => {
+    setProfileKey(prev => prev + 1)
+  }, [currentUser?._id])
 
   // Format join date
   const formatJoinDate = (dateString: string | Date) => {
@@ -101,33 +145,71 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     })
   }
 
-  // Handle follow/unfollow
-  const handleFollowToggle = async () => {
+  // Handle follow action with proper state management
+  const handleFollowClick = async () => {
     if (!displayProfile || isOwnProfile || followActionInProgress) return
 
     setFollowActionInProgress(true)
     try {
-      if (isFollowing) {
-        const success = await unfollowUser(displayProfile.username)
-        if (success) {
-          setIsFollowing(false)
-          setFollowStats(prev => ({
-            ...prev,
-            followersCount: Math.max(0, prev.followersCount - 1)
-          }))
-        }
-      } else {
-        const success = await followUser(displayProfile.username)
-        if (success) {
-          setIsFollowing(true)
-          setFollowStats(prev => ({
-            ...prev,
-            followersCount: prev.followersCount + 1
-          }))
-        }
+      const success = await followUser(displayProfile.username)
+      if (success) {
+        const newFollowersCount = followStats.followersCount + 1
+        
+        // Update all states
+        setIsFollowing(true)
+        setFollowStats(prev => ({
+          ...prev,
+          followersCount: newFollowersCount
+        }))
+        
+        // Update Redux state
+        updateFollowStatus(displayProfile.username, true, newFollowersCount)
+        
+        toast.success(`You are now following @${displayProfile.username}`)
       }
     } catch (error) {
-      console.error('Follow/unfollow error:', error)
+      console.error('Follow error:', error)
+      toast.error('Failed to follow user', {
+        description: 'Please try again'
+      })
+    } finally {
+      setFollowActionInProgress(false)
+    }
+  }
+
+  // Handle unfollow confirmation
+  const handleUnfollowClick = () => {
+    setShowUnfollowDialog(true)
+  }
+
+  // Handle actual unfollow with proper state management
+  const handleUnfollowConfirm = async () => {
+    if (!displayProfile || isOwnProfile || followActionInProgress) return
+
+    setFollowActionInProgress(true)
+    try {
+      const success = await unfollowUser(displayProfile.username)
+      if (success) {
+        const newFollowersCount = Math.max(0, followStats.followersCount - 1)
+        
+        // Update all states
+        setIsFollowing(false)
+        setFollowStats(prev => ({
+          ...prev,
+          followersCount: newFollowersCount
+        }))
+        
+        // Update Redux state
+        updateFollowStatus(displayProfile.username, false, newFollowersCount)
+        
+        toast.success(`You unfollowed @${displayProfile.username}`)
+        setShowUnfollowDialog(false)
+      }
+    } catch (error) {
+      console.error('Unfollow error:', error)
+      toast.error('Failed to unfollow user', {
+        description: 'Please try again'
+      })
     } finally {
       setFollowActionInProgress(false)
     }
@@ -151,6 +233,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const handleMessageClick = () => {
     if (!displayProfile) return
     router.push(`/user/community/messages/${username}`)
+    toast.info('Messages feature coming soon')
   }
 
   // Show loading
@@ -200,7 +283,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-950">
+    <div className="flex min-h-screen bg-slate-950" key={profileKey}>
       {/* Left Sidebar */}
       <Sidebar />
 
@@ -343,7 +426,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                         </Button>
                       )}
                       <Button
-                        onClick={handleFollowToggle}
+                        onClick={isFollowing ? handleUnfollowClick : handleFollowClick}
                         disabled={followActionInProgress}
                         className={`${
                           isFollowing
@@ -482,6 +565,36 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
       {/* Right Sidebar */}
       <RightSidebar />
+
+      {/* Unfollow Confirmation Dialog */}
+      <Dialog open={showUnfollowDialog} onOpenChange={setShowUnfollowDialog}>
+        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Unfollow @{displayProfile?.username}?</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Their posts will no longer show up in your timeline. You can still view their profile and posts.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowUnfollowDialog(false)}
+              disabled={followActionInProgress}
+              className="border-slate-600 hover:bg-slate-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUnfollowConfirm}
+              disabled={followActionInProgress}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {followActionInProgress && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Unfollow
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

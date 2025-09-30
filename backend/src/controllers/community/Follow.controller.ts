@@ -26,25 +26,33 @@ export class FollowController implements IFollowController {
                 return;
             }
 
-            if (!username) {
+            if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Username is required"
+                    error: "Valid username is required"
                 });
                 return;
             }
 
-            const result = await this._followService.followUser(user.id, username);
+            const result = await this._followService.followUser(user.id, username.trim());
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: result
+                data: result,
+                message: result.message
             });
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to follow user";
-            logger.error("Follow user error:", { message, stack: err.stack, userId: req.user });
+            
+            logger.error("Follow user error:", { 
+                message, 
+                stack: err.stack, 
+                userId: req.user ? (req.user as any).id : 'unknown',
+                targetUsername: req.body?.username 
+            });
+            
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -65,25 +73,33 @@ export class FollowController implements IFollowController {
                 return;
             }
 
-            if (!username) {
+            if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Username is required"
+                    error: "Valid username is required"
                 });
                 return;
             }
 
-            const result = await this._followService.unfollowUser(user.id, username);
+            const result = await this._followService.unfollowUser(user.id, username.trim());
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: result
+                data: result,
+                message: result.message
             });
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to unfollow user";
-            logger.error("Unfollow user error:", { message, stack: err.stack, userId: req.user });
+            
+            logger.error("Unfollow user error:", { 
+                message, 
+                stack: err.stack, 
+                userId: req.user ? (req.user as any).id : 'unknown',
+                targetUsername: req.body?.username 
+            });
+            
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -96,11 +112,28 @@ export class FollowController implements IFollowController {
             const user = req.user as { id: string; role: string } | undefined;
             const { cursor, limit } = req.query;
 
+            if (!user?.id) {
+                res.status(StatusCode.UNAUTHORIZED).json({
+                    success: false,
+                    error: "User not authenticated"
+                });
+                return;
+            }
+
+            // Validate limit
+            let validLimit = 20;
+            if (limit && typeof limit === 'string') {
+                const parsedLimit = parseInt(limit, 10);
+                if (!isNaN(parsedLimit)) {
+                    validLimit = Math.min(Math.max(parsedLimit, 1), 50);
+                }
+            }
+
             const result = await this._followService.getFollowers(
-                user?.id || '',
-                user?.id,
+                user.id,
+                user.id,
                 cursor as string,
-                limit ? parseInt(limit as string, 10) : 20
+                validLimit
             );
 
             res.status(StatusCode.OK).json({
@@ -111,7 +144,9 @@ export class FollowController implements IFollowController {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to get followers";
+            
             logger.error("Get followers error:", { message, stack: err.stack });
+            
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -124,11 +159,28 @@ export class FollowController implements IFollowController {
             const user = req.user as { id: string; role: string } | undefined;
             const { cursor, limit } = req.query;
 
+            if (!user?.id) {
+                res.status(StatusCode.UNAUTHORIZED).json({
+                    success: false,
+                    error: "User not authenticated"
+                });
+                return;
+            }
+
+            // Validate limit
+            let validLimit = 20;
+            if (limit && typeof limit === 'string') {
+                const parsedLimit = parseInt(limit, 10);
+                if (!isNaN(parsedLimit)) {
+                    validLimit = Math.min(Math.max(parsedLimit, 1), 50);
+                }
+            }
+
             const result = await this._followService.getFollowing(
-                user?.id || '',
-                user?.id,
+                user.id,
+                user.id,
                 cursor as string,
-                limit ? parseInt(limit as string, 10) : 20
+                validLimit
             );
 
             res.status(StatusCode.OK).json({
@@ -139,7 +191,9 @@ export class FollowController implements IFollowController {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to get following";
+            
             logger.error("Get following error:", { message, stack: err.stack });
+            
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -153,19 +207,28 @@ export class FollowController implements IFollowController {
             const { username } = req.params;
             const { cursor, limit } = req.query;
 
-            if (!username) {
+            if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Username is required"
+                    error: "Valid username is required"
                 });
                 return;
             }
 
+            // Validate limit
+            let validLimit = 20;
+            if (limit && typeof limit === 'string') {
+                const parsedLimit = parseInt(limit, 10);
+                if (!isNaN(parsedLimit)) {
+                    validLimit = Math.min(Math.max(parsedLimit, 1), 50);
+                }
+            }
+
             const result = await this._followService.getUserFollowers(
-                username,
+                username.trim(),
                 user?.id,
                 cursor as string,
-                limit ? parseInt(limit as string, 10) : 20
+                validLimit
             );
 
             res.status(StatusCode.OK).json({
@@ -176,7 +239,13 @@ export class FollowController implements IFollowController {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to get user followers";
-            logger.error("Get user followers error:", { message, stack: err.stack });
+            
+            logger.error("Get user followers error:", { 
+                message, 
+                stack: err.stack,
+                username: req.params.username 
+            });
+            
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -190,19 +259,28 @@ export class FollowController implements IFollowController {
             const { username } = req.params;
             const { cursor, limit } = req.query;
 
-            if (!username) {
+            if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Username is required"
+                    error: "Valid username is required"
                 });
                 return;
             }
 
+            // Validate limit
+            let validLimit = 20;
+            if (limit && typeof limit === 'string') {
+                const parsedLimit = parseInt(limit, 10);
+                if (!isNaN(parsedLimit)) {
+                    validLimit = Math.min(Math.max(parsedLimit, 1), 50);
+                }
+            }
+
             const result = await this._followService.getUserFollowing(
-                username,
+                username.trim(),
                 user?.id,
                 cursor as string,
-                limit ? parseInt(limit as string, 10) : 20
+                validLimit
             );
 
             res.status(StatusCode.OK).json({
@@ -213,7 +291,13 @@ export class FollowController implements IFollowController {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to get user following";
-            logger.error("Get user following error:", { message, stack: err.stack });
+            
+            logger.error("Get user following error:", { 
+                message, 
+                stack: err.stack,
+                username: req.params.username 
+            });
+            
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -234,15 +318,15 @@ export class FollowController implements IFollowController {
                 return;
             }
 
-            if (!username) {
+            if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Username is required"
+                    error: "Valid username is required"
                 });
                 return;
             }
 
-            const result = await this._followService.getFollowStatus(user.id, username);
+            const result = await this._followService.getFollowStatus(user.id, username.trim());
 
             res.status(StatusCode.OK).json({
                 success: true,
@@ -252,7 +336,13 @@ export class FollowController implements IFollowController {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to get follow status";
-            logger.error("Get follow status error:", { message, stack: err.stack });
+            
+            logger.error("Get follow status error:", { 
+                message, 
+                stack: err.stack,
+                username: req.params.username 
+            });
+            
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -282,7 +372,13 @@ export class FollowController implements IFollowController {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to get follow stats";
-            logger.error("Get follow stats error:", { message, stack: err.stack });
+            
+            logger.error("Get follow stats error:", { 
+                message, 
+                stack: err.stack,
+                userId: req.user ? (req.user as any).id : 'unknown' 
+            });
+            
             res.status(statusCode).json({
                 success: false,
                 error: message

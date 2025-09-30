@@ -266,4 +266,4 @@ router.get('/dex/payments',
   userDexController.getUserPayments.bind(userDexController)
 );
 
-export default router;
+export default router; 

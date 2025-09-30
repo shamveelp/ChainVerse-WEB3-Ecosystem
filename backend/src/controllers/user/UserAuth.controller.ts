@@ -115,6 +115,7 @@ export class UserAuthController implements IUserAuthController {
 
   checkUsername = async (req: Request, res: Response) => {
     try {
+      console.log("Helo")
       const checkUsernameDto = req.body as CheckUsernameDto;
       const { username } = checkUsernameDto;
       
@@ -123,7 +124,7 @@ export class UserAuthController implements IUserAuthController {
       res.status(StatusCode.OK).json(response);
     } catch (error) {
       logger.error("Error checking username:", error);
-      res.status(StatusCode.BAD_REQUEST).json({ 
+      res.status(StatusCode.BAD_REQUEST).json({
         success: false,
         error: "Failed to check username availability" 
       });
@@ -133,6 +134,7 @@ export class UserAuthController implements IUserAuthController {
   generateUsername = async (req: Request, res: Response) => {
     try {
       const username = await this._userAuthService.generateUsername();
+      console.log("Generated username:", username);
       res.status(StatusCode.OK).json({ 
         success: true,
         username 

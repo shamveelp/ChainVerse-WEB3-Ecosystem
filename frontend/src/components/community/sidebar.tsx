@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Chrome as Home, Search, Users, MessageCircle, User, Settings, LogOut, Menu, X, Bell, Bookmark, Loader2, AlertCircle } from 'lucide-react'
+import { Chrome as Home, Search, Users, MessageCircle, User, Settings, LogOut, Menu, X, Bell, Bookmark, Loader as Loader2, CircleAlert as AlertCircle } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { useCommunityProfile } from '@/hooks/useCommunityProfile'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '@/redux/store'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { communityApiService } from '@/services/communityApiService'
+import { logout } from '@/redux/slices/userAuthSlice'
 
 const navigationItems = [
   { id: 'home', label: 'Home', icon: Home, path: '/user/community' },
@@ -23,22 +24,25 @@ const navigationItems = [
 
 export default function Sidebar() {
   const router = useRouter()
+  const dispatch = useDispatch()
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // Get current user from auth state
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
-  const { profile, loading, error, fetchCommunityProfile, clearError, retry } = useCommunityProfile()
+  const { profile, loading, error, fetchCommunityProfile, clearProfileData, clearError, retry } = useCommunityProfile()
 
-  // Fetch profile on mount
+  // Fetch profile on mount and when user changes
   useEffect(() => {
-    if (currentUser && !profile && !loading) {
-      console.log('Sidebar: Fetching community profile...')
-      fetchCommunityProfile()
+    if (currentUser && (!profile || profile.username !== currentUser.username)) {
+      console.log('Sidebar: Fetching community profile for user:', currentUser.username)
+      fetchCommunityProfile(true) // Force refresh to ensure we get the latest data
     }
-  }, [currentUser, profile, loading, fetchCommunityProfile])
+  }, [currentUser?._id, currentUser?.username, fetchCommunityProfile])
 
   const handleLogout = () => {
+    clearProfileData() // Clear profile data on logout
+    dispatch(logout())
     router.push('/')
     setIsMobileMenuOpen(false)
   }
@@ -89,9 +93,9 @@ export default function Sidebar() {
               onClick={handleProfileClick}
             >
               <Avatar className="w-10 h-10 ring-2 ring-cyan-400/30">
-                <AvatarImage 
-                  src={profile?.profilePic || ''} 
-                  alt={profile?.name || currentUser.name || currentUser.username} 
+                <AvatarImage
+                  src={profile?.profilePic || ''}
+                  alt={profile?.name || currentUser.name || currentUser.username}
                 />
                 <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
                   {(profile?.name || currentUser.name || currentUser.username)?.charAt(0)?.toUpperCase() || 'U'}

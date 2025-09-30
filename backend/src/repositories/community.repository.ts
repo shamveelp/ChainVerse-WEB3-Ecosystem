@@ -28,6 +28,9 @@ export class CommunityRepository implements ICommunityRepository {
 
   async findUserByUsername(username: string): Promise<IUser | null> {
     try {
+      if (!username || typeof username !== 'string') {
+        return null;
+      }
       return await UserModel.findOne({ username }).select("-password").exec();
     } catch (error) {
       throw new CustomError(
@@ -138,7 +141,7 @@ export class CommunityRepository implements ICommunityRepository {
     }
   }
 
-  // Follow-related methods with atomic operations
+  // Follow-related methods with improved atomic operations
   async createFollow(followerId: string, followingId: string): Promise<void> {
     try {
       if (
@@ -150,6 +153,20 @@ export class CommunityRepository implements ICommunityRepository {
 
       if (followerId === followingId) {
         throw new CustomError("Cannot follow yourself", StatusCode.BAD_REQUEST);
+      }
+
+      // Check if both users exist
+      const [followerExists, followingExists] = await Promise.all([
+        UserModel.exists({ _id: followerId }),
+        UserModel.exists({ _id: followingId })
+      ]);
+
+      if (!followerExists) {
+        throw new CustomError("Follower user not found", StatusCode.NOT_FOUND);
+      }
+      
+      if (!followingExists) {
+        throw new CustomError("User to follow not found", StatusCode.NOT_FOUND);
       }
 
       const follow = new FollowModel({
@@ -217,7 +234,10 @@ export class CommunityRepository implements ICommunityRepository {
       const follow = await FollowModel.findOne({
         follower: new Types.ObjectId(followerId),
         following: new Types.ObjectId(followingId),
-      }).exec();
+      })
+        .select('_id')
+        .lean()
+        .exec();
 
       return !!follow;
     } catch (error) {
@@ -260,23 +280,33 @@ export class CommunityRepository implements ICommunityRepository {
 
       // Check follow status for viewer in batch
       const users: UserFollowInfo[] = [];
-      const userIds = followersList.map((follow: any) => follow.follower._id.toString());
-      
       let followStatusMap: { [key: string]: boolean } = {};
+      
       if (viewerUserId && Types.ObjectId.isValid(viewerUserId)) {
-        const viewerFollowing = await FollowModel.find({
-          follower: new Types.ObjectId(viewerUserId),
-          following: { $in: userIds.map(id => new Types.ObjectId(id)) }
-        }).lean().exec();
-        
-        followStatusMap = viewerFollowing.reduce((acc, follow) => {
-          acc[follow.following.toString()] = true;
-          return acc;
-        }, {} as { [key: string]: boolean });
+        const userIds = followersList
+          .map((follow: any) => follow.follower?._id?.toString())
+          .filter(Boolean);
+          
+        if (userIds.length > 0) {
+          const viewerFollowing = await FollowModel.find({
+            follower: new Types.ObjectId(viewerUserId),
+            following: { $in: userIds.map(id => new Types.ObjectId(id)) }
+          })
+            .select('following')
+            .lean()
+            .exec();
+          
+          followStatusMap = viewerFollowing.reduce((acc, follow) => {
+            acc[follow.following.toString()] = true;
+            return acc;
+          }, {} as { [key: string]: boolean });
+        }
       }
 
       for (const follow of followersList) {
         const follower = follow.follower as any;
+        if (!follower) continue; // Skip if follower was deleted
+        
         const isFollowing = viewerUserId ? (followStatusMap[follower._id.toString()] || false) : false;
 
         users.push({
@@ -291,7 +321,7 @@ export class CommunityRepository implements ICommunityRepository {
         });
       }
 
-      // Get total count
+      // Get total count efficiently
       const totalCount = await FollowModel.countDocuments({
         following: new Types.ObjectId(userId),
       });
@@ -299,7 +329,7 @@ export class CommunityRepository implements ICommunityRepository {
       return {
         users,
         hasMore,
-        nextCursor: hasMore
+        nextCursor: hasMore && followersList.length > 0
           ? followersList[followersList.length - 1]._id!.toString()
           : undefined,
         totalCount,
@@ -347,23 +377,33 @@ export class CommunityRepository implements ICommunityRepository {
 
       // Check follow status for viewer in batch
       const users: UserFollowInfo[] = [];
-      const userIds = followingList.map((follow: any) => follow.following._id.toString());
-      
       let followStatusMap: { [key: string]: boolean } = {};
+      
       if (viewerUserId && Types.ObjectId.isValid(viewerUserId)) {
-        const viewerFollowing = await FollowModel.find({
-          follower: new Types.ObjectId(viewerUserId),
-          following: { $in: userIds.map(id => new Types.ObjectId(id)) }
-        }).lean().exec();
-        
-        followStatusMap = viewerFollowing.reduce((acc, follow) => {
-          acc[follow.following.toString()] = true;
-          return acc;
-        }, {} as { [key: string]: boolean });
+        const userIds = followingList
+          .map((follow: any) => follow.following?._id?.toString())
+          .filter(Boolean);
+          
+        if (userIds.length > 0) {
+          const viewerFollowing = await FollowModel.find({
+            follower: new Types.ObjectId(viewerUserId),
+            following: { $in: userIds.map(id => new Types.ObjectId(id)) }
+          })
+            .select('following')
+            .lean()
+            .exec();
+          
+          followStatusMap = viewerFollowing.reduce((acc, follow) => {
+            acc[follow.following.toString()] = true;
+            return acc;
+          }, {} as { [key: string]: boolean });
+        }
       }
 
       for (const follow of followingList) {
         const following = follow.following as any;
+        if (!following) continue; // Skip if following user was deleted
+        
         const isFollowing = viewerUserId ? (followStatusMap[following._id.toString()] || false) : false;
 
         users.push({
@@ -378,7 +418,7 @@ export class CommunityRepository implements ICommunityRepository {
         });
       }
 
-      // Get total count
+      // Get total count efficiently
       const totalCount = await FollowModel.countDocuments({
         follower: new Types.ObjectId(userId),
       });
@@ -386,7 +426,7 @@ export class CommunityRepository implements ICommunityRepository {
       return {
         users,
         hasMore,
-        nextCursor: hasMore
+        nextCursor: hasMore && followingList.length > 0
           ? followingList[followingList.length - 1]._id!.toString()
           : undefined,
         totalCount,
@@ -409,7 +449,7 @@ export class CommunityRepository implements ICommunityRepository {
       await UserModel.findByIdAndUpdate(
         userId, 
         { $inc: { followersCount: 1 } },
-        { new: true }
+        { new: true, upsert: false }
       ).exec();
     } catch (error) {
       throw new CustomError(
@@ -425,14 +465,14 @@ export class CommunityRepository implements ICommunityRepository {
         throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
       }
 
-      // Use $max to ensure count doesn't go below 0
+      // Use aggregation to ensure count doesn't go below 0
       await UserModel.findByIdAndUpdate(
         userId,
         [
           {
             $set: {
               followersCount: {
-                $max: [{ $subtract: ["$followersCount", 1] }, 0]
+                $max: [{ $subtract: [{ $ifNull: ["$followersCount", 0] }, 1] }, 0]
               }
             }
           }
@@ -456,7 +496,7 @@ export class CommunityRepository implements ICommunityRepository {
       await UserModel.findByIdAndUpdate(
         userId, 
         { $inc: { followingCount: 1 } },
-        { new: true }
+        { new: true, upsert: false }
       ).exec();
     } catch (error) {
       throw new CustomError(
@@ -472,14 +512,14 @@ export class CommunityRepository implements ICommunityRepository {
         throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
       }
 
-      // Use $max to ensure count doesn't go below 0
+      // Use aggregation to ensure count doesn't go below 0
       await UserModel.findByIdAndUpdate(
         userId,
         [
           {
             $set: {
               followingCount: {
-                $max: [{ $subtract: ["$followingCount", 1] }, 0]
+                $max: [{ $subtract: [{ $ifNull: ["$followingCount", 0] }, 1] }, 0]
               }
             }
           }

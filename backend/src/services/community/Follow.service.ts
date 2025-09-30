@@ -40,41 +40,50 @@ export class FollowService implements IFollowService {
                 throw new CustomError("You are already following this user", StatusCode.BAD_REQUEST);
             }
 
-            // Use transaction-like operation for consistency
+            // Atomic transaction-like operation
+            let followCreated = false;
             try {
-                // Create follow relationship first
+                // Create follow relationship
                 await this._communityRepository.createFollow(followerId, targetUser._id.toString());
-                
+                followCreated = true;
+
                 // Update counts atomically
                 await Promise.all([
                     this._communityRepository.incrementFollowingCount(followerId),
                     this._communityRepository.incrementFollowersCount(targetUser._id.toString())
                 ]);
+
+                // Get updated users for accurate counts
+                const [followerUser, updatedTargetUser] = await Promise.all([
+                    this._communityRepository.findUserById(followerId),
+                    this._communityRepository.findUserById(targetUser._id.toString())
+                ]);
+
+                return {
+                    success: true,
+                    message: `You are now following @${targetUsername}`,
+                    isFollowing: true,
+                    followersCount: updatedTargetUser?.followersCount || 0,
+                    followingCount: followerUser?.followingCount || 0
+                };
+
             } catch (error) {
-                // If follow creation fails, counts won't be updated
-                // If count update fails, we need to clean up the follow relationship
-                try {
-                    await this._communityRepository.removeFollow(followerId, targetUser._id.toString());
-                } catch (cleanupError) {
-                    // Log cleanup error but don't throw
-                    console.error("Failed to cleanup follow relationship:", cleanupError);
+                // Rollback if follow was created but count update failed
+                if (followCreated) {
+                    try {
+                        await this._communityRepository.removeFollow(followerId, targetUser._id.toString());
+                        // Also rollback count changes if they were applied
+                        await Promise.all([
+                            this._communityRepository.decrementFollowingCount(followerId),
+                            this._communityRepository.decrementFollowersCount(targetUser._id.toString())
+                        ]);
+                    } catch (rollbackError) {
+                        console.error("Failed to rollback follow operation:", rollbackError);
+                    }
                 }
                 throw error;
             }
 
-            // Get updated counts
-            const [followerUser, updatedTargetUser] = await Promise.all([
-                this._communityRepository.findUserById(followerId),
-                this._communityRepository.findUserById(targetUser._id.toString())
-            ]);
-
-            return {
-                success: true,
-                message: `You are now following @${targetUsername}`,
-                isFollowing: true,
-                followersCount: updatedTargetUser?.followersCount || 0,
-                followingCount: followerUser?.followingCount || 0
-            };
         } catch (error) {
             console.error("FollowService: Follow user error:", error);
             if (error instanceof CustomError) {
@@ -107,40 +116,50 @@ export class FollowService implements IFollowService {
                 throw new CustomError("You are not following this user", StatusCode.BAD_REQUEST);
             }
 
-            // Use transaction-like operation for consistency
+            // Atomic transaction-like operation
+            let followRemoved = false;
             try {
-                // Remove follow relationship first
+                // Remove follow relationship
                 await this._communityRepository.removeFollow(followerId, targetUser._id.toString());
-                
+                followRemoved = true;
+
                 // Update counts atomically
                 await Promise.all([
                     this._communityRepository.decrementFollowingCount(followerId),
                     this._communityRepository.decrementFollowersCount(targetUser._id.toString())
                 ]);
+
+                // Get updated users for accurate counts
+                const [followerUser, updatedTargetUser] = await Promise.all([
+                    this._communityRepository.findUserById(followerId),
+                    this._communityRepository.findUserById(targetUser._id.toString())
+                ]);
+
+                return {
+                    success: true,
+                    message: `You unfollowed @${targetUsername}`,
+                    isFollowing: false,
+                    followersCount: updatedTargetUser?.followersCount || 0,
+                    followingCount: followerUser?.followingCount || 0
+                };
+
             } catch (error) {
-                // If removal fails, we need to restore the follow relationship
-                try {
-                    await this._communityRepository.createFollow(followerId, targetUser._id.toString());
-                } catch (restoreError) {
-                    // Log restore error but don't throw
-                    console.error("Failed to restore follow relationship:", restoreError);
+                // Rollback if follow was removed but count update failed
+                if (followRemoved) {
+                    try {
+                        await this._communityRepository.createFollow(followerId, targetUser._id.toString());
+                        // Also rollback count changes if they were applied
+                        await Promise.all([
+                            this._communityRepository.incrementFollowingCount(followerId),
+                            this._communityRepository.incrementFollowersCount(targetUser._id.toString())
+                        ]);
+                    } catch (rollbackError) {
+                        console.error("Failed to rollback unfollow operation:", rollbackError);
+                    }
                 }
                 throw error;
             }
 
-            // Get updated counts
-            const [followerUser, updatedTargetUser] = await Promise.all([
-                this._communityRepository.findUserById(followerId),
-                this._communityRepository.findUserById(targetUser._id.toString())
-            ]);
-
-            return {
-                success: true,
-                message: `You unfollowed @${targetUsername}`,
-                isFollowing: false,
-                followersCount: updatedTargetUser?.followersCount || 0,
-                followingCount: followerUser?.followingCount || 0
-            };
         } catch (error) {
             console.error("FollowService: Unfollow user error:", error);
             if (error instanceof CustomError) {
@@ -156,7 +175,10 @@ export class FollowService implements IFollowService {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
             }
 
-            const result = await this._communityRepository.getFollowers(userId, viewerUserId, cursor, limit);
+            // Validate limit
+            const validLimit = Math.min(Math.max(limit, 1), 50);
+
+            const result = await this._communityRepository.getFollowers(userId, viewerUserId, cursor, validLimit);
             return result;
         } catch (error) {
             console.error("FollowService: Get followers error:", error);
@@ -173,7 +195,10 @@ export class FollowService implements IFollowService {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
             }
 
-            const result = await this._communityRepository.getFollowing(userId, viewerUserId, cursor, limit);
+            // Validate limit
+            const validLimit = Math.min(Math.max(limit, 1), 50);
+
+            const result = await this._communityRepository.getFollowing(userId, viewerUserId, cursor, validLimit);
             return result;
         } catch (error) {
             console.error("FollowService: Get following error:", error);
@@ -278,7 +303,7 @@ export class FollowService implements IFollowService {
             return await this._communityRepository.checkIfFollowing(followerId, targetId);
         } catch (error) {
             console.error("FollowService: Check if following error:", error);
-            throw new CustomError("Failed to check follow status", StatusCode.INTERNAL_SERVER_ERROR);
+            return false; // Return false on error instead of throwing
         }
     }
 }
