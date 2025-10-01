@@ -9,85 +9,15 @@ import { LogIn, Shield, Sparkles } from "lucide-react";
 import type { RootState } from "@/redux/store";
 import Sidebar from "@/components/community/sidebar";
 import RightSidebar from "@/components/community/right-sidebar";
-import CreatePost from "@/components/community/create-post";
-import Post from "@/components/community/post";
-
-const mockPosts = [
-  {
-    id: "1",
-    author: {
-      name: "Vitalik Buterin",
-      username: "vitalikbuterin",
-      avatar:
-        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400",
-      verified: true,
-    },
-    content:
-      "Excited to announce the latest Ethereum improvements! Layer 2 scaling solutions are showing incredible promise. The future of DeFi is looking brighter than ever! 🚀\n\n#Ethereum #Web3 #DeFi",
-    timestamp: "2h",
-    likes: 2847,
-    comments: 342,
-    reposts: 1205,
-    trending: true,
-  },
-  {
-    id: "2",
-    author: {
-      name: "ChainLink Oracle",
-      username: "chainlinkoracle",
-      avatar:
-        "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=400",
-      verified: true,
-    },
-    content:
-      "Real-world data is now seamlessly integrated into smart contracts. Our latest update brings enterprise-grade reliability to DeFi protocols.",
-    timestamp: "4h",
-    likes: 1823,
-    comments: 198,
-    reposts: 567,
-    image:
-      "https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-  {
-    id: "3",
-    author: {
-      name: "NFT Creator",
-      username: "nftartist",
-      avatar:
-        "https://images.pexels.com/photos/697509/pexels-photo-697509.jpeg?auto=compress&cs=tinysrgb&w=400",
-    },
-    content:
-      "Just dropped my latest NFT collection! Each piece represents the intersection of art and blockchain technology. What do you think about the future of digital art?",
-    timestamp: "6h",
-    likes: 945,
-    comments: 87,
-    reposts: 234,
-    image:
-      "https://images.pexels.com/photos/1547813/pexels-photo-1547813.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-  {
-    id: "4",
-    author: {
-      name: "DeFi Protocol",
-      username: "defiprotocol",
-      avatar:
-        "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400",
-      verified: true,
-    },
-    content:
-      "Our liquidity pools have reached $1B TVL! Thank you to our amazing community for making this milestone possible. Here's to the next billion! 💎",
-    timestamp: "8h",
-    likes: 3421,
-    comments: 512,
-    reposts: 1876,
-    trending: true,
-  },
-];
+import CreatePost from "@/components/posts/create-posts";
+import PostsFeed from "@/components/posts/posts-feed";
+import { Post } from "@/services/postsApiService";
 
 export default function CommunityPage() {
   const router = useRouter();
   const { isAuthenticated } = useSelector((state: RootState) => state.userAuth);
   const [mounted, setMounted] = useState(false);
+  const [feedKey, setFeedKey] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -99,6 +29,15 @@ export default function CommunityPage() {
 
   const handleAdminLogin = () => {
     router.push("/comms-admin/login");
+  };
+
+  const handlePostCreated = () => {
+    // Force refresh the feed by updating the key
+    setFeedKey(prev => prev + 1);
+  };
+
+  const handlePostClick = (post: Post) => {
+    router.push(`/user/community/post/${post._id}`);
   };
 
   if (!mounted) {
@@ -217,14 +156,16 @@ export default function CommunityPage() {
 
             {/* Create Post */}
             <div className="px-4">
-              <CreatePost />
+              <CreatePost onPostCreated={handlePostCreated} />
             </div>
 
-            {/* Posts */}
-            <div className="px-4 space-y-6 pb-6">
-              {mockPosts.map((post) => (
-                <Post key={post.id} {...post} />
-              ))}
+            {/* Posts Feed */}
+            <div className="px-4 pb-6">
+              <PostsFeed 
+                key={feedKey}
+                type="feed" 
+                onPostClick={handlePostClick}
+              />
             </div>
           </div>
         </div>
