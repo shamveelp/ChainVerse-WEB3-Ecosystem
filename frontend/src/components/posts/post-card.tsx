@@ -419,7 +419,7 @@ export default function PostCard({
             <Button
               onClick={handleEditPost}
               disabled={isUpdating || !editContent.trim() || editContent.length > 2000 || editContent === post.content}
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover: from-cyan-400 hover:to-blue-500"
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:bg-gradient-to-r hover:from-cyan-400 hover:to-blue-500"
             >
               {isUpdating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Changes
