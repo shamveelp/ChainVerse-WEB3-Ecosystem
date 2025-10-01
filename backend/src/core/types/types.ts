@@ -16,6 +16,9 @@ const TYPES = {
   // Community Controllers
   ICommunityUserProfileController: Symbol.for("ICommunityUserProfileController"),
   IFollowController: Symbol.for("IFollowController"),
+
+  //chat controller
+  IChatController: Symbol.for("IChatController"),
   
   
   // Services
@@ -35,6 +38,9 @@ const TYPES = {
   // Community Services
   ICommunityUserService: Symbol.for("ICommunityUserService"),
   IFollowService : Symbol.for("IFollowService"),
+
+  //Chat
+  IChatService: Symbol.for("IChatService"),
   
   // Other Services
   IJwtService: Symbol.for("IJwtService"),
@@ -51,6 +57,9 @@ const TYPES = {
   ICommunityAdminRepository: Symbol.for("ICommunityAdminRepository"),
   ICommunityRequestRepository: Symbol.for("ICommunityRequestRepository"),
   ICommunityRepository: Symbol.for("ICommunityRepository"),
+
+  //Chat Repo
+  IChatRepository: Symbol.for("IChatRepository"),
   
   // History Services
   IReferralHistoryService: Symbol.for("IReferralHistoryService"),

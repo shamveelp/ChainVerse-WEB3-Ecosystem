@@ -37,7 +37,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const router = useRouter()
   const resolvedParams = use(params)
   const { username } = resolvedParams
-  
+
   const [activeTab, setActiveTab] = useState('posts')
   const [isFollowing, setIsFollowing] = useState(false)
   const [followStats, setFollowStats] = useState({ followersCount: 0, followingCount: 0 })
@@ -47,7 +47,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   // Get current user info
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
-  
+
   const {
     profile: ownProfile,
     loading: ownProfileLoading,
@@ -233,7 +233,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const handleMessageClick = () => {
     if (!displayProfile) return
     router.push(`/user/community/messages/${username}`)
-    toast.info('Messages feature coming soon')
   }
 
   // Show loading

@@ -97,5 +97,41 @@ export class JwtService implements IJwtService {
       sameSite:  "lax",
     })
   }
+
+  static getTokenExpiration(token: string): Date | null {
+    try {
+      const decoded = jwt.decode(token) as any;
+      if (decoded && decoded.exp) {
+        return new Date(decoded.exp * 1000);
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  static isTokenExpired(token: string): boolean {
+    try {
+      const expiration = this.getTokenExpiration(token);
+      if (!expiration) return true;
+      
+      return expiration.getTime() <= Date.now();
+    } catch (error) {
+      return true;
+    }
+  }
+
+  // Helper method for socket authentication
+  static verifySocketToken(token: string): any {
+    try {
+      // Remove 'Bearer ' prefix if present
+      const cleanToken = token.startsWith('Bearer ') ? token.substring(7) : token;
+      
+      return this.verifyToken(cleanToken);
+    } catch (error) {
+      console.error("Socket token verification failed:", error);
+      throw error;
+    }
+  }
   
 }

@@ -84,6 +84,68 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+// Chat interfaces
+export interface MessageResponse {
+  _id: string;
+  conversationId: string;
+  sender: {
+    _id: string;
+    username: string;
+    name: string;
+    profilePic: string;
+    isVerified: boolean;
+  };
+  content: string;
+  messageType: 'text';
+  readBy: Array<{
+    user: string;
+    readAt: Date;
+  }>;
+  editedAt?: Date;
+  isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  isOwnMessage: boolean;
+}
+
+export interface ConversationResponse {
+  _id: string;
+  participants: Array<{
+    _id: string;
+    username: string;
+    name: string;
+    profilePic: string;
+    isVerified: boolean;
+    isOnline?: boolean;
+    lastSeen?: Date;
+  }>;
+  lastMessage?: MessageResponse;
+  lastActivity: Date;
+  unreadCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ConversationListResponse {
+  conversations: ConversationResponse[];
+  hasMore: boolean;
+  nextCursor?: string;
+  totalCount: number;
+}
+
+export interface MessageListResponse {
+  messages: MessageResponse[];
+  hasMore: boolean;
+  nextCursor?: string;
+  totalCount: number;
+}
+
+export interface SendMessageResponse {
+  success: boolean;
+  message: MessageResponse;
+  conversation: ConversationResponse;
+}
+
 // Helper function to handle API errors consistently
 const handleApiError = (error: any, defaultMessage: string) => {
   console.error("Community API Error:", {
@@ -94,31 +156,31 @@ const handleApiError = (error: any, defaultMessage: string) => {
     url: error.config?.url,
     method: error.config?.method
   });
-  
+
   if (error.response?.status === 401) {
     throw new Error("User not authenticated");
   }
-  
+
   if (error.response?.status === 403) {
     throw new Error("Access forbidden");
   }
-  
+
   if (error.response?.status === 404) {
     throw new Error("Resource not found");
   }
-  
+
   if (error.response?.status === 429) {
     throw new Error("Too many requests. Please try again later");
   }
-  
+
   if (error.response?.status >= 500) {
     throw new Error("Server error. Please try again later");
   }
-  
-  const errorMessage = error.response?.data?.error || 
-                       error.response?.data?.message || 
-                       error.message || 
-                       defaultMessage;
+
+  const errorMessage = error.response?.data?.error ||
+    error.response?.data?.message ||
+    error.message ||
+    defaultMessage;
   throw new Error(errorMessage);
 };
 
@@ -168,7 +230,7 @@ export const communityApiService = {
       console.log('API: Fetching own community profile...');
       const response = await API.get("/api/user/community/profile");
       console.log('API: Profile response:', response.data);
-      
+
       if (response.data?.success && response.data?.data) {
         const transformedData = transformProfileData(response.data.data);
         console.log('API: Transformed profile data:', transformedData);
@@ -266,7 +328,7 @@ export const communityApiService = {
       const params = new URLSearchParams();
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
-      
+
       console.log('API: Fetching followers with params:', params.toString());
       const response = await API.get(`/api/user/community/followers?${params.toString()}`);
       console.log('API: Followers response:', response.data);
@@ -289,7 +351,7 @@ export const communityApiService = {
       const params = new URLSearchParams();
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
-      
+
       console.log('API: Fetching following with params:', params.toString());
       const response = await API.get(`/api/user/community/following?${params.toString()}`);
       console.log('API: Following response:', response.data);
@@ -470,10 +532,186 @@ export const communityApiService = {
     }
   },
 
+  // Chat API methods
+  // Send message
+  sendMessage: async (receiverUsername: string, content: string): Promise<SendMessageResponse> => {
+    if (!receiverUsername || !content?.trim()) {
+      throw new Error("Receiver username and content are required");
+    }
+
+    try {
+      console.log(`API: Sending message to: ${receiverUsername}`);
+      const response = await API.post("/api/user/chat/send", {
+        receiverUsername: receiverUsername.trim(),
+        content: content.trim()
+      });
+      console.log('API: Send message response:', response.data);
+
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to send message");
+    } catch (error: any) {
+      console.error('API: Send message failed:', error);
+      handleApiError(error, "Failed to send message");
+      throw error;
+    }
+  },
+
+  // Get conversations
+  getConversations: async (cursor?: string, limit: number = 20, search?: string): Promise<ConversationListResponse> => {
+    try {
+      const params = new URLSearchParams();
+      if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
+      params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
+      if (search && search.trim()) params.append('search', search.trim());
+
+      console.log('API: Fetching conversations with params:', params.toString());
+      const response = await API.get(`/api/user/chat/conversations?${params.toString()}`);
+      console.log('API: Conversations response:', response.data);
+
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to get conversations");
+    } catch (error: any) {
+      console.error('API: Get conversations failed:', error);
+      handleApiError(error, "Failed to get conversations");
+      throw error;
+    }
+  },
+
+  // Get conversation messages
+  getConversationMessages: async (conversationId: string, cursor?: string, limit: number = 20): Promise<MessageListResponse> => {
+    if (!conversationId?.trim()) {
+      throw new Error("Conversation ID is required");
+    }
+
+    try {
+      const params = new URLSearchParams();
+      if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
+      params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
+
+      console.log(`API: Fetching messages for conversation: ${conversationId}`);
+      const response = await API.get(`/api/user/chat/conversations/${encodeURIComponent(conversationId)}/messages?${params.toString()}`);
+      console.log('API: Messages response:', response.data);
+
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to get messages");
+    } catch (error: any) {
+      console.error('API: Get conversation messages failed:', error);
+      handleApiError(error, "Failed to get messages");
+      throw error;
+    }
+  },
+
+  // Get or create conversation
+  getOrCreateConversation: async (username: string): Promise<ConversationResponse> => {
+    if (!username?.trim()) {
+      throw new Error("Username is required");
+    }
+
+    try {
+      const cleanUsername = username.trim();
+      console.log(`API: Getting or creating conversation with: ${cleanUsername}`);
+      
+      const response = await API.get(`/api/user/chat/conversation/${encodeURIComponent(cleanUsername)}`);
+      console.log('API: Get/create conversation response:', response.data);
+
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to get or create conversation");
+    } catch (error: any) {
+      console.error('API: Get or create conversation failed:', error);
+      handleApiError(error, "Failed to get or create conversation");
+      throw error;
+    }
+  },
+
+  // Edit message
+  editMessage: async (messageId: string, content: string): Promise<MessageResponse> => {
+    if (!messageId?.trim() || !content?.trim()) {
+      throw new Error("Message ID and content are required");
+    }
+
+    try {
+      console.log(`API: Editing message: ${messageId}`);
+      const response = await API.put(`/api/user/chat/messages/${encodeURIComponent(messageId)}`, {
+        content: content.trim()
+      });
+      console.log('API: Edit message response:', response.data);
+
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to edit message");
+    } catch (error: any) {
+      console.error('API: Edit message failed:', error);
+      handleApiError(error, "Failed to edit message");
+      throw error;
+    }
+  },
+
+  // Delete message
+  deleteMessage: async (messageId: string): Promise<{ success: boolean; message: string }> => {
+    if (!messageId?.trim()) {
+      throw new Error("Message ID is required");
+    }
+
+    try {
+      console.log(`API: Deleting message: ${messageId}`);
+      const response = await API.delete(`/api/user/chat/messages/${encodeURIComponent(messageId)}`);
+      console.log('API: Delete message response:', response.data);
+
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to delete message");
+    } catch (error: any) {
+      console.error('API: Delete message failed:', error);
+      handleApiError(error, "Failed to delete message");
+      throw error;
+    }
+  },
+
+  // Mark messages as read
+  markMessagesAsRead: async (conversationId: string): Promise<{ success: boolean; message: string }> => {
+    if (!conversationId?.trim()) {
+      throw new Error("Conversation ID is required");
+    }
+
+    try {
+      console.log(`API: Marking messages as read for conversation: ${conversationId}`);
+      const response = await API.post("/api/user/chat/messages/read", {
+        conversationId: conversationId.trim()
+      });
+      console.log('API: Mark messages as read response:', response.data);
+
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to mark messages as read");
+    } catch (error: any) {
+      console.error('API: Mark messages as read failed:', error);
+      handleApiError(error, "Failed to mark messages as read");
+      throw error;
+    }
+  },
+
   // Helper function to format stats for display
   formatStats: (count: number): string => {
     if (typeof count !== 'number' || count < 0) return '0';
-    
+
     if (count >= 1000000) {
       return (count / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
     }
@@ -486,7 +724,7 @@ export const communityApiService = {
   // Helper function to validate website URL
   isValidWebsiteUrl: (url: string): boolean => {
     if (!url || typeof url !== 'string') return false;
-    
+
     try {
       const urlObj = new URL(url);
       return ['http:', 'https:'].includes(urlObj.protocol);
@@ -498,14 +736,40 @@ export const communityApiService = {
   // Helper function to clean website URL
   cleanWebsiteUrl: (url: string): string => {
     if (!url || typeof url !== 'string') return '';
-    
+
     const trimmed = url.trim();
     if (!trimmed) return '';
-    
+
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
       return trimmed;
     }
-    
+
     return 'https://' + trimmed;
+  },
+
+  // Helper function to format timestamp
+  formatTimestamp: (date: Date | string): string => {
+    const now = new Date();
+    const messageDate = new Date(date);
+    const diffInSeconds = (now.getTime() - messageDate.getTime()) / 1000;
+
+    if (diffInSeconds < 60) {
+      return 'Just now';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes}m`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours}h`;
+    } else if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days}d`;
+    } else {
+      return messageDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: messageDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+      });
+    }
   }
 };

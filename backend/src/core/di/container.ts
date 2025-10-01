@@ -30,6 +30,10 @@ import { CommunityUserProfileController } from "../../controllers/community/Comm
 import { IFollowController } from "../interfaces/controllers/community/IFollow.controller"
 import { FollowController } from "../../controllers/community/Follow.controller"
 
+// Chat Controllers
+import { IChatController } from "../interfaces/controllers/chat/IChat.controller"
+import { ChatController } from "../../controllers/chat/Chat.controller"
+
 // Services
 import type { IUserAuthService } from "../interfaces/services/user/IUserAuthService"
 import { UserAuthService } from "../../services/user/UserAuth.service"
@@ -58,6 +62,10 @@ import { CommunityUserService } from "../../services/community/CommunityUser.ser
 import { IFollowService } from "../interfaces/services/community/IFollowService"
 import { FollowService } from "../../services/community/Follow.service"
 
+// Chat Services
+import { IChatService } from "../interfaces/services/chat/IChatService"
+import { ChatService } from "../../services/chat/Chat.service"
+
 // Other Services
 import { JwtService } from "../../utils/jwt"
 import { IJwtService } from "../interfaces/services/IJwtService"
@@ -85,6 +93,11 @@ import { ICommunityRequestRepository } from "../interfaces/repositories/ICommuni
 import { CommunityRequestRepository } from "../../repositories/communityRequest.repository"
 import { ICommunityRepository } from "../interfaces/repositories/ICommunityRepository"
 import { CommunityRepository } from "../../repositories/community.repository"
+
+// Chat Repository
+import { IChatRepository } from "../interfaces/repositories/IChatRepository"
+import { ChatRepository } from "../../repositories/chat.repository"
+
 import { IReferralHistoryService } from "../interfaces/services/IReferralHistoryService"
 import { ReferralHistoryService } from "../../services/referralHistory.service"
 import { IPointsHistoryService } from "../interfaces/services/IPointsHistoryService"
@@ -138,6 +151,9 @@ container.bind<ICommunityAdminAuthController>(TYPES.ICommunityAdminAuthControlle
 container.bind<ICommunityUserProfileController>(TYPES.ICommunityUserProfileController).to(CommunityUserProfileController)
 container.bind<IFollowController>(TYPES.IFollowController).to(FollowController)
 
+// Bind Chat Controllers
+container.bind<IChatController>(TYPES.IChatController).to(ChatController)
+
 // Bind Services
 container.bind<IUserAuthService>(TYPES.IUserAuthService).to(UserAuthService)
 container.bind<IUserService>(TYPES.IUserService).to(UserService)
@@ -156,6 +172,9 @@ container.bind<ICommunityAdminAuthService>(TYPES.ICommunityAdminAuthService).to(
 container.bind<ICommunityUserService>(TYPES.ICommunityUserService).to(CommunityUserService)
 container.bind<IFollowService>(TYPES.IFollowService).to(FollowService)
 
+// Bind Chat Services
+container.bind<IChatService>(TYPES.IChatService).to(ChatService)
+
 // Bind Other Services
 container.bind<IJwtService>(TYPES.IJwtService).to(JwtService)
 container.bind<IOTPService>(TYPES.IOtpService).to(OtpService)
@@ -171,6 +190,9 @@ container.bind<IAdminRepository>(TYPES.IAdminRepository).to(AdminRepository)
 container.bind<ICommunityAdminRepository>(TYPES.ICommunityAdminRepository).to(CommunityAdminRepository)
 container.bind<ICommunityRequestRepository>(TYPES.ICommunityRequestRepository).to(CommunityRequestRepository)
 container.bind<ICommunityRepository>(TYPES.ICommunityRepository).to(CommunityRepository)
+
+// Bind Chat Repository
+container.bind<IChatRepository>(TYPES.IChatRepository).to(ChatRepository)
 
 container.bind<IReferralHistoryService>(TYPES.IReferralHistoryService).to(ReferralHistoryService);
 container.bind<IPointsHistoryService>(TYPES.IPointsHistoryService).to(PointsHistoryService);
