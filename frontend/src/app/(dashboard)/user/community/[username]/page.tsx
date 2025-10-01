@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Calendar, MapPin, Link2, MessageCircle, MoveHorizontal as MoreHorizontal, Settings, Loader as Loader2, RefreshCw, CircleAlert as AlertCircle } from 'lucide-react'
+import { Calendar, MapPin, Link2, MessageCircle, MoveHorizontal as MoreHorizontal, Settings, Loader as Loader2, RefreshCw, AlertCircle as AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useCommunityProfile } from '@/hooks/useCommunityProfile'
 import { useFollow } from '@/hooks/useFollow'
 import { communityApiService } from '@/services/communityApiService'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
-import Post from '@/components/community/post'
+import PostsFeed from '@/components/posts/posts-feed'
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
 import { toast } from 'sonner'
@@ -44,6 +44,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [followActionInProgress, setFollowActionInProgress] = useState(false)
   const [showUnfollowDialog, setShowUnfollowDialog] = useState(false)
   const [profileKey, setProfileKey] = useState(0) // Force re-render key
+  const [postsKey, setPostsKey] = useState(0) // Force posts refresh
 
   // Get current user info
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
@@ -133,6 +134,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   // Force component update when user changes (handles logout/login with different user)
   useEffect(() => {
     setProfileKey(prev => prev + 1)
+    setPostsKey(prev => prev + 1)
   }, [currentUser?._id])
 
   // Format join date
@@ -516,20 +518,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
                 <div className="mt-6 pb-6">
                   <TabsContent value="posts" className="space-y-6">
-                    {(displayProfile.postsCount || 0) > 0 ? (
-                      <div className="text-center py-12">
-                        <p className="text-slate-400">Posts will be loaded here</p>
-                        <p className="text-sm text-slate-500">Integration with posts API needed</p>
-                      </div>
-                    ) : (
-                      <div className="text-center py-12">
-                        <MessageCircle className="h-16 w-16 mx-auto mb-4 text-slate-600" />
-                        <p className="text-lg text-slate-400">No posts yet</p>
-                        <p className="text-sm text-slate-500">
-                          {isOwnProfile ? "Start sharing your thoughts!" : `${displayProfile.name} hasn't posted anything yet`}
-                        </p>
-                      </div>
-                    )}
+                    <PostsFeed 
+                      key={`posts-${postsKey}`}
+                      type="user" 
+                      userId={displayProfile._id}
+                      onPostClick={(post) => router.push(`/user/community/post/${post._id}`)}
+                    />
                   </TabsContent>
 
                   <TabsContent value="replies" className="space-y-6">
@@ -549,11 +543,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   </TabsContent>
 
                   <TabsContent value="likes" className="space-y-6">
-                    <div className="text-center py-12">
-                      <MessageCircle className="h-16 w-16 mx-auto mb-4 text-slate-600" />
-                      <p className="text-lg text-slate-400">No likes yet</p>
-                      <p className="text-sm text-slate-500">Liked posts will appear here</p>
-                    </div>
+                    <PostsFeed 
+                      key={`likes-${postsKey}`}
+                      type="liked" 
+                      userId={displayProfile._id}
+                      onPostClick={(post) => router.push(`/user/community/post/${post._id}`)}
+                    />
                   </TabsContent>
                 </div>
               </Tabs>

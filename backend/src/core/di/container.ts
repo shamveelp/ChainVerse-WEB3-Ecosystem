@@ -30,6 +30,10 @@ import { CommunityUserProfileController } from "../../controllers/community/Comm
 import { IFollowController } from "../interfaces/controllers/community/IFollow.controller"
 import { FollowController } from "../../controllers/community/Follow.controller"
 
+// Posts Controllers
+import { IPostController } from "../interfaces/controllers/posts/IPost.controller"
+import { PostController } from "../../controllers/posts/Post.controller"
+
 // Chat Controllers
 import { IChatController } from "../interfaces/controllers/chat/IChat.controller"
 import { ChatController } from "../../controllers/chat/Chat.controller"
@@ -62,6 +66,10 @@ import { CommunityUserService } from "../../services/community/CommunityUser.ser
 import { IFollowService } from "../interfaces/services/community/IFollowService"
 import { FollowService } from "../../services/community/Follow.service"
 
+// Posts Services
+import { IPostService } from "../interfaces/services/posts/IPostService"
+import { PostService } from "../../services/posts/Post.servcie"
+
 // Chat Services
 import { IChatService } from "../interfaces/services/chat/IChatService"
 import { ChatService } from "../../services/chat/Chat.service"
@@ -93,6 +101,10 @@ import { ICommunityRequestRepository } from "../interfaces/repositories/ICommuni
 import { CommunityRequestRepository } from "../../repositories/communityRequest.repository"
 import { ICommunityRepository } from "../interfaces/repositories/ICommunityRepository"
 import { CommunityRepository } from "../../repositories/community.repository"
+
+// Posts Repository
+import { IPostRepository } from "../interfaces/repositories/IPostRepository"
+import { PostRepository } from "../../repositories/post.repository"
 
 // Chat Repository
 import { IChatRepository } from "../interfaces/repositories/IChatRepository"
@@ -151,6 +163,9 @@ container.bind<ICommunityAdminAuthController>(TYPES.ICommunityAdminAuthControlle
 container.bind<ICommunityUserProfileController>(TYPES.ICommunityUserProfileController).to(CommunityUserProfileController)
 container.bind<IFollowController>(TYPES.IFollowController).to(FollowController)
 
+// Bind Posts Controllers
+container.bind<IPostController>(TYPES.IPostController).to(PostController)
+
 // Bind Chat Controllers
 container.bind<IChatController>(TYPES.IChatController).to(ChatController)
 
@@ -172,6 +187,9 @@ container.bind<ICommunityAdminAuthService>(TYPES.ICommunityAdminAuthService).to(
 container.bind<ICommunityUserService>(TYPES.ICommunityUserService).to(CommunityUserService)
 container.bind<IFollowService>(TYPES.IFollowService).to(FollowService)
 
+// Bind Posts Services
+container.bind<IPostService>(TYPES.IPostService).to(PostService)
+
 // Bind Chat Services
 container.bind<IChatService>(TYPES.IChatService).to(ChatService)
 
@@ -190,6 +208,9 @@ container.bind<IAdminRepository>(TYPES.IAdminRepository).to(AdminRepository)
 container.bind<ICommunityAdminRepository>(TYPES.ICommunityAdminRepository).to(CommunityAdminRepository)
 container.bind<ICommunityRequestRepository>(TYPES.ICommunityRequestRepository).to(CommunityRequestRepository)
 container.bind<ICommunityRepository>(TYPES.ICommunityRepository).to(CommunityRepository)
+
+// Bind Posts Repository
+container.bind<IPostRepository>(TYPES.IPostRepository).to(PostRepository)
 
 // Bind Chat Repository
 container.bind<IChatRepository>(TYPES.IChatRepository).to(ChatRepository)

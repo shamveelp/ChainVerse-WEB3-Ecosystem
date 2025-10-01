@@ -4,6 +4,8 @@ const TYPES = {
   IUserProfileController: Symbol.for("IUserProfileController"),
   IReferralController: Symbol.for("IReferralController"),
   IPointsController: Symbol.for("IPointsController"),
+
+  IPostController: Symbol.for("IPostController"),
   
   // Admin Controllers
   IAdminAuthController: Symbol.for("IAdminAuthController"),
@@ -26,6 +28,8 @@ const TYPES = {
   IUserService: Symbol.for("IUserService"),
   IReferralService: Symbol.for("IReferralService"),
   IPointsService: Symbol.for("IPointsService"),
+
+  IPostService: Symbol.for("IPostService"),
   
   // Admin Services
   IAdminAuthService: Symbol.for("IAdminAuthService"),
@@ -57,6 +61,8 @@ const TYPES = {
   ICommunityAdminRepository: Symbol.for("ICommunityAdminRepository"),
   ICommunityRequestRepository: Symbol.for("ICommunityRequestRepository"),
   ICommunityRepository: Symbol.for("ICommunityRepository"),
+
+  IPostRepository: Symbol.for("IPostRepository"),
 
   //Chat Repo
   IChatRepository: Symbol.for("IChatRepository"),
