@@ -378,7 +378,7 @@ export default function ChatPage({ params }: ChatPageProps) {
         </div>
 
         {/* Messages Area */}
-        <ScrollArea className="flex-1" ref={messagesContainerRef}>
+        <ScrollArea className="flex-1 pb-20" ref={messagesContainerRef}>
           <div className="p-4 space-y-4 max-w-4xl mx-auto">
             {/* Load More Trigger */}
             {currentConversation && hasMoreMessages[currentConversation._id] && (
