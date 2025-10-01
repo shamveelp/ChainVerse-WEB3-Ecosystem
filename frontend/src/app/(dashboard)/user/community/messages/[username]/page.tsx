@@ -268,7 +268,7 @@ export default function ChatPage({ params }: ChatPageProps) {
     return (
       <div className="flex min-h-screen bg-slate-950">
         <Sidebar />
-        <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen flex items-center justify-center">
+        <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen flex items-center justify-center pt-16">
           <div className="text-center space-y-4">
             <Loader2 className="h-12 w-12 animate-spin text-cyan-500 mx-auto" />
             <p className="text-slate-400">Loading conversation...</p>
@@ -284,7 +284,7 @@ export default function ChatPage({ params }: ChatPageProps) {
     return (
       <div className="flex min-h-screen bg-slate-950">
         <Sidebar />
-        <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen flex items-center justify-center">
+        <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen flex items-center justify-center pt-16">
           <div className="text-center space-y-4">
             <p className="text-red-400">{error}</p>
             <Button onClick={() => router.push('/user/community/messages')} variant="outline">
@@ -305,9 +305,9 @@ export default function ChatPage({ params }: ChatPageProps) {
       <Sidebar />
 
       {/* Main Chat Area */}
-      <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen flex flex-col">
+      <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen flex flex-col pt-16">
         {/* Chat Header */}
-        <div className="sticky top-0 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/50 p-4 z-10">
+        <div className="sticky top-16 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/50 p-4 z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
@@ -544,8 +544,8 @@ export default function ChatPage({ params }: ChatPageProps) {
           </div>
         </ScrollArea>
 
-        {/* Message Input Area */}
-        <div className="border-t border-slate-700/50 p-4 bg-slate-900/50">
+        {/* Message Input Area - Fixed at Bottom */}
+        <div className="fixed bottom-0 left-0 right-0 lg:ml-80 xl:mr-80 bg-slate-900/50 border-t border-slate-700/50 p-4 z-20">
           <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto">
             <div className="flex items-end gap-3">
               <div className="flex-1 relative">
