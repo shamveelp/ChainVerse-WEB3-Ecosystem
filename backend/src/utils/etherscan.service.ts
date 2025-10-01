@@ -1,7 +1,7 @@
 import { injectable } from "inversify";
 import axios from "axios";
-import logger from "../utils/logger";
-import { CustomError } from "../utils/customError";
+import logger from "./logger";
+import { CustomError } from "./customError";
 import { StatusCode } from "../enums/statusCode.enum";
 
 export interface EtherscanTransaction {

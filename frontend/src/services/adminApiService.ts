@@ -368,3 +368,34 @@ export const refreshWalletData = async (address: string) => {
     };
   }
 };
+
+
+export const getWalletBlockchainTransactions = async (address: string, page?: number, limit?: number) => {
+  try {
+    const params = new URLSearchParams();
+    if (page) params.append('page', page.toString());
+    if (limit) params.append('limit', limit.toString());
+
+    const response = await API.get(`/api/admin/wallets/${address}/blockchain-transactions?${params.toString()}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching blockchain transactions:', error);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message || 'Failed to fetch blockchain transactions'
+    };
+  }
+};
+
+export const getWalletContractInteractions = async (address: string) => {
+  try {
+    const response = await API.get(`/api/admin/wallets/${address}/contract-interactions`);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching contract interactions:', error);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message || 'Failed to fetch contract interactions'
+    };
+  }
+};

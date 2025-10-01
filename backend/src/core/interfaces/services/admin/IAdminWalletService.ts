@@ -1,5 +1,6 @@
 import { IWallet } from "../../../../models/wallet.model";
 import { ITransaction } from "../../../../models/transactions.model";
+import { BlockchainTransaction, ContractInteraction } from "../../../../utils/blockchain.service";
 
 export interface EtherscanTransaction {
   hash: string;
@@ -38,6 +39,14 @@ export interface IAdminWalletService {
   getWalletDetails(address: string): Promise<IWallet | null>;
   getWalletStats(): Promise<WalletStatsResponse>;
   getWalletTransactions(address: string, page?: number, limit?: number): Promise<{ transactions: ITransaction[], total: number }>;
+  getWalletBlockchainTransactions(address: string, page?: number, limit?: number): Promise<{
+    transactions: BlockchainTransaction[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }>;
+  getWalletContractInteractions(address: string): Promise<ContractInteraction[]>;
   getWalletHistoryFromEtherscan(address: string, page?: number, limit?: number): Promise<WalletHistoryResponse>;
   getWalletAppHistory(address: string, page?: number, limit?: number): Promise<WalletHistoryResponse>;
   exportWalletData(): Promise<any[]>;

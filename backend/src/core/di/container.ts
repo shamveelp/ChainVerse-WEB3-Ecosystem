@@ -134,7 +134,7 @@ import { IAdminWalletService } from "../interfaces/services/admin/IAdminWalletSe
 import { AdminWalletService } from "../../services/admin/AdminWallet.service"
 import { IDexRepository } from "../interfaces/repositories/IDexRepository"
 import { DexRepository } from "../../repositories/dex.repository"
-import { EtherscanService } from "../../services/etherscan.service"
+import { EtherscanService } from "../../utils/etherscan.service"
 import { IPaymentRepository } from "../interfaces/repositories/IPaymentRepository"
 import { PaymentRepository } from "../../repositories/payment.repository"
 import { IUserDexService } from "../interfaces/services/user/IUserDexService"

@@ -1,7 +1,8 @@
 import { inject, injectable } from "inversify";
 import { IAdminWalletService, WalletHistoryResponse, WalletStatsResponse } from "../../core/interfaces/services/admin/IAdminWalletService";
 import { IDexRepository } from "../../core/interfaces/repositories/IDexRepository";
-import { EtherscanService } from "../etherscan.service";
+import { EtherscanService } from "../../utils/etherscan.service";
+import { BlockchainService, BlockchainTransaction, ContractInteraction } from "../../utils/blockchain.service";
 import { TYPES } from "../../core/types/types";
 import { IWallet } from "../../models/wallet.model";
 import { ITransaction } from "../../models/transactions.model";
@@ -16,6 +17,7 @@ export class AdminWalletService implements IAdminWalletService {
   ) {}
 
   private etherscanService = new EtherscanService();
+  private blockchainService = new BlockchainService();
 
   async getAllWallets(page: number = 1, limit: number = 20): Promise<{
     wallets: IWallet[];
@@ -48,9 +50,9 @@ export class AdminWalletService implements IAdminWalletService {
         return null;
       }
 
-      // Enrich wallet data with balance from Etherscan
+      // Enrich wallet data with balance from blockchain
       try {
-        const balance = await this.etherscanService.getWalletBalance(address);
+        const balance = await this.blockchainService.getWalletBalance(address);
         (wallet as any).balance = balance;
       } catch (balanceError) {
         logger.warn(`Could not fetch balance for wallet ${address}:`, balanceError);
@@ -85,6 +87,36 @@ export class AdminWalletService implements IAdminWalletService {
     }
   }
 
+  async getWalletBlockchainTransactions(address: string, page: number = 1, limit: number = 20): Promise<{
+    transactions: BlockchainTransaction[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    try {
+      return await this.blockchainService.getWalletTransactions(address, page, limit);
+    } catch (error) {
+      logger.error("Error getting wallet blockchain transactions:", error);
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError("Failed to get blockchain transactions", StatusCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getWalletContractInteractions(address: string): Promise<ContractInteraction[]> {
+    try {
+      return await this.blockchainService.getContractInteractions(address);
+    } catch (error) {
+      logger.error("Error getting wallet contract interactions:", error);
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError("Failed to get contract interactions", StatusCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   async getWalletHistoryFromEtherscan(address: string, page: number = 1, limit: number = 20): Promise<WalletHistoryResponse> {
     try {
       return await this.etherscanService.getWalletTransactions(address, page, limit, false);
@@ -112,13 +144,14 @@ export class AdminWalletService implements IAdminWalletService {
   async exportWalletData(): Promise<any[]> {
     try {
       const { wallets } = await this._dexRepository.getAllWallets();
-      
+
       const exportData = await Promise.all(
         wallets.map(async (wallet) => {
           try {
-            const balance = await this.etherscanService.getWalletBalance(wallet.address);
+            const balance = await this.blockchainService.getWalletBalance(wallet.address);
             const transactionCount = await this._dexRepository.getTransactionsByWallet(wallet.address, 1, 1);
-            
+            const contractInteractions = await this.blockchainService.getContractInteractions(wallet.address);
+
             return {
               address: wallet.address,
               lastConnected: wallet.lastConnected,
@@ -126,6 +159,11 @@ export class AdminWalletService implements IAdminWalletService {
               balance: balance,
               transactionCount: transactionCount.total,
               connectionCount: wallet.connectionCount || 0,
+              contractInteractions: contractInteractions.length,
+              contractInteractionDetails: contractInteractions.map((interaction: any) => ({
+                contractName: interaction.contractName,
+                transactionCount: interaction.transactionCount
+              }))
             };
           } catch (error) {
             logger.warn(`Error processing wallet ${wallet.address} for export:`, error);
@@ -136,6 +174,8 @@ export class AdminWalletService implements IAdminWalletService {
               balance: "0",
               transactionCount: 0,
               connectionCount: wallet.connectionCount || 0,
+              contractInteractions: 0,
+              contractInteractionDetails: []
             };
           }
         })
@@ -175,13 +215,14 @@ export class AdminWalletService implements IAdminWalletService {
     try {
       // Get latest balance and transactions without blocking the response
       await Promise.all([
-        this.etherscanService.getWalletBalance(address),
-        this.etherscanService.getWalletTransactions(address, 1, 10),
+        this.blockchainService.getWalletBalance(address),
+        this.blockchainService.getWalletTransactions(address, 1, 10),
+        this.blockchainService.getContractInteractions(address)
       ]);
 
-      logger.info(`Background refresh completed for wallet: ${address}`);
+      logger.info(`Background blockchain refresh completed for wallet: ${address}`);
     } catch (error) {
-      logger.warn(`Background refresh failed for wallet ${address}:`, error);
+      logger.warn(`Background blockchain refresh failed for wallet ${address}:`, error);
     }
   }
 }

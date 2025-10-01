@@ -62,7 +62,8 @@ router.get("/wallets/:address/transactions", authMiddleware, roleMiddleware(['ad
 router.get("/wallets/:address/history", authMiddleware, roleMiddleware(['admin']), adminWalletController.getWalletHistoryFromEtherscan.bind(adminWalletController));
 router.get("/wallets/:address/app-history", authMiddleware, roleMiddleware(['admin']), adminWalletController.getWalletAppHistory.bind(adminWalletController));
 router.post("/wallets/:address/refresh", authMiddleware, roleMiddleware(['admin']), adminWalletController.refreshWalletData.bind(adminWalletController));
-
+router.get("/wallets/:address/blockchain-transactions", authMiddleware, roleMiddleware(['admin']), adminWalletController.getWalletBlockchainTransactions.bind(adminWalletController));
+router.get("/wallets/:address/contract-interactions", authMiddleware, roleMiddleware(['admin']), adminWalletController.getWalletContractInteractions.bind(adminWalletController));
 
 // Dex Payment Routes
 router.get("/dex/payments", authMiddleware, roleMiddleware(['admin']), adminDexController.getAllPayments.bind(adminDexController));

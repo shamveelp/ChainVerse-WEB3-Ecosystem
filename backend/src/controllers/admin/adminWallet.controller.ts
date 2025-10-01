@@ -130,6 +130,70 @@ export class AdminWalletController implements IAdminWalletController {
     }
   };
 
+  getWalletBlockchainTransactions = async (req: Request, res: Response) => {
+    try {
+      const { address } = req.params;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      if (!address) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          error: "Wallet address is required"
+        });
+        return;
+      }
+
+      const result = await this._adminWalletService.getWalletBlockchainTransactions(address, page, limit);
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        data: result,
+        message: "Blockchain transactions retrieved successfully"
+      });
+    } catch (error) {
+      logger.error("Error in getWalletBlockchainTransactions:", error);
+      const errorMessage = error instanceof CustomError ? error.message : "Failed to get blockchain transactions";
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+
+      res.status(statusCode).json({
+        success: false,
+        error: errorMessage
+      });
+    }
+  };
+
+  getWalletContractInteractions = async (req: Request, res: Response) => {
+    try {
+      const { address } = req.params;
+
+      if (!address) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          error: "Wallet address is required"
+        });
+        return;
+      }
+
+      const result = await this._adminWalletService.getWalletContractInteractions(address);
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        data: result,
+        message: "Contract interactions retrieved successfully"
+      });
+    } catch (error) {
+      logger.error("Error in getWalletContractInteractions:", error);
+      const errorMessage = error instanceof CustomError ? error.message : "Failed to get contract interactions";
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+
+      res.status(statusCode).json({
+        success: false,
+        error: errorMessage
+      });
+    }
+  };
+
   getWalletHistoryFromEtherscan = async (req: Request, res: Response) => {
     try {
       const { address } = req.params;
