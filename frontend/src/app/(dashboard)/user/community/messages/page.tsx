@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { ConnectionStatus } from "@/components/ui/connection-status"
 import { Search, Plus, MessageCircle, Loader as Loader2, Users, Clock, CheckCheck, Check } from 'lucide-react'
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
@@ -27,6 +28,7 @@ export default function MessagesPage() {
     loading,
     error,
     hasMoreConversations,
+    socketConnected,
     fetchConversations,
     loadMoreConversations,
     markMessagesAsRead,
@@ -63,7 +65,7 @@ export default function MessagesPage() {
   // Handle conversation click
   const handleConversationClick = useCallback(async (conversation: ConversationResponse) => {
     setSelectedConversation(conversation)
-    
+
     // Mark messages as read if there are unread messages
     if (conversation.unreadCount > 0) {
       await markMessagesAsRead(conversation._id)
@@ -93,11 +95,11 @@ export default function MessagesPage() {
 
     const prefix = lastMessage.isOwnMessage ? 'You: ' : ''
     const content = lastMessage.content
-    
+
     if (content.length > 50) {
       return `${prefix}${content.substring(0, 50)}...`
     }
-    
+
     return `${prefix}${content}`
   }
 
@@ -107,7 +109,7 @@ export default function MessagesPage() {
     if (!lastMessage || !lastMessage.isOwnMessage) return null
 
     const isRead = lastMessage.readBy.length > 1 // More than just sender
-    
+
     if (isRead) {
       return <CheckCheck className="h-3 w-3 text-blue-500" />
     } else {
@@ -136,10 +138,13 @@ export default function MessagesPage() {
             {/* Header */}
             <div className="sticky top-0 bg-slate-950/80 backdrop-blur-xl border-b border-slate-700/50 p-4 z-10">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-white">Messages</h2>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-bold text-white">Messages</h2>
+                  <ConnectionStatus isConnected={socketConnected} />
+                </div>
+                <Button
+                  size="icon"
+                  variant="ghost"
                   className="text-slate-400 hover:text-white"
                   onClick={handleNewConversation}
                 >
@@ -178,7 +183,7 @@ export default function MessagesPage() {
                           {searchQuery ? 'No conversations match your search' : 'Start a conversation with someone!'}
                         </p>
                         {!searchQuery && (
-                          <Button 
+                          <Button
                             onClick={handleNewConversation}
                             className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white"
                           >
@@ -296,14 +301,14 @@ export default function MessagesPage() {
           {/* Empty State for Desktop */}
           <div className="hidden md:flex flex-1 items-center justify-center bg-slate-950/50">
             <div className="text-center space-y-4 max-w-md mx-auto px-4">
-              <div className="w-20 h-20 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6">      
                 <MessageCircle className="h-10 w-10 text-cyan-400" />
               </div>
               <h3 className="text-2xl font-semibold text-white">Select a conversation</h3>
               <p className="text-slate-400 text-lg">
                 Choose a conversation from the list to start messaging, or create a new one.
               </p>
-              <Button 
+              <Button
                 onClick={handleNewConversation}
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white mt-6"
               >

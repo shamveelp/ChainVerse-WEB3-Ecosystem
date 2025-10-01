@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
+import { ConnectionStatus } from "@/components/ui/connection-status"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,6 +63,7 @@ export default function ChatPage({ params }: ChatPageProps) {
     sendingMessage,
     error,
     hasMoreMessages,
+    socketConnected,
     fetchMessages,
     sendMessage,
     editMessage,
@@ -339,9 +341,12 @@ export default function ChatPage({ params }: ChatPageProps) {
                     </div>
                   )}
                 </div>
-                <p className="text-sm text-slate-400">
-                  {participant?.isOnline ? 'Online now' : 'Offline'}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-slate-400">
+                    {participant?.isOnline ? 'Online now' : 'Offline'}
+                  </p>
+                  <ConnectionStatus isConnected={socketConnected} className="text-xs" />
+                </div>
               </div>
             </div>
             

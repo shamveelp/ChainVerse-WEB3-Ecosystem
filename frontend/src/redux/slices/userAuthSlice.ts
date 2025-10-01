@@ -72,10 +72,14 @@ export const userAuthSlice = createSlice({
       state.tempUserData = null
       state.resetToken = null
     },
+    // Add updateToken action for token refresh
+    updateToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload
+    },
   },
 })
 
-export const { login, logout, setLoading, setTempEmail, setTempUserData, setResetToken, clearTempData } =
+export const { login, logout, setLoading, setTempEmail, setTempUserData, setResetToken, clearTempData, updateToken } =
   userAuthSlice.actions
 
 export default userAuthSlice.reducer

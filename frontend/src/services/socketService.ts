@@ -38,10 +38,10 @@ class SocketService {
       return Promise.resolve();
     }
 
-    // Check if token is valid and not expired
-    if (!token || this.isTokenExpired(token)) {
-      console.warn('Invalid or expired token provided to socket');
-      return Promise.reject(new Error('Invalid or expired token'));
+    // Basic token validation - just check if it exists and is a string
+    if (!token || typeof token !== 'string' || token.trim().length === 0) {
+      console.warn('No valid token provided to socket');
+      return Promise.reject(new Error('No valid token provided'));
     }
 
     // Return existing connection promise if already connecting
@@ -49,25 +49,27 @@ class SocketService {
       return this.connectionPromise;
     }
 
-    console.log('Connecting to socket server...');
+    console.log('Connecting to socket server with token...');
     
     this.connectionPromise = new Promise((resolve, reject) => {
       this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
         auth: {
-          token: token
+          token: token.trim()
         },
         transports: ['websocket', 'polling'],
         timeout: 20000,
-        forceNew: true
+        forceNew: true,
+        autoConnect: true
       });
 
       const timeout = setTimeout(() => {
+        console.error('Socket connection timeout');
         reject(new Error('Socket connection timeout'));
-      }, 10000);
+      }, 15000);
 
       this.socket.on('connect', () => {
         clearTimeout(timeout);
-        console.log('Connected to socket server:', this.socket?.id);
+        console.log('✅ Connected to socket server:', this.socket?.id);
         this.reconnectAttempts = 0;
         if (this.reconnectTimeout) {
           clearTimeout(this.reconnectTimeout);
@@ -79,13 +81,15 @@ class SocketService {
 
       this.socket.on('connect_error', (error) => {
         clearTimeout(timeout);
-        console.error('Socket connection error:', error);
+        console.error('❌ Socket connection error:', error.message);
         this.connectionPromise = null;
         
         // Check if it's an authentication error
         if (error.message?.includes('Authentication failed') || 
             error.message?.includes('No token provided') ||
-            error.message?.includes('Token expired')) {
+            error.message?.includes('Token expired') ||
+            error.message?.includes('Invalid token')) {
+          console.error('Authentication failed - check token validity');
           reject(new Error('Authentication failed - token may be expired'));
         } else {
           this.handleReconnect();
@@ -99,23 +103,11 @@ class SocketService {
     return this.connectionPromise;
   }
 
-  private isTokenExpired(token: string): boolean {
-    try {
-      // Basic JWT expiration check
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Date.now() / 1000;
-      return payload.exp < currentTime;
-    } catch (error) {
-      console.warn('Unable to parse token:', error);
-      return true; // Assume expired if can't parse
-    }
-  }
-
   private setupEventListeners(): void {
     if (!this.socket) return;
 
     this.socket.on('disconnect', (reason) => {
-      console.log('Disconnected from socket server:', reason);
+      console.log('🔌 Disconnected from socket server:', reason);
       this.connectionPromise = null;
       
       if (reason === 'io server disconnect') {
@@ -125,19 +117,24 @@ class SocketService {
     });
 
     this.socket.on('reconnect', () => {
-      console.log('Successfully reconnected to socket server');
+      console.log('🔄 Successfully reconnected to socket server');
       this.reconnectAttempts = 0;
       this.connectionPromise = null;
     });
 
     this.socket.on('reconnect_error', (error) => {
-      console.error('Socket reconnection error:', error);
+      console.error('❌ Socket reconnection error:', error);
       this.connectionPromise = null;
     });
 
     this.socket.on('reconnect_failed', () => {
-      console.error('Failed to reconnect to socket server after maximum attempts');
+      console.error('💥 Failed to reconnect to socket server after maximum attempts');
       this.connectionPromise = null;
+    });
+
+    // Add error handler for general socket errors
+    this.socket.on('error', (error) => {
+      console.error('🚨 Socket error:', error);
     });
   }
 
@@ -150,16 +147,18 @@ class SocketService {
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
     
-    console.log(`Attempting to reconnect in ${delay}ms... (Attempt ${this.reconnectAttempts})`);
+    console.log(`🔄 Attempting to reconnect in ${delay}ms... (Attempt ${this.reconnectAttempts})`);
     
     this.reconnectTimeout = setTimeout(() => {
-      this.socket?.connect();
+      if (this.socket && !this.socket.connected) {
+        this.socket.connect();
+      }
     }, delay);
   }
 
   disconnect(): void {
     if (this.socket) {
-      console.log('Disconnecting from socket server...');
+      console.log('👋 Disconnecting from socket server...');
       this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;
@@ -177,38 +176,59 @@ class SocketService {
   // Room management
   joinConversation(conversationId: string): void {
     if (this.socket?.connected) {
+      console.log('🏠 Joining conversation:', conversationId);
       this.socket.emit('join_conversation', conversationId);
+    } else {
+      console.warn('Cannot join conversation - socket not connected');
     }
   }
 
   leaveConversation(conversationId: string): void {
     if (this.socket?.connected) {
+      console.log('🚪 Leaving conversation:', conversationId);
       this.socket.emit('leave_conversation', conversationId);
+    } else {
+      console.warn('Cannot leave conversation - socket not connected');
     }
   }
 
   // Message operations
   sendMessage(data: MessageData): void {
     if (this.socket?.connected) {
+      console.log('📤 Sending message via socket:', data);
       this.socket.emit('send_message', data);
+    } else {
+      console.warn('Cannot send message - socket not connected');
+      throw new Error('Socket not connected');
     }
   }
 
   editMessage(data: EditMessageData): void {
     if (this.socket?.connected) {
+      console.log('✏️ Editing message via socket:', data);
       this.socket.emit('edit_message', data);
+    } else {
+      console.warn('Cannot edit message - socket not connected');
+      throw new Error('Socket not connected');
     }
   }
 
   deleteMessage(data: DeleteMessageData): void {
     if (this.socket?.connected) {
+      console.log('🗑️ Deleting message via socket:', data);
       this.socket.emit('delete_message', data);
+    } else {
+      console.warn('Cannot delete message - socket not connected');
+      throw new Error('Socket not connected');
     }
   }
 
   markMessagesAsRead(data: ReadMessagesData): void {
     if (this.socket?.connected) {
+      console.log('📖 Marking messages as read via socket:', data);
       this.socket.emit('mark_messages_read', data);
+    } else {
+      console.warn('Cannot mark messages as read - socket not connected');
     }
   }
 
@@ -227,23 +247,38 @@ class SocketService {
 
   // Event listeners
   onNewMessage(callback: (data: any) => void): void {
-    this.socket?.on('new_message', callback);
+    this.socket?.on('new_message', (data) => {
+      console.log('📨 Received new message:', data);
+      callback(data);
+    });
   }
 
   onMessageSent(callback: (data: any) => void): void {
-    this.socket?.on('message_sent', callback);
+    this.socket?.on('message_sent', (data) => {
+      console.log('✅ Message sent confirmation:', data);
+      callback(data);
+    });
   }
 
   onMessageEdited(callback: (data: any) => void): void {
-    this.socket?.on('message_edited', callback);
+    this.socket?.on('message_edited', (data) => {
+      console.log('✏️ Message edited:', data);
+      callback(data);
+    });
   }
 
   onMessageDeleted(callback: (data: any) => void): void {
-    this.socket?.on('message_deleted', callback);
+    this.socket?.on('message_deleted', (data) => {
+      console.log('🗑️ Message deleted:', data);
+      callback(data);
+    });
   }
 
   onMessagesRead(callback: (data: any) => void): void {
-    this.socket?.on('messages_read', callback);
+    this.socket?.on('messages_read', (data) => {
+      console.log('📖 Messages read:', data);
+      callback(data);
+    });
   }
 
   onConversationUpdated(callback: (data: any) => void): void {
@@ -259,15 +294,24 @@ class SocketService {
   }
 
   onUserStatusChanged(callback: (data: any) => void): void {
-    this.socket?.on('user_status_changed', callback);
+    this.socket?.on('user_status_changed', (data) => {
+      console.log('👤 User status changed:', data);
+      callback(data);
+    });
   }
 
   onMessageError(callback: (data: any) => void): void {
-    this.socket?.on('message_error', callback);
+    this.socket?.on('message_error', (data) => {
+      console.error('❌ Message error:', data);
+      callback(data);
+    });
   }
 
   onConversationError(callback: (data: any) => void): void {
-    this.socket?.on('conversation_error', callback);
+    this.socket?.on('conversation_error', (data) => {
+      console.error('❌ Conversation error:', data);
+      callback(data);
+    });
   }
 
   onTypingError(callback: (data: any) => void): void {
@@ -352,6 +396,22 @@ class SocketService {
       this.socket?.off('message_error', callback);
     } else {
       this.socket?.removeAllListeners('message_error');
+    }
+  }
+
+  offConversationError(callback?: (data: any) => void): void {
+    if (callback) {
+      this.socket?.off('conversation_error', callback);
+    } else {
+      this.socket?.removeAllListeners('conversation_error');
+    }
+  }
+
+  offTypingError(callback?: (data: any) => void): void {
+    if (callback) {
+      this.socket?.off('typing_error', callback);
+    } else {
+      this.socket?.removeAllListeners('typing_error');
     }
   }
 
