@@ -6,7 +6,7 @@ import walletRoutes from './routes/wallet.routes';
 // import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { initAdmin } from './createAdmin/initAdmin';
+// import { initAdmin } from './createAdmin/initAdmin';
 
 // dotenv.config();
 
