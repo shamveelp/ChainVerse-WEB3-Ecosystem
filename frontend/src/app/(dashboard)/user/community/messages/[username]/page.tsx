@@ -321,33 +321,54 @@ export default function ChatPage({ params }: ChatPageProps) {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               
-              <Avatar className="w-10 h-10">
-                <AvatarImage src={participant?.profilePic} alt={participant?.name} />
-                <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
-                  {participant?.name?.charAt(0)?.toUpperCase() || participant?.username?.charAt(0)?.toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div>
-                <div className="flex items-center gap-1">
-                  <h3 className="font-semibold text-white">
-                    {participant?.name || participant?.username || username}
-                  </h3>
-                  {participant?.isVerified && (
-                    <div className="w-4 h-4 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
-                      <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
+              {/* User Avatar and Name with Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-3 hover:bg-slate-800/50 rounded-lg p-2 transition-colors">
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={participant?.profilePic} alt={participant?.name} />
+                      <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
+                        {participant?.name?.charAt(0)?.toUpperCase() || participant?.username?.charAt(0)?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="text-left">
+                      <div className="flex items-center gap-1">
+                        <h3 className="font-semibold text-white">
+                          {participant?.name || participant?.username || username}
+                        </h3>
+                        {participant?.isVerified && (
+                          <div className="w-4 h-4 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
+                            <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-slate-400">
+                          {participant?.isOnline ? 'Online now' : 'Offline'}
+                        </p>
+                        <ConnectionStatus isConnected={socketConnected} className="text-xs" />
+                      </div>
                     </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-slate-400">
-                    {participant?.isOnline ? 'Online now' : 'Offline'}
-                  </p>
-                  <ConnectionStatus isConnected={socketConnected} className="text-xs" />
-                </div>
-              </div>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-slate-800 border-slate-700">
+                  <DropdownMenuItem 
+                    onClick={() => router.push(`/user/community/${participant?.username}`)}
+                    className="text-slate-300 hover:text-white hover:bg-slate-700"
+                  >
+                    View Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-slate-300 hover:text-white hover:bg-slate-700">
+                    Block User
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-400 hover:text-red-300 hover:bg-slate-700">
+                    Report User
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             
             <div className="flex items-center gap-2">
