@@ -306,8 +306,8 @@ export default function ChatPage({ params }: ChatPageProps) {
 
       {/* Main Chat Area */}
       <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen flex flex-col pt-16">
-        {/* Chat Header */}
-        <div className="sticky top-16 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/50 p-4 z-10">
+        {/* Chat Header - Fixed */}
+        <div className="fixed top-16 left-0 right-0 lg:ml-80 xl:mr-80 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/50 p-4 z-30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
@@ -378,7 +378,7 @@ export default function ChatPage({ params }: ChatPageProps) {
         </div>
 
         {/* Messages Area */}
-        <ScrollArea className="flex-1 pb-20" ref={messagesContainerRef}>
+        <ScrollArea className="flex-1 pt-16 pb-20" ref={messagesContainerRef}>
           <div className="p-4 space-y-4 max-w-4xl mx-auto">
             {/* Load More Trigger */}
             {currentConversation && hasMoreMessages[currentConversation._id] && (
