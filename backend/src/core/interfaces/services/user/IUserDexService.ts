@@ -2,6 +2,22 @@ import { IPayment } from "../../../../models/payment.model";
 import { PaginatedPayments } from "../../repositories/IPaymentRepository";
 
 export interface IUserDexService {
+  getEthPrice(): Promise<number>;
+  
+  calculateEstimate(
+    amount: number,
+    currency?: string
+  ): Promise<{
+    estimatedEth: number;
+    platformFee: number;
+    otherFees: number;
+    totalFees: number;
+    actualEthToReceive: number;
+    totalFeePercentage: number;
+    ethPriceUsed: number;
+    currency: string;
+  }>;
+
   createPaymentOrder(
     userId: string,
     walletAddress: string,
@@ -9,26 +25,22 @@ export interface IUserDexService {
     amountInCurrency: number,
     estimatedEth: number,
     ethPriceAtTime: number
-  ): Promise<{ order: any; payment: IPayment }>;
-  
+  ): Promise<{
+    orderId: string;
+    amount: number;
+    currency: string;
+    paymentId: string;
+  }>;
+
   verifyPayment(
-    userId: string,
     razorpayOrderId: string,
     razorpayPaymentId: string,
     razorpaySignature: string
   ): Promise<IPayment>;
-  
+
   getUserPayments(
     userId: string,
     page: number,
     limit: number
   ): Promise<PaginatedPayments>;
-  
-  getEthPrice(): Promise<number>;
-  
-  calculateFees(amount: number): {
-    platformFee: number;
-    totalFeePercentage: number;
-    actualEthAmount: number;
-  };
 }

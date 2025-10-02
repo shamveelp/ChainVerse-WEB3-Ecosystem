@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { dexApiService } from '@/services/dexApiService';
 import TradeNavbar from '@/components/shared/TradeNavbar';
 import Navbar from '@/components/home/navbar';
+import Link from 'next/link';
 
 declare global {
   interface Window {
@@ -26,14 +27,14 @@ interface Currency {
 export default function BuyCryptoPage() {
   const account = useActiveAccount();
   const { user } = useSelector((state: RootState) => state.userAuth);
-  
+
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>({
     code: 'INR',
     name: 'Indian Rupee',
     symbol: '₹',
     available: true
   });
-  
+
   const [amount, setAmount] = useState<string>('');
   const [estimatedEth, setEstimatedEth] = useState<number>(0);
   const [ethPrice, setEthPrice] = useState<number>(0);
@@ -57,6 +58,7 @@ export default function BuyCryptoPage() {
         script.async = true;
         script.onload = () => {
           setScriptLoaded(true);
+          console.log('Razorpay script loaded successfully');
         };
         script.onerror = () => {
           console.error('Failed to load Razorpay script');
@@ -66,9 +68,10 @@ export default function BuyCryptoPage() {
             description: "Failed to load payment gateway. Please refresh and try again.",
           });
         };
-        document.body.appendChild(script);
+        document.head.appendChild(script);
       } else if (window.Razorpay) {
         setScriptLoaded(true);
+        console.log('Razorpay already loaded');
       }
     };
 
@@ -115,7 +118,7 @@ export default function BuyCryptoPage() {
     try {
       setCalculating(true);
       const response = await dexApiService.calculateEstimate(parseFloat(amount), selectedCurrency.code);
-      
+
       if (response.success && response.data) {
         setEstimatedEth(response.data.estimatedEth);
         setFees(response.data);
@@ -193,12 +196,19 @@ export default function BuyCryptoPage() {
       });
 
       if (!orderResponse.success || !orderResponse.data) {
-        throw new Error('Failed to create payment order');
+        throw new Error(orderResponse.error || 'Failed to create payment order');
       }
 
-      // Initialize Razorpay
+      // Get Razorpay key from environment or response
+      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      
+      if (!razorpayKey) {
+        throw new Error('Razorpay configuration error. Please contact support.');
+      }
+
+      // Initialize Razorpay with proper error handling
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: razorpayKey,
         amount: orderResponse.data.amount,
         currency: orderResponse.data.currency,
         name: 'ChainVerse Crypto',
@@ -226,14 +236,14 @@ export default function BuyCryptoPage() {
               setEstimatedEth(0);
               setFees(null);
             } else {
-              throw new Error('Payment verification failed');
+              throw new Error(verifyResponse.error || 'Payment verification failed');
             }
           } catch (error: any) {
             console.error('Payment verification error:', error);
             toast({
               variant: "destructive",
               title: "Payment Verification Failed",
-              description: "Please contact support if amount was deducted.",
+              description: error.message || "Please contact support if amount was deducted.",
             });
           } finally {
             setLoading(false);
@@ -250,7 +260,7 @@ export default function BuyCryptoPage() {
           ondismiss: function() {
             setLoading(false);
             toast({
-              variant: "destructive",
+              variant: "default",
               title: "Payment Cancelled",
               description: "Your payment was cancelled.",
             });
@@ -258,14 +268,26 @@ export default function BuyCryptoPage() {
         }
       };
 
+      console.log('Initializing Razorpay with options:', options);
       const razorpay = new window.Razorpay(options);
+      
+      razorpay.on('payment.failed', function (response: any) {
+        console.error('Payment failed:', response.error);
+        setLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Payment Failed",
+          description: response.error.description || "Payment failed. Please try again.",
+        });
+      });
+
       razorpay.open();
     } catch (error: any) {
       console.error('Payment initiation failed:', error);
       toast({
         variant: "destructive",
         title: "Payment Failed",
-        description: error.response?.data?.error || error.message || "Failed to initiate payment. Please try again.",
+        description: error.message || "Failed to initiate payment. Please try again.",
       });
       setLoading(false);
     }
@@ -291,7 +313,7 @@ export default function BuyCryptoPage() {
     <>
       <Navbar />
       <TradeNavbar topOffset="top-16" />
-      
+
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 pt-20 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
@@ -303,7 +325,7 @@ export default function BuyCryptoPage() {
             {/* Buy Form */}
             <div className="glassmorphism rounded-3xl p-8">
               <h2 className="text-2xl font-semibold text-white mb-6">Purchase Details</h2>
-              
+
               {/* Currency Selection */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-300 mb-3">Select Currency</label>
@@ -380,11 +402,11 @@ export default function BuyCryptoPage() {
               <button
                 onClick={initiatePayment}
                 disabled={
-                  loading || 
-                  calculating || 
-                  !amount || 
-                  parseFloat(amount) < 100 || 
-                  !selectedCurrency.available || 
+                  loading ||
+                  calculating ||
+                  !amount ||
+                  parseFloat(amount) < 100 ||
+                  !selectedCurrency.available ||
                   !account?.address ||
                   !scriptLoaded
                 }
@@ -396,7 +418,7 @@ export default function BuyCryptoPage() {
                   <>
                     <ArrowRightLeft className="h-5 w-5" />
                     <span>
-                      {!account?.address ? 'Connect Wallet' : 
+                      {!account?.address ? 'Connect Wallet' :
                        !selectedCurrency.available ? 'Currency Not Available' :
                        !scriptLoaded ? 'Loading Payment Gateway...' :
                        'Buy Crypto'}
@@ -404,6 +426,16 @@ export default function BuyCryptoPage() {
                   </>
                 )}
               </button>
+
+              {/* View History Link */}
+              <div className="mt-4 text-center">
+                <Link 
+                  href="/trade/buy/history"
+                  className="text-cyan-400 hover:text-cyan-300 text-sm underline transition-colors"
+                >
+                  View Payment History
+                </Link>
+              </div>
             </div>
 
             {/* Order Summary */}
@@ -411,7 +443,7 @@ export default function BuyCryptoPage() {
               {/* Estimate Display */}
               <div className="glassmorphism rounded-3xl p-8">
                 <h3 className="text-xl font-semibold text-white mb-6">Order Summary</h3>
-                
+
                 {calculating ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-cyan-500"></div>
@@ -424,29 +456,29 @@ export default function BuyCryptoPage() {
                         {selectedCurrency.symbol}{parseFloat(amount).toLocaleString()}
                       </span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300">Estimated ETH</span>
                       <span className="text-white">{estimatedEth.toFixed(6)} ETH</span>
                     </div>
-                    
+
                     <div className="border-t border-gray-700 pt-4 space-y-2">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-red-300">Platform Fee (5%)</span>
                         <span className="text-red-300">-{fees.platformFee?.toFixed(6)} ETH</span>
                       </div>
-                      
+
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-red-300">Other Fees (15%)</span>
                         <span className="text-red-300">-{((estimatedEth * 15) / 100).toFixed(6)} ETH</span>
                       </div>
-                      
+
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-red-300">Total Fees (20%)</span>
                         <span className="text-red-300">-{(estimatedEth - fees.actualEthToReceive).toFixed(6)} ETH</span>
                       </div>
                     </div>
-                    
+
                     <div className="border-t border-gray-700 pt-4">
                       <div className="flex justify-between items-center text-lg">
                         <span className="text-white font-semibold">You'll Receive</span>
@@ -465,18 +497,18 @@ export default function BuyCryptoPage() {
                   <Info className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
                   <div className="space-y-3">
                     <h4 className="text-lg font-semibold text-white">Important Information</h4>
-                    
+
                     <div className="space-y-2 text-sm text-gray-300">
                       <div className="flex items-center space-x-2">
                         <Clock className="h-4 w-4 text-yellow-400" />
                         <p>Crypto will be sent to your wallet within 24 hours after provider approval</p>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2">
                         <Shield className="h-4 w-4 text-green-400" />
                         <p>Price calculated at time of purchase</p>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2">
                         <AlertTriangle className="h-4 w-4 text-orange-400" />
                         <p>This is for Sepolia testnet ETH only</p>

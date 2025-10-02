@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { ethers } from 'ethers';
+import { useActiveAccount } from 'thirdweb/react';
 import type { RootState } from '@/redux/store';
 import { 
   Search, 
@@ -10,15 +12,18 @@ import {
   XCircle, 
   Clock, 
   DollarSign,
-  Users,
   TrendingUp,
   Eye,
   Send,
   Ban,
-  AlertCircle
+  AlertCircle,
+  Wallet,
+  ExternalLink,
+  Copy
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { adminDexApiService } from '@/services/dexApiService';
+import FloatingWalletButton from '@/components/shared/TradeNavbar';
 
 interface Payment {
   _id: string;
@@ -56,8 +61,9 @@ interface PaymentStats {
 }
 
 export default function BuyCryptoManagementPage() {
+  const account = useActiveAccount();
   const { admin } = useSelector((state: RootState) => state.adminAuth);
-  
+
   const [activeTab, setActiveTab] = useState<'requests' | 'history'>('requests');
   const [payments, setPayments] = useState<Payment[]>([]);
   const [stats, setStats] = useState<PaymentStats | null>(null);
@@ -68,7 +74,7 @@ export default function BuyCryptoManagementPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState<'approve' | 'reject' | 'view'>('view');
+  const [modalType, setModalType] = useState<'approve' | 'reject' | 'view' | 'send'>('view');
   const [adminNote, setAdminNote] = useState('');
   const [transactionHash, setTransactionHash] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
@@ -99,7 +105,7 @@ export default function BuyCryptoManagementPage() {
       setLoading(true);
       const statusFilter = activeTab === 'requests' ? 'success' : selectedStatus;
       const response = await adminDexApiService.getAllPayments(currentPage, 10, statusFilter);
-      
+
       if (response.success && response.data) {
         setPayments(response.data.payments || []);
         setTotalPages(response.data.totalPages || 1);
@@ -119,8 +125,80 @@ export default function BuyCryptoManagementPage() {
     }
   };
 
-  const handleApprovePayment = async () => {
-    if (!selectedPayment || !transactionHash.trim()) {
+  const sendCryptoDirectly = async () => {
+    if (!selectedPayment || !account?.address) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Wallet not connected or payment not selected",
+      });
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      
+      if (!window.ethereum) {
+        throw new Error('MetaMask not installed');
+      }
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      
+      // Prepare transaction
+      const tx = {
+        to: selectedPayment.walletAddress,
+        value: ethers.parseEther(selectedPayment.actualEthToSend.toString()),
+        gasLimit: '21000',
+      };
+
+      toast({
+        variant: "default",
+        title: "Transaction Prepared",
+        description: "Please confirm the transaction in your wallet",
+      });
+
+      // Send transaction
+      const transaction = await signer.sendTransaction(tx);
+      
+      toast({
+        variant: "default",
+        title: "Transaction Sent!",
+        description: "Waiting for confirmation...",
+      });
+
+      // Wait for confirmation
+      const receipt = await transaction.wait();
+      
+      if (receipt?.status === 1) {
+        // Update payment status with transaction hash
+        await handleApprovePayment(transaction.hash);
+        
+        toast({
+          variant: "default",
+          title: "Success!",
+          description: "Crypto sent and payment fulfilled successfully",
+        });
+      } else {
+        throw new Error('Transaction failed');
+      }
+    } catch (error: any) {
+      console.error('Send crypto failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Transaction Failed",
+        description: error.message || "Failed to send crypto",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleApprovePayment = async (txHash?: string) => {
+    if (!selectedPayment) return;
+
+    const hashToUse = txHash || transactionHash;
+    if (!hashToUse.trim()) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -133,7 +211,7 @@ export default function BuyCryptoManagementPage() {
       setActionLoading(true);
       const response = await adminDexApiService.fulfillPayment(
         selectedPayment._id,
-        transactionHash,
+        hashToUse,
         adminNote.trim() || 'Payment approved and fulfilled'
       );
 
@@ -204,7 +282,16 @@ export default function BuyCryptoManagementPage() {
     }
   };
 
-  const openModal = (payment: Payment, type: 'approve' | 'reject' | 'view') => {
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      variant: "default",
+      title: "Copied",
+      description: "Address copied to clipboard",
+    });
+  };
+
+  const openModal = (payment: Payment, type: 'approve' | 'reject' | 'view' | 'send') => {
     setSelectedPayment(payment);
     setModalType(type);
     setShowModal(true);
@@ -255,7 +342,9 @@ export default function BuyCryptoManagementPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 pt-20 px-6">
+      <FloatingWalletButton topOffset="top-4" />
+      
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -263,6 +352,12 @@ export default function BuyCryptoManagementPage() {
             Buy Crypto Management
           </h1>
           <p className="text-gray-400 text-lg">Manage cryptocurrency purchase requests and orders</p>
+          {account?.address && (
+            <div className="mt-4 flex items-center space-x-2">
+              <Wallet className="h-4 w-4 text-green-400" />
+              <span className="text-green-400 text-sm">Admin Wallet Connected: {account.address.slice(0, 10)}...{account.address.slice(-8)}</span>
+            </div>
+          )}
         </div>
 
         {/* Stats Cards */}
@@ -345,7 +440,7 @@ export default function BuyCryptoManagementPage() {
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              Pending Requests
+              Pending Requests ({stats?.successCount || 0})
             </button>
             <button
               onClick={() => {
@@ -438,7 +533,15 @@ export default function BuyCryptoManagementPage() {
                         <div>
                           <p className="text-white font-medium">{payment.userId?.name || 'N/A'}</p>
                           <p className="text-gray-400 text-sm">{payment.userId?.email || 'N/A'}</p>
-                          <p className="text-gray-500 text-xs">{payment.walletAddress?.slice(0, 10)}...</p>
+                          <div className="flex items-center space-x-1 mt-1">
+                            <p className="text-gray-500 text-xs">{payment.walletAddress?.slice(0, 10)}...{payment.walletAddress?.slice(-8)}</p>
+                            <button
+                              onClick={() => copyToClipboard(payment.walletAddress)}
+                              className="text-gray-500 hover:text-cyan-400 transition-colors"
+                            >
+                              <Copy className="h-3 w-3" />
+                            </button>
+                          </div>
                         </div>
                       </td>
                       <td className="p-4">
@@ -477,9 +580,19 @@ export default function BuyCryptoManagementPage() {
                           >
                             <Eye className="h-4 w-4" />
                           </button>
-                          
+
                           {payment.status === 'success' && (
                             <>
+                              {account?.address ? (
+                                <button
+                                  onClick={() => openModal(payment, 'send')}
+                                  className="p-2 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-colors"
+                                  title="Send Crypto Directly"
+                                >
+                                  <Wallet className="h-4 w-4" />
+                                </button>
+                              ) : null}
+                              
                               <button
                                 onClick={() => openModal(payment, 'approve')}
                                 className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors"
@@ -532,70 +645,211 @@ export default function BuyCryptoManagementPage() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Enhanced Modal */}
       {showModal && selectedPayment && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-2xl font-bold text-white mb-6">
-              {modalType === 'view' ? 'Payment Details' :
-               modalType === 'approve' ? 'Approve Payment' : 'Reject Payment'}
-            </h3>
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-white">
+                {modalType === 'view' ? 'Payment Details' :
+                 modalType === 'approve' ? 'Approve Payment' :
+                 modalType === 'send' ? 'Send Crypto Directly' :
+                 'Reject Payment'}
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-white"
+              >
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
 
-            {/* Payment Details */}
-            <div className="space-y-4 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">User</label>
-                  <p className="text-white">{selectedPayment.userId?.name || 'N/A'}</p>
-                  <p className="text-gray-400 text-sm">{selectedPayment.userId?.email || 'N/A'}</p>
-                </div>
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Wallet Address</label>
-                  <p className="text-white text-sm font-mono">{selectedPayment.walletAddress}</p>
-                </div>
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Amount Paid</label>
-                  <p className="text-white">₹{selectedPayment.amountInCurrency?.toLocaleString()}</p>
-                </div>
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">ETH to Send</label>
-                  <p className="text-white">{selectedPayment.actualEthToSend?.toFixed(6)} ETH</p>
-                </div>
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Status</label>
-                  {getStatusBadge(selectedPayment.status)}
-                </div>
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Date</label>
-                  <p className="text-white">{new Date(selectedPayment.createdAt).toLocaleString()}</p>
+            {/* Detailed Payment Information */}
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              {/* User Information */}
+              <div className="bg-gray-800/30 rounded-xl p-6 border border-gray-700">
+                <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
+                  <Clock className="h-5 w-5 mr-2 text-cyan-400" />
+                  User Information
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Name</label>
+                    <p className="text-white font-medium">{selectedPayment.userId?.name || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Email</label>
+                    <p className="text-white">{selectedPayment.userId?.email || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Username</label>
+                    <p className="text-white">{selectedPayment.userId?.username || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Wallet Address</label>
+                    <div className="flex items-center space-x-2">
+                      <p className="text-white font-mono text-sm break-all">{selectedPayment.walletAddress}</p>
+                      <div className="flex space-x-1">
+                        <button
+                          onClick={() => copyToClipboard(selectedPayment.walletAddress)}
+                          className="p-1 text-gray-400 hover:text-cyan-400 transition-colors"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </button>
+                        <a
+                          href={`https://sepolia.etherscan.io/address/${selectedPayment.walletAddress}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1 text-gray-400 hover:text-cyan-400 transition-colors"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {selectedPayment.razorpayPaymentId && (
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Razorpay Payment ID</label>
-                  <p className="text-white font-mono text-sm">{selectedPayment.razorpayPaymentId}</p>
+              {/* Payment Information */}
+              <div className="bg-gray-800/30 rounded-xl p-6 border border-gray-700">
+                <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
+                  <DollarSign className="h-5 w-5 mr-2 text-green-400" />
+                  Payment Details
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Amount Paid</span>
+                    <span className="text-white font-medium">₹{selectedPayment.amountInCurrency?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Currency</span>
+                    <span className="text-white">{selectedPayment.currency}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">ETH Price (at time)</span>
+                    <span className="text-white">₹{selectedPayment.ethPriceAtTime?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Estimated ETH</span>
+                    <span className="text-white">{selectedPayment.estimatedEth?.toFixed(6)} ETH</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Platform Fee</span>
+                    <span className="text-red-300">{selectedPayment.totalFeePercentage}%</span>
+                  </div>
+                  <div className="border-t border-gray-600 pt-2">
+                    <div className="flex justify-between text-lg font-semibold">
+                      <span className="text-white">ETH to Send</span>
+                      <span className="text-cyan-400">{selectedPayment.actualEthToSend?.toFixed(6)} ETH</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Status</label>
+                    {getStatusBadge(selectedPayment.status)}
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Created</label>
+                    <p className="text-white text-sm">{new Date(selectedPayment.createdAt).toLocaleString()}</p>
+                  </div>
                 </div>
-              )}
+              </div>
+            </div>
 
-              {selectedPayment.transactionHash && (
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Transaction Hash</label>
-                  <p className="text-white font-mono text-sm">{selectedPayment.transactionHash}</p>
-                </div>
-              )}
-
-              {selectedPayment.adminNote && (
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Admin Note</label>
-                  <p className="text-white">{selectedPayment.adminNote}</p>
-                </div>
-              )}
+            {/* Transaction Information */}
+            <div className="bg-gray-800/30 rounded-xl p-6 border border-gray-700 mb-6">
+              <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
+                <Send className="h-5 w-5 mr-2 text-blue-400" />
+                Transaction Information
+              </h4>
+              <div className="grid md:grid-cols-2 gap-4">
+                {selectedPayment.razorpayOrderId && (
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Razorpay Order ID</label>
+                    <p className="text-white font-mono text-sm break-all">{selectedPayment.razorpayOrderId}</p>
+                  </div>
+                )}
+                {selectedPayment.razorpayPaymentId && (
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Razorpay Payment ID</label>
+                    <p className="text-white font-mono text-sm break-all">{selectedPayment.razorpayPaymentId}</p>
+                  </div>
+                )}
+                {selectedPayment.transactionHash && (
+                  <div className="md:col-span-2">
+                    <label className="block text-gray-400 text-sm mb-1">Blockchain Transaction</label>
+                    <div className="flex items-center space-x-2">
+                      <p className="text-white font-mono text-sm break-all">{selectedPayment.transactionHash}</p>
+                      <a
+                        href={`https://sepolia.etherscan.io/tx/${selectedPayment.transactionHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 text-cyan-400 hover:text-cyan-300 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {selectedPayment.adminNote && (
+                  <div className="md:col-span-2">
+                    <label className="block text-gray-400 text-sm mb-1">Admin Note</label>
+                    <p className="text-white bg-gray-900/50 p-3 rounded-lg">{selectedPayment.adminNote}</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Action Forms */}
+            {modalType === 'send' && (
+              <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-xl p-6 mb-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <Wallet className="h-6 w-6 text-cyan-400" />
+                  <div>
+                    <h4 className="text-lg font-semibold text-white">Send Crypto Directly</h4>
+                    <p className="text-gray-400 text-sm">This will send crypto from your connected wallet and mark the order as fulfilled</p>
+                  </div>
+                </div>
+                
+                {account?.address ? (
+                  <div className="space-y-4">
+                    <div className="bg-gray-800/50 p-4 rounded-lg">
+                      <h5 className="text-white font-medium mb-2">Transaction Preview</h5>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">From (Your Wallet):</span>
+                          <span className="text-white font-mono">{account.address.slice(0, 10)}...{account.address.slice(-8)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">To (User Wallet):</span>
+                          <span className="text-white font-mono">{selectedPayment.walletAddress.slice(0, 10)}...{selectedPayment.walletAddress.slice(-8)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Amount:</span>
+                          <span className="text-cyan-400 font-semibold">{selectedPayment.actualEthToSend.toFixed(6)} ETH</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Network:</span>
+                          <span className="text-white">Sepolia Testnet</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-orange-400 text-sm flex items-center space-x-2">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>Make sure you have enough ETH in your wallet for gas fees</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-red-400 text-center p-4">
+                    <Wallet className="h-8 w-8 mx-auto mb-2" />
+                    <p>Please connect your admin wallet to send crypto directly</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {modalType === 'approve' && (
-              <div className="space-y-4">
+              <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-gray-400 text-sm mb-2">
                     Transaction Hash <span className="text-red-400">*</span>
@@ -603,17 +857,17 @@ export default function BuyCryptoManagementPage() {
                   <input
                     type="text"
                     placeholder="Enter transaction hash after sending crypto"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-green-500 outline-none"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-green-500 outline-none"        
                     value={transactionHash}
                     onChange={(e) => setTransactionHash(e.target.value)}
                     disabled={actionLoading}
                   />
-                  <p className="text-gray-400 text-xs mt-1">This will be visible to the user</p>
+                  <p className="text-gray-400 text-xs mt-1">This will be visible to the user and verifiable on blockchain</p>
                 </div>
                 <div>
                   <label className="block text-gray-400 text-sm mb-2">Admin Note (Optional)</label>
                   <textarea
-                    placeholder="Add any additional notes"
+                    placeholder="Add any additional notes for the user"
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-green-500 outline-none resize-none"
                     rows={3}
                     value={adminNote}
@@ -625,12 +879,12 @@ export default function BuyCryptoManagementPage() {
             )}
 
             {modalType === 'reject' && (
-              <div>
+              <div className="mb-6">
                 <label className="block text-gray-400 text-sm mb-2">
                   Rejection Reason <span className="text-red-400">*</span>
                 </label>
                 <textarea
-                  placeholder="Explain why this payment is being rejected"
+                  placeholder="Explain why this payment is being rejected (this will be shown to the user)"
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-red-500 outline-none resize-none"
                   rows={4}
                   value={adminNote}
@@ -641,23 +895,35 @@ export default function BuyCryptoManagementPage() {
             )}
 
             {/* Modal Actions */}
-            <div className="flex justify-end space-x-3 mt-6">
+            <div className="flex justify-end space-x-3">
               <button
                 onClick={closeModal}
                 disabled={actionLoading}
                 className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50"
               >
-                Cancel
+                {modalType === 'view' ? 'Close' : 'Cancel'}
               </button>
+
+              {modalType === 'send' && account?.address && (
+                <button
+                  onClick={sendCryptoDirectly}
+                  disabled={actionLoading}
+                  className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                >
+                  {actionLoading && <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>}
+                  <Wallet className="h-4 w-4" />
+                  <span>Send {selectedPayment.actualEthToSend.toFixed(6)} ETH</span>
+                </button>
+              )}
 
               {modalType === 'approve' && (
                 <button
-                  onClick={handleApprovePayment}
+                  onClick={() => handleApprovePayment()}
                   disabled={!transactionHash.trim() || actionLoading}
                   className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
                 >
                   {actionLoading && <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>}
-                  <span>Approve & Send Crypto</span>
+                  <span>Mark as Fulfilled</span>
                 </button>
               )}
 
