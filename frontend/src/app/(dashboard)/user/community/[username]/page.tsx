@@ -14,7 +14,7 @@ import { useFollow } from '@/hooks/useFollow'
 import { communityApiService } from '@/services/communityApiService'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
-import PostsFeed from '@/components/posts/posts-feed'
+import PostsFeed from '@/components/community/posts/posts-feed'
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
 import { toast } from 'sonner'

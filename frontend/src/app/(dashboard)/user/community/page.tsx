@@ -9,8 +9,8 @@ import { LogIn, Shield, Sparkles } from "lucide-react";
 import type { RootState } from "@/redux/store";
 import Sidebar from "@/components/community/sidebar";
 import RightSidebar from "@/components/community/right-sidebar";
-import CreatePost from "@/components/posts/create-posts";
-import PostsFeed from "@/components/posts/posts-feed";
+import CreatePost from "@/components/community/posts/create-posts";
+import PostsFeed from "@/components/community/posts/posts-feed";
 import { Post } from "@/services/postsApiService";
 
 export default function CommunityPage() {
