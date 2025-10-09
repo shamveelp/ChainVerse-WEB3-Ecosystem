@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { CustomError } from '../utils/customError';
+import { CustomError } from './customError';
 import { StatusCode } from '../enums/statusCode.enum';
 import logger from '../utils/logger';
 

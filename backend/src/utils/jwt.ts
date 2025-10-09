@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken"
 import type { Response } from "express"
 import { injectable } from "inversify"
-import { CustomError } from "../utils/customError"
+import { CustomError } from "./customError"
 import { StatusCode } from "../enums/statusCode.enum"
 import { IJwtService } from "../core/interfaces/services/IJwtService"
 
