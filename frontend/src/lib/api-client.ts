@@ -23,8 +23,18 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
       const state = storeInstance?.getState() as RootState;
       const userToken = state?.userAuth?.token;
       const adminToken = state?.adminAuth?.token;
+      const communityAdminToken = state?.communityAdminAuth?.token;
 
-      const token = config.url?.includes('/admin') ? adminToken : userToken;
+      let token: string | null = null;
+
+      // Determine which token to use based on the URL
+      if (config.url?.includes('/admin') && !config.url?.includes('/community-admin')) {
+        token = adminToken;
+      } else if (config.url?.includes('/community-admin')) {
+        token = communityAdminToken;
+      } else {
+        token = userToken;
+      }
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -50,17 +60,31 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
         originalRequest._retry = true;
 
         try {
-          const refreshEndpoint = originalRequest.url.includes('/admin')
-            ? '/api/admin/refresh-token'
-            : '/api/user/refresh-token';
+          let refreshEndpoint: string;
+          let role: 'admin' | 'user' | 'communityAdmin';
+
+          if (originalRequest.url.includes('/community-admin')) {
+            refreshEndpoint = '/api/community-admin/refresh-token';
+            role = 'communityAdmin';
+          } else if (originalRequest.url.includes('/admin')) {
+            refreshEndpoint = '/api/admin/refresh-token';
+            role = 'admin';
+          } else {
+            refreshEndpoint = '/api/user/refresh-token';
+            role = 'user';
+          }
 
           const response = await api.post(refreshEndpoint, {}, { withCredentials: true });
 
           if (response.data.success) {
-            const role = originalRequest.url.includes('/admin') ? 'admin' : 'user';
+            const actionType = role === 'admin' 
+              ? 'adminAuth/updateToken' 
+              : role === 'communityAdmin'
+              ? 'communityAdminAuth/updateToken'
+              : 'userAuth/updateToken';
 
             store.dispatch({
-              type: role === 'admin' ? 'adminAuth/updateToken' : 'userAuth/updateToken',
+              type: actionType,
               payload: response.data.accessToken,
             });
 
@@ -68,14 +92,24 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
           }
         } catch (refreshError) {
           // If refresh fails → logout
-          handleLogout(originalRequest.url.includes('/admin') ? 'admin' : 'user');
+          const role = originalRequest.url.includes('/community-admin') 
+            ? 'communityAdmin'
+            : originalRequest.url.includes('/admin') 
+            ? 'admin' 
+            : 'user';
+          handleLogout(role);
           return Promise.reject(refreshError);
         }
       }
 
       // Auto logout on 401 (failed refresh) or 403
       if (error.response?.status === 401 || error.response?.status === 403) {
-        handleLogout(originalRequest.url.includes('/admin') ? 'admin' : 'user');
+        const role = originalRequest.url.includes('/community-admin') 
+          ? 'communityAdmin'
+          : originalRequest.url.includes('/admin') 
+          ? 'admin' 
+          : 'user';
+        handleLogout(role);
       }
 
       return Promise.reject(error);
@@ -83,15 +117,26 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
   );
 };
 
-function handleLogout(role: 'admin' | 'user') {
+function handleLogout(role: 'admin' | 'user' | 'communityAdmin') {
   if (!storeInstance) return;
 
+  const actionType = role === 'admin' 
+    ? 'adminAuth/logout' 
+    : role === 'communityAdmin'
+    ? 'communityAdminAuth/logout'
+    : 'userAuth/logout';
+
   storeInstance.dispatch({
-    type: role === 'admin' ? 'adminAuth/logout' : 'userAuth/logout',
+    type: actionType,
   });
 
   if (typeof window !== 'undefined') {
-    window.location.href = role === 'admin' ? '/admin/login' : '/user/login';
+    const redirectPath = role === 'admin' 
+      ? '/admin/login' 
+      : role === 'communityAdmin'
+      ? '/comms-admin/auth/login'
+      : '/user/login';
+    window.location.href = redirectPath;
   }
 }
 

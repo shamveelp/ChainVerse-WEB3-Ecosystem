@@ -3,6 +3,7 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSelector } from "react-redux"
 import type { RootState } from "@/redux/store"
+import { COMMUNITY_ADMIN_ROUTES } from "@/routes"
 
 type Props = {
   children: React.ReactNode
@@ -16,11 +17,11 @@ export const CommunityAdminProtectedRoute = ({ children }: Props) => {
   useEffect(() => {
     if (!isAuthenticated) {
       if (applicationStatus === 'pending') {
-        router.push("/comms-admin/application-submitted")
+        router.push(COMMUNITY_ADMIN_ROUTES.APPLICATION_SUBMITTED)
       } else if (applicationStatus === 'rejected') {
-        router.push("/comms-admin/get-started")
+        router.push(COMMUNITY_ADMIN_ROUTES.GET_STARTED)
       } else {
-        router.push("/comms-admin/login")
+        router.push(COMMUNITY_ADMIN_ROUTES.LOGIN)
       }
     }
   }, [isAuthenticated, applicationStatus, router])
@@ -37,9 +38,9 @@ export const CommunityAdminPreventLoggedIn = ({ children }: Props) => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/comms-admin")
+      router.push(COMMUNITY_ADMIN_ROUTES.DASHBOARD)
     } else if (applicationStatus === 'pending') {
-      router.push("/comms-admin/application-submitted")
+      router.push(COMMUNITY_ADMIN_ROUTES.APPLICATION_SUBMITTED)
     }
   }, [isAuthenticated, applicationStatus, router])
 
@@ -51,11 +52,11 @@ export const CommunityAdminPreventLoggedIn = ({ children }: Props) => {
 // ✅ For application flow pages
 export const CommunityAdminApplicationFlow = ({ children }: Props) => {
   const router = useRouter()
-  const { isAuthenticated, applicationStatus } = useSelector((state: RootState) => state.communityAdminAuth)
+  const { isAuthenticated } = useSelector((state: RootState) => state.communityAdminAuth)
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/comms-admin")
+      router.push(COMMUNITY_ADMIN_ROUTES.DASHBOARD)
     }
   }, [isAuthenticated, router])
 

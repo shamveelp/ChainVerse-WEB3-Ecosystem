@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { login, logout, setLoading, setApplicationStatus } from '@/redux/slices/communityAdminAuthSlice'
 import { communityAdminApiService } from '@/services/communityAdminApiService'
 import { toast } from '@/hooks/use-toast'
+import { COMMUNITY_ADMIN_ROUTES } from '@/routes'
 
 export const useCommunityAdminAuthActions = () => {
   const dispatch = useDispatch()
@@ -25,15 +26,15 @@ export const useCommunityAdminAuthActions = () => {
           description: "Login successful! Welcome back.",
         })
         
-        router.push('/comms-admin')
+        router.push(COMMUNITY_ADMIN_ROUTES.DASHBOARD)
       } else {
         // Handle specific error cases
         if (result.error?.includes('under review')) {
           dispatch(setApplicationStatus('pending'))
-          router.push('/comms-admin/application-submitted')
+          router.push(COMMUNITY_ADMIN_ROUTES.APPLICATION_SUBMITTED)
         } else if (result.error?.includes('rejected')) {
           dispatch(setApplicationStatus('rejected'))
-          router.push('/comms-admin/create-community')
+          router.push(COMMUNITY_ADMIN_ROUTES.CREATE_COMMUNITY)
         } else {
           toast({
             title: "Login Failed",
@@ -57,7 +58,7 @@ export const useCommunityAdminAuthActions = () => {
     try {
       await communityAdminApiService.logout()
       dispatch(logout())
-      router.push('/comms-admin/login')
+      router.push(COMMUNITY_ADMIN_ROUTES.LOGIN)
       
       toast({
         title: "Success",
@@ -66,7 +67,7 @@ export const useCommunityAdminAuthActions = () => {
     } catch (error: any) {
       // Even if API call fails, clear local state
       dispatch(logout())
-      router.push('/comms-admin/login')
+      router.push(COMMUNITY_ADMIN_ROUTES.LOGIN)
     }
   }
 

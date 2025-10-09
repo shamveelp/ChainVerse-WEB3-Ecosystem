@@ -1,222 +1,307 @@
 "use client"
+
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Users, Settings, BarChart3, MessageSquare, Crown, LogOut, Bell, Calendar } from 'lucide-react'
-import { useCommunityAdminAuthActions } from '@/lib/communityAdminAuthActions'
-import { CommunityAdminProtectedRoute } from '@/redirects/communityAdminRedirects'
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Users, TrendingUp, Crown, MessageSquare, Trophy, Activity, Plus, ChevronRight, Sparkles, Calendar, Star, ChartBar as BarChart3 } from 'lucide-react'
 import type { RootState } from '@/redux/store'
+import { COMMUNITY_ADMIN_ROUTES } from '@/routes'
+import { useRouter } from 'next/navigation'
+
+// Mock data - replace with real API calls
+const mockStats = {
+  totalMembers: 1247,
+  activeMembers: 892,
+  totalPosts: 3421,
+  totalQuests: 28,
+  completedQuests: 156,
+  premiumMembers: 89
+}
+
+const mockRecentActivity = [
+  { id: 1, user: "Alice", action: "joined the community", time: "2 minutes ago" },
+  { id: 2, user: "Bob", action: "completed Quest: Web3 Basics", time: "5 minutes ago" },
+  { id: 3, user: "Carol", action: "created a new post", time: "12 minutes ago" },
+  { id: 4, user: "David", action: "upgraded to Premium", time: "18 minutes ago" },
+  { id: 5, user: "Eve", action: "started Quest: DeFi Deep Dive", time: "25 minutes ago" },
+]
+
+const mockUpcomingEvents = [
+  { id: 1, title: "Weekly AMA Session", date: "Tomorrow", time: "3:00 PM" },
+  { id: 2, title: "DeFi Workshop", date: "Dec 28", time: "2:00 PM" },
+  { id: 3, title: "Year-End Community Celebration", date: "Dec 31", time: "8:00 PM" },
+]
 
 export default function CommunityAdminDashboard() {
-  const { logout } = useCommunityAdminAuthActions()
+  const router = useRouter()
   const { communityAdmin } = useSelector((state: RootState) => state.communityAdminAuth)
-  const [stats, setStats] = useState({
-    totalMembers: 1247,
-    activeMembers: 892,
-    totalPosts: 3456,
-    engagement: 78
-  })
+  const [currentTime, setCurrentTime] = useState(new Date())
 
-  const handleLogout = async () => {
-    await logout()
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const getGreeting = () => {
+    const hour = currentTime.getHours()
+    if (hour < 12) return "Good morning"
+    if (hour < 18) return "Good afternoon"
+    return "Good evening"
   }
 
   return (
-    <CommunityAdminProtectedRoute>
-      <div className="min-h-screen bg-black">
-        {/* Header */}
-        <header className="bg-gradient-to-r from-red-900/30 to-red-800/30 backdrop-blur-sm border-b border-red-800/30">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-red-800 rounded-full flex items-center justify-center">
-                  <Crown className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-white">Community Dashboard</h1>
-                  <p className="text-gray-400">Welcome back, {communityAdmin?.name}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <Button variant="ghost" className="text-gray-400 hover:text-white">
-                  <Bell className="h-5 w-5" />
-                </Button>
-                <Button 
-                  onClick={handleLogout}
-                  variant="ghost" 
-                  className="text-red-400 hover:text-red-300 hover:bg-red-950/30"
-                >
-                  <LogOut className="h-5 w-5 mr-2" />
-                  Logout
-                </Button>
-              </div>
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+            {getGreeting()}, {communityAdmin?.name?.split(' ')[0] || 'Admin'}! 👋
+          </h1>
+          <p className="text-gray-400 text-lg mt-2">
+            Here's what's happening in your community today
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-gray-400">
+            {currentTime.toLocaleDateString('en-US', { 
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </p>
+          <p className="text-lg font-semibold text-white">
+            {currentTime.toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </p>
+        </div>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-black/60 backdrop-blur-xl border-red-800/30 hover:border-red-700/50 transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">Total Members</CardTitle>
+            <Users className="h-4 w-4 text-red-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{mockStats.totalMembers.toLocaleString()}</div>
+            <div className="flex items-center gap-1 text-xs text-green-400 mt-1">
+              <TrendingUp className="h-3 w-3" />
+              +12% from last month
             </div>
-          </div>
-        </header>
+          </CardContent>
+        </Card>
 
-        {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-gradient-to-br from-red-950/50 to-red-900/30 border-red-800/30">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-red-400 text-sm font-medium">Total Members</p>
-                    <p className="text-3xl font-bold text-white">{stats.totalMembers.toLocaleString()}</p>
-                  </div>
-                  <Users className="h-8 w-8 text-red-400" />
-                </div>
-              </CardContent>
-            </Card>
+        <Card className="bg-black/60 backdrop-blur-xl border-red-800/30 hover:border-red-700/50 transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">Active Members</CardTitle>
+            <Activity className="h-4 w-4 text-green-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{mockStats.activeMembers.toLocaleString()}</div>
+            <div className="flex items-center gap-1 text-xs text-green-400 mt-1">
+              <TrendingUp className="h-3 w-3" />
+              +8% from last week
+            </div>
+          </CardContent>
+        </Card>
 
-            <Card className="bg-gradient-to-br from-orange-950/50 to-orange-900/30 border-orange-800/30">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-orange-400 text-sm font-medium">Active Members</p>
-                    <p className="text-3xl font-bold text-white">{stats.activeMembers.toLocaleString()}</p>
-                  </div>
-                  <Users className="h-8 w-8 text-orange-400" />
-                </div>
-              </CardContent>
-            </Card>
+        <Card className="bg-black/60 backdrop-blur-xl border-red-800/30 hover:border-red-700/50 transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">Total Posts</CardTitle>
+            <MessageSquare className="h-4 w-4 text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{mockStats.totalPosts.toLocaleString()}</div>
+            <div className="flex items-center gap-1 text-xs text-blue-400 mt-1">
+              <TrendingUp className="h-3 w-3" />
+              +15% from last week
+            </div>
+          </CardContent>
+        </Card>
 
-            <Card className="bg-gradient-to-br from-blue-950/50 to-blue-900/30 border-blue-800/30">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-blue-400 text-sm font-medium">Total Posts</p>
-                    <p className="text-3xl font-bold text-white">{stats.totalPosts.toLocaleString()}</p>
-                  </div>
-                  <MessageSquare className="h-8 w-8 text-blue-400" />
-                </div>
-              </CardContent>
-            </Card>
+        <Card className="bg-black/60 backdrop-blur-xl border-red-800/30 hover:border-red-700/50 transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">Premium Members</CardTitle>
+            <Crown className="h-4 w-4 text-yellow-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{mockStats.premiumMembers}</div>
+            <div className="flex items-center gap-1 text-xs text-yellow-400 mt-1">
+              <TrendingUp className="h-3 w-3" />
+              +22% from last month
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-            <Card className="bg-gradient-to-br from-green-950/50 to-green-900/30 border-green-800/30">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-green-400 text-sm font-medium">Engagement Rate</p>
-                    <p className="text-3xl font-bold text-white">{stats.engagement}%</p>
-                  </div>
-                  <BarChart3 className="h-8 w-8 text-green-400" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <Card className="bg-black/80 backdrop-blur-xl border-red-800/30">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-red-400" />
-                  Quick Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button className="w-full justify-start bg-red-950/30 hover:bg-red-900/40 text-white border-red-800/30">
-                  <Users className="h-4 w-4 mr-2" />
-                  Manage Members
-                </Button>
-                <Button className="w-full justify-start bg-red-950/30 hover:bg-red-900/40 text-white border-red-800/30">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Moderate Posts
-                </Button>
-                <Button className="w-full justify-start bg-red-950/30 hover:bg-red-900/40 text-white border-red-800/30">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Community Settings
-                </Button>
-                <Button className="w-full justify-start bg-red-950/30 hover:bg-red-900/40 text-white border-red-800/30">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  View Analytics
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-black/80 backdrop-blur-xl border-red-800/30">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-red-400" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-red-950/20 rounded-lg">
-                  <div>
-                    <p className="text-white text-sm">New member joined</p>
-                    <p className="text-gray-400 text-xs">2 minutes ago</p>
-                  </div>
-                  <Badge className="bg-green-500/20 text-green-400">+1</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-red-950/20 rounded-lg">
-                  <div>
-                    <p className="text-white text-sm">Post reported</p>
-                    <p className="text-gray-400 text-xs">15 minutes ago</p>
-                  </div>
-                  <Badge className="bg-red-500/20 text-red-400">Action needed</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-red-950/20 rounded-lg">
-                  <div>
-                    <p className="text-white text-sm">Community milestone reached</p>
-                    <p className="text-gray-400 text-xs">1 hour ago</p>
-                  </div>
-                  <Badge className="bg-blue-500/20 text-blue-400">1K members</Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Community Info */}
-          <Card className="bg-black/80 backdrop-blur-xl border-red-800/30">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Crown className="h-5 w-5 text-red-400" />
-                Community Information
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Activity */}
+        <Card className="lg:col-span-2 bg-black/60 backdrop-blur-xl border-red-800/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
+                <Activity className="h-5 w-5 text-red-400" />
+                Recent Activity
               </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-red-400 font-medium">Admin Email</Label>
-                  <p className="text-white">{communityAdmin?.email}</p>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-red-400 hover:text-red-300 hover:bg-red-950/30"
+              >
+                View All <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {mockRecentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-red-950/20 transition-colors">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-gradient-to-r from-red-600 to-red-800 text-white text-xs">
+                      {activity.user[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-300">
+                      <span className="font-medium text-white">{activity.user}</span> {activity.action}
+                    </p>
+                    <p className="text-xs text-gray-500">{activity.time}</p>
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-red-400 font-medium">Community ID</Label>
-                  <p className="text-white font-mono">{communityAdmin?.communityId || 'Not assigned'}</p>
-                </div>
-                <div>
-                  <Label className="text-red-400 font-medium">Status</Label>
-                  <Badge className="bg-green-500/20 text-green-400 ml-2">
-                    {communityAdmin?.isActive ? 'Active' : 'Inactive'}
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-red-400" />
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button 
+              onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.QUESTS)}
+              className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white justify-start gap-3"
+            >
+              <Plus className="h-4 w-4" />
+              Create New Quest
+            </Button>
+            <Button 
+              onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.CHAINCAST)}
+              variant="outline"
+              className="w-full border-red-600/50 text-red-400 hover:bg-red-950/30 justify-start gap-3"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Schedule ChainCast
+            </Button>
+            <Button 
+              onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.MEMBERS)}
+              variant="outline"
+              className="w-full border-red-600/50 text-red-400 hover:bg-red-950/30 justify-start gap-3"
+            >
+              <Users className="h-4 w-4" />
+              Manage Members
+            </Button>
+            <Button 
+              onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.SETTINGS)}
+              variant="outline"
+              className="w-full border-red-600/50 text-red-400 hover:bg-red-950/30 justify-start gap-3"
+            >
+              <Badge className="h-4 w-4" />
+              Community Settings
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bottom Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Upcoming Events */}
+        <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-red-400" />
+                Upcoming Events
+              </CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-red-400 hover:text-red-300 hover:bg-red-950/30"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {mockUpcomingEvents.map((event) => (
+                <div key={event.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-red-950/20 transition-colors">
+                  <div>
+                    <h4 className="font-medium text-white">{event.title}</h4>
+                    <p className="text-sm text-gray-400">{event.date} at {event.time}</p>
+                  </div>
+                  <Badge variant="outline" className="border-red-600/50 text-red-400">
+                    Scheduled
                   </Badge>
                 </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Community Health */}
+        <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
+              <Star className="h-5 w-5 text-red-400" />
+              Community Health
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Engagement Rate</span>
+                <span className="text-sm font-medium text-green-400">89%</span>
               </div>
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-red-400 font-medium">Last Login</Label>
-                  <p className="text-white">
-                    {communityAdmin?.lastLogin 
-                      ? new Date(communityAdmin.lastLogin).toLocaleDateString()
-                      : 'Never'
-                    }
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-red-400 font-medium">Role</Label>
-                  <Badge className="bg-red-500/20 text-red-400 ml-2">Community Admin</Badge>
-                </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="bg-gradient-to-r from-green-600 to-green-500 h-2 rounded-full" style={{width: '89%'}}></div>
               </div>
-            </CardContent>
-          </Card>
-        </main>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Quest Completion</span>
+                <span className="text-sm font-medium text-blue-400">76%</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-500 h-2 rounded-full" style={{width: '76%'}}></div>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Member Satisfaction</span>
+                <span className="text-sm font-medium text-yellow-400">4.8/5</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="bg-gradient-to-r from-yellow-600 to-yellow-500 h-2 rounded-full" style={{width: '96%'}}></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </CommunityAdminProtectedRoute>
+    </div>
   )
 }

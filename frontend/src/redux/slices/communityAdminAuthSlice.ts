@@ -69,6 +69,9 @@ export const communityAdminAuthSlice = createSlice({
       state.tempEmail = null;
       state.tempApplicationData = null;
     },
+    updateToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload;
+    },
   },
 });
 
@@ -79,7 +82,8 @@ export const {
   setApplicationStatus, 
   setTempEmail, 
   setTempApplicationData, 
-  clearTempData 
+  clearTempData,
+  updateToken
 } = communityAdminAuthSlice.actions;
 
 export default communityAdminAuthSlice.reducer;
