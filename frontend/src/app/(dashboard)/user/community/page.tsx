@@ -28,7 +28,7 @@ export default function CommunityPage() {
   };
 
   const handleAdminLogin = () => {
-    router.push("/comms-admin/login");
+    router.push("/comms-admin/get-started");
   };
 
   const handlePostCreated = () => {

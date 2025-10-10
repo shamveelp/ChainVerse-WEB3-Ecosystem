@@ -134,7 +134,7 @@ function handleLogout(role: 'admin' | 'user' | 'communityAdmin') {
     const redirectPath = role === 'admin' 
       ? '/admin/login' 
       : role === 'communityAdmin'
-      ? '/comms-admin/auth/login'
+      ? '/comms-admin/login'
       : '/user/login';
     window.location.href = redirectPath;
   }
