@@ -32,7 +32,7 @@ export default function CreateCommunityPage() {
   const [bannerCropperOpen, setBannerCropperOpen] = useState(false)
   const [tempLogoUrl, setTempLogoUrl] = useState<string>('')
   const [tempBannerUrl, setTempBannerUrl] = useState<string>('')
-  
+
   // Image preview states
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string>('')
   const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string>('')
@@ -239,7 +239,22 @@ export default function CreateCommunityPage() {
 
       if (result.success) {
         dispatch(setTempEmail(formData.email))
-        dispatch(setTempApplicationData(applicationData))
+        
+        // Store only serializable data in Redux (excluding File objects)
+        const serializableData = {
+          communityName: applicationData.communityName,
+          email: applicationData.email,
+          username: applicationData.username,
+          walletAddress: applicationData.walletAddress,
+          description: applicationData.description,
+          category: applicationData.category,
+          whyChooseUs: applicationData.whyChooseUs,
+          rules: applicationData.rules,
+          socialLinks: applicationData.socialLinks,
+          logoFileName: formData.logo?.name,
+          bannerFileName: formData.banner?.name
+        }
+        dispatch(setTempApplicationData(serializableData))
 
         toast({
           title: "Success",
@@ -442,7 +457,7 @@ export default function CreateCommunityPage() {
                     {getEmailValidationIcon()}
                   </div>
                 </div>
-                {errors.email && <p className="text-red-400 text-sm flex items-center gap-1 mt-1"><AlertCircle className="h-4 w-4" />{errors.email}</p>}
+                {errors.email && <p className="text-red-400 text-sm flex items-center gap-1 mt-1"><AlertCircle className="h-4 w-4" />{errors.email}</p>}        
                 {emailAvailable === true && !errors.email && <p className="text-green-400 text-sm flex items-center gap-1 mt-1"><CheckCircle className="h-4 w-4" />Email is available</p>}
               </div>
             </CardContent>
@@ -485,7 +500,8 @@ export default function CreateCommunityPage() {
                       {getUsernameValidationIcon()}
                     </div>
                   </div>
-                  {errors.username && <p className="text-red-400 text-sm flex items-center gap-1 mt-1"><AlertCircle className="h-4 w-4" />{errors.username}</p>}     
+                  {errors.username && <p className="text-red-400 text-sm flex items-center gap-1 mt-1"><AlertCircle className="h-4 w-4" />{errors.username}</p>}
+
                   {usernameAvailable === true && !errors.username && <p className="text-green-400 text-sm flex items-center gap-1 mt-1"><CheckCircle className="h-4 w-4" />Username is available</p>}
                 </div>
               </div>
@@ -530,8 +546,8 @@ export default function CreateCommunityPage() {
                 </div>
                 <div>
                   <Label className="text-orange-400 font-medium">Category *</Label>
-                  <Select 
-                    value={formData.category} 
+                  <Select
+                    value={formData.category}
                     onValueChange={(value) => {
                       setFormData({...formData, category: value})
                       clearFieldError('category')
@@ -548,7 +564,8 @@ export default function CreateCommunityPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.category && <p className="text-red-400 text-sm flex items-center gap-1 mt-1"><AlertCircle className="h-4 w-4" />{errors.category}</p>}     
+                  {errors.category && <p className="text-red-400 text-sm flex items-center gap-1 mt-1"><AlertCircle className="h-4 w-4" />{errors.category}</p>}
+
                 </div>
               </div>
             </CardContent>
@@ -616,7 +633,7 @@ export default function CreateCommunityPage() {
                     </div>
                   ))}
                 </div>
-                {errors.rules && <p className="text-red-400 text-sm flex items-center gap-1 mt-2"><AlertCircle className="h-4 w-4" />{errors.rules}</p>}
+                {errors.rules && <p className="text-red-400 text-sm flex items-center gap-1 mt-2"><AlertCircle className="h-4 w-4" />{errors.rules}</p>}        
               </div>
             </CardContent>
           </Card>
@@ -671,7 +688,7 @@ export default function CreateCommunityPage() {
                   placeholder="Website URL"
                 />
               </div>
-              {errors.website && <p className="text-red-400 text-sm flex items-center gap-1 mt-2"><AlertCircle className="h-4 w-4" />{errors.website}</p>}
+              {errors.website && <p className="text-red-400 text-sm flex items-center gap-1 mt-2"><AlertCircle className="h-4 w-4" />{errors.website}</p>}      
             </CardContent>
           </Card>
 
@@ -694,9 +711,9 @@ export default function CreateCommunityPage() {
                     {logoPreviewUrl ? (
                       <div className="space-y-3">
                         <div className="w-20 h-20 mx-auto rounded-full overflow-hidden bg-gray-800">
-                          <img 
-                            src={logoPreviewUrl} 
-                            alt="Logo preview" 
+                          <img
+                            src={logoPreviewUrl}
+                            alt="Logo preview"
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -750,9 +767,9 @@ export default function CreateCommunityPage() {
                     {bannerPreviewUrl ? (
                       <div className="space-y-3">
                         <div className="w-full h-24 mx-auto rounded-lg overflow-hidden bg-gray-800">
-                          <img 
-                            src={bannerPreviewUrl} 
-                            alt="Banner preview" 
+                          <img
+                            src={bannerPreviewUrl}
+                            alt="Banner preview"
                             className="w-full h-full object-cover"
                           />
                         </div>

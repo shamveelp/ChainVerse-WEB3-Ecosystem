@@ -67,55 +67,63 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
 
             // Handle file uploads to Cloudinary
             if (files?.logo?.[0]) {
-                const logoUpload = await cloudinary.uploader.upload_stream(
-                    {
-                        folder: "chainverse/community-logos",
-                        transformation: [
-                            { width: 200, height: 200, crop: "fill" },
-                            { quality: "auto", format: "auto" },
-                        ],
-                    },
-                    (error, result) => {
-                        if (error) throw error;
-                        return result;
-                    }
-                );
-
-                logoUrl = await new Promise((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream(
-                        {
-                            folder: "chainverse/community-logos",
-                            transformation: [
-                                { width: 200, height: 200, crop: "fill" },
-                                { quality: "auto", format: "auto" },
-                            ],
-                        },
-                        (error, result) => {
-                            if (error) reject(error);
-                            else resolve(result?.secure_url || '');
-                        }
-                    );
-                    stream.end(files.logo[0].buffer);
-                });
+                try {
+                    logoUrl = await new Promise<string>((resolve, reject) => {
+                        const stream = cloudinary.uploader.upload_stream(
+                            {
+                                folder: "chainverse/community-logos",
+                                transformation: [
+                                    { width: 200, height: 200, crop: "fill" },
+                                    { quality: "auto", format: "auto" },
+                                ],
+                            },
+                            (error, result) => {
+                                if (error) {
+                                    logger.error("Logo upload error:", error);
+                                    reject(new Error("Failed to upload logo"));
+                                } else if (result) {
+                                    resolve(result.secure_url);
+                                } else {
+                                    reject(new Error("No result from cloudinary"));
+                                }
+                            }
+                        );
+                        stream.end(files.logo[0].buffer);
+                    });
+                } catch (uploadError) {
+                    logger.error("Logo upload failed:", uploadError);
+                    // Continue without logo, don't fail the entire request
+                }
             }
 
             if (files?.banner?.[0]) {
-                bannerUrl = await new Promise((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream(
-                        {
-                            folder: "chainverse/community-banners",
-                            transformation: [
-                                { width: 1200, height: 400, crop: "fill" },
-                                { quality: "auto", format: "auto" },
-                            ],
-                        },
-                        (error, result) => {
-                            if (error) reject(error);
-                            else resolve(result?.secure_url || '');
-                        }
-                    );
-                    stream.end(files.banner[0].buffer);
-                });
+                try {
+                    bannerUrl = await new Promise<string>((resolve, reject) => {
+                        const stream = cloudinary.uploader.upload_stream(
+                            {
+                                folder: "chainverse/community-banners",
+                                transformation: [
+                                    { width: 1200, height: 400, crop: "fill" },
+                                    { quality: "auto", format: "auto" },
+                                ],
+                            },
+                            (error, result) => {
+                                if (error) {
+                                    logger.error("Banner upload error:", error);
+                                    reject(new Error("Failed to upload banner"));
+                                } else if (result) {
+                                    resolve(result.secure_url);
+                                } else {
+                                    reject(new Error("No result from cloudinary"));
+                                }
+                            }
+                        );
+                        stream.end(files.banner[0].buffer);
+                    });
+                } catch (uploadError) {
+                    logger.error("Banner upload failed:", uploadError);
+                    // Continue without banner, don't fail the entire request
+                }
             }
 
             // Prepare the DTO with uploaded URLs
@@ -312,41 +320,63 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
 
             // Handle file uploads to Cloudinary
             if (files?.logo?.[0]) {
-                logoUrl = await new Promise((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream(
-                        {
-                            folder: "chainverse/community-logos",
-                            transformation: [
-                                { width: 200, height: 200, crop: "fill" },
-                                { quality: "auto", format: "auto" },
-                            ],
-                        },
-                        (error, result) => {
-                            if (error) reject(error);
-                            else resolve(result?.secure_url || '');
-                        }
-                    );
-                    stream.end(files.logo[0].buffer);
-                });
+                try {
+                    logoUrl = await new Promise<string>((resolve, reject) => {
+                        const stream = cloudinary.uploader.upload_stream(
+                            {
+                                folder: "chainverse/community-logos",
+                                transformation: [
+                                    { width: 200, height: 200, crop: "fill" },
+                                    { quality: "auto", format: "auto" },
+                                ],
+                            },
+                            (error, result) => {
+                                if (error) {
+                                    logger.error("Logo upload error:", error);
+                                    reject(new Error("Failed to upload logo"));
+                                } else if (result) {
+                                    resolve(result.secure_url);
+                                } else {
+                                    reject(new Error("No result from cloudinary"));
+                                }
+                            }
+                        );
+                        stream.end(files.logo[0].buffer);
+                    });
+                } catch (uploadError) {
+                    logger.error("Logo upload failed:", uploadError);
+                    // Continue without logo, don't fail the entire request
+                }
             }
 
             if (files?.banner?.[0]) {
-                bannerUrl = await new Promise((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream(
-                        {
-                            folder: "chainverse/community-banners",
-                            transformation: [
-                                { width: 1200, height: 400, crop: "fill" },
-                                { quality: "auto", format: "auto" },
-                            ],
-                        },
-                        (error, result) => {
-                            if (error) reject(error);
-                            else resolve(result?.secure_url || '');
-                        }
-                    );
-                    stream.end(files.banner[0].buffer);
-                });
+                try {
+                    bannerUrl = await new Promise<string>((resolve, reject) => {
+                        const stream = cloudinary.uploader.upload_stream(
+                            {
+                                folder: "chainverse/community-banners",
+                                transformation: [
+                                    { width: 1200, height: 400, crop: "fill" },
+                                    { quality: "auto", format: "auto" },
+                                ],
+                            },
+                            (error, result) => {
+                                if (error) {
+                                    logger.error("Banner upload error:", error);
+                                    reject(new Error("Failed to upload banner"));
+                                } else if (result) {
+                                    resolve(result.secure_url);
+                                } else {
+                                    reject(new Error("No result from cloudinary"));
+                                }
+                            }
+                        );
+                        stream.end(files.banner[0].buffer);
+                    });
+                } catch (uploadError) {
+                    logger.error("Banner upload failed:", uploadError);
+                    // Continue without banner, don't fail the entire request
+                }
             }
 
             // Prepare the DTO with uploaded URLs

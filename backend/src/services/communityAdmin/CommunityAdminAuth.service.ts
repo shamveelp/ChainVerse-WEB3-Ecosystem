@@ -14,7 +14,6 @@ import logger from "../../utils/logger";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { Response, Request } from "express";
-import cloudinary from "../../config/cloudinary";
 import {
   CreateCommunityDto,
   SetPasswordDto,
@@ -54,6 +53,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       const exists = !!(existingRequest || existingAdmin);
       return new CheckExistenceResponseDto(exists, "Email check completed");
     } catch (error) {
+      logger.error("Error checking email existence:", error);
       throw new CustomError(
         "Failed to check email availability",
         StatusCode.INTERNAL_SERVER_ERROR
@@ -75,6 +75,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       const exists = !!(existingRequest || existingUser || existingCommunity);
       return new CheckExistenceResponseDto(exists, "Username check completed");
     } catch (error) {
+      logger.error("Error checking username existence:", error);
       throw new CustomError(
         "Failed to check username availability",
         StatusCode.INTERNAL_SERVER_ERROR
@@ -112,39 +113,13 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         );
       }
 
-      // Upload images to Cloudinary if provided
-      let logoUrl = "";
-      let bannerUrl = "";
-
-      if (dto.logo) {
-        const logoUpload = await cloudinary.uploader.upload(dto.logo, {
-          folder: "chainverse/community-logos",
-          transformation: [
-            { width: 200, height: 200, crop: "fill" },
-            { quality: "auto", format: "auto" },
-          ],
-        });
-        logoUrl = logoUpload.secure_url;
-      }
-
-      if (dto.banner) {
-        const bannerUpload = await cloudinary.uploader.upload(dto.banner, {
-          folder: "chainverse/community-banners",
-          transformation: [
-            { width: 1200, height: 400, crop: "fill" },
-            { quality: "auto", format: "auto" },
-          ],
-        });
-        bannerUrl = bannerUpload.secure_url;
-      }
-
       // Transform rules and socialLinks to match ICommunityRequest
       const rules: [string] = [dto.rules.join("; ")]; // Join multiple rules into a single string
       const socialLinks: [Object] | undefined = dto.socialLinks
         ? [dto.socialLinks]
         : undefined;
 
-      // Create community request
+      // Create community request with uploaded URLs (logo and banner are already URLs from controller)
       const communityRequest = await this.communityRequestRepo.create({
         communityName: dto.communityName,
         email: dto.email,
@@ -155,8 +130,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         whyChooseUs: dto.whyChooseUs,
         rules,
         socialLinks,
-        logo: logoUrl,
-        banner: bannerUrl,
+        logo: dto.logo || '',
+        banner: dto.banner || '',
         status: "pending",
       });
 
@@ -172,9 +147,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         "Community application submitted successfully"
       );
     } catch (error: any) {
+      logger.error("Error creating community application:", error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message, StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || "Failed to create application", StatusCode.BAD_REQUEST);
     }
   }
 
@@ -228,9 +204,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
           "Password set successfully. OTP sent to your email for verification.",
       };
     } catch (error: any) {
+      logger.error("Error setting password:", error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message, StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || "Failed to set password", StatusCode.BAD_REQUEST);
     }
   }
 
@@ -255,9 +232,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         message: "OTP verified successfully. Your application is under review.",
       };
     } catch (error: any) {
+      logger.error("Error verifying OTP:", error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message, StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || "OTP verification failed", StatusCode.BAD_REQUEST);
     }
   }
 
@@ -288,9 +266,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         message: "OTP resent successfully",
       };
     } catch (error: any) {
+      logger.error("Error resending OTP:", error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message, StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || "Failed to resend OTP", StatusCode.BAD_REQUEST);
     }
   }
 
@@ -375,9 +354,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       return responseDto;
     } catch (error: any) {
+      logger.error("Error in community admin login:", error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message, StatusCode.UNAUTHORIZED);
+        : new CustomError(error.message || "Login failed", StatusCode.UNAUTHORIZED);
     }
   }
 
@@ -411,9 +391,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         message: "Password reset code sent to your email",
       };
     } catch (error: any) {
+      logger.error("Error in forgot password:", error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message, StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || "Failed to process request", StatusCode.BAD_REQUEST);
     }
   }
 
@@ -438,9 +419,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         message: "OTP verified. You can now reset your password.",
       };
     } catch (error: any) {
+      logger.error("Error verifying forgot password OTP:", error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message, StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || "OTP verification failed", StatusCode.BAD_REQUEST);
     }
   }
 
@@ -479,9 +461,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         message: "Password reset successfully",
       };
     } catch (error: any) {
+      logger.error("Error resetting password:", error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message, StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || "Password reset failed", StatusCode.BAD_REQUEST);
     }
   }
 
@@ -524,6 +507,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         message: "Token refreshed successfully",
       };
     } catch (error: any) {
+      logger.error("Error refreshing token:", error);
       throw error instanceof CustomError
         ? error
         : new CustomError(
@@ -562,6 +546,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         communityAdmin: responseDto,
       };
     } catch (error: any) {
+      logger.error("Error getting profile:", error);
       throw error instanceof CustomError
         ? error
         : new CustomError(
@@ -615,6 +600,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         },
       };
     } catch (error: any) {
+      logger.error("Error getting community details:", error);
       throw error instanceof CustomError
         ? error
         : new CustomError(
@@ -658,6 +644,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         community: updateData,
       };
     } catch (error: any) {
+      logger.error("Error updating community:", error);
       throw error instanceof CustomError
         ? error
         : new CustomError("Failed to update community", StatusCode.BAD_REQUEST);
@@ -712,8 +699,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
           whyChooseUs: dto.whyChooseUs,
           rules,
           socialLinks,
-          logo: dto.logo,
-          banner: dto.banner,
+          logo: dto.logo || '',
+          banner: dto.banner || '',
           status: "pending",
         }
       );
@@ -730,9 +717,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         "Community application resubmitted successfully"
       );
     } catch (error: any) {
+      logger.error("Error reapplying application:", error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message, StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || "Failed to reapply", StatusCode.BAD_REQUEST);
     }
   }
 
@@ -740,34 +728,46 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
   private async registerCommunityAdmin(
     data: Partial<ICommunityAdmin>
   ): Promise<ICommunityAdmin> {
-    const existingAdmin = await this.communityAdminRepo.findByEmail(
-      data.email!
-    );
-    if (existingAdmin) {
-      throw new CustomError(
-        "Community admin already exists with this email",
-        StatusCode.BAD_REQUEST
+    try {
+      const existingAdmin = await this.communityAdminRepo.findByEmail(
+        data.email!
       );
+      if (existingAdmin) {
+        throw new CustomError(
+          "Community admin already exists with this email",
+          StatusCode.BAD_REQUEST
+        );
+      }
+
+      const hashedPassword = await bcrypt.hash(data.password!, 12);
+      const communityAdminData = {
+        ...data,
+        password: hashedPassword,
+        role: "communityAdmin" as const,
+        isActive: true,
+        tokenVersion: 0,
+      };
+
+      return await this.communityAdminRepo.createCommunityAdmin(
+        communityAdminData
+      );
+    } catch (error: any) {
+      logger.error("Error registering community admin:", error);
+      throw error instanceof CustomError
+        ? error
+        : new CustomError("Failed to register admin", StatusCode.BAD_REQUEST);
     }
-
-    const hashedPassword = await bcrypt.hash(data.password!, 12);
-    const communityAdminData = {
-      ...data,
-      password: hashedPassword,
-      role: "communityAdmin" as const,
-      isActive: true,
-      tokenVersion: 0,
-    };
-
-    return await this.communityAdminRepo.createCommunityAdmin(
-      communityAdminData
-    );
   }
 
   private async updateLastLogin(id: string): Promise<void> {
-    await this.communityAdminRepo.updateCommunityAdmin(id, {
-      lastLogin: new Date(),
-    });
+    try {
+      await this.communityAdminRepo.updateCommunityAdmin(id, {
+        lastLogin: new Date(),
+      });
+    } catch (error: any) {
+      logger.error("Error updating last login:", error);
+      // Don't throw error as this is not critical for login flow
+    }
   }
 
   private async sendApplicationEmail(
@@ -840,79 +840,93 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
   }
 
   async createCommunityFromRequest(requestId: string): Promise<void> {
-    const request = await this.communityRequestRepo.findById(requestId);
-    if (!request) {
-      throw new CustomError(
-        "Community request not found",
-        StatusCode.NOT_FOUND
+    try {
+      const request = await this.communityRequestRepo.findById(requestId);
+      if (!request) {
+        throw new CustomError(
+          "Community request not found",
+          StatusCode.NOT_FOUND
+        );
+      }
+
+      if (request.status !== "approved") {
+        throw new CustomError(
+          "Community request is not approved",
+          StatusCode.BAD_REQUEST
+        );
+      }
+
+      const community = new CommunityModel({
+        communityName: request.communityName,
+        email: request.email,
+        username: request.username,
+        walletAddress: request.walletAddress,
+        description: request.description,
+        category: request.category,
+        rules: request.rules, // Already in [string] format
+        logo: request.logo,
+        banner: request.banner,
+        socialLinks: request.socialLinks, // Already in [Object] format
+        status: "approved",
+        isVerified: false,
+        members: [],
+        communityAdmins: [],
+        settings: {
+          allowChainCast: false,
+          allowGroupChat: true,
+          allowPosts: true,
+          allowQuests: false,
+        },
+      });
+
+      const savedCommunity = await community.save();
+
+      // Update community admin with community ID
+      const communityAdmin = await this.communityAdminRepo.findByEmail(
+        request.email
       );
-    }
+      if (communityAdmin) {
+        await this.communityAdminRepo.updateCommunityAdmin(
+          communityAdmin._id.toString(),
+          { communityId: savedCommunity._id }
+        );
 
-    if (request.status !== "approved") {
-      throw new CustomError(
-        "Community request is not approved",
-        StatusCode.BAD_REQUEST
-      );
-    }
+        // Add admin to community
+        savedCommunity.communityAdmins.push(communityAdmin._id);
+        await savedCommunity.save();
+      }
 
-    const community = new CommunityModel({
-      communityName: request.communityName,
-      email: request.email,
-      username: request.username,
-      walletAddress: request.walletAddress,
-      description: request.description,
-      category: request.category,
-      rules: request.rules, // Already in [string] format
-      logo: request.logo,
-      banner: request.banner,
-      socialLinks: request.socialLinks, // Already in [Object] format
-      status: "approved",
-      isVerified: false,
-      members: [],
-      communityAdmins: [],
-      settings: {
-        allowChainCast: false,
-        allowGroupChat: true,
-        allowPosts: true,
-        allowQuests: false,
-      },
-    });
-
-    const savedCommunity = await community.save();
-
-    // Update community admin with community ID
-    const communityAdmin = await this.communityAdminRepo.findByEmail(
-      request.email
-    );
-    if (communityAdmin) {
-      await this.communityAdminRepo.updateCommunityAdmin(
-        communityAdmin._id.toString(),
-        { communityId: savedCommunity._id }
+      // Send approval email
+      await this.sendApplicationEmail(
+        request.email,
+        request.communityName,
+        "approved"
       );
 
-      // Add admin to community
-      savedCommunity.communityAdmins.push(communityAdmin._id);
-      await savedCommunity.save();
+      logger.info(`Community created from request: ${requestId}`);
+    } catch (error: any) {
+      logger.error("Error creating community from request:", error);
+      throw error instanceof CustomError
+        ? error
+        : new CustomError("Failed to create community", StatusCode.BAD_REQUEST);
     }
-
-    // Send approval email
-    await this.sendApplicationEmail(
-      request.email,
-      request.communityName,
-      "approved"
-    );
-
-    logger.info(`Community created from request: ${requestId}`);
   }
 
   async incrementTokenVersion(id: string): Promise<void> {
-    const communityAdmin = await this.communityAdminRepo.findById(id);
-    if (!communityAdmin) {
-      throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
-    }
+    try {
+      const communityAdmin = await this.communityAdminRepo.findById(id);
+      if (!communityAdmin) {
+        throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+      }
 
-    await this.communityAdminRepo.updateCommunityAdmin(id, {
-      tokenVersion: (communityAdmin.tokenVersion ?? 0) + 1,
-    });
+      await this.communityAdminRepo.updateCommunityAdmin(id, {
+        tokenVersion: (communityAdmin.tokenVersion ?? 0) + 1,
+      });
+    } catch (error: any) {
+      logger.error("Error incrementing token version:", error);
+      throw error instanceof CustomError
+        ? error
+        : new CustomError("Failed to update token version", StatusCode.BAD_REQUEST);
+    }
   }
 }

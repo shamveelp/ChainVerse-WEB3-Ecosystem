@@ -9,6 +9,27 @@ interface CommunityAdminType {
   lastLogin?: Date;
 }
 
+// Define serializable application data interface (excluding File objects)
+interface SerializableApplicationData {
+  communityName: string;
+  email: string;
+  username: string;
+  walletAddress: string;
+  description: string;
+  category: string;
+  whyChooseUs: string;
+  rules: string[];
+  socialLinks: {
+    twitter: string;
+    discord: string;
+    telegram: string;
+    website: string;
+  };
+  // Store only file names/paths, not File objects
+  logoFileName?: string;
+  bannerFileName?: string;
+}
+
 interface CommunityAdminAuthState {
   communityAdmin: CommunityAdminType | null;
   token: string | null;
@@ -16,7 +37,7 @@ interface CommunityAdminAuthState {
   loading: boolean;
   applicationStatus: 'none' | 'pending' | 'approved' | 'rejected';
   tempEmail: string | null;
-  tempApplicationData: any;
+  tempApplicationData: SerializableApplicationData | null;
 }
 
 const initialState: CommunityAdminAuthState = {
@@ -62,7 +83,8 @@ export const communityAdminAuthSlice = createSlice({
     setTempEmail: (state, action: PayloadAction<string | null>) => {
       state.tempEmail = action.payload;
     },
-    setTempApplicationData: (state, action: PayloadAction<any>) => {
+    // Fixed: Only store serializable data, excluding File objects
+    setTempApplicationData: (state, action: PayloadAction<SerializableApplicationData>) => {
       state.tempApplicationData = action.payload;
     },
     clearTempData: (state) => {
