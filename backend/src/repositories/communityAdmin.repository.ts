@@ -6,9 +6,11 @@ import CommunityAdminModel from "../models/communityAdmin.model";
 @injectable()
 export class CommunityAdminRepository implements ICommunityAdminRepository {
     async findByEmail(email: string): Promise<ICommunityAdmin | null> {
-        console.log(email)
         return await CommunityAdminModel.findOne({ email }).exec();
+    }
 
+    async findByUsername(username: string): Promise<ICommunityAdmin | null> {
+        return await CommunityAdminModel.findOne({ name: username }).exec();
     }
 
     async createCommunityAdmin(data: Partial<ICommunityAdmin>): Promise<ICommunityAdmin> {
@@ -25,13 +27,13 @@ export class CommunityAdminRepository implements ICommunityAdminRepository {
 
     async findCommunityAdmins(page: number, limit: number, search: string): Promise<{ data: ICommunityAdmin[]; total: number; page: number; limit: number }> {
         const skip = (page - 1) * limit;
-        const searchQuery = search 
-            ? { 
+        const searchQuery = search
+            ? {
                 $or: [
                     { email: { $regex: search, $options: 'i' } },
                     { name: { $regex: search, $options: 'i' } }
                 ]
-            } 
+            }
             : {};
 
         const data = await CommunityAdminModel.find(searchQuery)
@@ -59,5 +61,9 @@ export class CommunityAdminRepository implements ICommunityAdminRepository {
 
     async findById(id: string): Promise<ICommunityAdmin | null> {
         return await CommunityAdminModel.findById(id).populate('communityId').exec();
+    }
+
+    async delete(id: string): Promise<ICommunityAdmin | null> {
+        return await CommunityAdminModel.findByIdAndDelete(id).exec();
     }
 }

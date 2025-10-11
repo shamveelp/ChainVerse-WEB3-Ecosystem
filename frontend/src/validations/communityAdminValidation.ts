@@ -1,19 +1,13 @@
-interface ValidationResult {
-  isValid: boolean
-  error?: string
-  errors?: Record<string, string>
-}
-
-interface CommunityFormData {
+interface FormData {
   email: string
   communityName: string
-  communityUsername: string
-  ethWallet: string
+  username: string
+  walletAddress: string
   description: string
   category: string
   whyChooseUs: string
-  communityRules: string[]
-  socialHandlers: {
+  rules: string[]
+  socialLinks: {
     twitter: string
     discord: string
     telegram: string
@@ -23,240 +17,205 @@ interface CommunityFormData {
   banner: File | null
 }
 
-export const validateEmail = (email: string): ValidationResult => {
-  if (!email) {
-    return { isValid: false, error: "Email is required" }
-  }
-  
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(email)) {
-    return { isValid: false, error: "Invalid email format" }
-  }
-  
-  return { isValid: true }
+interface ValidationResult {
+  isValid: boolean
+  errors?: Record<string, string>
 }
 
-export const validatePassword = (password: string): ValidationResult => {
-  if (!password) {
-    return { isValid: false, error: "Password is required" }
-  }
-  
-  if (password.length < 8) {
-    return { isValid: false, error: "Password must be at least 8 characters long" }
-  }
-  
-  if (!/(?=.*[a-z])/.test(password)) {
-    return { isValid: false, error: "Password must contain at least one lowercase letter" }
-  }
-  
-  if (!/(?=.*[A-Z])/.test(password)) {
-    return { isValid: false, error: "Password must contain at least one uppercase letter" }
-  }
-  
-  if (!/(?=.*\d)/.test(password)) {
-    return { isValid: false, error: "Password must contain at least one number" }
-  }
-  
-  if (!/(?=.*[@$!%*?&])/.test(password)) {
-    return { isValid: false, error: "Password must contain at least one special character (@$!%*?&)" }
-  }
-  
-  return { isValid: true }
-}
-
-export const validateCommunityName = (name: string): ValidationResult => {
-  if (!name) {
-    return { isValid: false, error: "Community name is required" }
-  }
-  
-  if (name.length < 3) {
-    return { isValid: false, error: "Community name must be at least 3 characters long" }
-  }
-  
-  if (name.length > 50) {
-    return { isValid: false, error: "Community name must be at most 50 characters long" }
-  }
-  
-  return { isValid: true }
-}
-
-export const validateUsername = (username: string): ValidationResult => {
-  if (!username) {
-    return { isValid: false, error: "Username is required" }
-  }
-  
-  if (username.length < 4) {
-    return { isValid: false, error: "Username must be at least 4 characters long" }
-  }
-  
-  if (username.length > 20) {
-    return { isValid: false, error: "Username must be at most 20 characters long" }
-  }
-  
-  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-    return { isValid: false, error: "Username can only contain letters, numbers, and underscores" }
-  }
-  
-  return { isValid: true }
-}
-
-export const validateWalletAddress = (address: string): ValidationResult => {
-  if (!address) {
-    return { isValid: false, error: "Wallet address is required" }
-  }
-  
-  if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-    return { isValid: false, error: "Invalid Ethereum wallet address format" }
-  }
-  
-  return { isValid: true }
-}
-
-export const validateDescription = (description: string): ValidationResult => {
-  if (!description) {
-    return { isValid: false, error: "Description is required" }
-  }
-  
-  if (description.length < 50) {
-    return { isValid: false, error: "Description must be at least 50 characters long" }
-  }
-  
-  if (description.length > 500) {
-    return { isValid: false, error: "Description must be at most 500 characters long" }
-  }
-  
-  return { isValid: true }
-}
-
-export const validateWhyChooseUs = (text: string): ValidationResult => {
-  if (!text) {
-    return { isValid: false, error: "This field is required" }
-  }
-  
-  if (text.length < 30) {
-    return { isValid: false, error: "Must be at least 30 characters long" }
-  }
-  
-  if (text.length > 300) {
-    return { isValid: false, error: "Must be at most 300 characters long" }
-  }
-  
-  return { isValid: true }
-}
-
-export const validateUrl = (url: string): ValidationResult => {
-  if (!url) return { isValid: true } // Optional field
-  
-  try {
-    new URL(url)
-    return { isValid: true }
-  } catch {
-    return { isValid: false, error: "Invalid URL format" }
-  }
-}
-
-export const validateCommunityForm = (formData: CommunityFormData): ValidationResult => {
+export function validateCommunityForm(formData: FormData): ValidationResult {
   const errors: Record<string, string> = {}
-  
+
   // Email validation
-  const emailValidation = validateEmail(formData.email)
-  if (!emailValidation.isValid) {
-    errors.email = emailValidation.error!
+  if (!formData.email || !formData.email.trim()) {
+    errors.email = 'Email is required'
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+    errors.email = 'Please provide a valid email address'
   }
-  
+
   // Community name validation
-  const nameValidation = validateCommunityName(formData.communityName)
-  if (!nameValidation.isValid) {
-    errors.communityName = nameValidation.error!
+  if (!formData.communityName || !formData.communityName.trim()) {
+    errors.communityName = 'Community name is required'
+  } else if (formData.communityName.trim().length < 3) {
+    errors.communityName = 'Community name must be at least 3 characters long'
+  } else if (formData.communityName.trim().length > 50) {
+    errors.communityName = 'Community name must be at most 50 characters long'
   }
-  
+
   // Username validation
-  const usernameValidation = validateUsername(formData.communityUsername)
-  if (!usernameValidation.isValid) {
-    errors.communityUsername = usernameValidation.error!
-  }
-  
-  // Wallet address validation
-  const walletValidation = validateWalletAddress(formData.ethWallet)
-  if (!walletValidation.isValid) {
-    errors.ethWallet = walletValidation.error!
-  }
-  
-  // Description validation
-  const descValidation = validateDescription(formData.description)
-  if (!descValidation.isValid) {
-    errors.description = descValidation.error!
-  }
-  
-  // Category validation
-  if (!formData.category) {
-    errors.category = "Category is required"
-  }
-  
-  // Why choose us validation
-  const whyValidation = validateWhyChooseUs(formData.whyChooseUs)
-  if (!whyValidation.isValid) {
-    errors.whyChooseUs = whyValidation.error!
-  }
-  
-  // Social links validation (optional but validate format if provided)
-  if (formData.socialHandlers.website) {
-    const websiteValidation = validateUrl(formData.socialHandlers.website)
-    if (!websiteValidation.isValid) {
-      errors.website = websiteValidation.error!
+  if (!formData.username || !formData.username.trim()) {
+    errors.username = 'Username is required'
+  } else {
+    const username = formData.username.trim()
+    if (username.length < 4) {
+      errors.username = 'Username must be at least 4 characters long'
+    } else if (username.length > 20) {
+      errors.username = 'Username must be at most 20 characters long'
+    } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      errors.username = 'Username can only contain letters, numbers, and underscores'
     }
   }
-  
-  // Rules validation (at least one non-empty rule)
-  const validRules = formData.communityRules.filter(rule => rule.trim() !== '')
+
+  // Wallet address validation
+  if (!formData.walletAddress || !formData.walletAddress.trim()) {
+    errors.walletAddress = 'Wallet address is required'
+  } else if (!/^0x[a-fA-F0-9]{40}$/.test(formData.walletAddress.trim())) {
+    errors.walletAddress = 'Please provide a valid Ethereum wallet address'
+  }
+
+  // Description validation
+  if (!formData.description || !formData.description.trim()) {
+    errors.description = 'Description is required'
+  } else {
+    const description = formData.description.trim()
+    if (description.length < 50) {
+      errors.description = 'Description must be at least 50 characters long'
+    } else if (description.length > 500) {
+      errors.description = 'Description must be at most 500 characters long'
+    }
+  }
+
+  // Category validation
+  if (!formData.category || !formData.category.trim()) {
+    errors.category = 'Category is required'
+  }
+
+  // Why choose us validation
+  if (!formData.whyChooseUs || !formData.whyChooseUs.trim()) {
+    errors.whyChooseUs = 'Why choose us section is required'
+  } else {
+    const whyChooseUs = formData.whyChooseUs.trim()
+    if (whyChooseUs.length < 30) {
+      errors.whyChooseUs = 'Why choose us must be at least 30 characters long'
+    } else if (whyChooseUs.length > 300) {
+      errors.whyChooseUs = 'Why choose us must be at most 300 characters long'
+    }
+  }
+
+  // Rules validation
+  const validRules = formData.rules.filter(rule => rule.trim() !== '')
   if (validRules.length === 0) {
-    errors.communityRules = "At least one community rule is required"
+    errors.rules = 'At least one rule is required'
+  } else if (validRules.length > 10) {
+    errors.rules = 'Maximum 10 rules allowed'
   }
-  
+
+  // Website URL validation (if provided)
+  if (formData.socialLinks.website && formData.socialLinks.website.trim() !== '') {
+    try {
+      const url = formData.socialLinks.website.trim()
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        // Add protocol if missing
+        new URL('https://' + url)
+      } else {
+        new URL(url)
+      }
+    } catch {
+      errors.website = 'Please provide a valid website URL'
+    }
+  }
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors: Object.keys(errors).length > 0 ? errors : undefined
   }
 }
 
-export const validateLoginForm = (email: string, password: string): ValidationResult => {
-  const errors: Record<string, string> = {}
+// Additional utility functions for real-time validation
+export function validateEmail(email: string): string | null {
+  if (!email || !email.trim()) return 'Email is required'
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return 'Please provide a valid email address'
+  return null
+}
+
+export function validateUsername(username: string): string | null {
+  if (!username || !username.trim()) return 'Username is required'
+  const trimmedUsername = username.trim()
+  if (trimmedUsername.length < 4) return 'Username must be at least 4 characters long'
+  if (trimmedUsername.length > 20) return 'Username must be at most 20 characters long'
+  if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) return 'Username can only contain letters, numbers, and underscores'
+  return null
+}
+
+export function validateWalletAddress(address: string): string | null {
+  if (!address || !address.trim()) return 'Wallet address is required'
+  if (!/^0x[a-fA-F0-9]{40}$/.test(address.trim())) return 'Please provide a valid Ethereum wallet address'
+  return null
+}
+
+export function validateDescription(description: string): string | null {
+  if (!description || !description.trim()) return 'Description is required'
+  const trimmedDescription = description.trim()
+  if (trimmedDescription.length < 50) return 'Description must be at least 50 characters long'
+  if (trimmedDescription.length > 500) return 'Description must be at most 500 characters long'
+  return null
+}
+
+export function validateWhyChooseUs(whyChooseUs: string): string | null {
+  if (!whyChooseUs || !whyChooseUs.trim()) return 'Why choose us section is required'
+  const trimmedWhyChooseUs = whyChooseUs.trim()
+  if (trimmedWhyChooseUs.length < 30) return 'Why choose us must be at least 30 characters long'
+  if (trimmedWhyChooseUs.length > 300) return 'Why choose us must be at most 300 characters long'
+  return null
+}
+
+export function validateWebsiteUrl(url: string): string | null {
+  if (!url || url.trim() === '') return null // Optional field
   
-  const emailValidation = validateEmail(email)
-  if (!emailValidation.isValid) {
-    errors.email = emailValidation.error!
-  }
-  
-  if (!password) {
-    errors.password = "Password is required"
-  }
-  
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors: Object.keys(errors).length > 0 ? errors : undefined
+  try {
+    const trimmedUrl = url.trim()
+    if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+      // Add protocol if missing for validation
+      new URL('https://' + trimmedUrl)
+    } else {
+      new URL(trimmedUrl)
+    }
+    return null
+  } catch {
+    return 'Please provide a valid website URL'
   }
 }
 
-export const validateOtp = (otp: string): ValidationResult => {
-  if (!otp) {
-    return { isValid: false, error: "OTP is required" }
+export function validatePassword(password: string): { isValid: boolean; error?: string } {
+  if (!password || !password.trim()) {
+    return { isValid: false, error: 'Password is required' };
   }
-  
-  if (otp.length !== 6) {
-    return { isValid: false, error: "OTP must be exactly 6 digits" }
+
+  const trimmedPassword = password.trim();
+
+  if (trimmedPassword.length < 8) {
+    return { isValid: false, error: 'Password must be at least 8 characters long' };
   }
-  
-  if (!/^\d{6}$/.test(otp)) {
-    return { isValid: false, error: "OTP must contain only numbers" }
+  if (!/[A-Z]/.test(trimmedPassword)) {
+    return { isValid: false, error: 'Password must contain at least one uppercase letter' };
   }
-  
-  return { isValid: true }
+  if (!/[a-z]/.test(trimmedPassword)) {
+    return { isValid: false, error: 'Password must contain at least one lowercase letter' };
+  }
+  if (!/[0-9]/.test(trimmedPassword)) {
+    return { isValid: false, error: 'Password must contain at least one number' };
+  }
+  if (!/[^A-Za-z0-9]/.test(trimmedPassword)) {
+    return { isValid: false, error: 'Password must contain at least one special character' };
+  }
+
+  return { isValid: true };
 }
 
-export const validatePasswordMatch = (password: string, confirmPassword: string): ValidationResult => {
-  if (password !== confirmPassword) {
-    return { isValid: false, error: "Passwords do not match" }
+
+export function validateOtp(otp: string): { isValid: boolean; error?: string } {
+  if (!otp || !otp.trim()) {
+    return { isValid: false, error: 'OTP is required' };
   }
-  
-  return { isValid: true }
+
+  const trimmedOtp = otp.trim();
+
+  if (trimmedOtp.length !== 6) {
+    return { isValid: false, error: 'OTP must be exactly 6 digits' };
+  }
+
+  if (!/^\d{6}$/.test(trimmedOtp)) {
+    return { isValid: false, error: 'OTP must contain only digits' };
+  }
+
+  return { isValid: true };
 }

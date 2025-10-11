@@ -20,10 +20,42 @@ export const validateDto = (
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const dto = plainToClass(dtoClass, req[source], {
+      let dataToValidate = req[source];
+      
+      // Handle multipart form data
+      if (req.headers['content-type']?.includes('multipart/form-data') && source === 'body') {
+        dataToValidate = { ...req.body };
+        
+        // Parse JSON strings back to objects/arrays
+        if (dataToValidate.rules && typeof dataToValidate.rules === 'string') {
+          try {
+            dataToValidate.rules = JSON.parse(dataToValidate.rules);
+          } catch (e) {
+            dataToValidate.rules = [dataToValidate.rules];
+          }
+        }
+        
+        if (dataToValidate.socialLinks && typeof dataToValidate.socialLinks === 'string') {
+          try {
+            dataToValidate.socialLinks = JSON.parse(dataToValidate.socialLinks);
+          } catch (e) {
+            dataToValidate.socialLinks = {};
+          }
+        }
+        
+        // Handle file fields - set to empty string if not provided
+        if (req.files) {
+          const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+          if (!files.logo) dataToValidate.logo = '';
+          if (!files.banner) dataToValidate.banner = '';
+        }
+      }
+      
+      const dto = plainToClass(dtoClass, dataToValidate, {
         enableImplicitConversion: true,
         excludeExtraneousValues: false,
       });
+      
       logger.debug(`Validating DTO for ${req.path} [${source}]`, { dto });
 
       const errors: ValidationError[] = await validate(dto, {
@@ -77,7 +109,6 @@ export const validateDto = (
     }
   };
 };
-
 
 export const validateQuery = (dtoClass: any) => validateDto(dtoClass, 'query');
 export const validateParams = (dtoClass: any) => validateDto(dtoClass, 'params');

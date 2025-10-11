@@ -24,8 +24,8 @@ export class CommunityRequestRepository implements ICommunityRequestRepository {
 
     async updateStatus(id: string, status: string): Promise<ICommunityRequest | null> {
         return await CommunityRequestModel.findByIdAndUpdate(
-            id, 
-            { status }, 
+            id,
+            { status },
             { new: true }
         ).exec();
     }
@@ -44,14 +44,14 @@ export class CommunityRequestRepository implements ICommunityRequestRepository {
 
     async findAll(page: number, limit: number, search: string): Promise<{ data: ICommunityRequest[]; total: number; page: number; limit: number }> {
         const skip = (page - 1) * limit;
-        const searchQuery = search 
-            ? { 
+        const searchQuery = search
+            ? {
                 $or: [
                     { email: { $regex: search, $options: 'i' } },
                     { communityName: { $regex: search, $options: 'i' } },
                     { username: { $regex: search, $options: 'i' } }
                 ]
-            } 
+            }
             : {};
 
         const data = await CommunityRequestModel.find(searchQuery)
@@ -63,5 +63,9 @@ export class CommunityRequestRepository implements ICommunityRequestRepository {
         const total = await CommunityRequestModel.countDocuments(searchQuery);
 
         return { data, total, page, limit };
+    }
+
+    async findByStatus(status: string): Promise<ICommunityRequest[]> {
+        return await CommunityRequestModel.find({ status }).exec();
     }
 }

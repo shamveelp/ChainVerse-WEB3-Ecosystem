@@ -9,4 +9,5 @@ export interface ICommunityRequestRepository {
     findAll(page: number, limit: number, search: string): Promise<{ data: ICommunityRequest[]; total: number; page: number; limit: number }>;
     update(id: string, updateData: Partial<ICommunityRequest>): Promise<ICommunityRequest | null>;
     delete(id: string): Promise<ICommunityRequest | null>;
+    findByStatus(status: string): Promise<ICommunityRequest[]>;
 }
