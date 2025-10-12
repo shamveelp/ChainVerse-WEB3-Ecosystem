@@ -7,7 +7,7 @@ export const adminLogin = async (email: string, password: string) => {
     return {
       success: true,
       admin: response.data.admin,
-      token: response.data.accessToken, // Include token if backend returns it
+      token: response.data.accessToken,
       message: response.data.message,
     };
   } catch (error: any) {
@@ -22,83 +22,83 @@ export const adminLogin = async (email: string, password: string) => {
 
 export const forgotPassword = async (email: string) => {
   try {
-    const response = await API.post("/api/admin/forgot-password", { email })
+    const response = await API.post("/api/admin/forgot-password", { email });
     return {
       success: true,
       message: response.data.message,
-    }
+    };
   } catch (error: any) {
-    console.error("Forgot password error:", error.response?.data || error.message)
+    console.error("Forgot password error:", error.response?.data || error.message);
     return {
       success: false,
       error: error.response?.data?.message || error.message || "Failed to send reset code",
-    }
+    };
   }
-}
+};
 
 export const verifyResetOtp = async (email: string, otp: string) => {
   try {
-    const response = await API.post("/api/admin/verify-forgot-password-otp", { email, otp })
+    const response = await API.post("/api/admin/verify-forgot-password-otp", { email, otp });
     return {
       success: true,
       message: response.data.message,
-    }
+    };
   } catch (error: any) {
-    console.error("Verify reset OTP error:", error.response?.data || error.message)
+    console.error("Verify reset OTP error:", error.response?.data || error.message);
     return {
       success: false,
       error: error.response?.data?.message || error.message || "Invalid OTP",
-    }
+    };
   }
-}
+};
 
 export const resetPassword = async (email: string, password: string) => {
   try {
-    const response = await API.post("/api/admin/reset-password", { email, password })
+    const response = await API.post("/api/admin/reset-password", { email, password });
     return {
       success: true,
       message: response.data.message,
-    }
+    };
   } catch (error: any) {
-    console.error("Reset password error:", error.response?.data || error.message)
+    console.error("Reset password error:", error.response?.data || error.message);
     return {
       success: false,
       error: error.response?.data?.message || error.message || "Password reset failed",
-    }
+    };
   }
-}
+};
 
 export const getAdminProfile = async () => {
   try {
-    const response = await API.get("/api/admin/profile")
+    const response = await API.get("/api/admin/profile");
     return {
       success: true,
       admin: response.data.admin,
-    }
+    };
   } catch (error: any) {
-    console.error("Get admin profile error:", error.response?.data || error.message)
+    console.error("Get admin profile error:", error.response?.data || error.message);
     return {
       success: false,
       error: error.response?.data?.message || error.message || "Failed to get profile",
-    }
+    };
   }
-}
+};
 
 export const changeAdminPassword = async (currentPassword: string, newPassword: string) => {
   try {
-    const response = await API.post("/api/admin/change-password", { currentPassword, newPassword })
+    const response = await API.post("/api/admin/change-password", { currentPassword, newPassword });
     return {
       success: true,
       message: response.data.message,
-    }
+    };
   } catch (error: any) {
-    console.error("Change password error:", error.response?.data || error.message)
+    console.error("Change password error:", error.response?.data || error.message);
     return {
       success: false,
       error: error.response?.data?.message || error.message || "Failed to change password",
-    }
+    };
   }
-}
+};
 
 // User Management Services
 export const getUsers = async (page: number, limit: number = 10, search: string = "") => {
@@ -129,92 +129,136 @@ export const getUsers = async (page: number, limit: number = 10, search: string 
 
 export const getUserById = async (id: string) => {
   try {
-    const response = await API.get(`/api/admin/users/${id}`)
-    return response.data.user || response.data
+    const response = await API.get(`/api/admin/users/${id}`);
+    return response.data.user || response.data;
   } catch (error: any) {
-    console.error("Get user by id error:", error.response?.data || error.message)
-    throw error
+    console.error("Get user by id error:", error.response?.data || error.message);
+    throw error;
   }
-}
+};
 
 export const toggleUserBan = async (userId: string, isBanned: boolean) => {
   try {
-    const response = await API.patch(`/api/admin/users/${userId}/ban`, { isBanned })
-    return response.data.user || response.data
+    const response = await API.patch(`/api/admin/users/${userId}/ban`, { isBanned });
+    return response.data.user || response.data;
   } catch (error: any) {
-    console.error("Toggle user ban error:", error.response?.data || error.message)
-    throw error
+    console.error("Toggle user ban error:", error.response?.data || error.message);
+    throw error;
   }
-}
+};
 
 export const toggleUserBlock = async (userId: string, isBlocked: boolean) => {
   try {
-    await API.patch(`/api/admin/users/${userId}`, { isBlocked })
-    const response = await API.get(`/api/admin/users/${userId}`)
-    return response.data.user || response.data
+    await API.patch(`/api/admin/users/${userId}`, { isBlocked });
+    const response = await API.get(`/api/admin/users/${userId}`);
+    return response.data.user || response.data;
   } catch (error: any) {
-    console.error("Toggle user block error:", error.response?.data || error.message)
-    throw error
+    console.error("Toggle user block error:", error.response?.data || error.message);
+    throw error;
   }
-}
+};
 
 // Community Management Services
 export const getAllCommunityRequests = async (page: number = 1, limit: number = 10, search: string = '') => {
   try {
-    const response = await API.get(`/api/admin/community-requests?page=${page}&limit=${limit}&search=${search}`)
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      search: search,
+    });
+    
+    const response = await API.get(`/api/admin/community-requests?${params.toString()}`);
+    
     return {
       success: true,
       data: response.data.data || response.data,
-      total: response.data.total,
-      page: response.data.page,
-      limit: response.data.limit
-    }
+      total: response.data.total || 0,
+      page: response.data.page || page,
+      limit: response.data.limit || limit,
+      totalPages: response.data.totalPages || Math.ceil((response.data.total || 0) / limit),
+      message: response.data.message
+    };
   } catch (error: any) {
-    console.error("Get community requests error:", error.response?.data || error.message)
+    console.error("Get community requests error:", error.response?.data || error.message);
     return {
       success: false,
       error: error.response?.data?.message || error.message || "Failed to fetch community requests",
-    }
+      data: [],
+      total: 0,
+      page: 1,
+      limit: 10,
+      totalPages: 1
+    };
   }
-}
+};
+
+export const getCommunityRequestById = async (requestId: string) => {
+  try {
+    const response = await API.get(`/api/admin/community-requests/${requestId}`);
+    return {
+      success: true,
+      data: response.data.request || response.data.data,
+      message: response.data.message
+    };
+  } catch (error: any) {
+    console.error("Get community request by ID error:", error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Failed to fetch community request",
+    };
+  }
+};
 
 export const approveCommunityRequest = async (requestId: string) => {
   try {
-    const response = await API.patch(`/api/admin/community-requests/${requestId}/approve`)
+    const response = await API.patch(`/api/admin/community-requests/${requestId}/approve`);
     return {
       success: true,
-      message: response.data.message,
+      message: response.data.message || "Community request approved successfully",
       request: response.data.request
-    }
+    };
   } catch (error: any) {
-    console.error("Approve community request error:", error.response?.data || error.message)
+    console.error("Approve community request error:", error.response?.data || error.message);
     return {
       success: false,
       error: error.response?.data?.message || error.message || "Failed to approve request",
-    }
+    };
   }
-}
+};
 
 export const rejectCommunityRequest = async (requestId: string, reason: string) => {
   try {
-    const response = await API.patch(`/api/admin/community-requests/${requestId}/reject`, { reason })
+    const response = await API.patch(`/api/admin/community-requests/${requestId}/reject`, { reason });
     return {
       success: true,
-      message: response.data.message,
+      message: response.data.message || "Community request rejected successfully",
       request: response.data.request
-    }
+    };
   } catch (error: any) {
-    console.error("Reject community request error:", error.response?.data || error.message)
+    console.error("Reject community request error:", error.response?.data || error.message);
     return {
       success: false,
       error: error.response?.data?.message || error.message || "Failed to reject request",
-    }
+    };
   }
-}
+};
 
-
-
-
+export const exportCommunityRequests = async () => {
+  try {
+    const response = await API.get("/api/admin/community-requests/export");
+    return {
+      success: true,
+      data: response.data.data || [],
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    console.error("Export community requests error:", error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message || "Failed to export community requests",
+    };
+  }
+};
 
 // Wallet Management Services
 export const getAllWallets = async (page: number = 1, limit: number = 20, search: string = "") => {
@@ -368,7 +412,6 @@ export const refreshWalletData = async (address: string) => {
     };
   }
 };
-
 
 export const getWalletBlockchainTransactions = async (address: string, page?: number, limit?: number) => {
   try {
