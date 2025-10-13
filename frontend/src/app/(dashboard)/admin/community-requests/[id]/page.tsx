@@ -12,6 +12,7 @@ import { ArrowLeft, Users, Mail, Shield, Globe, MessageSquare, ExternalLink, Che
 import { getCommunityRequestById, approveCommunityRequest, rejectCommunityRequest } from '@/services/adminApiService';
 import { toast } from '@/hooks/use-toast';
 import { CommunityRequest } from '@/types/community';
+import { ImageViewerModal } from '@/components/admin/image-viewer-modal';
 
 export default function CommunityRequestDetailPage() {
   const params = useParams();
@@ -53,7 +54,7 @@ export default function CommunityRequestDetailPage() {
 
   const handleApprove = async () => {
     if (!request) return;
-    
+
     setActionLoading('approve');
     try {
       const result = await approveCommunityRequest(request._id);
@@ -212,7 +213,7 @@ export default function CommunityRequestDetailPage() {
             <CardHeader className="pb-6">
               <div className="flex items-start gap-6">
                 <Avatar className="h-24 w-24 border-2 border-slate-700/50">
-                  <AvatarImage src={request.logo} alt={request.communityName} />
+                  {request.logo && <AvatarImage src={request.logo} alt={request.communityName} />}
                   <AvatarFallback className="bg-slate-800 text-slate-300 text-2xl font-bold">
                     {request.communityName.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
@@ -400,11 +401,13 @@ export default function CommunityRequestDetailPage() {
                   <div className="space-y-3">
                     <h5 className="text-slate-400 font-medium">Community Logo</h5>
                     <div className="bg-slate-800/50 p-4 rounded-lg">
-                      <img
-                        src={request.logo}
-                        alt="Community Logo"
-                        className="w-full h-64 object-contain rounded-lg bg-slate-900"
-                      />
+                      <ImageViewerModal imageUrl={request.logo} imageAlt="Community Logo">
+                        <img
+                          src={request.logo}
+                          alt="Community Logo"
+                          className="w-full h-64 object-contain rounded-lg bg-slate-900 cursor-pointer"
+                        />
+                      </ImageViewerModal>
                     </div>
                   </div>
                 )}
@@ -412,11 +415,13 @@ export default function CommunityRequestDetailPage() {
                   <div className="space-y-3">
                     <h5 className="text-slate-400 font-medium">Community Banner</h5>
                     <div className="bg-slate-800/50 p-4 rounded-lg">
-                      <img
-                        src={request.banner}
-                        alt="Community Banner"
-                        className="w-full h-64 object-cover rounded-lg bg-slate-900"
-                      />
+                      <ImageViewerModal imageUrl={request.banner} imageAlt="Community Banner">
+                        <img
+                          src={request.banner}
+                          alt="Community Banner"
+                          className="w-full h-64 object-cover rounded-lg bg-slate-900 cursor-pointer"
+                        />
+                      </ImageViewerModal>
                     </div>
                   </div>
                 )}
