@@ -37,6 +37,8 @@ export class CommunityRequestResponseDto {
   category: string;
   status: string;
   createdAt: Date;
+  logo?: string;
+  banner?: string;
 
   constructor(request: any) {
     this._id = request._id;
@@ -48,5 +50,7 @@ export class CommunityRequestResponseDto {
     this.category = request.category;
     this.status = request.status;
     this.createdAt = request.createdAt;
+    this.logo = request.logo;
+    this.banner = request.banner;
   }
 }
