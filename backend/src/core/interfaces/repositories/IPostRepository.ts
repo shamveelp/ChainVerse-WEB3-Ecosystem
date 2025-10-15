@@ -49,4 +49,9 @@ export interface IPostRepository {
     // Admin operations
     findPostsByUser(userId: string, includeDeleted?: boolean): Promise<IPost[]>;
     bulkDeletePosts(postIds: string[]): Promise<boolean>;
+
+    getPostCountByUsersAfterDate(userIds: string[], date: Date): Promise<number>;
+     deletePostByAdmin(postId: string, adminId: string, reason?: string): Promise<boolean>;
+     getPostsByUserIds(userIds: string[], cursor?: string, limit?: number): Promise<PostsListResponseDto>;
+     getPostCountByUsers(userIds: string[]): Promise<number>;
 }

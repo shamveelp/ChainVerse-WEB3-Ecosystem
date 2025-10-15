@@ -1,71 +1,116 @@
+import { IsOptional, IsString, MinLength, MaxLength, IsUrl, ValidateNested, IsBoolean } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
 
-export interface UpdateCommunityAdminProfileDto {
-    name?: string;
-    bio?: string;
-    location?: string;
-    website?: string;
-    profilePic?: string;
-    bannerImage?: string;
-    socialLinks?: {
-        twitter?: string;
-        linkedin?: string;
-        github?: string;
-    };
-    settings?: {
-        showEmail?: boolean;
-        allowDirectMessages?: boolean;
-        emailNotifications?: boolean;
-    };
+export class UpdateCommunityAdminProfileDto {
+  @IsOptional()
+  @IsString({ message: 'Name must be a string' })
+  @MinLength(2, { message: 'Name must be at least 2 characters long' })
+  @MaxLength(50, { message: 'Name must be at most 50 characters long' })
+  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+  name?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Bio must be a string' })
+  @MaxLength(500, { message: 'Bio must be at most 500 characters long' })
+  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+  bio?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Location must be a string' })
+  @MaxLength(100, { message: 'Location must be at most 100 characters long' })
+  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+  location?: string;
+
+  @IsOptional()
+  @IsUrl({}, { message: 'Website must be a valid URL' })
+  website?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Profile picture must be a string' })
+  profilePic?: string;
 }
 
-export interface CommunityAdminProfileResponseDto {
+export class CommunityAdminProfileResponseDto extends BaseResponseDto {
+  _id: string;
+  name: string;
+  email: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  profilePic?: string;
+  communityId?: string;
+  communityName?: string;
+  communityLogo?: string;
+  isActive: boolean;
+  lastLogin?: Date;
+  joinDate: Date;
+  stats: {
+    totalMembers: number;
+    activeMembers: number;
+    totalPosts: number;
+    totalQuests: number;
+    premiumMembers: number;
+    engagementRate: number;
+  };
+
+  constructor(admin: any, community?: any, stats?: any) {
+    super(true, 'Profile retrieved successfully');
+    this._id = admin._id.toString();
+    this.name = admin.name;
+    this.email = admin.email;
+    this.bio = admin.bio || '';
+    this.location = admin.location || '';
+    this.website = admin.website || '';
+    this.profilePic = admin.profilePic || '';
+    this.communityId = admin.communityId?.toString();
+    this.communityName = community?.communityName || '';
+    this.communityLogo = community?.logo || '';
+    this.isActive = admin.isActive;
+    this.lastLogin = admin.lastLogin;
+    this.joinDate = admin.createdAt;
+    this.stats = stats || {
+      totalMembers: 0,
+      activeMembers: 0,
+      totalPosts: 0,
+      totalQuests: 0,
+      premiumMembers: 0,
+      engagementRate: 0
+    };
+  }
+}
+
+export class CommunityStatsDto {
+  totalMembers: number;
+  activeMembers: number;
+  newMembersThisWeek: number;
+  totalPosts: number;
+  postsThisWeek: number;
+  totalQuests: number;
+  activeQuests: number;
+  premiumMembers: number;
+  engagementRate: number;
+  averagePostsPerMember: number;
+  topActiveMembers: {
     _id: string;
+    username: string;
     name: string;
-    email: string;
-    bio?: string;
-    location?: string;
-    website?: string;
-    profilePic?: string;
-    bannerImage?: string;
-    socialLinks: {
-        twitter?: string;
-        linkedin?: string;
-        github?: string;
-    };
-    settings: {
-        showEmail: boolean;
-        allowDirectMessages: boolean;
-        emailNotifications: boolean;
-    };
-    community: {
-        _id: string;
-        name: string;
-        username: string;
-        description: string;
-        category: string;
-        logo: string;
-        banner: string;
-        isVerified: boolean;
-        memberCount: number;
-        totalPosts: number;
-    };
-    stats: {
-        totalPosts: number;
-        totalLikes: number;
-        totalComments: number;
-        totalShares: number;
-        joinDate: Date;
-        lastLogin: Date;
-    };
-    isOwnProfile: boolean;
-}
+    profilePic: string;
+    totalPosts: number;
+    totalLikes: number;
+  }[];
 
-export class CommunityAdminProfileResponse extends BaseResponseDto {
-    profile: CommunityAdminProfileResponseDto;
-
-    constructor(profile: CommunityAdminProfileResponseDto, message: string = 'Profile retrieved successfully') {
-        super(true, message);
-        this.profile = profile;
-    }
+  constructor(data: any) {
+    this.totalMembers = data.totalMembers || 0;
+    this.activeMembers = data.activeMembers || 0;
+    this.newMembersThisWeek = data.newMembersThisWeek || 0;
+    this.totalPosts = data.totalPosts || 0;
+    this.postsThisWeek = data.postsThisWeek || 0;
+    this.totalQuests = data.totalQuests || 0;
+    this.activeQuests = data.activeQuests || 0;
+    this.premiumMembers = data.premiumMembers || 0;
+    this.engagementRate = data.engagementRate || 0;
+    this.averagePostsPerMember = data.averagePostsPerMember || 0;
+    this.topActiveMembers = data.topActiveMembers || [];
+  }
 }

@@ -30,6 +30,8 @@ const TYPES = {
   IPointsService: Symbol.for("IPointsService"),
 
   IPostService: Symbol.for("IPostService"),
+
+  ICommunityAdminFeedService: Symbol.for("ICommunityAdminFeedService"),
   
   // Admin Services
   IAdminAuthService: Symbol.for("IAdminAuthService"),
@@ -93,6 +95,16 @@ const TYPES = {
   // External Services
   EtherscanService: Symbol.for("EtherscanService"),
   OAuthClient: Symbol.for("OAuthClient"),
+
+
+  //new 
+  ICommunityAdminMembersService: Symbol.for("ICommunityAdminMembersService"),
+  ICommunityAdminProfileService: Symbol.for("ICommunityAdminProfileService"),
+  ICommunityAdminProfileController: Symbol.for("ICommunityAdminProfileController"),
+  ICommunityAdminMembersController: Symbol.for("ICommunityAdminMembersController"),
+  ICommunityAdminFeedController: Symbol.for("ICommunityAdminFeedController"),
+
+
 };
 
 export { TYPES };

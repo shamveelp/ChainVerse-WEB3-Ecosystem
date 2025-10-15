@@ -23,6 +23,12 @@ import { AdminCommunityController } from "../../controllers/admin/AdminCommunity
 // Community Admin Controllers
 import { ICommunityAdminAuthController } from "../interfaces/controllers/communityAdmin/ICommunityAdminAuth.controller"
 import { CommunityAdminAuthController } from "../../controllers/communityAdmin/CommunityAdminAuth.controller"
+import { ICommunityAdminProfileController } from "../interfaces/controllers/communityAdmin/ICommunityAdminProfile.controller"
+import { CommunityAdminProfileController } from "../../controllers/communityAdmin/CommunityAdminProfile.controller"
+import { ICommunityAdminFeedController } from "../interfaces/controllers/communityAdmin/ICommunityAdminFeed.controller"
+import { CommunityAdminFeedController } from "../../controllers/communityAdmin/CommunityAdminFeed.controller"
+import { ICommunityAdminMembersController } from "../interfaces/controllers/communityAdmin/ICommunityAdminMembers.controller"
+import { CommunityAdminMembersController } from "../../controllers/communityAdmin/CommunityAdminMembers.controller"
 
 // Community Controllers
 import { ICommunityUserProfileController } from "../interfaces/controllers/community/ICommunityUserProfile.controller"
@@ -59,6 +65,12 @@ import { AdminCommunityService } from "../../services/admin/AdminCommunity.servi
 // Community Admin Services
 import { ICommunityAdminAuthService } from "../interfaces/services/communityAdmin/ICommunityAdminAuthService"
 import { CommunityAdminAuthService } from "../../services/communityAdmin/CommunityAdminAuth.service"
+import { ICommunityAdminProfileService } from "../interfaces/services/communityAdmin/ICommunityAdminProfileService"
+import { CommunityAdminProfileService } from "../../services/communityAdmin/CommunityAdminProfile.service"
+import { ICommunityAdminFeedService } from "../interfaces/services/communityAdmin/ICommnityAdminFeedService"
+import { CommunityAdminFeedService } from "../../services/communityAdmin/CommunityAdminFeed.service"
+import { ICommunityAdminMembersService } from "../interfaces/services/communityAdmin/ICommunityAdminMembersService"
+import { CommunityAdminMembersService } from "../../services/communityAdmin/CommunityAdminMembers.service"
 
 // Community Services
 import { ICommunityUserService } from "../interfaces/services/community/ICommunityUserService"
@@ -158,6 +170,9 @@ container.bind<IAdminCommunityController>(TYPES.IAdminCommunityController).to(Ad
 
 // Bind Community Admin Controllers
 container.bind<ICommunityAdminAuthController>(TYPES.ICommunityAdminAuthController).to(CommunityAdminAuthController)
+container.bind<ICommunityAdminProfileController>(TYPES.ICommunityAdminProfileController).to(CommunityAdminProfileController)
+container.bind<ICommunityAdminFeedController>(TYPES.ICommunityAdminFeedController).to(CommunityAdminFeedController)
+container.bind<ICommunityAdminMembersController>(TYPES.ICommunityAdminMembersController).to(CommunityAdminMembersController)
 
 // Bind Community Controllers
 container.bind<ICommunityUserProfileController>(TYPES.ICommunityUserProfileController).to(CommunityUserProfileController)
@@ -182,6 +197,9 @@ container.bind<IAdminCommunityService>(TYPES.IAdminCommunityService).to(AdminCom
 
 // Bind Community Admin Services
 container.bind<ICommunityAdminAuthService>(TYPES.ICommunityAdminAuthService).to(CommunityAdminAuthService)
+container.bind<ICommunityAdminProfileService>(TYPES.ICommunityAdminProfileService).to(CommunityAdminProfileService)
+container.bind<ICommunityAdminFeedService>(TYPES.ICommunityAdminFeedService).to(CommunityAdminFeedService)
+container.bind<ICommunityAdminMembersService>(TYPES.ICommunityAdminMembersService).to(CommunityAdminMembersService)
 
 // Bind Community Services
 container.bind<ICommunityUserService>(TYPES.ICommunityUserService).to(CommunityUserService)

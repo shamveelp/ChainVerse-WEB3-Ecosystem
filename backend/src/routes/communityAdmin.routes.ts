@@ -2,6 +2,9 @@ import { Router } from "express";
 import container from "../core/di/container";
 import { TYPES } from "../core/types/types";
 import { CommunityAdminAuthController } from "../controllers/communityAdmin/CommunityAdminAuth.controller";
+import { CommunityAdminProfileController } from "../controllers/communityAdmin/CommunityAdminProfile.controller";
+import { CommunityAdminFeedController } from "../controllers/communityAdmin/CommunityAdminFeed.controller";
+import { CommunityAdminMembersController } from "../controllers/communityAdmin/CommunityAdminMembers.controller";
 import { authMiddleware, roleMiddleware } from "../middlewares/auth.middleware";
 import {
   validateBody,
@@ -17,32 +20,68 @@ import {
   ResendOtpDto,
 } from "../dtos/communityAdmin/CommunityAdminAuth.dto";
 import {
+  UpdateCommunityAdminProfileDto
+} from "../dtos/communityAdmin/CommunityAdminProfile.dto";
+import {
+  GetCommunityFeedDto
+} from "../dtos/communityAdmin/CommunityAdminFeed.dto";
+import {
+  GetCommunityMembersDto,
+  UpdateMemberRoleDto,
+  BanMemberDto
+} from "../dtos/communityAdmin/CommunityAdminMembers.dto";
+import {
+  CreateCommentDto
+} from "../dtos/posts/Post.dto";
+import {
   ForgotPasswordDto,
   VerifyOtpDto as AdminVerifyOtpDto,
   ResetPasswordDto,
 } from "../dtos/ForgotPassword.dto";
 import { uploadMiddleware } from "../middlewares/upload.middleware";
+import multer from 'multer';
+
+// Configure Multer for profile picture uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit for profile pictures
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error("Only image files (JPEG, PNG, GIF) are allowed for profile pictures."));
+  },
+});
 
 const router = Router();
-const communityAdminAuthController =
-  container.get<CommunityAdminAuthController>(
-    TYPES.ICommunityAdminAuthController
-  );
+
+// Get controller instances
+const communityAdminAuthController = container.get<CommunityAdminAuthController>(
+  TYPES.ICommunityAdminAuthController
+);
+const communityAdminProfileController = container.get<CommunityAdminProfileController>(
+  TYPES.ICommunityAdminProfileController
+);
+const communityAdminFeedController = container.get<CommunityAdminFeedController>(
+  TYPES.ICommunityAdminFeedController
+);
+const communityAdminMembersController = container.get<CommunityAdminMembersController>(
+  TYPES.ICommunityAdminMembersController
+);
 
 // Live validation endpoints
 router.get(
   "/check-email",
   validateQuery(CheckEmailDto),
-  communityAdminAuthController.checkEmailExists.bind(
-    communityAdminAuthController
-  )
+  communityAdminAuthController.checkEmailExists.bind(communityAdminAuthController)
 );
 router.get(
   "/check-username",
   validateQuery(CheckUsernameDto),
-  communityAdminAuthController.checkUsernameExists.bind(
-    communityAdminAuthController
-  )
+  communityAdminAuthController.checkUsernameExists.bind(communityAdminAuthController)
 );
 
 // Application flow
@@ -53,9 +92,7 @@ router.post(
     { name: "banner", maxCount: 1 },
   ]),
   validateBody(CreateCommunityDto),
-  communityAdminAuthController.createCommunity.bind(
-    communityAdminAuthController
-  )
+  communityAdminAuthController.createCommunity.bind(communityAdminAuthController)
 );
 router.post(
   "/set-password",
@@ -79,9 +116,7 @@ router.post(
     { name: "banner", maxCount: 1 },
   ]),
   validateBody(CreateCommunityDto),
-  communityAdminAuthController.reapplyApplication.bind(
-    communityAdminAuthController
-  )
+  communityAdminAuthController.reapplyApplication.bind(communityAdminAuthController)
 );
 
 // Authentication
@@ -104,9 +139,7 @@ router.post(
 router.post(
   "/verify-forgot-password-otp",
   validateBody(AdminVerifyOtpDto),
-  communityAdminAuthController.verifyForgotPasswordOtp.bind(
-    communityAdminAuthController
-  )
+  communityAdminAuthController.verifyForgotPasswordOtp.bind(communityAdminAuthController)
 );
 router.post(
   "/reset-password",
@@ -121,19 +154,41 @@ router.post(
   roleMiddleware(["communityAdmin"]),
   communityAdminAuthController.logout.bind(communityAdminAuthController)
 );
+
+// Profile management
 router.get(
   "/profile",
   authMiddleware,
   roleMiddleware(["communityAdmin"]),
-  communityAdminAuthController.getProfile.bind(communityAdminAuthController)
+  communityAdminProfileController.getProfile.bind(communityAdminProfileController)
 );
+router.put(
+  "/profile",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(UpdateCommunityAdminProfileDto),
+  communityAdminProfileController.updateProfile.bind(communityAdminProfileController)
+);
+router.post(
+  "/profile/upload-picture",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  upload.single('profilePicture'),
+  communityAdminProfileController.uploadProfilePicture.bind(communityAdminProfileController)
+);
+router.get(
+  "/community-stats",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminProfileController.getCommunityStats.bind(communityAdminProfileController)
+);
+
+// Community management (existing routes)
 router.get(
   "/community",
   authMiddleware,
   roleMiddleware(["communityAdmin"]),
-  communityAdminAuthController.getCommunityDetails.bind(
-    communityAdminAuthController
-  )
+  communityAdminAuthController.getCommunityDetails.bind(communityAdminAuthController)
 );
 router.put(
   "/community",
@@ -143,9 +198,100 @@ router.put(
     { name: "logo", maxCount: 1 },
     { name: "banner", maxCount: 1 },
   ]),
-  communityAdminAuthController.updateCommunity.bind(
-    communityAdminAuthController
-  )
+  communityAdminAuthController.updateCommunity.bind(communityAdminAuthController)
+);
+
+// Feed management
+router.get(
+  "/feed",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateQuery(GetCommunityFeedDto),
+  communityAdminFeedController.getCommunityFeed.bind(communityAdminFeedController)
+);
+router.post(
+  "/feed/posts/:postId/like",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminFeedController.togglePostLike.bind(communityAdminFeedController)
+);
+router.post(
+  "/feed/posts/:postId/pin",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminFeedController.pinPost.bind(communityAdminFeedController)
+);
+router.delete(
+  "/feed/posts/:postId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminFeedController.deletePost.bind(communityAdminFeedController)
+);
+router.post(
+  "/feed/comments",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(CreateCommentDto),
+  communityAdminFeedController.createComment.bind(communityAdminFeedController)
+);
+router.get(
+  "/engagement-stats",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminFeedController.getEngagementStats.bind(communityAdminFeedController)
+);
+
+// Members management
+router.get(
+  "/members",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateQuery(GetCommunityMembersDto),
+  communityAdminMembersController.getCommunityMembers.bind(communityAdminMembersController)
+);
+router.get(
+  "/members/:memberId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminMembersController.getMemberDetails.bind(communityAdminMembersController)
+);
+router.put(
+  "/members/role",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(UpdateMemberRoleDto),
+  communityAdminMembersController.updateMemberRole.bind(communityAdminMembersController)
+);
+router.post(
+  "/members/ban",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(BanMemberDto),
+  communityAdminMembersController.banMember.bind(communityAdminMembersController)
+);
+router.post(
+  "/members/:memberId/unban",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminMembersController.unbanMember.bind(communityAdminMembersController)
+);
+router.delete(
+  "/members/:memberId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminMembersController.removeMember.bind(communityAdminMembersController)
+);
+router.get(
+  "/members/:memberId/activity",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminMembersController.getMemberActivity.bind(communityAdminMembersController)
+);
+router.post(
+  "/members/bulk-update",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminMembersController.bulkUpdateMembers.bind(communityAdminMembersController)
 );
 
 export default router;

@@ -1,331 +1,651 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Users, Search, Filter, MoveHorizontal as MoreHorizontal, Crown, Shield, UserPlus, Mail, Calendar, Activity, TrendingUp, UserMinus, MessageSquare, Award } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Input } from "@/components/ui/input"
+import { 
+  Users, 
+  Search, 
+  Filter, 
+  MoreHorizontal, 
+  Crown,
+  Shield,
+  UserX,
+  Ban,
+  UserCheck,
+  Loader2,
+  UserPlus,
+  TrendingUp,
+  Star,
+  MessageSquare
+} from 'lucide-react'
+import { cn } from "@/lib/utils"
+import { communityAdminMembersApiService } from '@/services/communityAdmin/communityAdminMembersApiService'
+import { toast } from 'sonner'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 
-const mockMembers = [
-  {
-    id: 1,
-    name: "Alice Johnson",
-    username: "@alice_defi",
-    email: "alice@example.com",
-    avatar: "A",
-    role: "Premium",
-    joinDate: "Dec 15, 2024",
-    lastActive: "2 hours ago",
-    questsCompleted: 12,
-    postsCount: 45,
-    status: "active"
-  },
-  {
-    id: 2,
-    name: "Bob Smith",
-    username: "@cryptobob",
-    email: "bob@example.com", 
-    avatar: "B",
-    role: "Member",
-    joinDate: "Dec 10, 2024",
-    lastActive: "1 day ago",
-    questsCompleted: 8,
-    postsCount: 23,
-    status: "active"
-  },
-  {
-    id: 3,
-    name: "Carol Davis",
-    username: "@carol_nft",
-    email: "carol@example.com",
-    avatar: "C", 
-    role: "Premium",
-    joinDate: "Dec 5, 2024",
-    lastActive: "3 hours ago",
-    questsCompleted: 15,
-    postsCount: 67,
-    status: "active"
-  },
-  {
-    id: 4,
-    name: "David Wilson",
-    username: "@david_dao",
-    email: "david@example.com",
-    avatar: "D",
-    role: "Member",
-    joinDate: "Nov 28, 2024", 
-    lastActive: "1 week ago",
-    questsCompleted: 3,
-    postsCount: 8,
-    status: "inactive"
-  },
-]
+interface CommunityMember {
+  _id: string;
+  userId: string;
+  username: string;
+  name: string;
+  email: string;
+  profilePic: string;
+  role: 'member' | 'moderator' | 'admin';
+  joinedAt: Date;
+  isActive: boolean;
+  lastActiveAt: Date;
+  isPremium: boolean;
+  stats: {
+    totalPosts: number;
+    totalLikes: number;
+    totalComments: number;
+    questsCompleted: number;
+  };
+  bannedUntil?: Date;
+  banReason?: string;
+}
 
-export default function MembersPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [sortBy, setSortBy] = useState("newest")
-  const [filterStatus, setFilterStatus] = useState("all")
-
-  const filteredMembers = mockMembers.filter(member => {
-    const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.email.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesFilter = filterStatus === "all" || member.status === filterStatus
-    
-    return matchesSearch && matchesFilter
+export default function CommunityAdminMembers() {
+  const [members, setMembers] = useState<CommunityMember[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [cursor, setCursor] = useState<string>()
+  
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('')
+  const [roleFilter, setRoleFilter] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [sortBy, setSortBy] = useState<string>('recent')
+  
+  // Summary stats
+  const [summary, setSummary] = useState({
+    totalMembers: 0,
+    activeMembers: 0,
+    moderators: 0,
+    premiumMembers: 0,
+    bannedMembers: 0,
+    newMembersThisWeek: 0
   })
 
-  const getMemberStats = () => {
-    return {
-      total: mockMembers.length,
-      active: mockMembers.filter(m => m.status === 'active').length,
-      premium: mockMembers.filter(m => m.role === 'Premium').length,
-      newThisWeek: 5
+  // Modal states
+  const [selectedMember, setSelectedMember] = useState<CommunityMember | null>(null)
+  const [actionType, setActionType] = useState<'ban' | 'unban' | 'promote' | 'demote' | 'remove' | null>(null)
+  const [showActionDialog, setShowActionDialog] = useState(false)
+  const [actionReason, setActionReason] = useState('')
+  const [banDuration, setBanDuration] = useState('')
+
+  const observerRef = useRef<IntersectionObserver>(null)
+
+  // Set up intersection observer for infinite scroll
+  const lastMemberRef = useCallback((node: HTMLDivElement) => {
+    if (loadingMore) return
+    if (observerRef.current) observerRef.current.disconnect()
+
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        loadMoreMembers()
+      }
+    })
+
+    if (node) observerRef.current.observe(node)
+  }, [loadingMore, hasMore])
+
+  // Load initial members
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      loadMembers(true)
+    }, 300) // Debounce search
+
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm, roleFilter, statusFilter, sortBy])
+
+  const loadMembers = async (isInitial = false) => {
+    try {
+      if (isInitial) {
+        setLoading(true)
+        setCursor(undefined)
+      }
+
+      const response = await communityAdminMembersApiService.getCommunityMembers({
+        cursor: isInitial ? undefined : cursor,
+        limit: 20,
+        search: searchTerm || undefined,
+        role: roleFilter as any || undefined,
+        status: statusFilter as any || undefined,
+        sortBy: sortBy as any || 'recent'
+      })
+
+      if (response.success && response.data) {
+        if (isInitial) {
+          setMembers(response.data.members)
+        } else {
+          setMembers(prev => [...prev, ...response.data!.members])
+        }
+        
+        setHasMore(response.data.hasMore)
+        setCursor(response.data.nextCursor)
+        setSummary(response.data.summary)
+      } else {
+        toast.error(response.error || 'Failed to load members')
+      }
+    } catch (error: any) {
+      console.error('Error loading members:', error)
+      toast.error('Failed to load members')
+    } finally {
+      if (isInitial) {
+        setLoading(false)
+      }
+      setLoadingMore(false)
     }
   }
 
-  const stats = getMemberStats()
+  const loadMoreMembers = async () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    await loadMembers(false)
+  }
+
+  const handleMemberAction = (member: CommunityMember, action: 'ban' | 'unban' | 'promote' | 'demote' | 'remove') => {
+    setSelectedMember(member)
+    setActionType(action)
+    setActionReason('')
+    setBanDuration('')
+    setShowActionDialog(true)
+  }
+
+  const executeAction = async () => {
+    if (!selectedMember || !actionType) return
+
+    try {
+      let response
+
+      switch (actionType) {
+        case 'ban':
+          response = await communityAdminMembersApiService.banMember({
+            memberId: selectedMember._id,
+            reason: actionReason,
+            durationDays: banDuration ? parseInt(banDuration) : undefined
+          })
+          break
+        case 'unban':
+          response = await communityAdminMembersApiService.unbanMember(selectedMember._id)
+          break
+        case 'promote':
+          response = await communityAdminMembersApiService.updateMemberRole({
+            memberId: selectedMember._id,
+            role: 'moderator',
+            reason: actionReason
+          })
+          break
+        case 'demote':
+          response = await communityAdminMembersApiService.updateMemberRole({
+            memberId: selectedMember._id,
+            role: 'member',
+            reason: actionReason
+          })
+          break
+        case 'remove':
+          response = await communityAdminMembersApiService.removeMember(selectedMember._id, actionReason)
+          break
+      }
+
+      if (response?.success) {
+        toast.success(response.message || 'Action completed successfully')
+        setShowActionDialog(false)
+        loadMembers(true) // Refresh the list
+      } else {
+        toast.error(response?.error || 'Action failed')
+      }
+    } catch (error: any) {
+      toast.error('Action failed')
+    }
+  }
+
+  const getStatusColor = (member: CommunityMember): string => {
+    return communityAdminMembersApiService.getStatusColor(member)
+  }
+
+  const getRoleBadgeColor = (role: string): string => {
+    return communityAdminMembersApiService.getRoleBadgeColor(role)
+  }
+
+  const getStatusText = (member: CommunityMember): string => {
+    if (member.bannedUntil && new Date(member.bannedUntil) > new Date()) {
+      return 'Banned'
+    }
+    if (!member.isActive) {
+      return 'Inactive'
+    }
+    
+    const lastActive = new Date(member.lastActiveAt)
+    const hoursSinceActive = (Date.now() - lastActive.getTime()) / (1000 * 60 * 60)
+    
+    if (hoursSinceActive <= 1) {
+      return 'Online'
+    } else if (hoursSinceActive <= 24) {
+      return 'Active today'
+    } else if (hoursSinceActive <= 168) {
+      return 'Active this week'
+    } else {
+      return 'Inactive'
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-red-500 mx-auto" />
+            <p className="text-gray-400">Loading community members...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
-            Member Management
+            Community Members
           </h1>
-          <p className="text-gray-400 mt-2">Manage and engage with your community members</p>
+          <p className="text-gray-400 mt-1">
+            Manage and moderate your community members
+          </p>
         </div>
-        <Button className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white">
-          <UserPlus className="h-4 w-4 mr-2" />
-          Invite Members
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
-                <Users className="h-6 w-6 text-white" />
-              </div>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Users className="h-6 w-6 text-red-400" />
               <div>
-                <p className="text-sm text-gray-400">Total Members</p>
-                <p className="text-2xl font-bold text-white">{stats.total}</p>
+                <p className="text-xs text-gray-400">Total</p>
+                <p className="text-lg font-bold text-white">{summary.totalMembers}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-green-800 rounded-lg flex items-center justify-center">
-                <Activity className="h-6 w-6 text-white" />
-              </div>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="h-6 w-6 text-green-400" />
               <div>
-                <p className="text-sm text-gray-400">Active Members</p>
-                <p className="text-2xl font-bold text-white">{stats.active}</p>
+                <p className="text-xs text-gray-400">Active</p>
+                <p className="text-lg font-bold text-white">{summary.activeMembers}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-yellow-600 to-yellow-800 rounded-lg flex items-center justify-center">
-                <Crown className="h-6 w-6 text-white" />
-              </div>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Shield className="h-6 w-6 text-purple-400" />
               <div>
-                <p className="text-sm text-gray-400">Premium Members</p>
-                <p className="text-2xl font-bold text-white">{stats.premium}</p>
+                <p className="text-xs text-gray-400">Moderators</p>
+                <p className="text-lg font-bold text-white">{summary.moderators}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-white" />
-              </div>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Crown className="h-6 w-6 text-yellow-400" />
               <div>
-                <p className="text-sm text-gray-400">New This Week</p>
-                <p className="text-2xl font-bold text-white">{stats.newThisWeek}</p>
+                <p className="text-xs text-gray-400">Premium</p>
+                <p className="text-lg font-bold text-white">{summary.premiumMembers}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Ban className="h-6 w-6 text-red-400" />
+              <div>
+                <p className="text-xs text-gray-400">Banned</p>
+                <p className="text-lg font-bold text-white">{summary.bannedMembers}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <UserPlus className="h-6 w-6 text-blue-400" />
+              <div>
+                <p className="text-xs text-gray-400">New (Week)</p>
+                <p className="text-lg font-bold text-white">{summary.newMembersThisWeek}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Members Table */}
+      {/* Filters */}
       <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-              <Users className="h-5 w-5 text-red-400" />
-              Community Members
-            </CardTitle>
-            <div className="flex gap-3">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search members..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64 bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
-                />
-              </div>
-              
-              {/* Filter */}
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-32 bg-red-950/20 border-red-800/30 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-black border-red-800/30">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Sort */}
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-32 bg-red-950/20 border-red-800/30 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-black border-red-800/30">
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="oldest">Oldest</SelectItem>
-                  <SelectItem value="most-active">Most Active</SelectItem>
-                </SelectContent>
-              </Select>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search members..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-red-950/20 border-red-800/30 text-white"
+              />
             </div>
+
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="bg-red-950/20 border-red-800/30 text-white">
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent className="bg-black/80 backdrop-blur-xl border-red-800/30">
+                <SelectItem value="">All Roles</SelectItem>
+                <SelectItem value="member">Members</SelectItem>
+                <SelectItem value="moderator">Moderators</SelectItem>
+                <SelectItem value="admin">Admins</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="bg-red-950/20 border-red-800/30 text-white">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent className="bg-black/80 backdrop-blur-xl border-red-800/30">
+                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="banned">Banned</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="bg-red-950/20 border-red-800/30 text-white">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent className="bg-black/80 backdrop-blur-xl border-red-800/30">
+                <SelectItem value="recent">Recently Joined</SelectItem>
+                <SelectItem value="oldest">Oldest Members</SelectItem>
+                <SelectItem value="most_active">Most Active</SelectItem>
+                <SelectItem value="most_posts">Most Posts</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredMembers.map((member) => (
-              <div key={member.id} className="flex items-center justify-between p-4 rounded-lg hover:bg-red-950/20 transition-colors">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-gradient-to-r from-red-600 to-red-800 text-white font-semibold">
-                      {member.avatar}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-white">{member.name}</h4>
-                      <span className="text-sm text-gray-400">{member.username}</span>
-                      {member.role === 'Premium' && (
-                        <Crown className="h-4 w-4 text-yellow-400" />
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-400">{member.email}</p>
-                    <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        Joined {member.joinDate}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Activity className="h-3 w-3" />
-                        Active {member.lastActive}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-6">
-                  {/* Stats */}
-                  <div className="flex gap-4 text-sm">
-                    <div className="text-center">
-                      <p className="font-semibold text-white">{member.questsCompleted}</p>
-                      <p className="text-gray-400 text-xs">Quests</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="font-semibold text-white">{member.postsCount}</p>
-                      <p className="text-gray-400 text-xs">Posts</p>
-                    </div>
-                  </div>
-
-                  {/* Status */}
-                  <Badge 
-                    variant={member.status === 'active' ? 'default' : 'outline'}
-                    className={member.status === 'active' 
-                      ? 'bg-green-600 text-white' 
-                      : 'border-gray-600 text-gray-400'
-                    }
-                  >
-                    {member.status}
-                  </Badge>
-
-                  {/* Actions */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-red-950/30">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-black border-red-800/30">
-                      <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-red-950/30">
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Send Message
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-red-950/30">
-                        <Award className="h-4 w-4 mr-2" />
-                        Award Badge
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-red-950/30">
-                        <Crown className="h-4 w-4 mr-2" />
-                        Upgrade to Premium
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-400 hover:text-red-300 hover:bg-red-950/30">
-                        <UserMinus className="h-4 w-4 mr-2" />
-                        Remove Member
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {filteredMembers.length === 0 && (
-            <div className="text-center py-12">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-400">No members found matching your search criteria.</p>
-            </div>
-          )}
-
-          {/* Pagination */}
-          {filteredMembers.length > 0 && (
-            <div className="flex items-center justify-between mt-6 pt-6 border-t border-red-800/20">
-              <p className="text-sm text-gray-400">
-                Showing {filteredMembers.length} of {mockMembers.length} members
-              </p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="border-red-600/50 text-red-400 hover:bg-red-950/30">
-                  Previous
-                </Button>
-                <Button variant="outline" size="sm" className="border-red-600/50 text-red-400 hover:bg-red-950/30">
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
+
+      {/* Members List */}
+      {members.length === 0 ? (
+        <div className="text-center py-12">
+          <Users className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-white mb-2">No members found</h3>
+          <p className="text-gray-400">Try adjusting your search or filters.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {members.map((member, index) => (
+            <Card
+              key={member._id}
+              ref={index === members.length - 1 ? lastMemberRef : undefined}
+              className="bg-black/60 backdrop-blur-xl border-red-800/30 hover:border-red-700/50 transition-all duration-200"
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="w-12 h-12 ring-2 ring-red-700/50">
+                      <AvatarImage src={member.profilePic} alt={member.name} />
+                      <AvatarFallback className="bg-gradient-to-r from-red-500 to-red-700 text-white">
+                        {member.name.charAt(0)?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-white">{member.name}</h3>
+                        {member.isPremium && (
+                          <Crown className="h-4 w-4 text-yellow-400" />
+                        )}
+                        <Badge 
+                          variant="outline" 
+                          className={cn("text-xs", getRoleBadgeColor(member.role))}
+                        >
+                          {member.role}
+                        </Badge>
+                        <span className={cn("text-xs font-medium", getStatusColor(member))}>
+                          {getStatusText(member)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-400">@{member.username}</p>
+                      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                        <span>Joined {communityAdminMembersApiService.formatTimeAgo(member.joinedAt)}</span>
+                        <span>•</span>
+                        <span>{member.stats.totalPosts} posts</span>
+                        <span>•</span>
+                        <span>{member.stats.totalLikes} likes</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="text-right text-sm">
+                      <div className="flex items-center gap-4 text-gray-400">
+                        <div className="flex items-center gap-1">
+                          <MessageSquare className="h-4 w-4" />
+                          <span>{member.stats.totalPosts}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4" />
+                          <span>{member.stats.totalLikes}</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Last active {communityAdminMembersApiService.formatTimeAgo(member.lastActiveAt)}
+                      </p>
+                    </div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-gray-400 hover:text-white hover:bg-red-800/30"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-black/80 backdrop-blur-xl border-red-800/30">
+                        {member.role === 'member' && (
+                          <DropdownMenuItem
+                            onClick={() => handleMemberAction(member, 'promote')}
+                            className="text-gray-200 hover:bg-red-900/30"
+                          >
+                            <Shield className="w-4 h-4 mr-2" />
+                            Promote to Moderator
+                          </DropdownMenuItem>
+                        )}
+                        
+                        {member.role === 'moderator' && (
+                          <DropdownMenuItem
+                            onClick={() => handleMemberAction(member, 'demote')}
+                            className="text-gray-200 hover:bg-red-900/30"
+                          >
+                            <Users className="w-4 h-4 mr-2" />
+                            Demote to Member
+                          </DropdownMenuItem>
+                        )}
+
+                        <DropdownMenuSeparator className="bg-red-800/30" />
+
+                        {member.isActive && !member.bannedUntil && (
+                          <DropdownMenuItem
+                            onClick={() => handleMemberAction(member, 'ban')}
+                            className="text-orange-400 hover:bg-red-900/30"
+                          >
+                            <Ban className="w-4 h-4 mr-2" />
+                            Ban Member
+                          </DropdownMenuItem>
+                        )}
+
+                        {member.bannedUntil && new Date(member.bannedUntil) > new Date() && (
+                          <DropdownMenuItem
+                            onClick={() => handleMemberAction(member, 'unban')}
+                            className="text-green-400 hover:bg-red-900/30"
+                          >
+                            <UserCheck className="w-4 h-4 mr-2" />
+                            Unban Member
+                          </DropdownMenuItem>
+                        )}
+
+                        <DropdownMenuItem
+                          onClick={() => handleMemberAction(member, 'remove')}
+                          className="text-red-400 hover:bg-red-900/30"
+                        >
+                          <UserX className="w-4 h-4 mr-2" />
+                          Remove Member
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Loading more indicator */}
+      {loadingMore && (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center space-y-2">
+            <Loader2 className="h-6 w-6 animate-spin text-red-500 mx-auto" />
+            <p className="text-gray-400 text-sm">Loading more members...</p>
+          </div>
+        </div>
+      )}
+
+      {/* End indicator */}
+      {!hasMore && members.length > 0 && (
+        <div className="flex items-center justify-center py-8">
+          <p className="text-gray-500 text-sm">You've reached the end</p>
+        </div>
+      )}
+
+      {/* Action Dialog */}
+      <Dialog open={showActionDialog} onOpenChange={setShowActionDialog}>
+        <DialogContent className="sm:max-w-[425px] bg-black/80 backdrop-blur-xl border-red-800/30">
+          <DialogHeader>
+            <DialogTitle className="text-white">
+              {actionType === 'ban' && 'Ban Member'}
+              {actionType === 'unban' && 'Unban Member'}
+              {actionType === 'promote' && 'Promote to Moderator'}
+              {actionType === 'demote' && 'Demote to Member'}
+              {actionType === 'remove' && 'Remove Member'}
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              {selectedMember && (
+                <>
+                  You are about to {actionType} <strong>{selectedMember.name}</strong> (@{selectedMember.username}).
+                  {actionType === 'ban' || actionType === 'remove' ? ' This action cannot be easily undone.' : ''}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {actionType === 'ban' && (
+              <div>
+                <label className="text-sm font-medium text-gray-300">Ban Duration (days)</label>
+                <Input
+                  placeholder="Leave empty for permanent ban"
+                  value={banDuration}
+                  onChange={(e) => setBanDuration(e.target.value)}
+                  className="bg-red-950/20 border-red-800/30 text-white mt-1"
+                  type="number"
+                  min="1"
+                />
+              </div>
+            )}
+            
+            <div>
+              <label className="text-sm font-medium text-gray-300">
+                Reason {actionType === 'ban' || actionType === 'remove' ? '(required)' : '(optional)'}
+              </label>
+              <Textarea
+                placeholder={`Reason for ${actionType}...`}
+                value={actionReason}
+                onChange={(e) => setActionReason(e.target.value)}
+                className="bg-red-950/20 border-red-800/30 text-white mt-1"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowActionDialog(false)}
+              className="border-red-600/50 hover:bg-red-950/30"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={executeAction}
+              disabled={
+                (actionType === 'ban' || actionType === 'remove') && !actionReason.trim()
+              }
+              className={cn(
+                actionType === 'ban' || actionType === 'remove'
+                  ? "bg-red-600 hover:bg-red-700 text-white"
+                  : "bg-red-600 hover:bg-red-700 text-white"
+              )}
+            >
+              {actionType === 'ban' && 'Ban Member'}
+              {actionType === 'unban' && 'Unban Member'}
+              {actionType === 'promote' && 'Promote Member'}
+              {actionType === 'demote' && 'Demote Member'}
+              {actionType === 'remove' && 'Remove Member'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
