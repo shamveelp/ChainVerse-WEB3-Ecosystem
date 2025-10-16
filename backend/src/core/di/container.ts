@@ -153,6 +153,10 @@ import { IUserDexService } from "../interfaces/services/user/IUserDexService"
 import { UserDexService } from "../../services/user/UserDex.service"
 import { IUserDexController } from "../interfaces/controllers/user/IUserDex.controller"
 import { UserDexController } from "../../controllers/user/UserDex.controller"
+import { ICommunityAdminDashboardController } from "../interfaces/controllers/communityAdmin/ICommunityAdminDashboard.controller"
+import { CommunityAdminDashboardController } from "../../controllers/communityAdmin/CommunityAdminDashbaord.controller"
+import { ICommunityAdminDashboardService } from "../interfaces/services/communityAdmin/ICommunityAdminDashboard.service"
+import { CommunityAdminDashboardService } from "../../services/communityAdmin/CommunityAdminDashbaord.service"
 
 // Create Container
 const container = new Container()
@@ -263,5 +267,9 @@ container.bind<IPaymentRepository>(TYPES.IPaymentRepository).to(PaymentRepositor
 
 container.bind<IUserDexService>(TYPES.IUserDexService).to(UserDexService)
 container.bind<IUserDexController>(TYPES.IUserDexController).to(UserDexController)
+
+container.bind<ICommunityAdminDashboardController>(TYPES.ICommunityAdminDashboardController).to(CommunityAdminDashboardController)
+container.bind<ICommunityAdminDashboardService>(TYPES.ICommunityAdminDashboardService).to(CommunityAdminDashboardService)
+
 
 export default container

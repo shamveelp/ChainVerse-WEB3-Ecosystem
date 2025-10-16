@@ -593,7 +593,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
           category: community.category,
           logo: community.logo,
           banner: community.banner,
-          memberCount: community.members.length,
+          // memberCount: community.members.length,
           isVerified: community.isVerified,
           status: community.status,
           settings: community.settings,

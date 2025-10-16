@@ -2,6 +2,7 @@ import { injectable } from "inversify";
 import { ICommunityRequest } from "../models/communityRequest.model";
 import CommunityRequestModel from "../models/communityRequest.model";
 import { ICommunityRequestRepository } from "../core/interfaces/repositories/ICommunityRequestRepository";
+import CommunityModel, { ICommunity } from "../models/community.model";
 
 @injectable()
 export class CommunityRequestRepository implements ICommunityRequestRepository {
@@ -21,7 +22,9 @@ export class CommunityRequestRepository implements ICommunityRequestRepository {
     async findById(id: string): Promise<ICommunityRequest | null> {
         return await CommunityRequestModel.findById(id).exec();
     }
-
+    
+    
+    
     async updateStatus(id: string, status: string): Promise<ICommunityRequest | null> {
         return await CommunityRequestModel.findByIdAndUpdate(
             id,
@@ -67,5 +70,9 @@ export class CommunityRequestRepository implements ICommunityRequestRepository {
 
     async findByStatus(status: string): Promise<ICommunityRequest[]> {
         return await CommunityRequestModel.find({ status }).exec();
+    }
+    
+    async findCommunityById(id: string): Promise<ICommunity | null> {
+        return await CommunityModel.findById(id).exec();
     }
 }

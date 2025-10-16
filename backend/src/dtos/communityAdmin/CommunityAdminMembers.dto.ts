@@ -31,32 +31,113 @@ export class GetCommunityMembersDto {
   sortBy?: 'recent' | 'oldest' | 'most_active' | 'most_posts' = 'recent';
 }
 
-export class UpdateMemberRoleDto {
-  @IsString({ message: 'Member ID is required' })
-  memberId!: string;
+export class CommunityMemberDetailDto {
+  _id: string;
+  userId: string;
+  username: string;
+  name: string;
+  email: string;
+  profilePic: string;
+  role: 'member' | 'moderator' | 'admin';
+  joinedAt: Date;
+  isActive: boolean;
+  lastActiveAt: Date;
+  isPremium: boolean;
+  stats: {
+    totalPosts: number;
+    totalLikes: number;
+    totalComments: number;
+    questsCompleted: number;
+  };
+  permissions: {
+    canPost: boolean;
+    canComment: boolean;
+    canModerate: boolean;
+    canManageMembers: boolean;
+    canEditCommunity: boolean;
+  };
+  bannedUntil?: Date;
+  banReason?: string;
+  bannedBy?: {
+    _id: string;
+    name: string;
+  };
+  activityLevel: 'very_active' | 'active' | 'moderate' | 'inactive';
+  joinSource: string;
+  totalWarnings: number;
 
-  @IsEnum(['member', 'moderator'], { message: 'Invalid role' })
-  role!: 'member' | 'moderator';
+  constructor(member: any, user: any) {
+    this._id = member._id.toString();
+    this.userId = user._id.toString();
+    this.username = user.username;
+    this.name = user.name || user.username;
+    this.email = user.email;
+    this.profilePic = user.profilePic || '';
+    this.role = member.role;
+    this.joinedAt = member.joinedAt;
+    this.isActive = member.isActive;
+    this.lastActiveAt = member.lastActiveAt;
+    this.isPremium = member.isPremium;
+    this.stats = {
+      totalPosts: member.totalPosts || 0,
+      totalLikes: member.totalLikes || 0,
+      totalComments: member.totalComments || 0,
+      questsCompleted: member.questsCompleted || 0
+    };
+    this.permissions = this.getPermissions(member.role);
+    this.bannedUntil = member.bannedUntil;
+    this.banReason = member.banReason;
+    this.bannedBy = member.bannedBy ? {
+      _id: member.bannedBy._id?.toString(),
+      name: member.bannedBy.name
+    } : undefined;
+    this.activityLevel = this.calculateActivityLevel(member);
+    this.joinSource = member.joinSource || 'direct';
+    this.totalWarnings = member.totalWarnings || 0;
+  }
 
-  @IsOptional()
-  @IsString()
-  reason?: string;
+  private getPermissions(role: string) {
+    switch (role) {
+      case 'admin':
+        return {
+          canPost: true,
+          canComment: true,
+          canModerate: true,
+          canManageMembers: true,
+          canEditCommunity: true
+        };
+      case 'moderator':
+        return {
+          canPost: true,
+          canComment: true,
+          canModerate: true,
+          canManageMembers: true,
+          canEditCommunity: false
+        };
+      default:
+        return {
+          canPost: true,
+          canComment: true,
+          canModerate: false,
+          canManageMembers: false,
+          canEditCommunity: false
+        };
+    }
+  }
+
+  private calculateActivityLevel(member: any): 'very_active' | 'active' | 'moderate' | 'inactive' {
+    const daysSinceJoined = (Date.now() - new Date(member.joinedAt).getTime()) / (1000 * 60 * 60 * 24);
+    const totalPosts = member.totalPosts || 0;
+    const postsPerDay = daysSinceJoined > 0 ? totalPosts / daysSinceJoined : 0;
+
+    if (postsPerDay >= 1) return 'very_active';
+    if (postsPerDay >= 0.5) return 'active';
+    if (postsPerDay >= 0.1) return 'moderate';
+    return 'inactive';
+  }
 }
 
-export class BanMemberDto {
-  @IsString({ message: 'Member ID is required' })
-  memberId!: string;
-
-  @IsString({ message: 'Ban reason is required' })
-  reason!: string;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber({}, { message: 'Duration must be a number' })
-  @Min(1, { message: 'Duration must be at least 1 day' })
-  durationDays?: number; // If not provided, permanent ban
-}
-
+// Keep existing DTOs and add new ones
 export class CommunityMemberDto {
   _id: string;
   userId: string;
@@ -101,6 +182,32 @@ export class CommunityMemberDto {
   }
 }
 
+export class UpdateMemberRoleDto {
+  @IsString({ message: 'Member ID is required' })
+  memberId!: string;
+
+  @IsEnum(['member', 'moderator'], { message: 'Invalid role' })
+  role!: 'member' | 'moderator';
+
+  @IsOptional()
+  @IsString()
+  reason?: string;
+}
+
+export class BanMemberDto {
+  @IsString({ message: 'Member ID is required' })
+  memberId!: string;
+
+  @IsString({ message: 'Ban reason is required' })
+  reason!: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Duration must be a number' })
+  @Min(1, { message: 'Duration must be at least 1 day' })
+  durationDays?: number;
+}
+
 export class CommunityMembersListResponseDto extends BaseResponseDto {
   members: CommunityMemberDto[];
   hasMore: boolean;
@@ -127,8 +234,17 @@ export class CommunityMembersListResponseDto extends BaseResponseDto {
 
 export class MemberActionResponseDto extends BaseResponseDto {
   member: CommunityMemberDto;
-  
+
   constructor(member: CommunityMemberDto, message: string) {
+    super(true, message);
+    this.member = member;
+  }
+}
+
+export class MemberDetailResponseDto extends BaseResponseDto {
+  member: CommunityMemberDetailDto;
+
+  constructor(member: CommunityMemberDetailDto, message: string = 'Member details retrieved successfully') {
     super(true, message);
     this.member = member;
   }

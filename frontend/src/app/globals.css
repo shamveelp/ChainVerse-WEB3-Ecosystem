@@ -209,3 +209,31 @@ html {
   transform: translateY(0);
   transition: transform 0.1s linear;
 }
+
+
+/* Premium Components */
+@layer components {
+  .premium-card {
+    @apply bg-[var(--background-elevated)] border border-[var(--border-primary)] rounded-xl backdrop-blur-sm;
+  }
+  
+  .premium-gradient {
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--accent-500) 100%);
+  }
+  
+  .premium-button {
+    @apply bg-gradient-to-r from-purple-500 to-amber-500 hover:from-purple-600 hover:to-amber-600 text-white font-medium transition-all duration-200;
+  }
+  
+  .premium-border {
+    @apply border border-[var(--border-accent)]/30 hover:border-[var(--border-accent)]/60 transition-colors duration-200;
+  }
+  
+  .glass-effect {
+    @apply bg-black/20 backdrop-blur-xl border border-white/10;
+  }
+  
+  .premium-shadow {
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.15);
+  }
+}

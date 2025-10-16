@@ -2,14 +2,14 @@ import {
     GetCommunityMembersDto,
     UpdateMemberRoleDto,
     BanMemberDto,
-    CommunityMemberDto,
     CommunityMembersListResponseDto,
-    MemberActionResponseDto
+    MemberActionResponseDto,
+    MemberDetailResponseDto
 } from "../../../../dtos/communityAdmin/CommunityAdminMembers.dto";
 
 export interface ICommunityAdminMembersService {
     getCommunityMembers(adminId: string, filters: GetCommunityMembersDto): Promise<CommunityMembersListResponseDto>;
-    getMemberDetails(adminId: string, memberId: string): Promise<CommunityMemberDto>;
+    getMemberDetails(adminId: string, memberId: string): Promise<MemberDetailResponseDto>;
     updateMemberRole(adminId: string, data: UpdateMemberRoleDto): Promise<MemberActionResponseDto>;
     banMember(adminId: string, data: BanMemberDto): Promise<MemberActionResponseDto>;
     unbanMember(adminId: string, memberId: string): Promise<MemberActionResponseDto>;

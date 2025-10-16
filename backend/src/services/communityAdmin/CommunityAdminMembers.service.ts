@@ -13,8 +13,10 @@ import {
     UpdateMemberRoleDto,
     BanMemberDto,
     CommunityMemberDto,
+    CommunityMemberDetailDto,
     CommunityMembersListResponseDto,
-    MemberActionResponseDto
+    MemberActionResponseDto,
+    MemberDetailResponseDto
 } from "../../dtos/communityAdmin/CommunityAdminMembers.dto";
 
 @injectable()
@@ -34,8 +36,6 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }
 
             const communityId = admin.communityId.toString();
-
-            // Build query
             const query: any = { communityId };
 
             // Apply filters
@@ -88,7 +88,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             const members = await CommunityMemberModel.find(query)
                 .populate('userId', 'username name email profilePic')
                 .sort(sort)
-                .limit(filters.limit! + 1) // Get one extra to check if there are more
+                .limit(filters.limit! + 1)
                 .lean();
 
             const hasMore = members.length > filters.limit!;
@@ -107,17 +107,15 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }
 
             // Transform to DTOs
-            const transformedMembers = filteredMembers.map((member: any) => 
+            const transformedMembers = filteredMembers.map((member: any) =>
                 new CommunityMemberDto(member, member.userId)
             );
 
             // Get summary stats
             const summary = await this._getMembersSummary(communityId);
 
-            // Get total count for filtered results
             const totalCount = await CommunityMemberModel.countDocuments(query);
-
-            const nextCursor = hasMore && membersList.length > 0 
+            const nextCursor = hasMore && membersList.length > 0
                 ? membersList[membersList.length - 1]._id.toString()
                 : undefined;
 
@@ -139,7 +137,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
         }
     }
 
-    async getMemberDetails(adminId: string, memberId: string): Promise<CommunityMemberDto> {
+    async getMemberDetails(adminId: string, memberId: string): Promise<MemberDetailResponseDto> {
         try {
             console.log("CommunityAdminMembersService: Getting member details for admin:", adminId, "member:", memberId);
 
@@ -151,14 +149,18 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             const member = await CommunityMemberModel.findOne({
                 _id: memberId,
                 communityId: admin.communityId
-            }).populate('userId', 'username name email profilePic').lean();
+            })
+            .populate('userId', 'username name email profilePic')
+            .populate('bannedBy', 'name')
+            .lean();
 
             if (!member) {
                 throw new CustomError("Member not found", StatusCode.NOT_FOUND);
             }
 
             console.log("CommunityAdminMembersService: Member details retrieved successfully");
-            return new CommunityMemberDto(member, (member as any).userId);
+            const memberDetailDto = new CommunityMemberDetailDto(member, (member as any).userId);
+            return new MemberDetailResponseDto(memberDetailDto);
         } catch (error) {
             console.error("CommunityAdminMembersService: Get member details error:", error);
             if (error instanceof CustomError) {
@@ -196,7 +198,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             await member.save();
 
             console.log("CommunityAdminMembersService: Member role updated successfully");
-            
+
             const updatedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
             return new MemberActionResponseDto(updatedMemberDto, "Member role updated successfully");
         } catch (error) {
@@ -235,7 +237,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             member.isActive = false;
             member.banReason = data.reason;
             member.bannedBy = admin._id;
-            
+
             if (data.durationDays) {
                 member.bannedUntil = new Date(Date.now() + (data.durationDays * 24 * 60 * 60 * 1000));
             }
@@ -243,7 +245,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             await member.save();
 
             console.log("CommunityAdminMembersService: Member banned successfully");
-            
+
             const bannedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
             return new MemberActionResponseDto(bannedMemberDto, "Member banned successfully");
         } catch (error) {
@@ -282,7 +284,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             await member.save();
 
             console.log("CommunityAdminMembersService: Member unbanned successfully");
-            
+
             const unbannedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
             return new MemberActionResponseDto(unbannedMemberDto, "Member unbanned successfully");
         } catch (error) {
@@ -321,7 +323,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             await CommunityMemberModel.findByIdAndDelete(memberId);
 
             console.log("CommunityAdminMembersService: Member removed successfully");
-            
+
             return {
                 success: true,
                 memberId,
@@ -359,7 +361,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             // Calculate date range
             const now = new Date();
             let startDate: Date;
-            
+
             switch (period) {
                 case 'today':
                     startDate = new Date(now.setHours(0, 0, 0, 0));
@@ -374,10 +376,11 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                     startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             }
 
-            // TODO: Implement detailed activity tracking
-            // For now, return basic member info and stats
+            // Create detailed member DTO
+            const memberDetailDto = new CommunityMemberDetailDto(member.toObject(), (member as any).userId);
+
             const activityData = {
-                member: new CommunityMemberDto(member.toObject(), (member as any).userId),
+                member: memberDetailDto,
                 period,
                 activity: {
                     posts: member.totalPosts || 0,

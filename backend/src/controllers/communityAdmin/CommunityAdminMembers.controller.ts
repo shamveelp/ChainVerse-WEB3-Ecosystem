@@ -17,10 +17,9 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
         try {
             const communityAdminId = (req as any).user.id;
             const { cursor, limit = '20', search, role, status, sortBy = 'recent' } = req.query;
-            
+
             console.log("Getting community members for admin:", communityAdminId);
 
-            // Validate limit
             let validLimit = 20;
             if (limit && typeof limit === 'string') {
                 const parsedLimit = parseInt(limit, 10);
@@ -102,11 +101,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
                 reason
             });
 
-            res.status(StatusCode.OK).json({
-                success: true,
-                data: updatedMember,
-                message: "Member role updated successfully"
-            });
+            res.status(StatusCode.OK).json(updatedMember);
         } catch (error) {
             const err = error as Error;
             console.error("Update member role error:", error);
@@ -141,11 +136,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
                 durationDays
             });
 
-            res.status(StatusCode.OK).json({
-                success: true,
-                data: bannedMember,
-                message: "Member banned successfully"
-            });
+            res.status(StatusCode.OK).json(bannedMember);
         } catch (error) {
             const err = error as Error;
             console.error("Ban member error:", error);
@@ -168,11 +159,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
 
             const unbannedMember = await this._membersService.unbanMember(communityAdminId, memberId);
 
-            res.status(StatusCode.OK).json({
-                success: true,
-                data: unbannedMember,
-                message: "Member unbanned successfully"
-            });
+            res.status(StatusCode.OK).json(unbannedMember);
         } catch (error) {
             const err = error as Error;
             console.error("Unban member error:", error);

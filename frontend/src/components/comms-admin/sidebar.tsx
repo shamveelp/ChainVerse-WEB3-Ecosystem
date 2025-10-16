@@ -99,6 +99,7 @@ export function Sidebar({ className }: SidebarProps) {
         <div className="space-y-2">
           {sidebarItems.map((item) => {
             const isActive = pathname === item.href
+            const IconComponent = item.icon // ✅ Fix: Extract as component
             return (
               <Button
                 key={item.href}
@@ -112,7 +113,8 @@ export function Sidebar({ className }: SidebarProps) {
                   isCollapsed && "px-2 justify-center"
                 )}
               >
-                <item.icon className={cn("h-5 w-5", isCollapsed ? "mx-0" : "mr-0")} />
+                {/* ✅ Fix: Render as JSX component */}
+                <IconComponent className={cn("h-5 w-5", isCollapsed ? "mx-0" : "mr-2")} />
                 {!isCollapsed && (
                   <span className="font-medium">{item.title}</span>
                 )}

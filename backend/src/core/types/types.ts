@@ -105,6 +105,8 @@ const TYPES = {
   ICommunityAdminFeedController: Symbol.for("ICommunityAdminFeedController"),
 
 
+  ICommunityAdminDashboardService: Symbol.for("ICommunityAdminDashboardService"),
+  ICommunityAdminDashboardController: Symbol.for("ICommunityAdminDashboardController"),
 };
 
 export { TYPES };

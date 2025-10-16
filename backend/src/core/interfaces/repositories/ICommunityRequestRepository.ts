@@ -1,4 +1,5 @@
 import { ICommunityRequest } from "../../../models/communityRequest.model";
+import { ICommunity } from "../../../models/community.model";
 
 export interface ICommunityRequestRepository {
     create(data: Partial<ICommunityRequest>): Promise<ICommunityRequest>;
@@ -10,4 +11,6 @@ export interface ICommunityRequestRepository {
     update(id: string, updateData: Partial<ICommunityRequest>): Promise<ICommunityRequest | null>;
     delete(id: string): Promise<ICommunityRequest | null>;
     findByStatus(status: string): Promise<ICommunityRequest[]>;
+    
+    findCommunityById(id: string): Promise<ICommunity | null>;
 }

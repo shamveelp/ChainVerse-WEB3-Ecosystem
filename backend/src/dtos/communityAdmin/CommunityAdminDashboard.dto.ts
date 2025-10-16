@@ -1,22 +1,44 @@
 import { BaseResponseDto } from '../base/BaseResponse.dto';
 
-export interface DashboardStatsDto {
+export interface CommunityOverviewDto {
+    _id: string;
+    name: string;
+    username: string;
+    description: string;
+    category: string;
+    logo: string;
+    banner: string;
+    memberCount: number;
+    activeMembers: number;
+    isVerified: boolean;
+    settings: {
+        allowChainCast: boolean;
+        allowGroupChat: boolean;
+        allowPosts: boolean;
+        allowQuests: boolean;
+    };
+    socialLinks: Array<{
+        platform: string;
+        url: string;
+    }>;
+}
+
+export interface CommunityStatsDto {
     totalMembers: number;
     activeMembers: number;
-    premiumMembers: number;
+    newMembersToday: number;
+    newMembersThisWeek: number;
     totalPosts: number;
+    postsToday: number;
     totalLikes: number;
     totalComments: number;
-    totalShares: number;
-    questsCreated: number;
-    questsCompleted: number;
     engagementRate: number;
     growthRate: number;
 }
 
 export interface RecentActivityDto {
     id: string;
-    type: 'join' | 'post' | 'quest_complete' | 'upgrade' | 'like' | 'comment';
+    type: 'join' | 'post' | 'like' | 'comment' | 'quest_complete' | 'upgrade';
     user: {
         _id: string;
         username: string;
@@ -40,37 +62,27 @@ export interface TopMemberDto {
     totalComments: number;
     questsCompleted: number;
     joinedAt: Date;
-    role: string;
+    role: 'member' | 'moderator' | 'admin';
     isPremium: boolean;
 }
 
-export interface CommunityHealthDto {
-    engagementRate: number;
-    questCompletionRate: number;
-    memberSatisfaction: number;
-    averageSessionTime: number;
-    dailyActiveUsers: number;
-    weeklyActiveUsers: number;
-    monthlyActiveUsers: number;
-}
-
-export class DashboardResponseDto extends BaseResponseDto {
-    stats: DashboardStatsDto;
+export class CommunityAdminDashboardResponseDto extends BaseResponseDto {
+    communityOverview: CommunityOverviewDto;
+    stats: CommunityStatsDto;
     recentActivity: RecentActivityDto[];
     topMembers: TopMemberDto[];
-    communityHealth: CommunityHealthDto;
 
     constructor(
-        stats: DashboardStatsDto,
+        communityOverview: CommunityOverviewDto,
+        stats: CommunityStatsDto,
         recentActivity: RecentActivityDto[],
         topMembers: TopMemberDto[],
-        communityHealth: CommunityHealthDto,
         message: string = 'Dashboard data retrieved successfully'
     ) {
         super(true, message);
+        this.communityOverview = communityOverview;
         this.stats = stats;
         this.recentActivity = recentActivity;
         this.topMembers = topMembers;
-        this.communityHealth = communityHealth;
     }
 }

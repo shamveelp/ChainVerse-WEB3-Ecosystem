@@ -40,6 +40,7 @@ import {
 } from "../dtos/ForgotPassword.dto";
 import { uploadMiddleware } from "../middlewares/upload.middleware";
 import multer from 'multer';
+import { ICommunityAdminDashboardController } from "../core/interfaces/controllers/communityAdmin/ICommunityAdminDashboard.controller";
 
 // Configure Multer for profile picture uploads
 const storage = multer.memoryStorage();
@@ -70,6 +71,9 @@ const communityAdminFeedController = container.get<CommunityAdminFeedController>
 );
 const communityAdminMembersController = container.get<CommunityAdminMembersController>(
   TYPES.ICommunityAdminMembersController
+);
+const communityAdminDashboardController = container.get<ICommunityAdminDashboardController>(
+  TYPES.ICommunityAdminDashboardController
 );
 
 // Live validation endpoints
@@ -292,6 +296,14 @@ router.post(
   authMiddleware,
   roleMiddleware(["communityAdmin"]),
   communityAdminMembersController.bulkUpdateMembers.bind(communityAdminMembersController)
+);
+
+// newwer routes of dashboard
+router.get(
+  "/dashboard",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminDashboardController.getDashboardData.bind(communityAdminDashboardController)
 );
 
 export default router;
