@@ -19,11 +19,9 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
 
     async getCommunityProfile(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get community profile controller called");
             const user = req.user as { id: string; role: string; tokenVersion?: number };
             
             if (!user || !user.id) {
-                console.log("User not authenticated in controller");
                 res.status(StatusCode.UNAUTHORIZED).json({ 
                     success: false, 
                     error: "User not authenticated" 
@@ -31,26 +29,21 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
                 return;
             }
 
-            console.log("Fetching community profile for user:", user.id);
             const profile = await this._communityUserService.getCommunityProfile(user.id, user.id);
             
             if (!profile) {
-                console.log("Community profile not found for user:", user.id);
                 res.status(StatusCode.NOT_FOUND).json({ 
                     success: false, 
                     error: "User community profile not found" 
                 });
                 return;
             }
-
-            console.log("Community profile found, sending response");
             res.status(StatusCode.OK).json({ 
                 success: true, 
                 data: profile 
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get community profile controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch community profile";
             logger.error("Get community profile error:", { message, stack: err.stack, userId: req.user });
@@ -63,7 +56,6 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
 
     async getCommunityProfileByUsername(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get community profile by username controller called");
             const { username } = req.params;
             const user = req.user as { id: string; role: string } | undefined;
 
@@ -74,12 +66,11 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
                 });
                 return;
             }
-
-            console.log("Fetching community profile for username:", username);
+            logger.info(`Fetching community profile for username: ${username}`);
             const profile = await this._communityUserService.getCommunityProfileByUsername(username, user?.id);
             
             if (!profile) {
-                console.log("Community profile not found for username:", username);
+                logger.warn(`Community profile not found for username: ${username}`);
                 res.status(StatusCode.NOT_FOUND).json({ 
                     success: false, 
                     error: "User community profile not found" 
@@ -87,14 +78,12 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
                 return;
             }
 
-            console.log("Community profile found, sending response");
             res.status(StatusCode.OK).json({ 
                 success: true, 
                 data: profile 
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get community profile by username controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch community profile";
             logger.error("Get community profile by username error:", { message, stack: err.stack, username: req.params.username });
@@ -107,7 +96,6 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
 
     async updateCommunityProfile(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Update community profile controller called");
             const user = req.user as { id: string; role: string };
             
             if (!user || !user.id) {
@@ -118,7 +106,6 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
                 return;
             }
 
-            console.log("Update community profile data:", req.body);
             
             // Manual validation for UpdateCommunityProfileDto
             const updateData: UpdateCommunityProfileDto = {};
@@ -140,7 +127,6 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
                 return;
             }
 
-            console.log("Community profile updated successfully");
             res.status(StatusCode.OK).json({ 
                 success: true, 
                 data: profile,
@@ -148,7 +134,6 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Update community profile controller error:", err);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to update community profile";
             logger.error("Update community profile error:", { message, stack: err.stack, userId: req.user });
@@ -161,7 +146,6 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
 
     async uploadBannerImage(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Upload banner image controller called");
             const user = req.user as { id: string; role: string };
             
             if (!user || !user.id) {
@@ -180,7 +164,6 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
                 return;
             }
 
-            console.log("Uploading banner image to Cloudinary");
             const result: UploadApiResponse = await new Promise((resolve, reject) => {
                 cloudinary.uploader.upload_stream(
                     { 
@@ -192,7 +175,6 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
                     }, 
                     (error, result) => {
                         if (error) {
-                            console.error("Cloudinary upload error:", error);
                             reject(new CustomError("Failed to upload image to Cloudinary", StatusCode.INTERNAL_SERVER_ERROR));
                         } else {
                             resolve(result as UploadApiResponse);
@@ -201,7 +183,6 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
                 ).end(req.file!.buffer);
             });
 
-            console.log("Banner image uploaded to Cloudinary, updating profile");
             const profile = await this._communityUserService.uploadBannerImage(user.id, result.secure_url);
             
             if (!profile) {
@@ -212,7 +193,6 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
                 return;
             }
 
-            console.log("Banner image updated successfully");
             res.status(StatusCode.OK).json({ 
                 success: true, 
                 data: profile,
@@ -220,7 +200,6 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Upload banner image controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to upload banner image";
             logger.error("Upload banner image error:", { message, stack: err.stack, userId: req.user });

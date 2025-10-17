@@ -54,8 +54,6 @@ export class AdminAuthController implements IAdminAuthController {
 
   async logout(req: Request, res: Response): Promise<void> {
     try {
-      console.log("Ivde infpd");
-      
       this._jwtService.clearTokens(res);
 
       await this._adminAuthService.incrementTokenVersion((req as any).user.id);
