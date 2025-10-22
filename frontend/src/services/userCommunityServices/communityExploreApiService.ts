@@ -1,34 +1,59 @@
 import API from "@/lib/api-client";
 
 // Community interfaces
-export interface CommunityProfileData {
+export interface Community {
   _id: string;
   communityName: string;
   username: string;
-  email: string;
-  walletAddress: string;
   description: string;
   category: string;
-  rules: string[];
   logo: string;
-  banner: string;
-  socialLinks: Array<{
-    platform: string;
-    url: string;
-  }>;
-  status: 'pending' | 'approved' | 'rejected';
+  banner?: string;
   isVerified: boolean;
-  membersCount?: number;
-  postsCount?: number;
-  communityAdmins: string[];
+  memberCount: number;
+  isMember: boolean;
+  createdAt: Date | string;
+  rules?: string[];
+  socialLinks?: any[];
+  settings?: {
+    allowChainCast: boolean;
+    allowGroupChat: boolean;
+    allowPosts: boolean;
+    allowQuests: boolean;
+  };
+  memberRole?: string;
+  isAdmin?: boolean;
+}
+
+export interface CommunityProfile extends Community {
+  banner: string;
+  rules: string[];
+  socialLinks: any[];
   settings: {
     allowChainCast: boolean;
     allowGroupChat: boolean;
     allowPosts: boolean;
     allowQuests: boolean;
   };
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  memberRole?: string;
+  isAdmin: boolean;
+}
+
+export interface CommunityMember {
+  _id: string;
+  user: {
+    _id: string;
+    username: string;
+    name: string;
+    profilePic: string;
+    isVerified: boolean;
+  };
+  role: string;
+  joinedAt: Date;
+  isActive: boolean;
+  totalPosts: number;
+  totalLikes: number;
+  totalComments: number;
 }
 
 export interface UserSearchResult {
@@ -39,51 +64,49 @@ export interface UserSearchResult {
   bio: string;
   isVerified: boolean;
   followersCount: number;
-  followingCount: number;
   isFollowing?: boolean;
-  type: 'user';
 }
 
-export interface CommunitySearchResult {
-  _id: string;
-  communityName: string;
-  username: string;
-  description: string;
-  category: string;
-  logo: string;
-  isVerified: boolean;
-  membersCount: number;
-  postsCount: number;
-  status: string;
-  isJoined?: boolean;
-  type: 'community';
-}
-
-export interface ExploreSearchResponse {
+export interface SearchResponse {
+  communities: Community[];
   users: UserSearchResult[];
-  communities: CommunitySearchResult[];
-  totalUsers: number;
-  totalCommunities: number;
-  hasMoreUsers: boolean;
-  hasMoreCommunities: boolean;
-  nextUsersCursor?: string;
-  nextCommunitiesCursor?: string;
+  hasMore: boolean;
+  nextCursor?: string;
+  totalCount: number;
+  searchType: string;
 }
 
-export interface TrendingTopicsResponse {
-  topics: Array<{
-    tag: string;
-    posts: string;
-    trend: 'trending' | 'hot' | 'rising';
-  }>;
-}
-
-export interface PopularCommunitiesResponse {
-  communities: CommunitySearchResult[];
+export interface CommunityListResponse {
+  communities: Community[];
+  hasMore: boolean;
+  nextCursor?: string;
   totalCount: number;
 }
 
-// Helper function to handle API errors consistently
+export interface CommunityMemberListResponse {
+  members: CommunityMember[];
+  hasMore: boolean;
+  nextCursor?: string;
+  totalCount: number;
+}
+
+export interface JoinCommunityResponse {
+  success: boolean;
+  message: string;
+  isMember: boolean;
+  memberCount: number;
+  joinedAt?: Date;
+  leftAt?: Date;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+// Helper function to handle API errors
 const handleApiError = (error: any, defaultMessage: string) => {
   console.error("Community Explore API Error:", {
     status: error.response?.status,
@@ -121,16 +144,46 @@ const handleApiError = (error: any, defaultMessage: string) => {
   throw new Error(errorMessage);
 };
 
+// Helper function to transform community data
+const transformCommunityData = (data: any): Community => {
+  if (!data || typeof data !== 'object') {
+    throw new Error('Invalid community data received');
+  }
+
+  return {
+    _id: data._id || '',
+    communityName: data.communityName || '',
+    username: data.username || '',
+    description: data.description || '',
+    category: data.category || '',
+    logo: data.logo || '',
+    banner: data.banner || '',
+    isVerified: Boolean(data.isVerified),
+    memberCount: Number(data.memberCount) || 0,
+    isMember: Boolean(data.isMember),
+    createdAt: data.createdAt || new Date().toISOString(),
+    rules: data.rules || [],
+    socialLinks: data.socialLinks || [],
+    settings: {
+      allowChainCast: data.settings?.allowChainCast || false,
+      allowGroupChat: data.settings?.allowGroupChat || true,
+      allowPosts: data.settings?.allowPosts || true,
+      allowQuests: data.settings?.allowQuests || false
+    },
+    memberRole: data.memberRole,
+    isAdmin: Boolean(data.isAdmin)
+  };
+};
+
 export const communityExploreApiService = {
-  // Search users and communities
-  searchExplore: async (
-    query: string,
-    type: 'all' | 'users' | 'communities' | 'trending' = 'all',
-    usersCursor?: string,
-    communitiesCursor?: string,
+  // Search communities and users
+  search: async (
+    query: string, 
+    type: string = 'all', 
+    cursor?: string, 
     limit: number = 20
-  ): Promise<ExploreSearchResponse> => {
-    if (!query?.trim()) {
+  ): Promise<SearchResponse> => {
+    if (!query || typeof query !== 'string' || query.trim() === '') {
       throw new Error("Search query is required");
     }
 
@@ -138,66 +191,75 @@ export const communityExploreApiService = {
       const params = new URLSearchParams();
       params.append('query', query.trim());
       params.append('type', type);
+      if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
-      
-      if (usersCursor && usersCursor.trim()) {
-        params.append('usersCursor', usersCursor.trim());
-      }
-      if (communitiesCursor && communitiesCursor.trim()) {
-        params.append('communitiesCursor', communitiesCursor.trim());
-      }
 
-      console.log('API: Searching explore with params:', params.toString());
-      const response = await API.get(`/api/user/community/explore/search?${params.toString()}`);
-      console.log('API: Explore search response:', response.data);
+      console.log('API: Searching with params:', params.toString());
+      const response = await API.get(`/api/user/communities/search?${params.toString()}`);
+      console.log('API: Search response:', response.data);
 
       if (response.data?.success && response.data?.data) {
-        return response.data.data;
+        const data = response.data.data;
+        
+        // Transform communities
+        const communities = (data.communities || []).map(transformCommunityData);
+        
+        // Transform users (if any)
+        const users = (data.users || []).map((user: any) => ({
+          _id: user._id || '',
+          username: user.username || '',
+          name: user.name || user.username || '',
+          profilePic: user.profilePic || '',
+          bio: user.bio || '',
+          isVerified: Boolean(user.isVerified),
+          followersCount: Number(user.followersCount) || 0,
+          isFollowing: Boolean(user.isFollowing)
+        }));
+
+        return {
+          communities,
+          users,
+          hasMore: Boolean(data.hasMore),
+          nextCursor: data.nextCursor,
+          totalCount: Number(data.totalCount) || 0,
+          searchType: data.searchType || type
+        };
       }
 
-      throw new Error(response.data?.error || response.data?.message || "Search failed");
+      throw new Error(response.data?.error || response.data?.message || "No search results");
     } catch (error: any) {
-      console.error('API: Explore search failed:', error);
+      console.error('API: Search failed:', error);
       handleApiError(error, "Failed to search");
       throw error;
     }
   },
 
-  // Get trending topics
-  getTrendingTopics: async (): Promise<TrendingTopicsResponse> => {
-    try {
-      console.log('API: Fetching trending topics...');
-      const response = await API.get('/api/user/community/explore/trending');
-      console.log('API: Trending topics response:', response.data);
-
-      if (response.data?.success && response.data?.data) {
-        return response.data.data;
-      }
-
-      throw new Error(response.data?.error || response.data?.message || "Failed to get trending topics");
-    } catch (error: any) {
-      console.error('API: Get trending topics failed:', error);
-      handleApiError(error, "Failed to get trending topics");
-      throw error;
-    }
-  },
-
   // Get popular communities
-  getPopularCommunities: async (cursor?: string, limit: number = 20): Promise<PopularCommunitiesResponse> => {
+  getPopularCommunities: async (
+    cursor?: string, 
+    limit: number = 20, 
+    category?: string
+  ): Promise<CommunityListResponse> => {
     try {
       const params = new URLSearchParams();
+      if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
-      
-      if (cursor && cursor.trim()) {
-        params.append('cursor', cursor.trim());
-      }
+      if (category && category.trim()) params.append('category', category.trim());
 
-      console.log('API: Fetching popular communities with params:', params.toString());
-      const response = await API.get(`/api/user/community/explore/popular-communities?${params.toString()}`);
+      console.log('API: Getting popular communities with params:', params.toString());
+      const response = await API.get(`/api/user/communities/popular?${params.toString()}`);
       console.log('API: Popular communities response:', response.data);
 
       if (response.data?.success && response.data?.data) {
-        return response.data.data;
+        const data = response.data.data;
+        const communities = (data.communities || []).map(transformCommunityData);
+
+        return {
+          communities,
+          hasMore: Boolean(data.hasMore),
+          nextCursor: data.nextCursor,
+          totalCount: Number(data.totalCount) || 0
+        };
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get popular communities");
@@ -209,107 +271,172 @@ export const communityExploreApiService = {
   },
 
   // Get community profile by username
-  getCommunityProfile: async (username: string): Promise<{ data: CommunityProfileData }> => {
+  getCommunityProfile: async (username: string): Promise<CommunityProfile> => {
     if (!username || typeof username !== 'string' || username.trim() === '') {
-      throw new Error("Valid username is required");
+      throw new Error("Community username is required");
     }
 
     try {
       const cleanUsername = username.trim();
-      console.log(`API: Fetching community profile for username: ${cleanUsername}`);
+      console.log(`API: Getting community profile for: ${cleanUsername}`);
       
-      const response = await API.get(`/api/user/community/profile/${encodeURIComponent(cleanUsername)}`);
+      const response = await API.get(`/api/user/communities/username/${encodeURIComponent(cleanUsername)}`);
       console.log(`API: Community profile response for ${cleanUsername}:`, response.data);
-      
+
       if (response.data?.success && response.data?.data) {
-        return { data: response.data.data };
+        return transformCommunityData(response.data.data) as CommunityProfile;
       }
-      
-      throw new Error(response.data?.error || response.data?.message || "Community profile not found");
+
+      throw new Error(response.data?.error || response.data?.message || "Community not found");
     } catch (error: any) {
       console.error(`API: Get community profile failed for ${username}:`, error);
-      handleApiError(error, "Failed to fetch community profile");
+      handleApiError(error, "Failed to get community profile");
+      throw error;
+    }
+  },
+
+  // Get community profile by ID
+  getCommunityById: async (communityId: string): Promise<CommunityProfile> => {
+    if (!communityId || typeof communityId !== 'string' || communityId.trim() === '') {
+      throw new Error("Community ID is required");
+    }
+
+    try {
+      const cleanId = communityId.trim();
+      console.log(`API: Getting community by ID: ${cleanId}`);
+      
+      const response = await API.get(`/api/user/communities/${encodeURIComponent(cleanId)}`);
+      console.log(`API: Community by ID response for ${cleanId}:`, response.data);
+
+      if (response.data?.success && response.data?.data) {
+        return transformCommunityData(response.data.data) as CommunityProfile;
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Community not found");
+    } catch (error: any) {
+      console.error(`API: Get community by ID failed for ${communityId}:`, error);
+      handleApiError(error, "Failed to get community");
       throw error;
     }
   },
 
   // Join community
-  joinCommunity: async (username: string): Promise<{ success: boolean; message: string; isJoined: boolean; membersCount: number }> => {
-    if (!username || typeof username !== 'string' || username.trim() === '') {
-      throw new Error("Valid username is required");
+  joinCommunity: async (communityUsername: string): Promise<JoinCommunityResponse> => {
+    if (!communityUsername || typeof communityUsername !== 'string' || communityUsername.trim() === '') {
+      throw new Error("Community username is required");
     }
 
     try {
-      const cleanUsername = username.trim();
+      const cleanUsername = communityUsername.trim();
       console.log(`API: Joining community: ${cleanUsername}`);
       
-      const response = await API.post("/api/user/community/join", { username: cleanUsername });
+      const response = await API.post("/api/user/communities/join", { 
+        communityUsername: cleanUsername 
+      });
       console.log(`API: Join community response for ${cleanUsername}:`, response.data);
-      
+
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      
+
       throw new Error(response.data?.error || response.data?.message || "Failed to join community");
     } catch (error: any) {
-      console.error(`API: Join community failed for ${username}:`, error);
+      console.error(`API: Join community failed for ${communityUsername}:`, error);
       handleApiError(error, "Failed to join community");
       throw error;
     }
   },
 
   // Leave community
-  leaveCommunity: async (username: string): Promise<{ success: boolean; message: string; isJoined: boolean; membersCount: number }> => {
-    if (!username || typeof username !== 'string' || username.trim() === '') {
-      throw new Error("Valid username is required");
+  leaveCommunity: async (communityUsername: string): Promise<JoinCommunityResponse> => {
+    if (!communityUsername || typeof communityUsername !== 'string' || communityUsername.trim() === '') {
+      throw new Error("Community username is required");
     }
 
     try {
-      const cleanUsername = username.trim();
+      const cleanUsername = communityUsername.trim();
       console.log(`API: Leaving community: ${cleanUsername}`);
       
-      const response = await API.post("/api/user/community/leave", { username: cleanUsername });
+      const response = await API.post("/api/user/communities/leave", { 
+        communityUsername: cleanUsername 
+      });
       console.log(`API: Leave community response for ${cleanUsername}:`, response.data);
-      
+
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      
+
       throw new Error(response.data?.error || response.data?.message || "Failed to leave community");
     } catch (error: any) {
-      console.error(`API: Leave community failed for ${username}:`, error);
+      console.error(`API: Leave community failed for ${communityUsername}:`, error);
       handleApiError(error, "Failed to leave community");
       throw error;
     }
   },
 
-  // Get community membership status
-  getCommunityMembershipStatus: async (username: string): Promise<{ isJoined: boolean }> => {
-    if (!username || typeof username !== 'string' || username.trim() === '') {
-      throw new Error("Valid username is required");
+  // Get community members
+  getCommunityMembers: async (
+    communityUsername: string, 
+    cursor?: string, 
+    limit: number = 20
+  ): Promise<CommunityMemberListResponse> => {
+    if (!communityUsername || typeof communityUsername !== 'string' || communityUsername.trim() === '') {
+      throw new Error("Community username is required");
     }
 
     try {
-      const cleanUsername = username.trim();
-      console.log(`API: Getting membership status for: ${cleanUsername}`);
-      
-      const response = await API.get(`/api/user/community/membership-status/${encodeURIComponent(cleanUsername)}`);
-      console.log(`API: Membership status response for ${cleanUsername}:`, response.data);
-      
+      const cleanUsername = communityUsername.trim();
+      const params = new URLSearchParams();
+      if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
+      params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
+
+      console.log(`API: Getting members for community: ${cleanUsername}`);
+      const response = await API.get(`/api/user/communities/${encodeURIComponent(cleanUsername)}/members?${params.toString()}`);
+      console.log(`API: Community members response for ${cleanUsername}:`, response.data);
+
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      
-      throw new Error(response.data?.error || response.data?.message || "Failed to get membership status");
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to get community members");
     } catch (error: any) {
-      console.error(`API: Get membership status failed for ${username}:`, error);
-      handleApiError(error, "Failed to get membership status");
+      console.error(`API: Get community members failed for ${communityUsername}:`, error);
+      handleApiError(error, "Failed to get community members");
       throw error;
     }
   },
 
-  // Helper function to format stats for display
-  formatStats: (count: number): string => {
+  // Get community member status
+  getCommunityMemberStatus: async (communityUsername: string): Promise<{
+    isMember: boolean;
+    role?: string;
+    joinedAt?: Date;
+  }> => {
+    if (!communityUsername || typeof communityUsername !== 'string' || communityUsername.trim() === '') {
+      throw new Error("Community username is required");
+    }
+
+    try {
+      const cleanUsername = communityUsername.trim();
+      console.log(`API: Getting member status for community: ${cleanUsername}`);
+      
+      const response = await API.get(`/api/user/communities/${encodeURIComponent(cleanUsername)}/member-status`);
+      console.log(`API: Member status response for ${cleanUsername}:`, response.data);
+
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to get member status");
+    } catch (error: any) {
+      console.error(`API: Get member status failed for ${communityUsername}:`, error);
+      handleApiError(error, "Failed to get member status");
+      throw error;
+    }
+  },
+
+  // Helper functions
+  formatMemberCount: (count: number): string => {
     if (typeof count !== 'number' || count < 0) return '0';
 
     if (count >= 1000000) {
@@ -321,29 +448,19 @@ export const communityExploreApiService = {
     return count.toString();
   },
 
-  // Helper function to format timestamp
-  formatTimestamp: (date: Date | string): string => {
-    const now = new Date();
-    const targetDate = new Date(date);
-    const diffInSeconds = (now.getTime() - targetDate.getTime()) / 1000;
+  formatDate: (dateString: string | Date): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric'
+    });
+  },
 
-    if (diffInSeconds < 60) {
-      return 'Just now';
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes}m`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours}h`;
-    } else if (diffInSeconds < 604800) {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days}d`;
-    } else {
-      return targetDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: targetDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-      });
-    }
+  getCommunityAvatarFallback: (communityName: string): string => {
+    return communityName?.split(' ')
+      .map(w => w[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'CO';
   }
 };

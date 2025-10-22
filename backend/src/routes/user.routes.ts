@@ -46,6 +46,9 @@ import {
   MarkMessagesReadDto
 } from '../dtos/chat/Chat.dto';
 import { UserDexController } from '../controllers/user/UserDex.controller';
+import { CommunityController } from '../controllers/community/Community.controller';
+import { JoinCommunityDto, LeaveCommunityDto, SearchCommunitiesDto } from '../dtos/community/Community.dto';
+import { GetCommunityMembersDto } from '../dtos/communityAdmin/CommunityAdminMembers.dto';
 
 // Configure Multer for file uploads
 const storage = multer.memoryStorage();
@@ -73,6 +76,7 @@ const chatController = container.get<ChatController>(TYPES.IChatController);
 const referralController = container.get<ReferralController>(TYPES.IReferralController);
 const pointsController = container.get<PointsController>(TYPES.IPointsController);
 const userDexController = container.get<UserDexController>(TYPES.IUserDexController);
+const communityController = container.get<CommunityController>(TYPES.ICommunityController);
 
 // Auth Routes with DTO validation
 router.post("/register",
@@ -465,5 +469,50 @@ router.get('/dex/payments',
   roleMiddleware(['user']),
   userDexController.getUserPayments.bind(userDexController)
 );
+
+
+router.get('/communities/search',
+  validateQuery(SearchCommunitiesDto),
+  communityController.searchCommunities.bind(communityController)
+);
+
+router.get('/communities/popular',
+  communityController.getPopularCommunities.bind(communityController)
+);
+
+router.get('/communities/:communityId',
+  communityController.getCommunityById.bind(communityController)
+);
+
+router.get('/communities/username/:username',
+  communityController.getCommunityByUsername.bind(communityController)
+);
+
+router.post('/communities/join',
+  authMiddleware,
+  roleMiddleware(['user']),
+  validateBody(JoinCommunityDto),
+  communityController.joinCommunity.bind(communityController)
+);
+
+router.post('/communities/leave',
+  authMiddleware,
+  roleMiddleware(['user']),
+  validateBody(LeaveCommunityDto),
+  communityController.leaveCommunity.bind(communityController)
+);
+
+router.get('/communities/:username/members',
+  validateQuery(GetCommunityMembersDto),
+  communityController.getCommunityMembers.bind(communityController)
+);
+
+router.get('/communities/:username/member-status',
+  authMiddleware,
+  roleMiddleware(['user']),
+  communityController.getCommunityMemberStatus.bind(communityController)
+);
+
+
 
 export default router;

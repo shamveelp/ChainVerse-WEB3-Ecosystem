@@ -157,6 +157,10 @@ import { ICommunityAdminDashboardController } from "../interfaces/controllers/co
 import { CommunityAdminDashboardController } from "../../controllers/communityAdmin/CommunityAdminDashbaord.controller"
 import { ICommunityAdminDashboardService } from "../interfaces/services/communityAdmin/ICommunityAdminDashboard.service"
 import { CommunityAdminDashboardService } from "../../services/communityAdmin/CommunityAdminDashbaord.service"
+import { ICommunityController } from "../interfaces/controllers/community/ICommunity.controller"
+import { CommunityController } from "../../controllers/community/Community.controller"
+import { ICommunityService } from "../interfaces/services/community/ICommunityService"
+import { CommunityService } from "../../services/community/Community.service"
 
 // Create Container
 const container = new Container()
@@ -271,5 +275,8 @@ container.bind<IUserDexController>(TYPES.IUserDexController).to(UserDexControlle
 container.bind<ICommunityAdminDashboardController>(TYPES.ICommunityAdminDashboardController).to(CommunityAdminDashboardController)
 container.bind<ICommunityAdminDashboardService>(TYPES.ICommunityAdminDashboardService).to(CommunityAdminDashboardService)
 
+
+container.bind<ICommunityController>(TYPES.ICommunityController).to(CommunityController)
+container.bind<ICommunityService>(TYPES.ICommunityService).to(CommunityService)
 
 export default container

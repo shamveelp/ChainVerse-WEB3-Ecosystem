@@ -9,6 +9,8 @@ import {
   FollowListResponseDto,
   UserFollowInfo,
 } from "../dtos/community/Follow.dto";
+import CommunityModel, { ICommunity } from "../models/community.model";
+import CommunityMemberModel, { ICommunityMember } from "../models/communityMember.model";
 
 @injectable()
 export class CommunityRepository implements ICommunityRepository {
@@ -529,6 +531,321 @@ export class CommunityRepository implements ICommunityRepository {
     } catch (error) {
       throw new CustomError(
         "Database error while decrementing following count",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  // NEW COMMUNITY METHODS
+  async findCommunityById(communityId: string): Promise<ICommunity | null> {
+    try {
+      if (!Types.ObjectId.isValid(communityId)) {
+        return null;
+      }
+      return await CommunityModel.findById(communityId).exec();
+    } catch (error) {
+      throw new CustomError(
+        "Database error while fetching community",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async findCommunityByUsername(username: string): Promise<ICommunity | null> {
+    try {
+      if (!username || typeof username !== 'string') {
+        return null;
+      }
+      return await CommunityModel.findOne({ 
+        username: username.trim(),
+        status: 'approved' 
+      }).exec();
+    } catch (error) {
+      throw new CustomError(
+        "Database error while fetching community by username",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async searchCommunities(query: string, cursor?: string, limit: number = 20): Promise<{
+    communities: ICommunity[];
+    hasMore: boolean;
+    nextCursor?: string;
+    totalCount: number;
+  }> {
+    try {
+      const searchQuery: any = {
+        status: 'approved',
+        $or: [
+          { communityName: { $regex: query, $options: 'i' } },
+          { username: { $regex: query, $options: 'i' } },
+          { description: { $regex: query, $options: 'i' } },
+          { category: { $regex: query, $options: 'i' } }
+        ]
+      };
+
+      // Add cursor-based pagination
+      if (cursor && Types.ObjectId.isValid(cursor)) {
+        searchQuery._id = { $lt: new Types.ObjectId(cursor) };
+      }
+
+      const communities = await CommunityModel.find(searchQuery)
+        .sort({ _id: -1 })
+        .limit(limit + 1)
+        .exec();
+
+      const hasMore = communities.length > limit;
+      const resultCommunities = communities.slice(0, limit);
+
+      // Get total count
+      const totalCount = await CommunityModel.countDocuments({
+        status: 'approved',
+        $or: [
+          { communityName: { $regex: query, $options: 'i' } },
+          { username: { $regex: query, $options: 'i' } },
+          { description: { $regex: query, $options: 'i' } },
+          { category: { $regex: query, $options: 'i' } }
+        ]
+      });
+
+      return {
+        communities: resultCommunities,
+        hasMore,
+        nextCursor: hasMore && resultCommunities.length > 0
+          ? resultCommunities[resultCommunities.length - 1]._id.toString()
+          : undefined,
+        totalCount
+      };
+    } catch (error) {
+      throw new CustomError(
+        "Database error while searching communities",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async getPopularCommunities(cursor?: string, limit: number = 20, category?: string): Promise<{
+    communities: ICommunity[];
+    hasMore: boolean;
+    nextCursor?: string;
+    totalCount: number;
+  }> {
+    try {
+      const query: any = { status: 'approved' };
+      
+      if (category && category.trim() !== '') {
+        query.category = category.trim();
+      }
+
+      // Add cursor-based pagination
+      if (cursor && Types.ObjectId.isValid(cursor)) {
+        query._id = { $lt: new Types.ObjectId(cursor) };
+      }
+
+      // Sort by verified first, then by creation date
+      const communities = await CommunityModel.find(query)
+        .sort({ isVerified: -1, createdAt: -1, _id: -1 })
+        .limit(limit + 1)
+        .exec();
+
+      const hasMore = communities.length > limit;
+      const resultCommunities = communities.slice(0, limit);
+
+      // Get total count
+      const totalCount = await CommunityModel.countDocuments(
+        category ? { status: 'approved', category: category.trim() } : { status: 'approved' }
+      );
+
+      return {
+        communities: resultCommunities,
+        hasMore,
+        nextCursor: hasMore && resultCommunities.length > 0
+          ? resultCommunities[resultCommunities.length - 1]._id.toString()
+          : undefined,
+        totalCount
+      };
+    } catch (error) {
+      throw new CustomError(
+        "Database error while getting popular communities",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async getCommunityMemberCount(communityId: string): Promise<number> {
+    try {
+      if (!Types.ObjectId.isValid(communityId)) {
+        return 0;
+      }
+      
+      return await CommunityMemberModel.countDocuments({
+        communityId: new Types.ObjectId(communityId),
+        isActive: true
+      });
+    } catch (error) {
+      console.error("Database error while getting community member count:", error);
+      return 0;
+    }
+  }
+
+  async checkCommunityMembership(userId: string, communityId: string): Promise<{
+    isMember: boolean;
+    role?: string;
+    joinedAt?: Date;
+  }> {
+    try {
+      if (!Types.ObjectId.isValid(userId) || !Types.ObjectId.isValid(communityId)) {
+        return { isMember: false };
+      }
+
+      const membership = await CommunityMemberModel.findOne({
+        userId: new Types.ObjectId(userId),
+        communityId: new Types.ObjectId(communityId),
+        isActive: true
+      }).exec();
+
+      if (!membership) {
+        return { isMember: false };
+      }
+
+      return {
+        isMember: true,
+        role: membership.role,
+        joinedAt: membership.joinedAt
+      };
+    } catch (error) {
+      console.error("Database error while checking community membership:", error);
+      return { isMember: false };
+    }
+  }
+
+  async addCommunityMember(userId: string, communityId: string): Promise<void> {
+    try {
+      if (!Types.ObjectId.isValid(userId) || !Types.ObjectId.isValid(communityId)) {
+        throw new CustomError("Invalid user ID or community ID", StatusCode.BAD_REQUEST);
+      }
+
+      // Check if both user and community exist
+      const [userExists, communityExists] = await Promise.all([
+        UserModel.exists({ _id: userId }),
+        CommunityModel.exists({ _id: communityId, status: 'approved' })
+      ]);
+
+      if (!userExists) {
+        throw new CustomError("User not found", StatusCode.NOT_FOUND);
+      }
+      
+      if (!communityExists) {
+        throw new CustomError("Community not found", StatusCode.NOT_FOUND);
+      }
+
+      const membership = new CommunityMemberModel({
+        userId: new Types.ObjectId(userId),
+        communityId: new Types.ObjectId(communityId),
+        role: 'member',
+        joinedAt: new Date(),
+        isActive: true
+      });
+
+      await membership.save();
+    } catch (error: any) {
+      if (error.code === 11000) {
+        throw new CustomError("Already a member of this community", StatusCode.BAD_REQUEST);
+      }
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        "Database error while joining community",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async removeCommunityMember(userId: string, communityId: string): Promise<void> {
+    try {
+      if (!Types.ObjectId.isValid(userId) || !Types.ObjectId.isValid(communityId)) {
+        throw new CustomError("Invalid user ID or community ID", StatusCode.BAD_REQUEST);
+      }
+
+      const result = await CommunityMemberModel.findOneAndDelete({
+        userId: new Types.ObjectId(userId),
+        communityId: new Types.ObjectId(communityId)
+      }).exec();
+
+      if (!result) {
+        throw new CustomError("Membership not found", StatusCode.NOT_FOUND);
+      }
+    } catch (error) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        "Database error while leaving community",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async getCommunityMembers(communityId: string, cursor?: string, limit: number = 20): Promise<{
+    members: ICommunityMember[];
+    hasMore: boolean;
+    nextCursor?: string;
+    totalCount: number;
+  }> {
+    try {
+      if (!Types.ObjectId.isValid(communityId)) {
+        throw new CustomError("Invalid community ID", StatusCode.BAD_REQUEST);
+      }
+
+      const query: any = { 
+        communityId: new Types.ObjectId(communityId),
+        isActive: true 
+      };
+
+      // Add cursor-based pagination
+      if (cursor && Types.ObjectId.isValid(cursor)) {
+        query._id = { $lt: new Types.ObjectId(cursor) };
+      }
+
+      const members = await CommunityMemberModel.find(query)
+        .populate({
+          path: "userId",
+          select: "_id username name profilePic community.isVerified",
+          transform: (doc) => doc ? {
+            _id: doc._id,
+            username: doc.username,
+            name: doc.name,
+            profilePic: doc.profilePic,
+            isVerified: doc.community?.isVerified || false
+          } : null
+        })
+        .sort({ joinedAt: -1, _id: -1 })
+        .limit(limit + 1)
+        .lean()
+        .exec();
+
+      const hasMore = members.length > limit;
+      const resultMembers = members.slice(0, limit).map(member => ({
+        ...member,
+        user: member.userId
+      }));
+
+      // Get total count
+      const totalCount = await CommunityMemberModel.countDocuments({
+        communityId: new Types.ObjectId(communityId),
+        isActive: true
+      });
+
+      return {
+        members: resultMembers as any,
+        hasMore,
+        nextCursor: hasMore && resultMembers.length > 0
+          ? resultMembers[resultMembers.length - 1]._id.toString()
+          : undefined,
+        totalCount
+      };
+    } catch (error) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        "Database error while getting community members",
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }

@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
 export interface ICommunityMember extends Document {
     _id: Types.ObjectId;
+    
     communityId: Types.ObjectId;
     userId: Types.ObjectId;
     joinedAt: Date;
