@@ -850,4 +850,59 @@ export class CommunityRepository implements ICommunityRepository {
       );
     }
   }
+
+  async searchUsers(query: string, cursor?: string, limit: number = 20): Promise<{
+    users: IUser[];
+    hasMore: boolean;
+    nextCursor?: string;
+    totalCount: number;
+  }> {
+    try {
+      const searchQuery: any = {
+        $or: [
+          { username: { $regex: query, $options: 'i' } },
+          { name: { $regex: query, $options: 'i' } },
+          { 'community.bio': { $regex: query, $options: 'i' } }
+        ]
+      };
+
+      // Add cursor-based pagination
+      if (cursor && Types.ObjectId.isValid(cursor)) {
+        searchQuery._id = { $lt: new Types.ObjectId(cursor) };
+      }
+
+      const users = await UserModel.find(searchQuery)
+        .select('-password')
+        .sort({ _id: -1 })
+        .limit(limit + 1)
+        .exec();
+
+      const hasMore = users.length > limit;
+      const resultUsers = users.slice(0, limit);
+
+      // Get total count
+      const totalCount = await UserModel.countDocuments({
+        $or: [
+          { username: { $regex: query, $options: 'i' } },
+          { name: { $regex: query, $options: 'i' } },
+          { 'community.bio': { $regex: query, $options: 'i' } }
+        ]
+      });
+
+      return {
+        users: resultUsers,
+        hasMore,
+        nextCursor: hasMore && resultUsers.length > 0
+          ? resultUsers[resultUsers.length - 1]._id.toString()
+          : undefined,
+        totalCount
+      };
+    } catch (error) {
+      throw new CustomError(
+        "Database error while searching users",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+  
 }

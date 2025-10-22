@@ -23,8 +23,7 @@ export interface ICommunityRepository {
     incrementFollowingCount(userId: string): Promise<void>;
     decrementFollowingCount(userId: string): Promise<void>;
 
-
-    // New community-related methods
+    // Community-related methods
     findCommunityById(communityId: string): Promise<ICommunity | null>;
     findCommunityByUsername(username: string): Promise<ICommunity | null>;
     searchCommunities(query: string, cursor?: string, limit?: number): Promise<{
@@ -33,6 +32,15 @@ export interface ICommunityRepository {
         nextCursor?: string;
         totalCount: number;
     }>;
+    
+    // NEW: Search Users Method
+    searchUsers(query: string, cursor?: string, limit?: number): Promise<{
+        users: IUser[];
+        hasMore: boolean;
+        nextCursor?: string;
+        totalCount: number;
+    }>;
+    
     getPopularCommunities(cursor?: string, limit?: number, category?: string): Promise<{
         communities: ICommunity[];
         hasMore: boolean;

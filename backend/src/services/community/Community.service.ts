@@ -11,7 +11,8 @@ import {
     CommunityListResponseDto,
     CommunityMemberListResponseDto,
     CommunitySearchResponseDto,
-    CommunityCardDto
+    CommunityCardDto,
+    UserSearchResultDto
 } from "../../dtos/community/Community.dto";
 import { Types } from "mongoose";
 
@@ -40,7 +41,7 @@ export class CommunityService implements ICommunityService {
             let isMember = false;
             let memberRole: string | undefined;
             let memberCount = 0;
-            
+
             if (viewerUserId) {
                 const memberStatus = await this._communityRepository.checkCommunityMembership(viewerUserId, community._id.toString());
                 isMember = memberStatus.isMember;
@@ -113,21 +114,22 @@ export class CommunityService implements ICommunityService {
             }
 
             const validLimit = Math.min(Math.max(limit, 1), 50);
-            
+            const communities: CommunityCardDto[] = [];
+            const users: UserSearchResultDto[] = [];
+
             if (type === 'communities' || type === 'all') {
-                const result = await this._communityRepository.searchCommunities(query, cursor, validLimit);
-                
+                const communityResult = await this._communityRepository.searchCommunities(query, cursor, validLimit);
+
                 // Map communities to DTOs
-                const communities: CommunityCardDto[] = [];
-                for (const community of result.communities) {
+                for (const community of communityResult.communities) {
                     let isMember = false;
                     let memberCount = 0;
-                    
+
                     if (viewerUserId) {
                         const memberStatus = await this._communityRepository.checkCommunityMembership(viewerUserId, community._id.toString());
                         isMember = memberStatus.isMember;
                     }
-                    
+
                     memberCount = await this._communityRepository.getCommunityMemberCount(community._id.toString());
 
                     communities.push({
@@ -143,36 +145,65 @@ export class CommunityService implements ICommunityService {
                         createdAt: community.createdAt
                     });
                 }
-
-                return {
-                    communities,
-                    users: [], // Will be populated when searching users
-                    hasMore: result.hasMore,
-                    nextCursor: result.nextCursor,
-                    totalCount: result.totalCount,
-                    searchType: type
-                };
             }
 
             if (type === 'users' || type === 'all') {
-                // Search users functionality would be implemented here
-                // For now, returning empty user results
-                return {
-                    communities: [],
-                    users: [],
-                    hasMore: false,
-                    nextCursor: undefined,
-                    totalCount: 0,
-                    searchType: type
-                };
+                // Search users functionality
+                const userResult = await this._communityRepository.searchUsers(query, cursor, validLimit);
+
+                // Map users to DTOs
+                for (const user of userResult.users) {
+                    let isFollowing = false;
+                    
+                    if (viewerUserId && viewerUserId !== user._id.toString()) {
+                        isFollowing = await this._communityRepository.checkIfFollowing(viewerUserId, user._id.toString());
+                    }
+
+                    users.push({
+                        _id: user._id.toString(),
+                        username: user.username,
+                        name: user.name || "",
+                        profilePic: user.profilePic || "",
+                        bio: user.community?.bio || "",
+                        isVerified: user.community?.isVerified || false,
+                        followersCount: user.followersCount || 0,
+                        isFollowing
+                    });
+                }
+            }
+
+            // Determine pagination based on the type
+            let hasMore = false;
+            let nextCursor: string | undefined;
+            let totalCount = 0;
+
+            if (type === 'communities') {
+                const result = await this._communityRepository.searchCommunities(query, cursor, validLimit);
+                hasMore = result.hasMore;
+                nextCursor = result.nextCursor;
+                totalCount = result.totalCount;
+            } else if (type === 'users') {
+                const result = await this._communityRepository.searchUsers(query, cursor, validLimit);
+                hasMore = result.hasMore;
+                nextCursor = result.nextCursor;
+                totalCount = result.totalCount;
+            } else {
+                // For 'all', we need to combine the results
+                const [communityResult, userResult] = await Promise.all([
+                    this._communityRepository.searchCommunities(query, cursor, validLimit),
+                    this._communityRepository.searchUsers(query, cursor, validLimit)
+                ]);
+                hasMore = communityResult.hasMore || userResult.hasMore;
+                nextCursor = communityResult.nextCursor || userResult.nextCursor;
+                totalCount = communityResult.totalCount + userResult.totalCount;
             }
 
             return {
-                communities: [],
-                users: [],
-                hasMore: false,
-                nextCursor: undefined,
-                totalCount: 0,
+                communities,
+                users,
+                hasMore,
+                nextCursor,
+                totalCount,
                 searchType: type
             };
         } catch (error) {
@@ -180,26 +211,26 @@ export class CommunityService implements ICommunityService {
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to search communities", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError("Failed to search", StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
-    async getPopularCommunities(viewerUserId?: string, cursor?: string, limit: number = 20, category?: string): Promise<CommunityListResponseDto> {
+    async getPopularCommunities(viewerUserId?: string, cursor?: string, limit: number = 20, category?: string): Promise<CommunityListResponseDto> {      
         try {
             const validLimit = Math.min(Math.max(limit, 1), 50);
             const result = await this._communityRepository.getPopularCommunities(cursor, validLimit, category);
-            
+
             // Map to DTOs
             const communities: CommunityCardDto[] = [];
             for (const community of result.communities) {
                 let isMember = false;
                 let memberCount = 0;
-                
+
                 if (viewerUserId) {
                     const memberStatus = await this._communityRepository.checkCommunityMembership(viewerUserId, community._id.toString());
                     isMember = memberStatus.isMember;
                 }
-                
+
                 memberCount = await this._communityRepository.getCommunityMemberCount(community._id.toString());
 
                 communities.push({
@@ -316,62 +347,62 @@ export class CommunityService implements ICommunityService {
     }
 
     async getCommunityMembers(communityUsername: string, viewerUserId?: string, cursor?: string, limit: number = 20): Promise<CommunityMemberListResponseDto> {
-    try {
-        if (!communityUsername) {
-            throw new CustomError("Community username is required", StatusCode.BAD_REQUEST);
-        }
+        try {
+            if (!communityUsername) {
+                throw new CustomError("Community username is required", StatusCode.BAD_REQUEST);
+            }
 
-        const community = await this._communityRepository.findCommunityByUsername(communityUsername);
-        if (!community) {
-            throw new CustomError("Community not found", StatusCode.NOT_FOUND);
-        }
+            const community = await this._communityRepository.findCommunityByUsername(communityUsername);
+            if (!community) {
+                throw new CustomError("Community not found", StatusCode.NOT_FOUND);
+            }
 
-        const validLimit = Math.min(Math.max(limit, 1), 50);
-        const result = await this._communityRepository.getCommunityMembers(community._id.toString(), cursor, validLimit);
-        
-        // Map to DTOs
-        const members: CommunityMemberResponseDto[] = result.members.map(member => {
-            // Type assertion to inform TypeScript that userId is populated with user data
-            const user = member.userId as unknown as {
-                _id: Types.ObjectId;
-                username: string;
-                name: string;
-                profilePic: string;
-                community?: { isVerified: boolean };
-            };
+            const validLimit = Math.min(Math.max(limit, 1), 50);
+            const result = await this._communityRepository.getCommunityMembers(community._id.toString(), cursor, validLimit);
+
+            // Map to DTOs
+            const members: CommunityMemberResponseDto[] = result.members.map(member => {
+                // Type assertion to inform TypeScript that userId is populated with user data
+                const user = member.userId as unknown as {
+                    _id: Types.ObjectId;
+                    username: string;
+                    name: string;
+                    profilePic: string;
+                    community?: { isVerified: boolean };
+                };
+
+                return {
+                    _id: member._id.toString(),
+                    user: {
+                        _id: user._id.toString(),
+                        username: user.username || "",
+                        name: user.name || "",
+                        profilePic: user.profilePic || "",
+                        isVerified: user.community?.isVerified || false
+                    },
+                    role: member.role,
+                    joinedAt: member.joinedAt,
+                    isActive: member.isActive,
+                    totalPosts: member.totalPosts,
+                    totalLikes: member.totalLikes,
+                    totalComments: member.totalComments
+                };
+            });
 
             return {
-                _id: member._id.toString(),
-                user: {
-                    _id: user._id.toString(),
-                    username: user.username || "",
-                    name: user.name || "",
-                    profilePic: user.profilePic || "",
-                    isVerified: user.community?.isVerified || false
-                },
-                role: member.role,
-                joinedAt: member.joinedAt,
-                isActive: member.isActive,
-                totalPosts: member.totalPosts,
-                totalLikes: member.totalLikes,
-                totalComments: member.totalComments
+                members,
+                hasMore: result.hasMore,
+                nextCursor: result.nextCursor,
+                totalCount: result.totalCount
             };
-        });
-
-        return {
-            members,
-            hasMore: result.hasMore,
-            nextCursor: result.nextCursor,
-            totalCount: result.totalCount
-        };
-    } catch (error) {
-        console.error("CommunityService: Get community members error:", error);
-        if (error instanceof CustomError) {
-            throw error;
+        } catch (error) {
+            console.error("CommunityService: Get community members error:", error);
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError("Failed to get community members", StatusCode.INTERNAL_SERVER_ERROR);
         }
-        throw new CustomError("Failed to get community members", StatusCode.INTERNAL_SERVER_ERROR);
     }
-}
 
     async getCommunityMemberStatus(userId: string, communityUsername: string): Promise<{ isMember: boolean; role?: string; joinedAt?: Date }> {
         try {
