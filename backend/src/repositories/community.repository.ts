@@ -904,5 +904,270 @@ export class CommunityRepository implements ICommunityRepository {
       );
     }
   }
-  
+
+  // NEW: My Communities Methods
+  async getUserCommunities(userId: string, filter: string, sortBy: string, cursor?: string, limit: number = 20): Promise<{
+    memberships: Array<{
+      community: ICommunity;
+      role: string;
+      joinedAt: Date;
+      lastActiveAt: Date;
+      unreadPosts: number;
+      totalPosts: number;
+      isActive: boolean;
+      notifications: boolean;
+      memberCount: number;
+    }>;
+    hasMore: boolean;
+    nextCursor?: string;
+    totalCount: number;
+  }> {
+    try {
+      if (!Types.ObjectId.isValid(userId)) {
+        throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
+      }
+
+      const query: any = { 
+        userId: new Types.ObjectId(userId),
+        isActive: true 
+      };
+
+      // Apply filters
+      if (filter !== 'all') {
+        switch (filter) {
+          case 'admin':
+            query.role = 'admin';
+            break;
+          case 'moderator':
+            query.role = 'moderator';
+            break;
+          case 'recent':
+            // Show recently joined (last 30 days)
+            query.joinedAt = { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) };
+            break;
+          case 'active':
+            // Show recently active (last 7 days)
+            query.lastActiveAt = { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) };
+            break;
+        }
+      }
+
+      // Add cursor-based pagination
+      if (cursor && Types.ObjectId.isValid(cursor)) {
+        query._id = { $lt: new Types.ObjectId(cursor) };
+      }
+
+      // Determine sort order
+      let sortOrder: any = { joinedAt: -1, _id: -1 }; // default: most recently joined
+      switch (sortBy) {
+        case 'name':
+          sortOrder = { 'community.communityName': 1, _id: -1 };
+          break;
+        case 'members':
+          sortOrder = { memberCount: -1, _id: -1 };
+          break;
+        case 'recent':
+        default:
+          sortOrder = { joinedAt: -1, _id: -1 };
+          break;
+      }
+
+      const memberships = await CommunityMemberModel.find(query)
+        .populate({
+          path: 'communityId',
+          select: '_id communityName username description category logo banner isVerified settings createdAt'
+        })
+        .sort(sortOrder)
+        .limit(limit + 1)
+        .lean()
+        .exec();
+
+      const hasMore = memberships.length > limit;
+      const resultMemberships = memberships.slice(0, limit);
+
+      // Get member counts for each community
+      const communityIds = resultMemberships.map(m => (m.communityId as any)._id);
+      const memberCounts = await Promise.all(
+        communityIds.map(id => this.getCommunityMemberCount(id.toString()))
+      );
+
+      // Format result
+      const formattedMemberships = resultMemberships.map((membership, index) => {
+        const community = membership.communityId as any;
+        return {
+          community: {
+            _id: community._id,
+            communityName: community.communityName,
+            username: community.username,
+            description: community.description,
+            category: community.category,
+            logo: community.logo,
+            banner: community.banner,
+            isVerified: community.isVerified,
+            settings: community.settings,
+            createdAt: community.createdAt
+          },
+          role: membership.role,
+          joinedAt: membership.joinedAt,
+          lastActiveAt: membership.lastActiveAt || membership.joinedAt,
+          unreadPosts: 0, // TODO: Implement unread posts logic
+          totalPosts: membership.totalPosts || 0,
+          isActive: membership.isActive,
+          notifications: true, // TODO: Add notifications field to schema
+          memberCount: memberCounts[index] || 0
+        };
+      });
+
+      // Get total count
+      const totalCount = await CommunityMemberModel.countDocuments({
+        userId: new Types.ObjectId(userId),
+        isActive: true
+      });
+
+      return {
+        memberships: formattedMemberships as any,
+        hasMore,
+        nextCursor: hasMore && resultMemberships.length > 0
+          ? resultMemberships[resultMemberships.length - 1]._id.toString()
+          : undefined,
+        totalCount
+      };
+    } catch (error) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        "Database error while getting user communities",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async getUserCommunityStats(userId: string): Promise<{
+    total: number;
+    admin: number;
+    moderator: number;
+    member: number;
+  }> {
+    try {
+      if (!Types.ObjectId.isValid(userId)) {
+        throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
+      }
+
+      const stats = await CommunityMemberModel.aggregate([
+        {
+          $match: {
+            userId: new Types.ObjectId(userId),
+            isActive: true
+          }
+        },
+        {
+          $group: {
+            _id: '$role',
+            count: { $sum: 1 }
+          }
+        }
+      ]);
+
+      const result = {
+        total: 0,
+        admin: 0,
+        moderator: 0,
+        member: 0
+      };
+
+      stats.forEach(stat => {
+        result.total += stat.count;
+        if (stat._id === 'admin') result.admin = stat.count;
+        else if (stat._id === 'moderator') result.moderator = stat.count;
+        else if (stat._id === 'member') result.member = stat.count;
+      });
+
+      return result;
+    } catch (error) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        "Database error while getting user community stats",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async getUserCommunitiesActivity(userId: string): Promise<{
+    communities: Array<{
+      community: ICommunity;
+      lastActiveAt: Date;
+      unreadPosts: number;
+      recentActivity: string;
+    }>;
+    totalUnreadPosts: number;
+    mostActiveToday: string[];
+  }> {
+    try {
+      if (!Types.ObjectId.isValid(userId)) {
+        throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
+      }
+
+      const memberships = await CommunityMemberModel.find({
+        userId: new Types.ObjectId(userId),
+        isActive: true
+      })
+      .populate({
+        path: 'communityId',
+        select: '_id communityName username logo'
+      })
+      .sort({ lastActiveAt: -1 })
+      .limit(10)
+      .lean()
+      .exec();
+
+      const communities = memberships.map(membership => ({
+        community: membership.communityId as any,
+        lastActiveAt: membership.lastActiveAt || membership.joinedAt,
+        unreadPosts: 0, // TODO: Implement unread posts logic
+        recentActivity: 'No recent activity'
+      }));
+
+      return {
+        communities,
+        totalUnreadPosts: 0,
+        mostActiveToday: []
+      };
+    } catch (error) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        "Database error while getting user communities activity",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async updateMemberNotifications(userId: string, communityId: string, enabled: boolean): Promise<boolean> {
+    try {
+      if (!Types.ObjectId.isValid(userId) || !Types.ObjectId.isValid(communityId)) {
+        throw new CustomError("Invalid user ID or community ID", StatusCode.BAD_REQUEST);
+      }
+
+      const result = await CommunityMemberModel.findOneAndUpdate(
+        {
+          userId: new Types.ObjectId(userId),
+          communityId: new Types.ObjectId(communityId),
+          isActive: true
+        },
+        {
+          $set: {
+            notifications: enabled,
+            updatedAt: new Date()
+          }
+        },
+        { new: true }
+      );
+
+      return !!result;
+    } catch (error) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        "Database error while updating member notifications",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
 }

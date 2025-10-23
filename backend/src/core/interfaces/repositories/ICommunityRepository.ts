@@ -33,7 +33,7 @@ export interface ICommunityRepository {
         totalCount: number;
     }>;
     
-    // NEW: Search Users Method
+    // Search Users Method
     searchUsers(query: string, cursor?: string, limit?: number): Promise<{
         users: IUser[];
         hasMore: boolean;
@@ -61,4 +61,42 @@ export interface ICommunityRepository {
         nextCursor?: string;
         totalCount: number;
     }>;
+
+    // NEW: My Communities methods
+    getUserCommunities(userId: string, filter: string, sortBy: string, cursor?: string, limit?: number): Promise<{
+        memberships: Array<{
+            community: ICommunity;
+            role: string;
+            joinedAt: Date;
+            lastActiveAt: Date;
+            unreadPosts: number;
+            totalPosts: number;
+            isActive: boolean;
+            notifications: boolean;
+            memberCount: number;
+        }>;
+        hasMore: boolean;
+        nextCursor?: string;
+        totalCount: number;
+    }>;
+
+    getUserCommunityStats(userId: string): Promise<{
+        total: number;
+        admin: number;
+        moderator: number;
+        member: number;
+    }>;
+
+    getUserCommunitiesActivity(userId: string): Promise<{
+        communities: Array<{
+            community: ICommunity;
+            lastActiveAt: Date;
+            unreadPosts: number;
+            recentActivity: string;
+        }>;
+        totalUnreadPosts: number;
+        mostActiveToday: string[];
+    }>;
+
+    updateMemberNotifications(userId: string, communityId: string, enabled: boolean): Promise<boolean>;
 }

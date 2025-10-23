@@ -8,6 +8,7 @@ import { CommunityUserProfileController } from '../controllers/community/Communi
 import { FollowController } from '../controllers/community/Follow.controller';
 import { PostController } from '../controllers/posts/Post.controller';
 import { ChatController } from '../controllers/chat/Chat.controller';
+import { UserMyCommunitiesController } from '../controllers/community/UserMyCommunities.controller';
 import multer from 'multer';
 import { ReferralController } from '../controllers/user/Referral.controller';
 import { PointsController } from '../controllers/user/Points.controller';
@@ -49,6 +50,7 @@ import { UserDexController } from '../controllers/user/UserDex.controller';
 import { CommunityController } from '../controllers/community/Community.controller';
 import { JoinCommunityDto, LeaveCommunityDto, SearchCommunitiesDto } from '../dtos/community/Community.dto';
 import { GetCommunityMembersDto } from '../dtos/communityAdmin/CommunityAdminMembers.dto';
+import { GetMyCommunitiesDto } from '../dtos/community/MyCommunities.dto';
 
 // Configure Multer for file uploads
 const storage = multer.memoryStorage();
@@ -77,6 +79,7 @@ const referralController = container.get<ReferralController>(TYPES.IReferralCont
 const pointsController = container.get<PointsController>(TYPES.IPointsController);
 const userDexController = container.get<UserDexController>(TYPES.IUserDexController);
 const communityController = container.get<CommunityController>(TYPES.ICommunityController);
+const userMyCommunitiesController = container.get<UserMyCommunitiesController>(TYPES.IUserMyCommunitiesController);
 
 // Auth Routes with DTO validation
 router.post("/register",
@@ -470,7 +473,7 @@ router.get('/dex/payments',
   userDexController.getUserPayments.bind(userDexController)
 );
 
-
+// Community Explore Routes
 router.get('/communities/search',
   validateQuery(SearchCommunitiesDto),
   communityController.searchCommunities.bind(communityController)
@@ -513,6 +516,36 @@ router.get('/communities/:username/member-status',
   communityController.getCommunityMemberStatus.bind(communityController)
 );
 
+// My Communities Routes (protected)
+router.get('/my-communities',
+  authMiddleware,
+  roleMiddleware(['user']),
+  validateQuery(GetMyCommunitiesDto),
+  userMyCommunitiesController.getMyCommunities.bind(userMyCommunitiesController)
+);
 
+router.get('/my-communities/stats',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userMyCommunitiesController.getMyCommunitiesStats.bind(userMyCommunitiesController)
+);
+
+router.get('/my-communities/activity',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userMyCommunitiesController.getMyCommunitiesActivity.bind(userMyCommunitiesController)
+);
+
+router.put('/my-communities/:communityId/notifications',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userMyCommunitiesController.updateCommunityNotifications.bind(userMyCommunitiesController)
+);
+
+router.delete('/my-communities/:communityId/leave',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userMyCommunitiesController.leaveCommunityFromMy.bind(userMyCommunitiesController)
+);
 
 export default router;

@@ -110,6 +110,9 @@ const TYPES = {
 
   ICommunityService: Symbol.for("ICommunityService"),
   ICommunityController: Symbol.for("ICommunityController"),
+
+  IUserMyCommunitiesService: Symbol.for("IUserMyCommunitiesService"),
+  IUserMyCommunitiesController: Symbol.for("IUserMyCommunitiesController"),
 };
 
 export { TYPES };

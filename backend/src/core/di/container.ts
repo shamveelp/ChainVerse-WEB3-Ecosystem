@@ -35,6 +35,8 @@ import { ICommunityUserProfileController } from "../interfaces/controllers/commu
 import { CommunityUserProfileController } from "../../controllers/community/CommunityUserProfile.controller"
 import { IFollowController } from "../interfaces/controllers/community/IFollow.controller"
 import { FollowController } from "../../controllers/community/Follow.controller"
+import { IUserMyCommunitiesController } from "../interfaces/controllers/community/IUserMyCommunities.controller"
+import { UserMyCommunitiesController } from "../../controllers/community/UserMyCommunities.controller"
 
 // Posts Controllers
 import { IPostController } from "../interfaces/controllers/posts/IPost.controller"
@@ -77,6 +79,8 @@ import { ICommunityUserService } from "../interfaces/services/community/ICommuni
 import { CommunityUserService } from "../../services/community/CommunityUser.service"
 import { IFollowService } from "../interfaces/services/community/IFollowService"
 import { FollowService } from "../../services/community/Follow.service"
+import { IUserMyCommunitiesService } from "../interfaces/services/community/IUserMyCommunitiesService"
+import { UserMyCommunitiesService } from "../../services/community/UserMyCommunities.service"
 
 // Posts Services
 import { IPostService } from "../interfaces/services/posts/IPostService"
@@ -185,6 +189,7 @@ container.bind<ICommunityAdminMembersController>(TYPES.ICommunityAdminMembersCon
 // Bind Community Controllers
 container.bind<ICommunityUserProfileController>(TYPES.ICommunityUserProfileController).to(CommunityUserProfileController)
 container.bind<IFollowController>(TYPES.IFollowController).to(FollowController)
+container.bind<IUserMyCommunitiesController>(TYPES.IUserMyCommunitiesController).to(UserMyCommunitiesController)
 
 // Bind Posts Controllers
 container.bind<IPostController>(TYPES.IPostController).to(PostController)
@@ -212,6 +217,7 @@ container.bind<ICommunityAdminMembersService>(TYPES.ICommunityAdminMembersServic
 // Bind Community Services
 container.bind<ICommunityUserService>(TYPES.ICommunityUserService).to(CommunityUserService)
 container.bind<IFollowService>(TYPES.IFollowService).to(FollowService)
+container.bind<IUserMyCommunitiesService>(TYPES.IUserMyCommunitiesService).to(UserMyCommunitiesService)
 
 // Bind Posts Services
 container.bind<IPostService>(TYPES.IPostService).to(PostService)
@@ -274,7 +280,6 @@ container.bind<IUserDexController>(TYPES.IUserDexController).to(UserDexControlle
 
 container.bind<ICommunityAdminDashboardController>(TYPES.ICommunityAdminDashboardController).to(CommunityAdminDashboardController)
 container.bind<ICommunityAdminDashboardService>(TYPES.ICommunityAdminDashboardService).to(CommunityAdminDashboardService)
-
 
 container.bind<ICommunityController>(TYPES.ICommunityController).to(CommunityController)
 container.bind<ICommunityService>(TYPES.ICommunityService).to(CommunityService)
