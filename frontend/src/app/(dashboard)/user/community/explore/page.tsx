@@ -6,23 +6,58 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Search, TrendingUp, Clock, Users, Star, Hash, ExternalLink, Loader2 } from 'lucide-react'
+import { Search, TrendingUp, Clock, Users, Hash, ExternalLink, Loader2, X } from 'lucide-react'
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
 import { useRouter } from 'next/navigation'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
-import { 
-  communityExploreApiService, 
-  type Community, 
+import {
+  communityExploreApiService,
+  type Community,
   type UserSearchResult,
-  type SearchResponse 
+  type SearchResponse
 } from '@/services/userCommunityServices/communityExploreApiService'
 import { toast } from 'sonner'
 
-const searchHistory = [
-  '#DeFi', '#NFTCollection', 'Ethereum 2.0', 'Smart Contracts', '#Web3Gaming'
-]
+// Search history management
+const SEARCH_HISTORY_KEY = 'communitySearchHistory'
+const MAX_SEARCH_HISTORY = 10
+
+const getSearchHistory = (): string[] => {
+  if (typeof window === 'undefined') return []
+  try {
+    const history = localStorage.getItem(SEARCH_HISTORY_KEY)
+    return history ? JSON.parse(history) : []
+  } catch {
+    return []
+  }
+}
+
+const addToSearchHistory = (query: string) => {
+  if (!query.trim() || typeof window === 'undefined') return
+  
+  try {
+    const history = getSearchHistory()
+    const updatedHistory = [
+      query.trim(),
+      ...history.filter(item => item !== query.trim())
+    ].slice(0, MAX_SEARCH_HISTORY)
+    
+    localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updatedHistory))
+  } catch (error) {
+    console.error('Failed to save search history:', error)
+  }
+}
+
+const clearSearchHistory = () => {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.removeItem(SEARCH_HISTORY_KEY)
+  } catch (error) {
+    console.error('Failed to clear search history:', error)
+  }
+}
 
 const trendingTopics = [
   { tag: '#EthereumMerge', posts: '125K', trend: 'trending' as const },
@@ -36,13 +71,24 @@ const trendingTopics = [
 export default function ExplorePage() {
   const router = useRouter()
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
-  
+
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState('all')
   const [searching, setSearching] = useState(false)
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null)
   const [popularCommunities, setPopularCommunities] = useState<Community[]>([])
   const [loadingPopular, setLoadingPopular] = useState(true)
+  const [searchHistory, setSearchHistory] = useState<string[]>([])
+  
+  // Pagination for search results
+  const [searchHasMore, setSearchHasMore] = useState(false)
+  const [searchCursor, setSearchCursor] = useState<string | undefined>()
+  const [loadingMoreSearch, setLoadingMoreSearch] = useState(false)
+
+  // Pagination for popular communities
+  const [popularHasMore, setPopularHasMore] = useState(false)
+  const [popularCursor, setPopularCursor] = useState<string | undefined>()
+  const [loadingMorePopular, setLoadingMorePopular] = useState(false)
 
   const filters = [
     { id: 'all', label: 'All' },
@@ -50,13 +96,20 @@ export default function ExplorePage() {
     { id: 'users', label: 'People' }
   ]
 
+  // Load search history on mount
+  useEffect(() => {
+    setSearchHistory(getSearchHistory())
+  }, [])
+
   // Load popular communities on mount
   useEffect(() => {
     const loadPopularCommunities = async () => {
       try {
         setLoadingPopular(true)
-        const response = await communityExploreApiService.getPopularCommunities(undefined, 10)
+        const response = await communityExploreApiService.getPopularCommunities(undefined, 4)
         setPopularCommunities(response.communities)
+        setPopularHasMore(response.hasMore)
+        setPopularCursor(response.nextCursor)
       } catch (error: any) {
         console.error('Failed to load popular communities:', error)
         toast.error('Failed to load popular communities')
@@ -69,34 +122,64 @@ export default function ExplorePage() {
   }, [])
 
   // Handle search with debouncing
-  const performSearch = useCallback(async (query: string, type: string) => {
+  const performSearch = useCallback(async (query: string, type: string, cursor?: string, reset: boolean = true) => {
     if (!query.trim()) {
       setSearchResults(null)
+      setSearchHasMore(false)
+      setSearchCursor(undefined)
       return
     }
 
     try {
-      setSearching(true)
-      const results = await communityExploreApiService.search(query.trim(), type, undefined, 20)
-      setSearchResults(results)
+      if (reset) {
+        setSearching(true)
+        setSearchResults(null)
+      } else {
+        setLoadingMoreSearch(true)
+      }
+
+      const results = await communityExploreApiService.search(query.trim(), type, cursor, 4)
+      
+      if (reset) {
+        setSearchResults(results)
+        setSearchHasMore(results.hasMore)
+        setSearchCursor(results.nextCursor)
+        // Add to search history only for new searches
+        addToSearchHistory(query.trim())
+        setSearchHistory(getSearchHistory())
+      } else {
+        // Append results for load more
+        setSearchResults(prev => prev ? {
+          ...results,
+          communities: [...prev.communities, ...results.communities],
+          users: [...prev.users, ...results.users]
+        } : results)
+        setSearchHasMore(results.hasMore)
+        setSearchCursor(results.nextCursor)
+      }
     } catch (error: any) {
       console.error('Search failed:', error)
       toast.error('Search failed', {
         description: error.message || 'Please try again'
       })
-      setSearchResults(null)
+      if (reset) {
+        setSearchResults(null)
+      }
     } finally {
       setSearching(false)
+      setLoadingMoreSearch(false)
     }
   }, [])
 
-  // Effect to handle search
+  // Effect to handle search with debouncing
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchQuery.trim()) {
-        performSearch(searchQuery, activeFilter)
+        performSearch(searchQuery, activeFilter, undefined, true)
       } else {
         setSearchResults(null)
+        setSearchHasMore(false)
+        setSearchCursor(undefined)
       }
     }, 300)
 
@@ -107,13 +190,31 @@ export default function ExplorePage() {
   const handleFilterChange = (filterId: string) => {
     setActiveFilter(filterId)
     if (searchQuery.trim()) {
-      performSearch(searchQuery, filterId)
+      performSearch(searchQuery, filterId, undefined, true)
     }
   }
 
   // Handle search history click
   const handleSearchHistoryClick = (query: string) => {
     setSearchQuery(query)
+  }
+
+  // Handle clear search history
+  const handleClearSearchHistory = () => {
+    clearSearchHistory()
+    setSearchHistory([])
+    toast.success('Search history cleared')
+  }
+
+  // Handle remove search history item
+  const handleRemoveSearchHistoryItem = (query: string) => {
+    const updatedHistory = searchHistory.filter(item => item !== query)
+    try {
+      localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updatedHistory))
+      setSearchHistory(updatedHistory)
+    } catch (error) {
+      console.error('Failed to update search history:', error)
+    }
   }
 
   // Handle community click
@@ -124,6 +225,31 @@ export default function ExplorePage() {
   // Handle user click
   const handleUserClick = (user: UserSearchResult) => {
     router.push(`/user/community/${user.username}`)
+  }
+
+  // Handle load more search results
+  const handleLoadMoreSearch = () => {
+    if (searchHasMore && !loadingMoreSearch && searchCursor && searchQuery.trim()) {
+      performSearch(searchQuery, activeFilter, searchCursor, false)
+    }
+  }
+
+  // Handle load more popular communities
+  const handleLoadMorePopular = async () => {
+    if (!popularHasMore || loadingMorePopular || !popularCursor) return
+
+    try {
+      setLoadingMorePopular(true)
+      const response = await communityExploreApiService.getPopularCommunities(popularCursor, 4)
+      setPopularCommunities(prev => [...prev, ...response.communities])
+      setPopularHasMore(response.hasMore)
+      setPopularCursor(response.nextCursor)
+    } catch (error: any) {
+      console.error('Failed to load more popular communities:', error)
+      toast.error('Failed to load more communities')
+    } finally {
+      setLoadingMorePopular(false)
+    }
   }
 
   // Handle join/leave community
@@ -147,18 +273,18 @@ export default function ExplorePage() {
       if (searchResults) {
         setSearchResults(prev => prev ? {
           ...prev,
-          communities: prev.communities.map(c => 
-            c._id === community._id 
+          communities: prev.communities.map(c =>
+            c._id === community._id
               ? { ...c, isMember: action === 'join', memberCount: action === 'join' ? c.memberCount + 1 : Math.max(0, c.memberCount - 1) }
               : c
           )
         } : null)
       }
 
-      // Update popular communities if showing
-      setPopularCommunities(prev => 
-        prev.map(c => 
-          c._id === community._id 
+      // Update popular communities
+      setPopularCommunities(prev =>
+        prev.map(c =>
+          c._id === community._id
             ? { ...c, isMember: action === 'join', memberCount: action === 'join' ? c.memberCount + 1 : Math.max(0, c.memberCount - 1) }
             : c
         )
@@ -172,9 +298,9 @@ export default function ExplorePage() {
   }
 
   const renderCommunityCard = (community: Community, showJoinButton: boolean = true) => (
-    <div 
-      key={community._id} 
-      className="group cursor-pointer hover:bg-slate-800/30 rounded-xl p-4 transition-colors border border-transparent hover:border-slate-700/50"
+    <div
+      key={community._id}
+      className="group cursor-pointer hover:bg-slate-800/30 rounded-xl p-4 transition-colors border border-transparent hover:border-slate-700/50"        
       onClick={() => handleCommunityClick(community)}
     >
       <div className="flex items-start gap-4">
@@ -212,9 +338,9 @@ export default function ExplorePage() {
               </Badge>
             </div>
             {showJoinButton && currentUser && (
-              <Button 
-                size="sm" 
-                variant="outline" 
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={(e) => {
                   e.stopPropagation()
                   handleCommunityAction(community, community.isMember ? 'leave' : 'join')
@@ -237,7 +363,7 @@ export default function ExplorePage() {
   const renderUserCard = (user: UserSearchResult) => (
     <div 
       key={user._id}
-      className="group cursor-pointer hover:bg-slate-800/30 rounded-xl p-4 transition-colors border border-transparent hover:border-slate-700/50"
+      className="group cursor-pointer hover:bg-slate-800/30 rounded-xl p-4 transition-colors border border-transparent hover:border-slate-700/50"        
       onClick={() => handleUserClick(user)}
     >
       <div className="flex items-start gap-4">
@@ -272,9 +398,9 @@ export default function ExplorePage() {
               <span>{communityExploreApiService.formatMemberCount(user.followersCount)} followers</span>
             </div>
             {currentUser && currentUser.username !== user.username && (
-              <Button 
-                size="sm" 
-                variant="outline" 
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={(e) => {
                   e.stopPropagation()
                   // Handle follow/unfollow logic here
@@ -350,7 +476,7 @@ export default function ExplorePage() {
                         <Hash className="h-5 w-5 text-purple-400" />
                         <h3 className="text-lg font-bold text-white">Communities</h3>
                         <Badge variant="secondary" className="bg-purple-500/10 text-purple-400">
-                          {searchResults.communities.length}
+                          {searchResults.communities.length}{searchResults.totalCount > searchResults.communities.length && '+'}
                         </Badge>
                       </div>
                       <div className="space-y-4">
@@ -366,13 +492,28 @@ export default function ExplorePage() {
                         <Users className="h-5 w-5 text-cyan-400" />
                         <h3 className="text-lg font-bold text-white">People</h3>
                         <Badge variant="secondary" className="bg-cyan-500/10 text-cyan-400">
-                          {searchResults.users.length}
+                          {searchResults.users.length}{searchResults.totalCount > searchResults.users.length && '+'}
                         </Badge>
                       </div>
                       <div className="space-y-4">
                         {searchResults.users.map(user => renderUserCard(user))}
                       </div>
                     </Card>
+                  )}
+
+                  {/* Load More Search Results */}
+                  {searchHasMore && (
+                    <div className="text-center">
+                      <Button
+                        onClick={handleLoadMoreSearch}
+                        disabled={loadingMoreSearch}
+                        variant="outline"
+                        className="border-slate-600 hover:bg-slate-800"
+                      >
+                        {loadingMoreSearch && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                        Load More Results
+                      </Button>
+                    </div>
                   )}
 
                   {/* No Results */}
@@ -389,61 +530,41 @@ export default function ExplorePage() {
               )}
 
               {/* Search History */}
-              {!searchQuery && (
+              {!searchQuery && searchHistory.length > 0 && (
                 <Card className="bg-slate-900/50 backdrop-blur-sm border-slate-700/50 p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Clock className="h-5 w-5 text-slate-400" />
-                    <h3 className="text-lg font-bold text-white">Recent Searches</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-slate-400" />
+                      <h3 className="text-lg font-bold text-white">Recent Searches</h3>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClearSearchHistory}
+                      className="text-slate-400 hover:text-white"
+                    >
+                      Clear All
+                    </Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {searchHistory.map((query, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSearchHistoryClick(query)}
-                        className="border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white"
-                      >
-                        {query}
-                      </Button>
-                    ))}
-                  </div>
-                </Card>
-              )}
-
-              {/* Trending Topics */}
-              {!searchQuery && (
-                <Card className="bg-slate-900/50 backdrop-blur-sm border-slate-700/50 p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp className="h-5 w-5 text-orange-400" />
-                    <h3 className="text-lg font-bold text-white">Trending Now</h3>
-                  </div>
-                  <div className="space-y-3">
-                    {trendingTopics.map((topic) => (
-                      <div key={topic.tag} className="group cursor-pointer hover:bg-slate-800/30 rounded-lg p-3 transition-colors">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="text-cyan-400 font-semibold group-hover:text-cyan-300">
-                                {topic.tag}
-                              </p>
-                              <Badge
-                                variant="outline"
-                                className={`text-xs ${
-                                  topic.trend === 'trending' ? 'border-orange-500/30 text-orange-400' :
-                                  topic.trend === 'hot' ? 'border-red-500/30 text-red-400' :
-                                  'border-green-500/30 text-green-400'
-                                }`}
-                              >
-                                {topic.trend}
-                              </Badge>
-                            </div>
-                            <p className="text-slate-500 text-sm">{topic.posts} posts</p>
-                          </div>
-                          <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                            Follow
-                          </Button>
-                        </div>
+                      <div key={index} className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSearchHistoryClick(query)}
+                          className="border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                        >
+                          {query}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveSearchHistoryItem(query)}
+                          className="h-6 w-6 text-slate-500 hover:text-red-400"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -457,7 +578,7 @@ export default function ExplorePage() {
                     <Users className="h-5 w-5 text-purple-400" />
                     <h3 className="text-lg font-bold text-white">Popular Communities</h3>
                   </div>
-                  
+
                   {loadingPopular ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
@@ -465,6 +586,19 @@ export default function ExplorePage() {
                   ) : (
                     <div className="space-y-4">
                       {popularCommunities.map(community => renderCommunityCard(community))}
+                      {popularHasMore && (
+                        <div className="text-center pt-4">
+                          <Button
+                            onClick={handleLoadMorePopular}
+                            disabled={loadingMorePopular}
+                            variant="outline"
+                            className="border-slate-600 hover:bg-slate-800"
+                          >
+                            {loadingMorePopular && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                            Load More Communities
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </Card>
