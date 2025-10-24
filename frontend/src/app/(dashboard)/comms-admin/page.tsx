@@ -96,9 +96,7 @@ interface DashboardData {
 }
 
 export default function CommunityAdminDashboard() {
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null
-  );
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const router = useRouter();
@@ -115,9 +113,7 @@ export default function CommunityAdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response =
-        await communityAdminDashboardApiService.getDashboardData();
-
+      const response = await communityAdminDashboardApiService.getDashboardData();
       if (response.success && response.data) {
         setDashboardData(response.data);
       } else {
@@ -148,18 +144,14 @@ export default function CommunityAdminDashboard() {
     const now = new Date();
     const diff = now.getTime() - new Date(date).getTime();
     const minutes = Math.floor(diff / 60000);
-
     if (minutes < 1) return "Just now";
     if (minutes < 60) return `${minutes}m ago`;
-
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
-
     const days = Math.floor(hours / 24);
     return `${days}d ago`;
   };
 
-  // ✅ CLICK HANDLERS - ALL FIXED
   const handleSettingsClick = () => {
     router.push(COMMUNITY_ADMIN_ROUTES.SETTINGS);
     toast.success("Navigating to Settings...");
@@ -182,10 +174,10 @@ export default function CommunityAdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--background-primary)] flex items-center justify-center z-50">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
-          <p className="text-[var(--text-secondary)]">Loading dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-950 flex items-center justify-center z-50">
+        <div className="text-center space-y-4 animate-pulse">
+          <div className="h-12 w-12 mx-auto rounded-full bg-gradient-to-r from-blue-500 to-purple-500 animate-spin"></div>
+          <p className="text-white text-lg font-medium">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -193,12 +185,10 @@ export default function CommunityAdminDashboard() {
 
   if (!dashboardData) {
     return (
-      <div className="min-h-screen bg-[var(--background-primary)] flex items-center justify-center z-50">
-        <div className="text-center space-y-4">
-          <p className="text-[var(--text-primary)]">
-            Failed to load dashboard data
-          </p>
-          <Button onClick={fetchDashboardData} className="premium-button">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-950 flex items-center justify-center z-50">
+        <div className="text-center space-y-6">
+          <p className="text-white text-xl font-semibold">Failed to load dashboard data</p>
+          <Button onClick={fetchDashboardData} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
             Retry
           </Button>
         </div>
@@ -207,568 +197,395 @@ export default function CommunityAdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background-primary)] relative z-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-950 relative z-20">
       {/* Animated Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        {" "}
-        {/* ADD pointer-events-none */}
-        <div className="absolute inset-0 dark-gradient pointer-events-none" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-primary-500/10 to-accent-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-accent-500/5 to-primary-500/5 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-950/50 to-purple-950/50" />
+        <div className="absolute top-1/5 left-1/5 w-80 h-80 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/5 right-1/5 w-64 h-64 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      {/* ✅ FIXED LAYOUT - Higher z-index, no ScrollArea conflict */}
-      <div className="relative z-20 grid grid-cols-12 gap-6 p-6 min-h-screen">
-        {/* Left Side - Chat */}
-        <div className="col-span-4">
-          <Card className="premium-card h-full premium-shadow">
-            <CardHeader className="border-b border-[var(--border-primary)]">
-              <CardTitle className="text-xl font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-primary-500" />
-                Community Chat
-                <Badge className="ml-auto bg-accent-500/20 text-accent-500 border-accent-500/30">
-                  Coming Soon
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 h-[calc(100%-80px)]">
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center space-y-4 p-8">
-                  <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto">
-                    <MessageSquare className="h-8 w-8 text-primary-500" />
+      {/* Main Content */}
+      <div className="relative z-20 container mx-auto p-4 sm:p-6 lg:p-8 xl:p-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+          {/* Left Side - Chat */}
+          <div className="lg:col-span-4">
+            <Card className="bg-gray-800/80 backdrop-blur-lg border border-blue-500/30 shadow-lg shadow-blue-500/10 h-full transition-all duration-300 hover:shadow-blue-500/20">
+              <CardHeader className="border-b border-blue-500/30">
+                <CardTitle className="text-xl font-semibold text-white flex items-center gap-3">
+                  <MessageSquare className="h-5 w-5 text-blue-400" />
+                  Community Chat
+                  <Badge className="ml-auto bg-purple-500/20 text-purple-300 border-purple-500/30">Coming Soon</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto">
+                      <MessageSquare className="h-8 w-8 text-blue-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white">Chat Feature Coming Soon</h3>
+                    <p className="text-gray-300 text-sm max-w-xs mx-auto">
+                      Real-time community chat will be available in the next update. Stay tuned!
+                    </p>
                   </div>
-                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-                    Chat Feature Coming Soon
-                  </h3>
-                  <p className="text-[var(--text-secondary)] max-w-xs">
-                    Real-time community chat will be available in the next
-                    update. Stay tuned for instant member communication!
-                  </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Side - Community Details */}
-        <div className="col-span-8 space-y-6 pb-20">
-          {" "}
-          {/* ✅ Fixed padding for scrolling */}
-          {/* Welcome Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold premium-gradient bg-clip-text text-transparent">
-                {getGreeting()}! ✨
-              </h1>
-              <p className="text-[var(--text-secondary)] text-lg mt-2">
-                Welcome back to your {dashboardData.communityOverview.name}{" "}
-                dashboard
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-[var(--text-tertiary)]">
-                {currentTime.toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-              <p className="text-lg font-semibold text-[var(--text-primary)]">
-                {currentTime.toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-            </div>
+              </CardContent>
+            </Card>
           </div>
-          {/* Community Overview Card */}
-          <Card className="premium-card premium-shadow overflow-hidden">
-            <div className="relative h-32 bg-gradient-to-r from-primary-500/20 to-accent-500/20">
-              {dashboardData.communityOverview.banner && (
-                <img
-                  src={dashboardData.communityOverview.banner}
-                  alt="Community Banner"
-                  className="w-full h-full object-cover"
-                />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent" />
+
+          {/* Right Side - Community Details */}
+          <div className="lg:col-span-8 space-y-4 sm:space-y-6">
+            {/* Welcome Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-pulse">
+                  {getGreeting()}! ✨
+                </h1>
+                <p className="text-gray-300 text-base sm:text-lg mt-2">
+                  Welcome to your {dashboardData.communityOverview.name} dashboard
+                </p>
+              </div>
+              <div className="text-left sm:text-right">
+                <p className="text-sm text-gray-400">
+                  {currentTime.toLocaleDateString("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
+                <p className="text-lg font-semibold text-white">
+                  {currentTime.toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
             </div>
 
-            <CardContent className="p-6 -mt-8 relative">
-              <div className="flex items-start gap-4">
-                <Avatar className="w-16 h-16 border-4 border-[var(--background-elevated)] premium-shadow">
-                  <AvatarImage
-                    src={dashboardData.communityOverview.logo}
-                    alt={dashboardData.communityOverview.name}
+            {/* Community Overview Card */}
+            <Card className="bg-gray-800/80 backdrop-blur-lg border border-blue-500/30 shadow-lg shadow-blue-500/10 overflow-hidden transition-all duration-300 hover:shadow-blue-500/20">
+              <div className="relative h-32 sm:h-40 bg-gradient-to-r from-blue-600/30 to-purple-600/30">
+                {dashboardData.communityOverview.banner && (
+                  <img
+                    src={dashboardData.communityOverview.banner}
+                    alt="Community Banner"
+                    className="w-full h-full object-cover opacity-80"
                   />
-                  <AvatarFallback className="premium-gradient text-white text-xl font-bold">
-                    {dashboardData.communityOverview.name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h2 className="text-2xl font-bold text-[var(--text-primary)]">
-                      {dashboardData.communityOverview.name}
-                    </h2>
-                    {dashboardData.communityOverview.isVerified && (
-                      <div className="w-6 h-6 premium-gradient rounded-full flex items-center justify-center">
-                        <Star className="w-3.5 h-3.5 text-white" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[var(--text-secondary)] text-sm mb-2">
-                    @{dashboardData.communityOverview.username}
-                  </p>
-                  <p className="text-[var(--text-secondary)] mb-4 leading-relaxed">
-                    {dashboardData.communityOverview.description}
-                  </p>
-
-                  <div className="flex items-center gap-4 text-sm text-[var(--text-secondary)]">
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      <span>
-                        {formatNumber(
-                          dashboardData.communityOverview.memberCount
-                        )}{" "}
-                        members
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Activity className="h-4 w-4 text-success" />
-                      <span>
-                        {formatNumber(
-                          dashboardData.communityOverview.activeMembers
-                        )}{" "}
-                        active
-                      </span>
-                    </div>
-                    <Badge className="bg-primary-500/20 text-primary-500 border-primary-500/30">
-                      {dashboardData.communityOverview.category}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* ✅ FIXED: Clickable Settings Button */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="premium-border hover:scale-105 transition-transform"
-                  onClick={handleSettingsClick}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Button>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-900/50 to-transparent" />
               </div>
-            </CardContent>
-          </Card>
-          {/* Quick Stats - ✅ ALL CLICKABLE */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card
-              className="premium-card premium-shadow cursor-pointer hover:scale-[1.02] transition-transform"
-              onClick={() => handleStatsClick("members")}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[var(--text-tertiary)] text-sm">
-                      Total Members
-                    </p>
-                    <p className="text-2xl font-bold text-[var(--text-primary)]">
-                      {formatNumber(dashboardData.stats.totalMembers)}
-                    </p>
-                    <div className="flex items-center gap-1 text-xs mt-1">
-                      <TrendingUp className="h-3 w-3 text-success" />
-                      <span className="text-success">
-                        +{dashboardData.stats.newMembersThisWeek} this week
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-12 h-12 bg-primary-500/20 rounded-full flex items-center justify-center">
-                    <Users className="h-6 w-6 text-primary-500" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="premium-card premium-shadow cursor-pointer hover:scale-[1.02] transition-transform"
-              onClick={() => handleStatsClick("active")}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[var(--text-tertiary)] text-sm">
-                      Active Today
-                    </p>
-                    <p className="text-2xl font-bold text-[var(--text-primary)]">
-                      {formatNumber(dashboardData.stats.activeMembers)}
-                    </p>
-                    <div className="flex items-center gap-1 text-xs mt-1">
-                      <Activity className="h-3 w-3 text-success" />
-                      <span className="text-success">
-                        {(
-                          (dashboardData.stats.activeMembers /
-                            dashboardData.stats.totalMembers) *
-                          100
-                        ).toFixed(1)}
-                        % active
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-12 h-12 bg-success/20 rounded-full flex items-center justify-center">
-                    <Activity className="h-6 w-6 text-success" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="premium-card premium-shadow cursor-pointer hover:scale-[1.02] transition-transform"
-              onClick={() => handleStatsClick("posts")}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[var(--text-tertiary)] text-sm">Posts</p>
-                    <p className="text-2xl font-bold text-[var(--text-primary)]">
-                      {formatNumber(dashboardData.stats.totalPosts)}
-                    </p>
-                    <div className="flex items-center gap-1 text-xs mt-1">
-                      <MessageSquare className="h-3 w-3 text-blue-400" />
-                      <span className="text-blue-400">
-                        +{dashboardData.stats.postsToday} today
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
-                    <MessageSquare className="h-6 w-6 text-blue-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="premium-card premium-shadow cursor-pointer hover:scale-[1.02] transition-transform"
-              onClick={() => handleStatsClick("engagement")}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[var(--text-tertiary)] text-sm">
-                      Engagement
-                    </p>
-                    <p className="text-2xl font-bold text-[var(--text-primary)]">
-                      {dashboardData.stats.engagementRate.toFixed(1)}%
-                    </p>
-                    <div className="flex items-center gap-1 text-xs mt-1">
-                      <Heart className="h-3 w-3 text-accent-500" />
-                      <span className="text-accent-500">
-                        {formatNumber(dashboardData.stats.totalLikes)} likes
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-12 h-12 bg-accent-500/20 rounded-full flex items-center justify-center">
-                    <Heart className="h-6 w-6 text-accent-500" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          {/* Recent Activity & Top Members */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Activity */}
-            <Card className="premium-card premium-shadow">
-              <CardHeader className="border-b border-[var(--border-primary)]">
-                <CardTitle className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-primary-500" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ScrollArea className="h-80">
-                  <div className="p-4 space-y-4">
-                    {dashboardData.recentActivity.map((activity) => (
-                      <div
-                        key={activity.id}
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--background-secondary)] transition-colors cursor-pointer"
-                        onClick={() =>
-                          toast.info(`${activity.user.name} ${activity.action}`)
-                        }
-                      >
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage
-                            src={activity.user.profilePic}
-                            alt={activity.user.name}
-                          />
-                          <AvatarFallback className="premium-gradient text-white text-xs">
-                            {activity.user.name.charAt(0)?.toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-[var(--text-primary)] truncate">
-                            <span className="font-medium">
-                              {activity.user.name}
-                            </span>{" "}
-                            {activity.action}
-                          </p>
-                          <p className="text-xs text-[var(--text-tertiary)]">
-                            {formatTimeAgo(activity.timestamp)}
-                          </p>
+              <CardContent className="p-4 sm:p-6 relative -mt-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <Avatar className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-gray-800 shadow-lg shadow-blue-500/20">
+                    <AvatarImage src={dashboardData.communityOverview.logo} alt={dashboardData.communityOverview.name} />
+                    <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xl font-bold">
+                      {dashboardData.communityOverview.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h2 className="text-xl sm:text-2xl font-bold text-white">{dashboardData.communityOverview.name}</h2>
+                      {dashboardData.communityOverview.isVerified && (
+                        <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                          <Star className="w-3.5 h-3.5 text-white" />
                         </div>
-                        <div className="flex-shrink-0">
-                          {activity.type === "join" && (
-                            <UserPlus className="h-4 w-4 text-success" />
-                          )}
-                          {activity.type === "post" && (
-                            <MessageSquare className="h-4 w-4 text-blue-400" />
-                          )}
-                          {activity.type === "like" && (
-                            <Heart className="h-4 w-4 text-red-400" />
-                          )}
-                          {activity.type === "comment" && (
-                            <MessageCircle className="h-4 w-4 text-purple-400" />
-                          )}
+                      )}
+                    </div>
+                    <p className="text-gray-300 text-sm mb-2">@{dashboardData.communityOverview.username}</p>
+                    <p className="text-gray-300 text-sm sm:text-base mb-4 leading-relaxed">
+                      {dashboardData.communityOverview.description}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-300">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4 text-blue-400" />
+                        <span>{formatNumber(dashboardData.communityOverview.memberCount)} members</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Activity className="h-4 w-4 text-green-400" />
+                        <span>{formatNumber(dashboardData.communityOverview.activeMembers)} active</span>
+                      </div>
+                      <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+                        {dashboardData.communityOverview.category}
+                      </Badge>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-gray-800 border-blue-500/50 text-blue-300 hover:bg-blue-600/20 hover:text-blue-200 transition-all duration-300"
+                    onClick={handleSettingsClick}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                {
+                  title: "Total Members",
+                  value: formatNumber(dashboardData.stats.totalMembers),
+                  subValue: `+${dashboardData.stats.newMembersThisWeek} this week`,
+                  icon: Users,
+                  color: "blue-400",
+                  type: "members",
+                },
+                {
+                  title: "Active Today",
+                  value: formatNumber(dashboardData.stats.activeMembers),
+                  subValue: `${((dashboardData.stats.activeMembers / dashboardData.stats.totalMembers) * 100).toFixed(1)}% active`,
+                  icon: Activity,
+                  color: "green-400",
+                  type: "active",
+                },
+                {
+                  title: "Posts",
+                  value: formatNumber(dashboardData.stats.totalPosts),
+                  subValue: `+${dashboardData.stats.postsToday} today`,
+                  icon: MessageSquare,
+                  color: "purple-400",
+                  type: "posts",
+                },
+                {
+                  title: "Engagement",
+                  value: `${dashboardData.stats.engagementRate.toFixed(1)}%`,
+                  subValue: `${formatNumber(dashboardData.stats.totalLikes)} likes`,
+                  icon: Heart,
+                  color: "pink-400",
+                  type: "engagement",
+                },
+              ].map((stat) => (
+                <Card
+                  key={stat.title}
+                  className={`bg-gray-800/80 backdrop-blur-lg border border-${stat.color}/30 shadow-lg shadow-${stat.color}/10 cursor-pointer hover:shadow-${stat.color}/20 transition-all duration-300`}
+                  onClick={() => handleStatsClick(stat.type)}
+                >
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-400 text-sm">{stat.title}</p>
+                        <p className="text-xl sm:text-2xl font-bold text-white">{stat.value}</p>
+                        <div className="flex items-center gap-1 text-xs mt-1">
+                          <TrendingUp className={`h-3 w-3 text-${stat.color}`} />
+                          <span className={`text-${stat.color}`}>{stat.subValue}</span>
                         </div>
                       </div>
-                    ))}
-
-                    {dashboardData.recentActivity.length === 0 && (
-                      <div className="text-center py-8">
-                        <Clock className="h-12 w-12 text-[var(--text-tertiary)] mx-auto mb-4" />
-                        <p className="text-[var(--text-secondary)]">
-                          No recent activity
-                        </p>
+                      <div className={`w-12 h-12 bg-${stat.color}/20 rounded-full flex items-center justify-center`}>
+                        <stat.icon className={`h-6 w-6 text-${stat.color}`} />
                       </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
-            {/* Top Members */}
-            <Card className="premium-card premium-shadow">
-              <CardHeader className="border-b border-[var(--border-primary)]">
-                <CardTitle className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-accent-500" />
-                  Top Members
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ScrollArea className="h-80">
-                  <div className="p-4 space-y-4">
-                    {dashboardData.topMembers.map((member, index) => (
-                      <div
-                        key={member._id}
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--background-secondary)] transition-colors cursor-pointer"
-                        onClick={() =>
-                          toast.info(`View ${member.name}'s profile`)
-                        }
-                      >
-                        <div className="flex-shrink-0 w-6 text-center">
-                          <span
-                            className={`text-sm font-bold ${
-                              index === 0
-                                ? "text-accent-500"
-                                : index === 1
-                                ? "text-gray-400"
-                                : index === 2
-                                ? "text-amber-600"
-                                : "text-[var(--text-tertiary)]"
-                            }`}
-                          >
-                            #{index + 1}
-                          </span>
-                        </div>
-
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage
-                            src={member.profilePic}
-                            alt={member.name}
-                          />
-                          <AvatarFallback className="premium-gradient text-white text-xs">
-                            {member.name.charAt(0)?.toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                              {member.name}
+            {/* Recent Activity & Top Members */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              {/* Recent Activity */}
+              <Card className="bg-gray-800/80 backdrop-blur-lg border border-blue-500/30 shadow-lg shadow-blue-500/10">
+                <CardHeader className="border-b border-blue-500/30">
+                  <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-blue-400" />
+                    Recent Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <ScrollArea className="h-80">
+                    <div className="p-4 space-y-3">
+                      {dashboardData.recentActivity.map((activity) => (
+                        <div
+                          key={activity.id}
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700/50 transition-all duration-200 cursor-pointer"
+                          onClick={() => toast.info(`${activity.user.name} ${activity.action}`)}
+                        >
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={activity.user.profilePic} alt={activity.user.name} />
+                            <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs">
+                              {activity.user.name.charAt(0)?.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-white truncate">
+                              <span className="font-medium">{activity.user.name}</span> {activity.action}
                             </p>
-                            {member.isPremium && (
-                              <Crown className="h-3 w-3 text-accent-500" />
-                            )}
-                            {member.role !== "member" && (
-                              <Badge className="text-xs bg-primary-500/20 text-primary-500 border-primary-500/30">
-                                {member.role}
-                              </Badge>
-                            )}
+                            <p className="text-xs text-gray-400">{formatTimeAgo(activity.timestamp)}</p>
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-[var(--text-tertiary)] mt-1">
-                            <span>{formatNumber(member.totalPosts)} posts</span>
-                            <span>•</span>
-                            <span>{formatNumber(member.totalLikes)} likes</span>
+                          <div className="flex-shrink-0">
+                            {activity.type === "join" && <UserPlus className="h-4 w-4 text-green-400" />}
+                            {activity.type === "post" && <MessageSquare className="h-4 w-4 text-purple-400" />}
+                            {activity.type === "like" && <Heart className="h-4 w-4 text-pink-400" />}
+                            {activity.type === "comment" && <MessageCircle className="h-4 w-4 text-blue-400" />}
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                      {dashboardData.recentActivity.length === 0 && (
+                        <div className="text-center py-8">
+                          <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-300">No recent activity</p>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
 
-                    {dashboardData.topMembers.length === 0 && (
-                      <div className="text-center py-8">
-                        <Trophy className="h-12 w-12 text-[var(--text-tertiary)] mx-auto mb-4" />
-                        <p className="text-[var(--text-secondary)]">
-                          No member data available
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
-          {/* Community Settings Quick Access */}
-          <Card className="premium-card premium-shadow">
-            <CardHeader className="border-b border-[var(--border-primary)]">
-              <CardTitle className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                <Settings className="h-5 w-5 text-primary-500" />
-                Community Features
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div
-                  className={`p-4 rounded-lg border-2 transition-colors cursor-pointer hover:scale-105 ${
-                    dashboardData.communityOverview.settings.allowPosts
-                      ? "border-success/30 bg-success/10"
-                      : "border-[var(--border-secondary)] bg-[var(--background-secondary)]"
-                  }`}
-                  onClick={() => toast.info("Posts Settings")}
-                >
-                  <MessageSquare
-                    className={`h-6 w-6 mb-2 ${
-                      dashboardData.communityOverview.settings.allowPosts
-                        ? "text-success"
-                        : "text-[var(--text-tertiary)]"
-                    }`}
-                  />
-                  <p className="text-sm font-medium text-[var(--text-primary)]">
-                    Posts
-                  </p>
-                  <p className="text-xs text-[var(--text-secondary)]">
-                    {dashboardData.communityOverview.settings.allowPosts
-                      ? "Enabled"
-                      : "Disabled"}
-                  </p>
-                </div>
+              {/* Top Members */}
+              <Card className="bg-gray-800/80 backdrop-blur-lg border border-blue-500/30 shadow-lg shadow-blue-500/10">
+                <CardHeader className="border-b border-blue-500/30">
+                  <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-yellow-400" />
+                    Top Members
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <ScrollArea className="h-80">
+                    <div className="p-4 space-y-3">
+                      {dashboardData.topMembers.map((member, index) => (
+                        <div
+                          key={member._id}
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700/50 transition-all duration-200 cursor-pointer"
+                          onClick={() => toast.info(`View ${member.name}'s profile`)}
+                        >
+                          <div className="flex-shrink-0 w-6 text-center">
+                            <span
+                              className={`text-sm font-bold ${
+                                index === 0
+                                  ? "text-yellow-400"
+                                  : index === 1
+                                  ? "text-gray-300"
+                                  : index === 2
+                                  ? "text-amber-400"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              #{index + 1}
+                            </span>
+                          </div>
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={member.profilePic} alt={member.name} />
+                            <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs">
+                              {member.name.charAt(0)?.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium text-white truncate">{member.name}</p>
+                              {member.isPremium && <Crown className="h-3 w-3 text-yellow-400" />}
+                              {member.role !== "member" && (
+                                <Badge className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">
+                                  {member.role}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                              <span>{formatNumber(member.totalPosts)} posts</span>
+                              <span>•</span>
+                              <span>{formatNumber(member.totalLikes)} likes</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {dashboardData.topMembers.length === 0 && (
+                        <div className="text-center py-8">
+                          <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-300">No member data available</p>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
 
-                <div
-                  className={`p-4 rounded-lg border-2 transition-colors cursor-pointer hover:scale-105 ${
-                    dashboardData.communityOverview.settings.allowGroupChat
-                      ? "border-success/30 bg-success/10"
-                      : "border-[var(--border-secondary)] bg-[var(--background-secondary)]"
-                  }`}
-                  onClick={() => toast.info("Group Chat Settings")}
-                >
-                  <MessageCircle
-                    className={`h-6 w-6 mb-2 ${
-                      dashboardData.communityOverview.settings.allowGroupChat
-                        ? "text-success"
-                        : "text-[var(--text-tertiary)]"
-                    }`}
-                  />
-                  <p className="text-sm font-medium text-[var(--text-primary)]">
-                    Group Chat
-                  </p>
-                  <p className="text-xs text-[var(--text-secondary)]">
-                    {dashboardData.communityOverview.settings.allowGroupChat
-                      ? "Enabled"
-                      : "Disabled"}
-                  </p>
-                </div>
-
-                <div
-                  className={`p-4 rounded-lg border-2 transition-colors cursor-pointer hover:scale-105 ${
-                    dashboardData.communityOverview.settings.allowQuests
-                      ? "border-success/30 bg-success/10"
-                      : "border-[var(--border-secondary)] bg-[var(--background-secondary)]"
-                  }`}
-                  onClick={() => toast.info("Quests Settings")}
-                >
-                  <Trophy
-                    className={`h-6 w-6 mb-2 ${
-                      dashboardData.communityOverview.settings.allowQuests
-                        ? "text-success"
-                        : "text-[var(--text-tertiary)]"
-                    }`}
-                  />
-                  <p className="text-sm font-medium text-[var(--text-primary)]">
-                    Quests
-                  </p>
-                  <p className="text-xs text-[var(--text-secondary)]">
-                    {dashboardData.communityOverview.settings.allowQuests
-                      ? "Enabled"
-                      : "Disabled"}
-                  </p>
-                </div>
-
-                <div
-                  className={`p-4 rounded-lg border-2 transition-colors cursor-pointer hover:scale-105 ${
-                    dashboardData.communityOverview.settings.allowChainCast
-                      ? "border-success/30 bg-success/10"
-                      : "border-[var(--border-secondary)] bg-[var(--background-secondary)]"
-                  }`}
-                  onClick={() => toast.info("ChainCast Settings")}
-                >
-                  <BarChart3
-                    className={`h-6 w-6 mb-2 ${
-                      dashboardData.communityOverview.settings.allowChainCast
-                        ? "text-success"
-                        : "text-[var(--text-tertiary)]"
-                    }`}
-                  />
-                  <p className="text-sm font-medium text-[var(--text-primary)]">
-                    ChainCast
-                  </p>
-                  <p className="text-xs text-[var(--text-secondary)]">
-                    {dashboardData.communityOverview.settings.allowChainCast
-                      ? "Enabled"
-                      : "Disabled"}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          {/* Social Links */}
-          {dashboardData.communityOverview.socialLinks.length > 0 && (
-            <Card className="premium-card premium-shadow">
-              <CardHeader className="border-b border-[var(--border-primary)]">
-                <CardTitle className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                  <ExternalLink className="h-5 w-5 text-primary-500" />
-                  Social Links
+            {/* Community Features */}
+            <Card className="bg-gray-800/80 backdrop-blur-lg border border-blue-500/30 shadow-lg shadow-blue-500/10">
+              <CardHeader className="border-b border-blue-500/30">
+                <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-blue-400" />
+                  Community Features
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="flex flex-wrap gap-3">
-                  {dashboardData.communityOverview.socialLinks.map(
-                    (link, index) => (
+              <CardContent className="p-4 sm:p-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {[
+                    {
+                      title: "Posts",
+                      enabled: dashboardData.communityOverview.settings.allowPosts,
+                      icon: MessageSquare,
+                      onClick: () => toast.info("Posts Settings"),
+                    },
+                    {
+                      title: "Group Chat",
+                      enabled: dashboardData.communityOverview.settings.allowGroupChat,
+                      icon: MessageCircle,
+                      onClick: () => toast.info("Group Chat Settings"),
+                    },
+                    {
+                      title: "Quests",
+                      enabled: dashboardData.communityOverview.settings.allowQuests,
+                      icon: Trophy,
+                      onClick: () => toast.info("Quests Settings"),
+                    },
+                    {
+                      title: "ChainCast",
+                      enabled: dashboardData.communityOverview.settings.allowChainCast,
+                      icon: BarChart3,
+                      onClick: () => toast.info("ChainCast Settings"),
+                    },
+                  ].map((feature) => (
+                    <div
+                      key={feature.title}
+                      className={`p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer hover:scale-105 ${
+                        feature.enabled
+                          ? "border-blue-500/30 bg-blue-500/10"
+                          : "border-gray-700 bg-gray-700/50"
+                      }`}
+                      onClick={feature.onClick}
+                    >
+                      <feature.icon
+                        className={`h-6 w-6 mb-2 ${feature.enabled ? "text-blue-400" : "text-gray-400"}`}
+                      />
+                      <p className="text-sm font-medium text-white">{feature.title}</p>
+                      <p className="text-xs text-gray-300">{feature.enabled ? "Enabled" : "Disabled"}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Social Links */}
+            {dashboardData.communityOverview.socialLinks.length > 0 && (
+              <Card className="bg-gray-800/80 backdrop-blur-lg border border-blue-500/30 shadow-lg shadow-blue-500/10">
+                <CardHeader className="border-b border-blue-500/30">
+                  <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+                    <ExternalLink className="h-5 w-5 text-blue-400" />
+                    Social Links
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-wrap gap-3">
+                    {dashboardData.communityOverview.socialLinks.map((link, index) => (
                       <Button
                         key={index}
                         variant="outline"
                         size="sm"
-                        className="premium-border hover:scale-105 transition-transform"
+                        className="bg-gray-800 border-blue-500/50 text-blue-300 hover:bg-blue-600/20 hover:text-blue-200 transition-all duration-300"
                         onClick={() => handleSocialLinkClick(link.url)}
                       >
                         <ExternalLink className="h-4 w-4 mr-2" />
                         {link.platform}
                       </Button>
-                    )
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>
