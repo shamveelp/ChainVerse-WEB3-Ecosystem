@@ -48,10 +48,21 @@ interface CreateCommentData {
   parentCommentId?: string;
 }
 
+interface SharePostData {
+  shareText?: string;
+}
+
 interface LikeResponse {
   success: boolean;
   isLiked: boolean;
   likesCount: number;
+  message: string;
+}
+
+interface ShareResponse {
+  success: boolean;
+  shareUrl: string;
+  sharesCount: number;
   message: string;
 }
 
@@ -85,9 +96,9 @@ class CommunityAdminFeedApiService {
 
   // Get community feed
   async getCommunityFeed(
-    cursor?: string, 
-    limit: number = 10, 
-    type: 'all' | 'trending' | 'recent' = 'all'
+    cursor?: string,
+    limit: number = 10,
+    type: 'all' | 'members' | 'trending' = 'all'
   ): Promise<ApiResponse<CommunityFeedResponse>> {
     try {
       const params = new URLSearchParams();
@@ -104,9 +115,9 @@ class CommunityAdminFeedApiService {
       console.error("Get community feed error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
                "Failed to get community feed",
       };
     }
@@ -125,9 +136,9 @@ class CommunityAdminFeedApiService {
       console.error("Toggle post like error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
                "Failed to toggle post like",
       };
     }
@@ -146,10 +157,31 @@ class CommunityAdminFeedApiService {
       console.error("Create comment error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
                error.message || 
                "Failed to create comment",
+      };
+    }
+  }
+
+  // Share post
+  async sharePost(postId: string, shareData?: SharePostData): Promise<ApiResponse<ShareResponse>> {
+    try {
+      const response = await api.post(`${this.baseUrl}/feed/posts/${postId}/share`, shareData || {});
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message
+      };
+    } catch (error: any) {
+      console.error("Share post error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to share post",
       };
     }
   }
@@ -167,9 +199,9 @@ class CommunityAdminFeedApiService {
       console.error("Pin post error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
                "Failed to pin post",
       };
     }
@@ -190,9 +222,9 @@ class CommunityAdminFeedApiService {
       console.error("Delete post error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
                "Failed to delete post",
       };
     }
@@ -210,9 +242,9 @@ class CommunityAdminFeedApiService {
       console.error("Get engagement stats error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
                "Failed to get engagement stats",
       };
     }

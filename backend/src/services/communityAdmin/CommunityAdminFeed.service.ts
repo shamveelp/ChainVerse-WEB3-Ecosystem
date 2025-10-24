@@ -5,7 +5,7 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 import { ICommunityAdminFeedService } from "../../core/interfaces/services/communityAdmin/ICommnityAdminFeedService";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
-import { IPostRepository } from "../../core/interfaces/repositories/IPostRepository";
+import { IPostRepository } from "../../core/interfaces/repositories/posts/IPostRepository";
 import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
 import CommunityMemberModel from "../../models/communityMember.model";
 import {
@@ -14,7 +14,8 @@ import {
 } from "../../dtos/communityAdmin/CommunityAdminFeed.dto";
 import {
     CreateCommentDto,
-    LikeResponseDto
+    LikeResponseDto,
+    ShareResponseDto
 } from "../../dtos/posts/Post.dto";
 
 @injectable()
@@ -26,77 +27,75 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
     ) {}
 
     async getCommunityFeed(adminId: string, cursor?: string, limit: number = 10, type: string = 'all'): Promise<CommunityFeedResponseDto> {
-    try {
-        console.log("CommunityAdminFeedService: Getting community feed for admin:", adminId);
+        try {
+            console.log("CommunityAdminFeedService: Getting community feed for admin:", adminId);
 
-        const admin = await this._adminRepository.findById(adminId);
-        if (!admin || !admin.communityId) {
-            throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
-        }
+            const admin = await this._adminRepository.findById(adminId);
+            if (!admin || !admin.communityId) {
+                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+            }
 
-        const communityId = admin.communityId.toString();
+            const communityId = admin.communityId.toString();
 
-        // Get community members
-        const members = await CommunityMemberModel.find({ communityId, isActive: true }).select('userId');
-        const memberIds = members.map(member => member.userId.toString());
+            let postsResult: any;
 
-        if (memberIds.length === 0) {
+            switch (type) {
+                case 'all':
+                    // Get all posts from community members (including inactive/banned)
+                    postsResult = await this._postRepository.getCommunityFeedPosts(communityId, cursor, limit);
+                    break;
+                case 'members':
+                    // Get posts only from active community members
+                    postsResult = await this._postRepository.getCommunityMembersPosts(communityId, cursor, limit);
+                    break;
+                case 'trending':
+                    // Get trending posts filtered by community members
+                    const members = await CommunityMemberModel.find({ communityId, isActive: true }).select('userId');
+                    const memberIds = members.map(member => member.userId.toString());
+                    
+                    if (memberIds.length === 0) {
+                        postsResult = { posts: [], hasMore: false, nextCursor: undefined };
+                    } else {
+                        const trendingResult = await this._postRepository.getTrendingPosts(cursor, limit);
+                        const filteredPosts = trendingResult.posts.filter((post: any) =>
+                            memberIds.includes(post.author._id.toString())
+                        );
+                        postsResult = {
+                            posts: filteredPosts,
+                            hasMore: trendingResult.hasMore,
+                            nextCursor: trendingResult.nextCursor
+                        };
+                    }
+                    break;
+                default:
+                    postsResult = await this._postRepository.getCommunityFeedPosts(communityId, cursor, limit);
+                    break;
+            }
+
+            // Transform posts with admin context
+            const transformedPosts = await Promise.all(
+                postsResult.posts.map((post: any) => this._transformPostForAdmin(post, adminId))
+            );
+
             const communityStats = await this._getCommunityStats(communityId);
-            return new CommunityFeedResponseDto([], false, undefined, 0, communityStats);
+
+            console.log("CommunityAdminFeedService: Community feed retrieved successfully, posts count:", transformedPosts.length);
+
+            return new CommunityFeedResponseDto(
+                transformedPosts,
+                postsResult.hasMore,
+                postsResult.nextCursor,
+                transformedPosts.length,
+                communityStats
+            );
+        } catch (error) {
+            console.error("CommunityAdminFeedService: Get community feed error:", error);
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError("Failed to fetch community feed", StatusCode.INTERNAL_SERVER_ERROR);
         }
-
-        // Get posts from community members
-        let postsResult: any;
-        let transformedPosts: any[] = [];
-        let hasMore = false;
-        let nextCursor: string | undefined;
-
-        switch (type) {
-            case 'trending':
-                postsResult = await this._postRepository.getTrendingPosts(cursor, limit);
-                // Ensure postsResult.posts exists and filter to only include community members
-                const trendingPosts = postsResult?.posts || [];
-                postsResult.posts = trendingPosts.filter((post:any) => 
-                    memberIds.includes(post.author._id.toString())
-                );
-                break;
-            case 'recent':
-            default:
-                postsResult = await this._postRepository.getPostsByUserIds(memberIds, cursor, limit);
-                break;
-        }
-
-        // Ensure postsResult.posts exists
-        const rawPosts = postsResult?.posts || [];
-        
-        // Transform posts with admin context
-        transformedPosts = await Promise.all(
-            rawPosts.map((post: any) => this._transformPostForAdmin(post, adminId))
-        );
-
-        // Handle pagination properties safely
-        hasMore = !!postsResult?.hasMore; // Convert undefined/null to false
-        nextCursor = postsResult?.nextCursor;
-
-        const communityStats = await this._getCommunityStats(communityId);
-
-        console.log("CommunityAdminFeedService: Community feed retrieved successfully, posts count:", transformedPosts.length);
-        
-        return new CommunityFeedResponseDto(
-            transformedPosts,
-            hasMore,
-            nextCursor,
-            transformedPosts.length,
-            communityStats
-        );
-    } catch (error) {
-        console.error("CommunityAdminFeedService: Get community feed error:", error);
-        if (error instanceof CustomError) {
-            throw error;
-        }
-        throw new CustomError("Failed to fetch community feed", StatusCode.INTERNAL_SERVER_ERROR);
     }
-}
 
     async togglePostLike(adminId: string, postId: string): Promise<LikeResponseDto> {
         try {
@@ -196,6 +195,42 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
         }
     }
 
+    async sharePost(adminId: string, postId: string, shareText?: string): Promise<ShareResponseDto> {
+        try {
+            console.log("CommunityAdminFeedService: Admin sharing post:", adminId, "post:", postId);
+
+            const admin = await this._adminRepository.findById(adminId);
+            if (!admin) {
+                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+            }
+
+            // Verify post exists
+            const post = await this._postRepository.findPostById(postId);
+            if (!post) {
+                throw new CustomError("Post not found", StatusCode.NOT_FOUND);
+            }
+
+            // Update share count
+            await this._postRepository.updatePostCounts(postId, 'sharesCount', 1);
+
+            // Generate share URL (customize based on your frontend URL structure)
+            const shareUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/user/community/post/${postId}`;
+
+            return {
+                success: true,
+                shareUrl,
+                sharesCount: post.sharesCount + 1,
+                message: "Post shared successfully"
+            };
+        } catch (error) {
+            console.error("CommunityAdminFeedService: Share post error:", error);
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError("Failed to share post", StatusCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     async getEngagementStats(adminId: string, period: string = 'week'): Promise<CommunityEngagementStatsDto> {
         try {
             console.log("CommunityAdminFeedService: Getting engagement stats for admin:", adminId, "period:", period);
@@ -210,7 +245,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
             // Calculate date range
             const now = new Date();
             let startDate: Date;
-            
+
             switch (period) {
                 case 'today':
                     startDate = new Date(now.setHours(0, 0, 0, 0));
@@ -302,7 +337,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
             // TODO: Implement post pinning logic in post repository
             // For now, return success
             console.log("CommunityAdminFeedService: Post pinned successfully");
-            
+
             return {
                 success: true,
                 postId,
@@ -351,7 +386,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
             }
 
             console.log("CommunityAdminFeedService: Post deleted successfully by admin");
-            
+
             return {
                 success: true,
                 postId,
@@ -383,7 +418,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
         ]);
 
         const memberIds = members.map(member => member.userId.toString());
-        const postsToday = memberIds.length > 0 
+        const postsToday = memberIds.length > 0
             ? await this._postRepository.getPostCountByUsersAfterDate(memberIds, today)
             : 0;
 
@@ -426,20 +461,25 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
     }
 
     private async _getEngagementStatsForMembers(memberIds: string[], startDate: Date): Promise<any> {
-        // This would need to be implemented in the post repository
-        // For now, return mock data
+        const postStats = await this._postRepository.getPostStats();
+        const postsAfterDate = await this._postRepository.getPostCountByUsersAfterDate(memberIds, startDate);
+        
+        // Get active members (members who posted after start date)
+        // This is a simplified calculation - you might want to implement a more sophisticated method
+        const activeMembers = Math.min(memberIds.length, Math.max(1, postsAfterDate));
+
         return {
-            totalPosts: 0,
-            totalLikes: 0,
-            totalComments: 0,
-            totalShares: 0,
-            activeMembers: 0
+            totalPosts: postsAfterDate,
+            totalLikes: postStats.totalLikes || 0,
+            totalComments: postStats.totalComments || 0,
+            totalShares: postStats.totalShares || 0,
+            activeMembers
         };
     }
 
     private async _getMemberActivityData(communityId: string, startDate: Date, period: string): Promise<any[]> {
         // This would generate activity data over time
-        // For now, return empty array
+        // For now, return empty array - implement based on your requirements
         return [];
     }
 }

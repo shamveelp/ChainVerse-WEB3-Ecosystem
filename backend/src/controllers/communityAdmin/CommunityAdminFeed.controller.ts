@@ -17,7 +17,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
         try {
             const communityAdminId = (req as any).user.id;
             const { cursor, limit = '10', type = 'all' } = req.query;
-            
+
             console.log("Getting community feed for admin:", communityAdminId);
 
             // Validate limit
@@ -120,6 +120,42 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to create comment";
             logger.error("Create comment error:", { message, stack: err.stack, adminId: (req as any).user?.id });
+            res.status(statusCode).json({
+                success: false,
+                error: message
+            });
+        }
+    }
+
+    async sharePost(req: Request, res: Response): Promise<void> {
+        try {
+            const communityAdminId = (req as any).user.id;
+            const { postId } = req.params;
+            const { shareText } = req.body;
+
+            console.log("Community admin sharing post:", communityAdminId, "post:", postId);
+
+            if (!postId) {
+                res.status(StatusCode.BAD_REQUEST).json({
+                    success: false,
+                    error: "Post ID is required"
+                });
+                return;
+            }
+
+            const result = await this._feedService.sharePost(communityAdminId, postId, shareText);
+
+            res.status(StatusCode.OK).json({
+                success: true,
+                data: result,
+                message: result.message
+            });
+        } catch (error) {
+            const err = error as Error;
+            console.error("Share post error:", error);
+            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || "Failed to share post";
+            logger.error("Share post error:", { message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
             res.status(statusCode).json({
                 success: false,
                 error: message

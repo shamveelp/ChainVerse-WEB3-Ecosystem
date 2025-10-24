@@ -115,7 +115,7 @@ export default function CommunityAdminFeed() {
       const response = await communityAdminFeedApiService.getCommunityFeed(
         isInitial ? undefined : cursor,
         10,
-        feedType
+        feedType as any
       )
 
       if (response.success && response.data) {

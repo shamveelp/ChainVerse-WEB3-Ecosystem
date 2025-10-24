@@ -220,6 +220,12 @@ router.post(
   communityAdminFeedController.togglePostLike.bind(communityAdminFeedController)
 );
 router.post(
+  "/feed/posts/:postId/share",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminFeedController.sharePost.bind(communityAdminFeedController)
+);
+router.post(
   "/feed/posts/:postId/pin",
   authMiddleware,
   roleMiddleware(["communityAdmin"]),
@@ -298,7 +304,7 @@ router.post(
   communityAdminMembersController.bulkUpdateMembers.bind(communityAdminMembersController)
 );
 
-// newwer routes of dashboard
+// Dashboard routes
 router.get(
   "/dashboard",
   authMiddleware,

@@ -2,6 +2,7 @@ import api from "@/lib/api-client";
 
 // Types
 interface CommunityMember {
+  member: any;
   _id: string;
   userId: string;
   username: string;
