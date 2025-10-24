@@ -19,7 +19,7 @@ const navigationItems = [
   { id: 'notifications', label: 'Notifications', icon: Bell, path: '/user/community/notifications' },
   { id: 'communities', label: 'My Communities', icon: Users, path: '/user/community/communities' },
   { id: 'messages', label: 'Messages', icon: MessageCircle, path: '/user/community/messages' },
-  { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark, path: '/user/community/bookmarks' },
+  // { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark, path: '/user/community/bookmarks' },
 ]
 
 export default function Sidebar() {
