@@ -5,13 +5,15 @@ import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Chrome as Home, Users, User, Settings, Crown, ChevronLeft, ChevronRight, ChartBar as BarChart3, Zap, MessageSquare, Trophy } from "lucide-react";
+import { Chrome as Home, Users, User, Settings, Crown, ChevronLeft, ChevronRight, ChartBar as BarChart3, Zap, MessageSquare, Trophy, HousePlug } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
+import { title } from "process";
 
 const sidebarItems = [
   { title: "Dashboard", href: COMMUNITY_ADMIN_ROUTES.DASHBOARD, icon: Home },
-  { title: "Feed", href: COMMUNITY_ADMIN_ROUTES.FEED, icon: MessageSquare },
+  { title: "Community", href: COMMUNITY_ADMIN_ROUTES.COMMUNITY, icon: MessageSquare },
+  { title: "Feed", href: COMMUNITY_ADMIN_ROUTES.FEED, icon: HousePlug },
   { title: "Profile", href: COMMUNITY_ADMIN_ROUTES.PROFILE, icon: User },
   { title: "Members", href: COMMUNITY_ADMIN_ROUTES.MEMBERS, icon: Users },
   { title: "ChainCast", href: COMMUNITY_ADMIN_ROUTES.CHAINCAST, icon: BarChart3 },

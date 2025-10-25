@@ -1,0 +1,87 @@
+export const mockCommunityMessages = [
+  {
+    id: "1",
+    sender: "admin" as const,
+    senderName: "Admin",
+    senderAvatar: "👨‍💼",
+    content: "Welcome to our community! 🎉",
+    timestamp: "10:30 AM",
+    reactions: [
+      { emoji: "👍", count: 5, userReacted: false },
+      { emoji: "❤️", count: 3, userReacted: true },
+    ],
+  },
+  {
+    id: "2",
+    sender: "admin" as const,
+    senderName: "Admin",
+    senderAvatar: "👨‍💼",
+    content: "This is a community channel where I share important updates and announcements.",
+    timestamp: "10:31 AM",
+    reactions: [{ emoji: "👍", count: 8, userReacted: false }],
+  },
+  {
+    id: "3",
+    sender: "user" as const,
+    senderName: "Sarah",
+    senderAvatar: "👩",
+    content: "Great to be here!",
+    timestamp: "10:32 AM",
+    reactions: [],
+  },
+  {
+    id: "4",
+    sender: "admin" as const,
+    senderName: "Admin",
+    senderAvatar: "👨‍💼",
+    content: "Feel free to react to messages with emojis. Only I can send messages here, but you can all react!",
+    timestamp: "10:33 AM",
+    reactions: [
+      { emoji: "😂", count: 2, userReacted: false },
+      { emoji: "👍", count: 6, userReacted: true },
+    ],
+  },
+]
+
+export const mockCommunityChats = [
+  {
+    id: "1",
+    sender: "admin" as const,
+    senderName: "Admin",
+    senderAvatar: "👨‍💼",
+    content: "Hey everyone! How is everyone doing today?",
+    timestamp: "2:00 PM",
+  },
+  {
+    id: "2",
+    sender: "user" as const,
+    senderName: "John",
+    senderAvatar: "👨",
+    content: "Doing great! Just finished a project.",
+    timestamp: "2:05 PM",
+  },
+  {
+    id: "3",
+    sender: "user" as const,
+    senderName: "Sarah",
+    senderAvatar: "👩",
+    content: "Same here! Looking forward to the weekend.",
+    timestamp: "2:07 PM",
+  },
+  {
+    id: "4",
+    sender: "admin" as const,
+    senderName: "Admin",
+    senderAvatar: "👨‍💼",
+    content: "That sounds awesome! Keep up the great work everyone.",
+    timestamp: "2:10 PM",
+  },
+  {
+    id: "5",
+    sender: "user" as const,
+    senderName: "Mike",
+    senderAvatar: "👨‍🦱",
+    content: "Thanks for the encouragement!",
+    timestamp: "2:12 PM",
+  },
+]

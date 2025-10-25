@@ -14,6 +14,7 @@ export const COMMUNITY_ADMIN_ROUTES = {
   
   // Dashboard routes
   DASHBOARD: '/comms-admin',
+  COMMUNITY: '/comms-admin/community',
   FEED: '/comms-admin/feed',
   PROFILE: '/comms-admin/profile',
   MEMBERS: '/comms-admin/members',
