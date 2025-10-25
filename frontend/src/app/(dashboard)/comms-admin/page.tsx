@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import {
   Users,
   TrendingUp,
@@ -25,6 +26,7 @@ import {
   Share,
   Settings,
   ExternalLink,
+  Send,
 } from "lucide-react";
 import { communityAdminDashboardApiService } from "@/services/communityAdmin/communityAdminDashboardApiService";
 import { toast } from "sonner";
@@ -94,6 +96,28 @@ interface DashboardData {
     isPremium: boolean;
   }>;
 }
+
+interface ChatMessage {
+  id: string;
+  user: {
+    _id: string;
+    username: string;
+    name: string;
+    profilePic: string;
+    isVerified: boolean;
+  };
+  text: string;
+  timestamp: Date;
+}
+
+// Mock current user for chat (admin or placeholder)
+const mockCurrentUser = {
+  _id: "admin_id",
+  username: "admin",
+  name: "Admin",
+  profilePic: "/placeholder-admin.jpg",
+  isVerified: true,
+};
 
 export default function CommunityAdminDashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -210,28 +234,11 @@ export default function CommunityAdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           {/* Left Side - Chat */}
           <div className="lg:col-span-4">
-            <Card className="bg-gray-800/80 backdrop-blur-lg border border-blue-500/30 shadow-lg shadow-blue-500/10 h-full transition-all duration-300 hover:shadow-blue-500/20">
-              <CardHeader className="border-b border-blue-500/30">
-                <CardTitle className="text-xl font-semibold text-white flex items-center gap-3">
-                  <MessageSquare className="h-5 w-5 text-blue-400" />
-                  Community Chat
-                  <Badge className="ml-auto bg-purple-500/20 text-purple-300 border-purple-500/30">Coming Soon</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center space-y-4">
-                    <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto">
-                      <MessageSquare className="h-8 w-8 text-blue-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-white">Chat Feature Coming Soon</h3>
-                    <p className="text-gray-300 text-sm max-w-xs mx-auto">
-                      Real-time community chat will be available in the next update. Stay tuned!
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <ChatComponent
+              communityName={dashboardData.communityOverview.name}
+              activeMembers={dashboardData.communityOverview.activeMembers}
+              recentActivity={dashboardData.recentActivity}
+            />
           </div>
 
           {/* Right Side - Community Details */}
@@ -590,4 +597,141 @@ export default function CommunityAdminDashboard() {
       </div>
     </div>
   );
+}
+
+// New ChatComponent: Well-structured chat screen as a separate component
+// Integrates dashboard details like community name, active members, and uses recentActivity as initial messages (transformed to chat-like format)
+function ChatComponent({
+  communityName,
+  activeMembers,
+  recentActivity,
+}: {
+  communityName: string;
+  activeMembers: number;
+  recentActivity: DashboardData["recentActivity"];
+}) {
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    recentActivity.map((activity) => ({
+      id: activity.id,
+      user: activity.user,
+      text: activity.action, // Transform activity action to message text
+      timestamp: activity.timestamp,
+    }))
+  );
+  const [newMessage, setNewMessage] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim()) return;
+
+    const message: ChatMessage = {
+      id: Date.now().toString(),
+      user: mockCurrentUser,
+      text: newMessage,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, message]);
+    setNewMessage("");
+    toast.success("Message sent!");
+    // In a real app, integrate with API for real-time chat
+  };
+
+  return (
+    <Card className="bg-gray-800/80 backdrop-blur-lg border border-blue-500/30 shadow-lg shadow-blue-500/10 h-full transition-all duration-300 hover:shadow-blue-500/20 flex flex-col">
+      <CardHeader className="border-b border-blue-500/30">
+        <CardTitle className="text-xl font-semibold text-white flex items-center gap-3">
+          <MessageSquare className="h-5 w-5 text-blue-400" />
+          {communityName} Chat
+          <Badge className="ml-auto bg-green-500/20 text-green-300 border-green-500/30">
+            {activeMembers} Active
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0 flex flex-col flex-1">
+        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+          <div className="space-y-4">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex items-start gap-3 ${
+                  msg.user._id === mockCurrentUser._id ? "flex-row-reverse" : ""
+                }`}
+              >
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={msg.user.profilePic} alt={msg.user.name} />
+                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs">
+                    {msg.user.name.charAt(0)?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div
+                  className={`flex flex-col max-w-[80%] ${
+                    msg.user._id === mockCurrentUser._id ? "items-end" : "items-start"
+                  }`}
+                >
+                  <div
+                    className={`px-4 py-2 rounded-lg ${
+                      msg.user._id === mockCurrentUser._id
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-700 text-gray-200"
+                    }`}
+                  >
+                    <p className="text-sm">{msg.text}</p>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {msg.user.name} • {formatTimeAgo(msg.timestamp)}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {messages.length === 0 && (
+              <div className="text-center py-8">
+                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-300">No messages yet. Start chatting!</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+        <Separator className="bg-blue-500/30" />
+        <div className="p-4 flex items-center gap-2">
+          <Input
+            placeholder="Type your message..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+            className="flex-1 bg-gray-700 border-blue-500/50 text-white placeholder-gray-400"
+          />
+          <Button
+            onClick={handleSendMessage}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function formatTimeAgo(date: Date): string {
+  const now = new Date();
+  const diff = now.getTime() - new Date(date).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
