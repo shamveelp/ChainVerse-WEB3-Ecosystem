@@ -329,7 +329,6 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      );
       const response = await API.get(`/api/user/community/followers?${params.toString()}`);
       
       
@@ -352,7 +351,6 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      );
       const response = await API.get(`/api/user/community/following?${params.toString()}`);
       
       
@@ -380,7 +378,6 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       
-      );
       const response = await API.get(`/api/user/community/user/${encodeURIComponent(cleanUsername)}/followers?${params.toString()}`);
       
       
@@ -408,7 +405,6 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       
-      );
       const response = await API.get(`/api/user/community/user/${encodeURIComponent(cleanUsername)}/following?${params.toString()}`);
       
       
@@ -567,7 +563,6 @@ export const communityApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       if (search && search.trim()) params.append('search', search.trim());
 
-      );
       const response = await API.get(`/api/user/chat/conversations?${params.toString()}`);
       
 

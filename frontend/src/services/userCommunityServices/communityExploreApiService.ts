@@ -273,7 +273,7 @@ export const communityExploreApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      );
+    
       const response = await API.get(`/api/user/communities/search?${params.toString()}`);
       
 
@@ -325,7 +325,7 @@ export const communityExploreApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       if (category && category.trim()) params.append('category', category.trim());
 
-      );
+      
       const response = await API.get(`/api/user/communities/popular?${params.toString()}`);
       
 

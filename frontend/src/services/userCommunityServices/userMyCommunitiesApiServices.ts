@@ -151,7 +151,7 @@ export const userMyCommunitiesApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      );
+      
       const response = await API.get(`/api/user/my-communities?${params.toString()}`);
       
 

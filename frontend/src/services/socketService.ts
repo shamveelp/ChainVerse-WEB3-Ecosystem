@@ -147,7 +147,7 @@ class SocketService {
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
     
-    `);
+    
     
     this.reconnectTimeout = setTimeout(() => {
       if (this.socket && !this.socket.connected) {

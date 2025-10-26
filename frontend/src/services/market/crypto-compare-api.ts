@@ -72,7 +72,7 @@ export async function fetchCryptoCompareHistoricalData(
 
     const url = `https://min-api.cryptocompare.com/data/v2/${endpoint}?fsym=${cryptoCompareSymbol}&tsym=USD&limit=${limitParam}&api_key=${apiKey}`
 
-    )
+    
 
     const response = await fetch(url, {
       headers: {

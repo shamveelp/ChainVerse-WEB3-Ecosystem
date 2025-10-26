@@ -313,7 +313,7 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      );
+      
       const response = await API.get(`/api/user/posts/feed/all?${params.toString()}`);
       
 
@@ -342,7 +342,7 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      );
+      
       const response = await API.get(`/api/user/posts/user/${userId}/all?${params.toString()}`);
       
 
@@ -371,7 +371,7 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      );
+      
       const response = await API.get(`/api/user/posts/user/${userId}/liked?${params.toString()}`);
       
 
@@ -400,7 +400,7 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      );
+      
       const response = await API.get(`/api/user/posts/trending/all?${params.toString()}`);
       
 
@@ -430,7 +430,7 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      );
+      
       const response = await API.get(`/api/user/posts/search/all?${params.toString()}`);
       
 
@@ -537,7 +537,7 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      );
+      
       const response = await API.get(`/api/user/posts/${postId}/comments?${params.toString()}`);
       
 
@@ -566,7 +566,7 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      );
+    
       const response = await API.get(`/api/user/posts/comments/${commentId}/replies?${params.toString()}`);
       
 
@@ -658,7 +658,7 @@ export const postsApiService = {
       const params = new URLSearchParams();
       if (userId) params.append('userId', userId);
 
-      );
+      
       const response = await API.get(`/api/user/posts/stats/analytics?${params.toString()}`);
       
 
@@ -680,7 +680,7 @@ export const postsApiService = {
       const params = new URLSearchParams();
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      );
+    
       const response = await API.get(`/api/user/posts/hashtags/popular?${params.toString()}`);
       
 

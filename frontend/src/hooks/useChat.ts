@@ -376,7 +376,7 @@ export const useChat = () => {
         // Don't set sendingMessage to false here, wait for socket confirmation
       } else {
         // Fallback to HTTP API
-        ...');
+        
         const response = await communityApiService.sendMessage(receiverUsername, content);
         
         // Update local state
