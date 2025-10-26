@@ -24,7 +24,7 @@ export class ReferralService implements IReferralService {
     };
   }> {
     try {
-      console.log("ReferralService: Getting referral history for user:", userId);
+      
       
       const result = await this._referralHistoryRepository.findByReferrer(userId, page, limit);
       const stats = await this._referralHistoryRepository.getReferralStats(userId);
@@ -48,7 +48,7 @@ export class ReferralService implements IReferralService {
     referralLink: string;
   }> {
     try {
-      console.log("ReferralService: Getting referral stats for user:", userId);
+      
       
       const user = await this._userRepository.findById(userId);
       if (!user) {

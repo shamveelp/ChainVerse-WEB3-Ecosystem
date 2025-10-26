@@ -18,11 +18,8 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             const communityAdminId = (req as any).user.id;
             const { period = 'week' } = req.query;
 
-            console.log("Getting dashboard data for admin:", communityAdminId, "period:", period);
-
             const dashboardData = await this._dashboardService.getDashboardData(communityAdminId, period as string);
 
-            console.log("Dashboard data retrieved successfully");
             res.status(StatusCode.OK).json({
                 success: true,
                 data: dashboardData
@@ -44,11 +41,9 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
         try {
             const communityAdminId = (req as any).user.id;
 
-            console.log("Getting community overview for admin:", communityAdminId);
 
             const overview = await this._dashboardService.getCommunityOverview(communityAdminId);
 
-            console.log("Community overview retrieved successfully");
             res.status(StatusCode.OK).json({
                 success: true,
                 data: overview
@@ -71,11 +66,8 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             const communityAdminId = (req as any).user.id;
             const { period = 'week' } = req.query;
 
-            console.log("Getting community stats for admin:", communityAdminId, "period:", period);
-
             const stats = await this._dashboardService.getCommunityStats(communityAdminId, period as string);
 
-            console.log("Community stats retrieved successfully");
             res.status(StatusCode.OK).json({
                 success: true,
                 data: stats

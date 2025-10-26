@@ -19,7 +19,7 @@ export default function TradeNavbar() {
       saveWallet(account.address)
         .then(() => {
           if (!cancelled) {
-            console.log('Wallet saved successfully:', account.address);
+            
           }
         })
         .catch((err) => {

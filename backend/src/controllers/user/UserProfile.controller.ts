@@ -20,11 +20,11 @@ export class UserProfileController implements IUserProfileController {
 
   async getProfile(req: Request, res: Response): Promise<void> {
     try {
-      console.log("Get profile controller called");
+      
       const user = req.user as { id: string; role: string; tokenVersion?: number };
       
       if (!user || !user.id) {
-        console.log("User not authenticated in controller");
+        
         res.status(StatusCode.UNAUTHORIZED).json({ 
           success: false, 
           error: "User not authenticated" 
@@ -32,11 +32,11 @@ export class UserProfileController implements IUserProfileController {
         return;
       }
 
-      console.log("Fetching profile for user:", user.id);
+      
       const profile = await this._userService.getProfile(user.id);
       
       if (!profile) {
-        console.log("Profile not found for user:", user.id);
+        
         res.status(StatusCode.NOT_FOUND).json({ 
           success: false, 
           error: "User profile not found" 
@@ -44,7 +44,7 @@ export class UserProfileController implements IUserProfileController {
         return;
       }
 
-      console.log("Profile found, sending response");
+      
       res.status(StatusCode.OK).json({ 
         success: true, 
         data: profile 
@@ -64,7 +64,7 @@ export class UserProfileController implements IUserProfileController {
 
   async updateProfile(req: Request, res: Response): Promise<void> {
     try {
-      console.log("Update profile controller called");
+      
       const user = req.user as { id: string; role: string };
       
       if (!user || !user.id) {
@@ -75,7 +75,7 @@ export class UserProfileController implements IUserProfileController {
         return;
       }
 
-      console.log("Update profile data:", req.body);
+      
       const parsedData = updateProfileSchema.parse(req.body);
       const profile = await this._userService.updateProfile(user.id, parsedData);
       
@@ -87,7 +87,7 @@ export class UserProfileController implements IUserProfileController {
         return;
       }
 
-      console.log("Profile updated successfully");
+      
       res.status(StatusCode.OK).json({ 
         success: true, 
         data: profile,
@@ -117,7 +117,7 @@ export class UserProfileController implements IUserProfileController {
 
   async checkUsername(req: Request, res: Response): Promise<void> {
     try {
-      // console.log("Check username controller called");
+      // 
       // const { username } = checkUsernameSchema.parse(req.body);
       
       // if (!username || username.trim() === "") {
@@ -129,7 +129,7 @@ export class UserProfileController implements IUserProfileController {
       // }
 
       // const isAvailable = await this._userService.checkUsernameAvailability(username, req.user?.id);
-      // console.log("Username availability check result:", { username, available: isAvailable });
+      // 
       
       // res.status(StatusCode.OK).json({ 
       //   success: true, 
@@ -159,7 +159,7 @@ export class UserProfileController implements IUserProfileController {
 
   async uploadProfileImage(req: Request, res: Response): Promise<void> {
     try {
-      console.log("Upload profile image controller called");
+      
       const user = req.user as { id: string; role: string };
       
       if (!user || !user.id) {
@@ -178,7 +178,7 @@ export class UserProfileController implements IUserProfileController {
         return;
       }
 
-      console.log("Uploading image to Cloudinary");
+      
       const result: UploadApiResponse = await new Promise((resolve, reject) => {
         cloudinary.uploader.upload_stream(
           { 
@@ -199,7 +199,7 @@ export class UserProfileController implements IUserProfileController {
         ).end(req.file!.buffer);
       });
 
-      console.log("Image uploaded to Cloudinary, updating profile");
+      
       const profile = await this._userService.updateProfile(user.id, { profilePic: result.secure_url });
       
       if (!profile) {
@@ -210,7 +210,7 @@ export class UserProfileController implements IUserProfileController {
         return;
       }
 
-      console.log("Profile image updated successfully");
+      
       res.status(StatusCode.OK).json({ 
         success: true, 
         data: profile,

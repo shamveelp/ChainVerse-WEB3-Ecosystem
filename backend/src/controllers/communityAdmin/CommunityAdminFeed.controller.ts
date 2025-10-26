@@ -18,8 +18,6 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const communityAdminId = (req as any).user.id;
             const { cursor, limit = '10', type = 'all' } = req.query;
 
-            console.log("Getting community feed for admin:", communityAdminId);
-
             // Validate limit
             let validLimit = 10;
             if (limit && typeof limit === 'string') {
@@ -58,8 +56,6 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const communityAdminId = (req as any).user.id;
             const { postId } = req.params;
 
-            console.log("Community admin toggling post like:", communityAdminId, "post:", postId);
-
             const result = await this._feedService.togglePostLike(communityAdminId, postId);
 
             res.status(StatusCode.OK).json({
@@ -85,7 +81,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const communityAdminId = (req as any).user.id;
             const { postId, content, parentCommentId } = req.body;
 
-            console.log("Community admin creating comment:", communityAdminId, "on post:", postId);
+            
 
             if (!postId || !content) {
                 res.status(StatusCode.BAD_REQUEST).json({
@@ -133,7 +129,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const { postId } = req.params;
             const { shareText } = req.body;
 
-            console.log("Community admin sharing post:", communityAdminId, "post:", postId);
+            
 
             if (!postId) {
                 res.status(StatusCode.BAD_REQUEST).json({
@@ -168,7 +164,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const communityAdminId = (req as any).user.id;
             const { period = 'week' } = req.query;
 
-            console.log("Getting engagement stats for admin:", communityAdminId, "period:", period);
+            
 
             const stats = await this._feedService.getEngagementStats(communityAdminId, period as string);
 
@@ -194,7 +190,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const communityAdminId = (req as any).user.id;
             const { postId } = req.params;
 
-            console.log("Community admin pinning post:", postId);
+            
 
             const result = await this._feedService.pinPost(communityAdminId, postId);
 
@@ -222,7 +218,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const { postId } = req.params;
             const { reason } = req.body;
 
-            console.log("Community admin deleting post:", postId, "reason:", reason);
+            
 
             const result = await this._feedService.deletePost(communityAdminId, postId, reason);
 

@@ -32,10 +32,10 @@ export const useChat = () => {
 
     const initializeSocket = async () => {
       try {
-        console.log('🔄 Initializing socket connection...');
+        
         await socketService.connect(token);
         setSocketConnected(true);
-        console.log('✅ Socket connection successful');
+        
         socketInitialized.current = true;
       } catch (error: any) {
         console.warn('⚠️ Socket connection failed, using HTTP fallback:', error.message);
@@ -49,7 +49,7 @@ export const useChat = () => {
 
     return () => {
       if (socketInitialized.current) {
-        console.log('🧹 Cleaning up socket connection...');
+        
         socketService.disconnect();
         setSocketConnected(false);
         socketInitialized.current = false;
@@ -61,11 +61,11 @@ export const useChat = () => {
   useEffect(() => {
     if (!token || !currentUser || !socketConnected) return;
 
-    console.log('🎧 Setting up socket event listeners...');
+    
 
     // New message handler
     const handleNewMessage = (data: { message: MessageResponse; conversation: ConversationResponse }) => {
-      console.log('📨 Received new message:', data);
+      
       
       // Set the correct isOwnMessage flag based on current user
       const isOwnMessage = data.message.sender._id === currentUser?._id;
@@ -103,7 +103,7 @@ export const useChat = () => {
     };
 
     const handleMessageSent = (data: { message: MessageResponse; conversation: ConversationResponse }) => {
-      console.log('✅ Message sent confirmation:', data);
+      
       setSendingMessage(false);
       
       // Ensure the sent message is marked as own message
@@ -139,7 +139,7 @@ export const useChat = () => {
     };
 
     const handleMessageEdited = (data: { message: MessageResponse }) => {
-      console.log('✏️ Message edited:', data);
+      
       
       // Set the correct isOwnMessage flag for edited messages
       const isOwnMessage = data.message.sender._id === currentUser?._id;
@@ -157,7 +157,7 @@ export const useChat = () => {
     };
 
     const handleMessageDeleted = (data: { messageId: string }) => {
-      console.log('🗑️ Message deleted:', data);
+      
       
       setMessages(prev => {
         const updated = { ...prev };
@@ -171,7 +171,7 @@ export const useChat = () => {
     };
 
     const handleMessagesRead = (data: { userId: string; conversationId: string; readAt: Date }) => {
-      console.log('📖 Messages read:', data);
+      
       
       setMessages(prev => ({
         ...prev,
@@ -185,7 +185,7 @@ export const useChat = () => {
     };
 
     const handleConversationUpdated = (data: { conversation: ConversationResponse }) => {
-      console.log('💬 Conversation updated:', data);
+      
       
       setConversations(prev => {
         const existingIndex = prev.findIndex(conv => conv._id === data.conversation._id);
@@ -200,17 +200,17 @@ export const useChat = () => {
     };
 
     const handleUserTypingStart = (data: { userId: string; username: string }) => {
-      console.log('⌨️ User typing start:', data);
+      
       // TODO: Implement typing indicators UI
     };
 
     const handleUserTypingStop = (data: { userId: string; username: string }) => {
-      console.log('⌨️ User typing stop:', data);
+      
       // TODO: Implement typing indicators UI
     };
 
     const handleUserStatusChanged = (data: { userId: string; isOnline: boolean; lastSeen?: Date }) => {
-      console.log('👤 User status changed:', data);
+      
       
       setOnlineUsers(prev => {
         const updated = new Set(prev);
@@ -265,7 +265,7 @@ export const useChat = () => {
       socketService.onMessageError(handleMessageError);
       socketService.onConversationError(handleConversationError);
 
-      console.log('✅ Socket event listeners registered successfully');
+      
     } catch (error) {
       console.warn('⚠️ Socket event registration failed:', error);
     }
@@ -285,7 +285,7 @@ export const useChat = () => {
         socketService.offMessageError(handleMessageError);
         socketService.offConversationError(handleConversationError);
         socketService.offConversationError(handleConversationError);
-        console.log('🧹 Socket event listeners cleaned up');
+        
       } catch (error) {
         console.warn('⚠️ Socket event cleanup failed:', error);
       }
@@ -311,7 +311,7 @@ export const useChat = () => {
       setHasMoreConversations(response.hasMore);
       setNextCursorConversations(response.nextCursor);
 
-      console.log('📋 Fetched conversations:', response);
+      
     } catch (error: any) {
       console.error('❌ Failed to fetch conversations:', error);
       setError(error.message);
@@ -346,7 +346,7 @@ export const useChat = () => {
         [conversationId]: response.nextCursor
       }));
 
-      console.log('💬 Fetched messages for conversation:', conversationId, response);
+      
     } catch (error: any) {
       console.error('❌ Failed to fetch messages:', error);
       setError(error.message);
@@ -364,11 +364,11 @@ export const useChat = () => {
       setSendingMessage(true);
       setError(null);
 
-      console.log('📤 Attempting to send message...', { socketConnected, receiverUsername });
+      
 
       if (socketConnected && socketService.isConnected()) {
         // Send via socket for real-time
-        console.log('📤 Sending message via socket...');
+        
         socketService.sendMessage({
           receiverUsername: receiverUsername.trim(),
           content: content.trim()
@@ -376,7 +376,7 @@ export const useChat = () => {
         // Don't set sendingMessage to false here, wait for socket confirmation
       } else {
         // Fallback to HTTP API
-        console.log('📤 Sending message via HTTP API (socket not available)...');
+        ...');
         const response = await communityApiService.sendMessage(receiverUsername, content);
         
         // Update local state
@@ -401,7 +401,7 @@ export const useChat = () => {
         });
 
         setSendingMessage(false);
-        console.log('✅ Message sent via HTTP:', response);
+        
       }
     } catch (error: any) {
       console.error('❌ Failed to send message:', error);
@@ -419,14 +419,14 @@ export const useChat = () => {
       setError(null);
 
       if (socketConnected && socketService.isConnected()) {
-        console.log('✏️ Editing message via socket...');
+        
         socketService.editMessage({
           messageId,
           content: content.trim(),
           conversationId
         });
       } else {
-        console.log('✏️ Editing message via HTTP API...');
+        
         const updatedMessage = await communityApiService.editMessage(messageId, content);
         
         setMessages(prev => ({
@@ -437,7 +437,7 @@ export const useChat = () => {
         }));
       }
 
-      console.log('✅ Message edited:', messageId);
+      
     } catch (error: any) {
       console.error('❌ Failed to edit message:', error);
       setError(error.message);
@@ -451,13 +451,13 @@ export const useChat = () => {
       setError(null);
 
       if (socketConnected && socketService.isConnected()) {
-        console.log('🗑️ Deleting message via socket...');
+        
         socketService.deleteMessage({
           messageId,
           conversationId
         });
       } else {
-        console.log('🗑️ Deleting message via HTTP API...');
+        
         await communityApiService.deleteMessage(messageId);
         
         setMessages(prev => ({
@@ -468,7 +468,7 @@ export const useChat = () => {
         }));
       }
 
-      console.log('✅ Message deleted:', messageId);
+      
       toast.success('Message deleted');
     } catch (error: any) {
       console.error('❌ Failed to delete message:', error);
@@ -481,10 +481,10 @@ export const useChat = () => {
   const markMessagesAsRead = useCallback(async (conversationId: string) => {
     try {
       if (socketConnected && socketService.isConnected()) {
-        console.log('📖 Marking messages as read via socket...');
+        
         socketService.markMessagesAsRead({ conversationId });
       } else {
-        console.log('📖 Marking messages as read via HTTP API...');
+        
         await communityApiService.markMessagesAsRead(conversationId);
       }
 
@@ -495,7 +495,7 @@ export const useChat = () => {
         )
       );
 
-      console.log('✅ Messages marked as read:', conversationId);
+      
     } catch (error: any) {
       console.error('❌ Failed to mark messages as read:', error);
     }
@@ -518,7 +518,7 @@ export const useChat = () => {
         return prev;
       });
 
-      console.log('💬 Got/created conversation:', conversation);
+      
       return conversation;
     } catch (error: any) {
       console.error('❌ Failed to get/create conversation:', error);
@@ -535,7 +535,7 @@ export const useChat = () => {
     try {
       if (socketConnected && socketService.isConnected()) {
         socketService.joinConversation(conversationId);
-        console.log('✅ Joined conversation room:', conversationId);
+        
       } else {
         console.warn('⚠️ Cannot join conversation room - socket not connected');
       }
@@ -549,7 +549,7 @@ export const useChat = () => {
     try {
       if (socketConnected && socketService.isConnected()) {
         socketService.leaveConversation(conversationId);
-        console.log('✅ Left conversation room:', conversationId);
+        
       } else {
         console.warn('⚠️ Cannot leave conversation room - socket not connected');
       }

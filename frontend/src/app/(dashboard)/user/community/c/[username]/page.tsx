@@ -71,14 +71,14 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
         setLoading(true)
         setError(null)
         
-        console.log('Fetching community profile for:', username)
+        
         const communityData = await communityExploreApiService.getCommunityProfile(username)
         
         setCommunity(communityData)
         setIsMember(communityData.isMember)
         setMemberCount(communityData.memberCount)
         
-        console.log('Community data loaded:', communityData)
+        
       } catch (err: any) {
         console.error('Failed to fetch community:', err)
         setError(err.message || 'Failed to load community profile')

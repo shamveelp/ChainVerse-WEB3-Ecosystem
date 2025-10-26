@@ -16,9 +16,9 @@ interface CryptoChartProps {
 }
 
 export function CryptoChart({ data, loading, symbol, timeframe }: CryptoChartProps) {
-  console.log("[v0] Chart data received:", data?.length, "points")
-  console.log("[v0] First data point:", data?.[0])
-  console.log("[v0] Last data point:", data?.[data?.length - 1])
+  
+  
+  
 
   const formatXAxisLabel = (timestamp: number) => {
     const date = new Date(timestamp)

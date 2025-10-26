@@ -15,7 +15,7 @@ export class PointsController implements IPointsController {
 
   async performDailyCheckIn(req: Request, res: Response): Promise<void> {
     try {
-      console.log("PointsController: Performing daily check-in");
+      
       const user = req.user as { id: string; role: string };
       
       if (!user || !user.id) {
@@ -47,7 +47,7 @@ export class PointsController implements IPointsController {
 
   async getCheckInStatus(req: Request, res: Response): Promise<void> {
     try {
-      console.log("PointsController: Getting check-in status");
+      
       const user = req.user as { id: string; role: string };
       
       if (!user || !user.id) {
@@ -79,7 +79,7 @@ export class PointsController implements IPointsController {
 
   async getCheckInCalendar(req: Request, res: Response): Promise<void> {
     try {
-      console.log("PointsController: Getting check-in calendar");
+      
       const user = req.user as { id: string; role: string };
       
       if (!user || !user.id) {
@@ -114,7 +114,7 @@ export class PointsController implements IPointsController {
 
   async getPointsHistory(req: Request, res: Response): Promise<void> {
     try {
-      console.log("PointsController: Getting points history");
+      
       const user = req.user as { id: string; role: string };
       
       if (!user || !user.id) {

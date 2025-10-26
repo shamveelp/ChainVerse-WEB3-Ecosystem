@@ -82,19 +82,19 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   // Fetch profile data with proper cleanup and refresh logic
   useEffect(() => {
-    console.log('ProfilePage useEffect - username:', username, 'currentUser:', currentUser?.username);
+    
 
     const fetchData = async () => {
       try {
         if (isOwnProfile) {
           // Load own profile if not already loaded or if user changed
           if (!ownProfile || ownProfile.username !== currentUser?.username) {
-            console.log('Fetching own profile...');
+            
             await fetchCommunityProfile(true) // Force refresh
           }
         } else {
           // Always fetch other user's profile to get fresh data
-          console.log('Fetching profile for username:', username);
+          
           const profileData = await fetchCommunityProfileByUsername(username, true) // Force refresh
           
           if (profileData) {

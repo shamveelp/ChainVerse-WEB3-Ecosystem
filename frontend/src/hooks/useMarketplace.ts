@@ -99,7 +99,7 @@ export function useMarketplace() {
   const loadNFTsWithMetadata = async (items: any[]): Promise<NFTItem[]> => {
     if (!items || items.length === 0) return [];
 
-    console.log('Loading NFTs with metadata:', items);
+    
 
     const itemsWithMetadata = await Promise.all(
       items.map(async (item) => {
@@ -112,10 +112,10 @@ export function useMarketplace() {
             args: [item.tokenId],
           }) as string;
           
-          console.log(`Token URI for ${item.tokenId}:`, tokenURI);
+          
           
           const metadata = await fetchMetadata(tokenURI);
-          console.log(`Metadata for ${item.tokenId}:`, metadata);
+          
           
           return { ...item, metadata };
         } catch (error) {
@@ -132,20 +132,20 @@ export function useMarketplace() {
       })
     );
 
-    console.log('Items with metadata:', itemsWithMetadata);
+    
     return itemsWithMetadata;
   };
 
   // Load market data with metadata
   useEffect(() => {
     (async () => {
-      console.log('Market items query data:', marketItemsQuery.data);
+      
       if (!marketItemsQuery.data) return;
       
       setLoadingData(true);
       try {
         const items = await loadNFTsWithMetadata(marketItemsQuery.data as any[]);
-        console.log('Setting market items:', items);
+        
         setMarketItems(items);
       } catch (error) {
         console.error('Error loading market items:', error);
@@ -158,12 +158,12 @@ export function useMarketplace() {
 
   useEffect(() => {
     (async () => {
-      console.log('My NFTs query data:', myNFTsQuery.data);
+      
       if (!myNFTsQuery.data) return;
       
       try {
         const items = await loadNFTsWithMetadata(myNFTsQuery.data as any[]);
-        console.log('Setting my NFTs:', items);
+        
         setMyNFTs(items);
       } catch (error) {
         console.error('Error loading my NFTs:', error);
@@ -173,12 +173,12 @@ export function useMarketplace() {
 
   useEffect(() => {
     (async () => {
-      console.log('Listed items query data:', listedItemsQuery.data);
+      
       if (!listedItemsQuery.data) return;
       
       try {
         const items = await loadNFTsWithMetadata(listedItemsQuery.data as any[]);
-        console.log('Setting listed items:', items);
+        
         setListedItems(items);
       } catch (error) {
         console.error('Error loading listed items:', error);
@@ -300,7 +300,7 @@ export function useMarketplace() {
 
   const refreshData = async () => {
     try {
-      console.log('Refreshing all data...');
+      
       
       // Force refresh all queries
       await Promise.all([
@@ -314,7 +314,7 @@ export function useMarketplace() {
       // Trigger re-render
       setRefreshTrigger(prev => prev + 1);
       
-      console.log('Data refresh completed');
+      
     } catch (error) {
       console.error('Error refreshing data:', error);
     }

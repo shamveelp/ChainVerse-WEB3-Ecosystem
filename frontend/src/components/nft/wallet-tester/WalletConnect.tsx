@@ -18,7 +18,7 @@ export default function WalletConnect() {
         .then(() => {
           if (!cancelled) {
             // Only log, don't update state if unnecessary
-            console.log('Wallet saved successfully:', address);
+            
           }
         })
         .catch((err) => {

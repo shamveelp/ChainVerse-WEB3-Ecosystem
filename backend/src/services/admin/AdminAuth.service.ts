@@ -90,7 +90,7 @@ export class AdminAuthService implements IAdminAuthService {
   }
 
   async incrementTokenVersion(adminId: string): Promise<void> {
-    console.log("ithinte id", adminId);
+    
     await this._adminRepository.incrementTokenVersion(adminId);
   }
 }

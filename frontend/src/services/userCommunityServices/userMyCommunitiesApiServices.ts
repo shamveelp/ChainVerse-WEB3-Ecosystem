@@ -151,9 +151,9 @@ export const userMyCommunitiesApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      console.log('API: Getting my communities with params:', params.toString());
+      );
       const response = await API.get(`/api/user/my-communities?${params.toString()}`);
-      console.log('API: My communities response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
@@ -186,9 +186,9 @@ export const userMyCommunitiesApiService = {
   // Get my communities stats
   getMyCommunitiesStats: async (): Promise<MyCommunitiesStats> => {
     try {
-      console.log('API: Getting my communities stats');
+      
       const response = await API.get('/api/user/my-communities/stats');
-      console.log('API: My communities stats response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
@@ -211,9 +211,9 @@ export const userMyCommunitiesApiService = {
   // Get my communities activity
   getMyCommunitiesActivity: async (): Promise<MyCommunitiesActivityResponse> => {
     try {
-      console.log('API: Getting my communities activity');
+      
       const response = await API.get('/api/user/my-communities/activity');
-      console.log('API: My communities activity response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
@@ -248,13 +248,13 @@ export const userMyCommunitiesApiService = {
 
     try {
       const cleanId = communityId.trim();
-      console.log(`API: Updating notifications for community: ${cleanId} to ${enabled}`);
+      
 
       const response = await API.put(`/api/user/my-communities/${encodeURIComponent(cleanId)}/notifications`, {
         communityId: cleanId,
         enabled
       });
-      console.log(`API: Update notifications response for ${cleanId}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return Boolean(response.data.data.notificationsEnabled);
@@ -276,10 +276,10 @@ export const userMyCommunitiesApiService = {
 
     try {
       const cleanId = communityId.trim();
-      console.log(`API: Leaving community from my communities: ${cleanId}`);
+      
 
       const response = await API.delete(`/api/user/my-communities/${encodeURIComponent(cleanId)}/leave`);
-      console.log(`API: Leave community response for ${cleanId}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;

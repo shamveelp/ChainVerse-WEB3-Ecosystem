@@ -105,16 +105,16 @@ export function useAuthActions() {
   const requestRegistrationOtp = async (email: string, userData: { name: string; email: string; password: string }) => {
     dispatch(setLoading(true))
     try {
-      console.log("Requesting OTP for registration:", email)
+      
       const response = await authApiService.requestOtp(email)
-      console.log("OTP Response:", response)
+      
 
       if (response.success) {
         // Store the data in Redux
         dispatch(setTempUserData(userData))
         dispatch(setTempEmail(email))
 
-        console.log("Stored temp data, navigating to verify-otp")
+        
 
         toast({
           title: "OTP Sent",
@@ -146,9 +146,9 @@ export function useAuthActions() {
   const requestForgotPasswordOtp = async (email: string) => {
     dispatch(setLoading(true))
     try {
-      console.log("Requesting forgot password OTP for:", email)
+      
       const response = await authApiService.forgotPassword(email)
-      console.log("Forgot password response:", response)
+      
 
       if (response.success) {
         // Store email in Redux
@@ -191,11 +191,11 @@ export function useAuthActions() {
   ) => {
     dispatch(setLoading(true))
     try {
-      console.log("Verifying OTP:", { otp, type, tempEmail, tempUserData })
+      
 
       if (type === "register" && tempUserData) {
         const response = await authApiService.signup(tempUserData.name, tempUserData.email, tempUserData.password, otp)
-        console.log("Signup response:", response)
+        
 
         if (response.success && response.user && response.token) {
           dispatch(reduxLogin({ user: response.user, token: response.token }))
@@ -214,7 +214,7 @@ export function useAuthActions() {
         }
       } else if (type === "forgot-password" && tempEmail) {
         const response = await authApiService.verifyForgotPasswordOtp(tempEmail, otp)
-        console.log("Verify forgot password OTP response:", response)
+        
 
         if (response.success) {
           toast({
@@ -248,9 +248,9 @@ export function useAuthActions() {
   const resetPassword = async (email: string, newPassword: string) => {
     dispatch(setLoading(true))
     try {
-      console.log("Resetting password for:", email)
+      
       const response = await authApiService.resetPassword(email, newPassword)
-      console.log("Reset password response:", response)
+      
 
       if (response.success) {
         dispatch(clearTempData())

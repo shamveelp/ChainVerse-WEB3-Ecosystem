@@ -233,7 +233,7 @@ export default function CreateCommunityPage() {
         banner: formData.banner
       }
 
-      console.log('Submitting application data:', applicationData)
+      
 
       const result = await communityAdminApiService.submitCommunityApplication(applicationData as any)
 

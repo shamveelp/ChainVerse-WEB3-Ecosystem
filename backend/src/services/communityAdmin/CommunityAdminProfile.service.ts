@@ -25,7 +25,7 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
 
     async getProfile(adminId: string): Promise<CommunityAdminProfileResponseDto> {
         try {
-            console.log("CommunityAdminProfileService: Getting profile for admin:", adminId);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -65,7 +65,7 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
             }
 
             const profileResponse = new CommunityAdminProfileResponseDto(admin, community, stats);
-            console.log("CommunityAdminProfileService: Profile retrieved successfully");
+            
             return profileResponse;
         } catch (error) {
             console.error("CommunityAdminProfileService: Get profile error:", error);
@@ -78,7 +78,7 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
 
     async updateProfile(adminId: string, data: UpdateCommunityAdminProfileDto): Promise<CommunityAdminProfileResponseDto> {
         try {
-            console.log("CommunityAdminProfileService: Updating profile for admin:", adminId, "with data:", data);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -106,7 +106,7 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
                 throw new CustomError("Failed to update profile", StatusCode.INTERNAL_SERVER_ERROR);
             }
 
-            console.log("CommunityAdminProfileService: Profile updated successfully");
+            
             return await this.getProfile(adminId);
         } catch (error) {
             console.error("CommunityAdminProfileService: Update profile error:", error);
@@ -119,7 +119,7 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
 
     async getCommunityStats(adminId: string, period: string = 'week'): Promise<CommunityStatsDto> {
         try {
-            console.log("CommunityAdminProfileService: Getting community stats for admin:", adminId, "period:", period);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -167,7 +167,7 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
                 topActiveMembers: topMembers
             };
 
-            console.log("CommunityAdminProfileService: Community stats retrieved successfully");
+            
             return new CommunityStatsDto(statsData);
         } catch (error) {
             console.error("CommunityAdminProfileService: Get community stats error:", error);

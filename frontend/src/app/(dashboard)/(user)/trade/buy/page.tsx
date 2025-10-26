@@ -58,7 +58,7 @@ export default function BuyCryptoPage() {
         script.async = true;
         script.onload = () => {
           setScriptLoaded(true);
-          console.log('Razorpay script loaded successfully');
+          
         };
         script.onerror = () => {
           console.error('Failed to load Razorpay script');
@@ -71,7 +71,7 @@ export default function BuyCryptoPage() {
         document.head.appendChild(script);
       } else if (window.Razorpay) {
         setScriptLoaded(true);
-        console.log('Razorpay already loaded');
+        
       }
     };
 
@@ -268,7 +268,7 @@ export default function BuyCryptoPage() {
         }
       };
 
-      console.log('Initializing Razorpay with options:', options);
+      
       const razorpay = new window.Razorpay(options);
       
       razorpay.on('payment.failed', function (response: any) {

@@ -16,14 +16,14 @@ export class UserService implements IUserService {
 
   async getProfile(userId: string): Promise<IUser | null> {
     try {
-      console.log("UserService: Getting profile for user:", userId);
+      
       
       if (!userId) {
         throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
       }
 
       const user = await this._userRepository.findById(userId);
-      console.log("UserService: User found:", user ? "Yes" : "No");
+      
       
       if (!user) {
         throw new CustomError("User profile not found", StatusCode.NOT_FOUND);
@@ -55,7 +55,7 @@ export class UserService implements IUserService {
         updatedAt: user.updatedAt,
       };
 
-      console.log("UserService: Returning profile data");
+      
       return profileData as IUser;
     } catch (error) {
       console.error("UserService: Get profile error:", error);
@@ -68,7 +68,7 @@ export class UserService implements IUserService {
 
   async updateProfile(userId: string, data: Partial<IUser>): Promise<IUser | null> {
     try {
-      console.log("UserService: Updating profile for user:", userId, "with data:", data);
+      
       
       if (!userId) {
         throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
@@ -83,7 +83,7 @@ export class UserService implements IUserService {
 
       const { password, email, isEmailVerified, role, googleId, tokenVersion, ...updateData } = data;
 
-      console.log("UserService: Filtered update data:", updateData);
+      
       
       await this._userRepository.update(userId, updateData);
       
@@ -93,7 +93,7 @@ export class UserService implements IUserService {
         throw new CustomError("User profile not found after update", StatusCode.NOT_FOUND);
       }
 
-      console.log("UserService: Profile updated successfully");
+      
       return updatedUser;
     } catch (error) {
       console.error("UserService: Update profile error:", error);
@@ -106,7 +106,7 @@ export class UserService implements IUserService {
 
   async updatePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
     try {
-      console.log("UserService: Updating password for user:", userId);
+      
       
       const user = await this._userRepository.findById(userId);
       if (!user) {
@@ -123,7 +123,7 @@ export class UserService implements IUserService {
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
       await this._userRepository.update(userId, { password: hashedNewPassword });
       
-      console.log("UserService: Password updated successfully");
+      
     } catch (error) {
       console.error("UserService: Update password error:", error);
       if (error instanceof CustomError) {
@@ -135,7 +135,7 @@ export class UserService implements IUserService {
 
   async checkUsernameAvailability(username: string, currentUserId?: string): Promise<boolean> {
     try {
-      console.log("UserService: Checking username availability:", username, "for user:", currentUserId);
+      
       
       if (!username || username.trim() === "") {
         throw new CustomError("Username cannot be empty", StatusCode.BAD_REQUEST);
@@ -144,16 +144,16 @@ export class UserService implements IUserService {
       const existingUser = await this._userRepository.findByUsername(username.trim());
       
       if (!existingUser) {
-        console.log("UserService: Username is available");
+        
         return true;
       }
 
       if (currentUserId && existingUser._id.toString() === currentUserId) {
-        console.log("UserService: Username belongs to current user");
+        
         return true;
       }
 
-      console.log("UserService: Username is not available");
+      
       return false;
     } catch (error) {
       console.error("UserService: Check username availability error:", error);

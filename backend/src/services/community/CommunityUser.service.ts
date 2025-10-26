@@ -14,14 +14,14 @@ export class CommunityUserService implements ICommunityUserService {
 
     async getCommunityProfile(userId: string, viewerUserId?: string): Promise<CommunityProfileResponseDto | null> {
         try {
-            console.log("CommunityUserService: Getting community profile for user:", userId);
+            
 
             if (!userId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
             }
 
             const user = await this._communityRepository.findUserById(userId);
-            console.log("CommunityUserService: User found:", user ? "Yes" : "No");
+            
 
             if (!user) {
                 throw new CustomError("User profile not found", StatusCode.NOT_FOUND);
@@ -69,7 +69,7 @@ export class CommunityUserService implements ICommunityUserService {
                 isFollowing: isFollowing
             };
 
-            console.log("CommunityUserService: Returning community profile data");
+            
             return profileData;
         } catch (error) {
             console.error("CommunityUserService: Get community profile error:", error);
@@ -82,7 +82,7 @@ export class CommunityUserService implements ICommunityUserService {
 
     async getCommunityProfileByUsername(username: string, viewerUserId?: string): Promise<CommunityProfileResponseDto | null> {
         try {
-            console.log("CommunityUserService: Getting community profile by username:", username);
+            
 
             if (!username) {
                 throw new CustomError("Username is required", StatusCode.BAD_REQUEST);
@@ -106,7 +106,7 @@ export class CommunityUserService implements ICommunityUserService {
 
     async updateCommunityProfile(userId: string, data: UpdateCommunityProfileDto): Promise<CommunityProfileResponseDto | null> {
         try {
-            console.log("CommunityUserService: Updating community profile for user:", userId, "with data:", data);
+            
 
             if (!userId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
@@ -127,7 +127,7 @@ export class CommunityUserService implements ICommunityUserService {
                 location: data.location?.trim() || ""
             };
 
-            console.log("CommunityUserService: Filtered update data:", updateData);
+            
 
             const updatedUser = await this._communityRepository.updateCommunityProfile(userId, updateData as any);
 
@@ -135,7 +135,7 @@ export class CommunityUserService implements ICommunityUserService {
                 throw new CustomError("User profile not found after update", StatusCode.NOT_FOUND);
             }
 
-            console.log("CommunityUserService: Community profile updated successfully");
+            
             return await this.getCommunityProfile(userId, userId);
         } catch (error) {
             console.error("CommunityUserService: Update community profile error:", error);
@@ -148,7 +148,7 @@ export class CommunityUserService implements ICommunityUserService {
 
     async uploadBannerImage(userId: string, bannerUrl: string): Promise<CommunityProfileResponseDto | null> {
         try {
-            console.log("CommunityUserService: Uploading banner image for user:", userId);
+            
 
             if (!userId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
@@ -164,7 +164,7 @@ export class CommunityUserService implements ICommunityUserService {
                 throw new CustomError("User profile not found after update", StatusCode.NOT_FOUND);
             }
 
-            console.log("CommunityUserService: Banner image updated successfully");
+            
             return await this.getCommunityProfile(userId, userId);
         } catch (error) {
             console.error("CommunityUserService: Upload banner image error:", error);

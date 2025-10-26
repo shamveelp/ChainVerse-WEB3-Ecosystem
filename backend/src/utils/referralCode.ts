@@ -39,11 +39,11 @@ export class ReferralCodeService {
       const user = await UserModel.findOne({ refferalCode: cleanReferralCode }).exec();
       
       if (user) {
-        console.log(`Found referrer: ${user._id} for code: ${cleanReferralCode}`);
+        
         return user._id.toString();
       }
       
-      console.log(`No user found for referral code: ${cleanReferralCode}`);
+      
       return null;
     } catch (error) {
       console.error('Error validating referral code:', error);

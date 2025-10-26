@@ -38,7 +38,7 @@ export default function SettingsPage() {
 
   const handleSaveSettings = () => {
     // Handle save API call
-    console.log("Saving settings...")
+    
   }
 
   return (

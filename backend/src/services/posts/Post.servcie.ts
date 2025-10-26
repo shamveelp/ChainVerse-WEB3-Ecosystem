@@ -34,7 +34,7 @@ export class PostService implements IPostService {
     // Post operations
     async createPost(userId: string, data: CreatePostDto): Promise<PostResponseDto> {
         try {
-            console.log('PostService: Creating post for user:', userId, 'with data:', data);
+            
 
             if (!userId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
@@ -65,7 +65,7 @@ export class PostService implements IPostService {
             // Update user's posts count
             await this._communityRepository.incrementPostsCount(userId);
 
-            console.log('PostService: Post created successfully:', post._id);
+            
 
             // Transform to response DTO
             return this.transformToPostResponse(post, userId);
@@ -80,7 +80,7 @@ export class PostService implements IPostService {
 
     async getPostById(postId: string, viewerUserId?: string): Promise<PostDetailResponseDto> {
         try {
-            console.log('PostService: Getting post by ID:', postId, 'for viewer:', viewerUserId);
+            
 
             if (!postId) {
                 throw new CustomError("Post ID is required", StatusCode.BAD_REQUEST);
@@ -120,7 +120,7 @@ export class PostService implements IPostService {
 
     async updatePost(postId: string, userId: string, data: UpdatePostDto): Promise<PostResponseDto> {
         try {
-            console.log('PostService: Updating post:', postId, 'by user:', userId);
+            
 
             if (!postId || !userId) {
                 throw new CustomError("Post ID and User ID are required", StatusCode.BAD_REQUEST);
@@ -150,7 +150,7 @@ export class PostService implements IPostService {
                 throw new CustomError("Failed to update post", StatusCode.INTERNAL_SERVER_ERROR);
             }
 
-            console.log('PostService: Post updated successfully');
+            
             return this.transformToPostResponse(updatedPost, userId);
         } catch (error) {
             console.error('PostService: Update post error:', error);
@@ -163,7 +163,7 @@ export class PostService implements IPostService {
 
     async deletePost(postId: string, userId: string): Promise<{ success: boolean; message: string }> {
         try {
-            console.log('PostService: Deleting post:', postId, 'by user:', userId);
+            
 
             if (!postId || !userId) {
                 throw new CustomError("Post ID and User ID are required", StatusCode.BAD_REQUEST);
@@ -174,7 +174,7 @@ export class PostService implements IPostService {
                 throw new CustomError("Post not found or you don't have permission to delete it", StatusCode.NOT_FOUND);
             }
 
-            console.log('PostService: Post deleted successfully');
+            
             return {
                 success: true,
                 message: "Post deleted successfully"
@@ -191,7 +191,7 @@ export class PostService implements IPostService {
     // Post queries
     async getFeedPosts(userId: string, cursor?: string, limit: number = 10): Promise<PostsListResponseDto> {
         try {
-            console.log('PostService: Getting feed posts for user:', userId, 'cursor:', cursor, 'limit:', limit);
+            
 
             if (!userId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
@@ -204,7 +204,7 @@ export class PostService implements IPostService {
                 result.posts.map(post => this.transformToPostResponseWithLikeStatus(post, userId))
             );
 
-            console.log('PostService: Feed posts fetched successfully, count:', transformedPosts.length);
+            
 
             return {
                 posts: transformedPosts,
@@ -223,7 +223,7 @@ export class PostService implements IPostService {
 
     async getUserPosts(targetUserId: string, viewerUserId?: string, cursor?: string, limit: number = 10): Promise<PostsListResponseDto> {
         try {
-            console.log('PostService: Getting posts for user:', targetUserId, 'viewer:', viewerUserId);
+            
 
             if (!targetUserId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
@@ -253,7 +253,7 @@ export class PostService implements IPostService {
 
     async getLikedPosts(targetUserId: string, viewerUserId?: string, cursor?: string, limit: number = 10): Promise<PostsListResponseDto> {
         try {
-            console.log('PostService: Getting liked posts for user:', targetUserId, 'viewer:', viewerUserId);
+            
 
             if (!targetUserId) {
                 throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
@@ -283,7 +283,7 @@ export class PostService implements IPostService {
 
     async getTrendingPosts(cursor?: string, limit: number = 10): Promise<PostsListResponseDto> {
         try {
-            console.log('PostService: Getting trending posts, cursor:', cursor, 'limit:', limit);
+            
 
             const result = await this._postRepository.getTrendingPosts(cursor, limit);
             
@@ -307,7 +307,7 @@ export class PostService implements IPostService {
 
     async getPostsByHashtag(hashtag: string, cursor?: string, limit: number = 10): Promise<PostsListResponseDto> {
         try {
-            console.log('PostService: Getting posts by hashtag:', hashtag);
+            
 
             if (!hashtag || hashtag.trim().length === 0) {
                 throw new CustomError("Hashtag is required", StatusCode.BAD_REQUEST);
@@ -335,7 +335,7 @@ export class PostService implements IPostService {
 
     async searchPosts(query: string, cursor?: string, limit: number = 10): Promise<PostsListResponseDto> {
         try {
-            console.log('PostService: Searching posts with query:', query);
+            
 
             if (!query || query.trim().length === 0) {
                 throw new CustomError("Search query is required", StatusCode.BAD_REQUEST);
@@ -364,7 +364,7 @@ export class PostService implements IPostService {
     // Like operations
     async togglePostLike(userId: string, postId: string): Promise<LikeResponseDto> {
         try {
-            console.log('PostService: Toggling post like for user:', userId, 'post:', postId);
+            
 
             if (!userId || !postId) {
                 throw new CustomError("User ID and Post ID are required", StatusCode.BAD_REQUEST);
@@ -397,7 +397,7 @@ export class PostService implements IPostService {
                 message = "Post liked successfully";
             }
 
-            console.log('PostService: Post like toggled successfully, new status:', isNowLiked);
+            
 
             return {
                 success: true,
@@ -416,7 +416,7 @@ export class PostService implements IPostService {
 
     async toggleCommentLike(userId: string, commentId: string): Promise<LikeResponseDto> {
         try {
-            console.log('PostService: Toggling comment like for user:', userId, 'comment:', commentId);
+            
 
             if (!userId || !commentId) {
                 throw new CustomError("User ID and Comment ID are required", StatusCode.BAD_REQUEST);
@@ -449,7 +449,7 @@ export class PostService implements IPostService {
                 message = "Comment liked successfully";
             }
 
-            console.log('PostService: Comment like toggled successfully, new status:', isNowLiked);
+            
 
             return {
                 success: true,
@@ -468,7 +468,7 @@ export class PostService implements IPostService {
 
     async getPostLikers(postId: string, cursor?: string, limit: number = 20): Promise<any> {
         try {
-            console.log('PostService: Getting post likers for post:', postId);
+            
 
             if (!postId) {
                 throw new CustomError("Post ID is required", StatusCode.BAD_REQUEST);
@@ -501,7 +501,7 @@ export class PostService implements IPostService {
     // Comment operations
     async createComment(userId: string, data: CreateCommentDto): Promise<CommentResponseDto> {
         try {
-            console.log('PostService: Creating comment for user:', userId, 'data:', data);
+            
 
             if (!userId || !data.postId || !data.content) {
                 throw new CustomError("User ID, Post ID, and content are required", StatusCode.BAD_REQUEST);
@@ -540,7 +540,7 @@ export class PostService implements IPostService {
                 data.parentCommentId
             );
 
-            console.log('PostService: Comment created successfully:', comment._id);
+            
             return this.transformToCommentResponse(comment, userId);
         } catch (error) {
             console.error('PostService: Create comment error:', error);
@@ -553,7 +553,7 @@ export class PostService implements IPostService {
 
     async updateComment(commentId: string, userId: string, content: string): Promise<CommentResponseDto> {
         try {
-            console.log('PostService: Updating comment:', commentId, 'by user:', userId);
+            
 
             if (!commentId || !userId || !content) {
                 throw new CustomError("Comment ID, User ID, and content are required", StatusCode.BAD_REQUEST);
@@ -583,7 +583,7 @@ export class PostService implements IPostService {
                 throw new CustomError("Failed to update comment", StatusCode.INTERNAL_SERVER_ERROR);
             }
 
-            console.log('PostService: Comment updated successfully');
+            
             return this.transformToCommentResponse(updatedComment, userId);
         } catch (error) {
             console.error('PostService: Update comment error:', error);
@@ -596,7 +596,7 @@ export class PostService implements IPostService {
 
     async deleteComment(commentId: string, userId: string): Promise<{ success: boolean; message: string }> {
         try {
-            console.log('PostService: Deleting comment:', commentId, 'by user:', userId);
+            
 
             if (!commentId || !userId) {
                 throw new CustomError("Comment ID and User ID are required", StatusCode.BAD_REQUEST);
@@ -607,7 +607,7 @@ export class PostService implements IPostService {
                 throw new CustomError("Comment not found or you don't have permission to delete it", StatusCode.NOT_FOUND);
             }
 
-            console.log('PostService: Comment deleted successfully');
+            
             return {
                 success: true,
                 message: "Comment deleted successfully"
@@ -623,7 +623,7 @@ export class PostService implements IPostService {
 
     async getPostComments(postId: string, viewerUserId?: string, cursor?: string, limit: number = 10): Promise<CommentsListResponseDto> {
         try {
-            console.log('PostService: Getting post comments for post:', postId, 'viewer:', viewerUserId);
+            
 
             if (!postId) {
                 throw new CustomError("Post ID is required", StatusCode.BAD_REQUEST);
@@ -653,7 +653,7 @@ export class PostService implements IPostService {
 
     async getCommentReplies(commentId: string, viewerUserId?: string, cursor?: string, limit: number = 10): Promise<CommentsListResponseDto> {
         try {
-            console.log('PostService: Getting comment replies for comment:', commentId, 'viewer:', viewerUserId);
+            
 
             if (!commentId) {
                 throw new CustomError("Comment ID is required", StatusCode.BAD_REQUEST);
@@ -684,7 +684,7 @@ export class PostService implements IPostService {
     // Media operations
     async uploadPostMedia(file: Express.Multer.File): Promise<MediaUploadResponseDto> {
         try {
-            console.log('PostService: Uploading media file:', file.originalname);
+            
 
             if (!file) {
                 throw new CustomError("No file provided", StatusCode.BAD_REQUEST);
@@ -742,7 +742,7 @@ export class PostService implements IPostService {
                 ).end(file.buffer);
             });
 
-            console.log('PostService: Media uploaded successfully to:', result.secure_url);
+            
 
             return {
                 success: true,
@@ -762,7 +762,7 @@ export class PostService implements IPostService {
     // Share operations
     async sharePost(userId: string, data: SharePostDto): Promise<ShareResponseDto> {
         try {
-            console.log('PostService: Sharing post:', data.postId, 'by user:', userId);
+            
 
             if (!userId || !data.postId) {
                 throw new CustomError("User ID and Post ID are required", StatusCode.BAD_REQUEST);
@@ -798,7 +798,7 @@ export class PostService implements IPostService {
     // Analytics
     async getPostStats(userId?: string): Promise<PostStatsDto> {
         try {
-            console.log('PostService: Getting post stats for user:', userId);
+            
             return await this._postRepository.getPostStats(userId);
         } catch (error) {
             console.error('PostService: Get post stats error:', error);
@@ -811,7 +811,7 @@ export class PostService implements IPostService {
 
     async getPopularHashtags(limit: number = 10): Promise<string[]> {
         try {
-            console.log('PostService: Getting popular hashtags, limit:', limit);
+            
             return await this._postRepository.getPopularHashtags(limit);
         } catch (error) {
             console.error('PostService: Get popular hashtags error:', error);

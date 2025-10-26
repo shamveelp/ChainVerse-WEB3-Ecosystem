@@ -34,7 +34,7 @@ class SocketService {
 
   connect(token: string): Promise<void> {
     if (this.socket?.connected) {
-      console.log('Socket already connected');
+      
       return Promise.resolve();
     }
 
@@ -49,7 +49,7 @@ class SocketService {
       return this.connectionPromise;
     }
 
-    console.log('Connecting to socket server with token...');
+    
     
     this.connectionPromise = new Promise((resolve, reject) => {
       this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
@@ -69,7 +69,7 @@ class SocketService {
 
       this.socket.on('connect', () => {
         clearTimeout(timeout);
-        console.log('✅ Connected to socket server:', this.socket?.id);
+        
         this.reconnectAttempts = 0;
         if (this.reconnectTimeout) {
           clearTimeout(this.reconnectTimeout);
@@ -107,7 +107,7 @@ class SocketService {
     if (!this.socket) return;
 
     this.socket.on('disconnect', (reason) => {
-      console.log('🔌 Disconnected from socket server:', reason);
+      
       this.connectionPromise = null;
       
       if (reason === 'io server disconnect') {
@@ -117,7 +117,7 @@ class SocketService {
     });
 
     this.socket.on('reconnect', () => {
-      console.log('🔄 Successfully reconnected to socket server');
+      
       this.reconnectAttempts = 0;
       this.connectionPromise = null;
     });
@@ -147,7 +147,7 @@ class SocketService {
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
     
-    console.log(`🔄 Attempting to reconnect in ${delay}ms... (Attempt ${this.reconnectAttempts})`);
+    `);
     
     this.reconnectTimeout = setTimeout(() => {
       if (this.socket && !this.socket.connected) {
@@ -158,7 +158,7 @@ class SocketService {
 
   disconnect(): void {
     if (this.socket) {
-      console.log('👋 Disconnecting from socket server...');
+      
       this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;
@@ -176,7 +176,7 @@ class SocketService {
   // Room management
   joinConversation(conversationId: string): void {
     if (this.socket?.connected) {
-      console.log('🏠 Joining conversation:', conversationId);
+      
       this.socket.emit('join_conversation', conversationId);
     } else {
       console.warn('Cannot join conversation - socket not connected');
@@ -185,7 +185,7 @@ class SocketService {
 
   leaveConversation(conversationId: string): void {
     if (this.socket?.connected) {
-      console.log('🚪 Leaving conversation:', conversationId);
+      
       this.socket.emit('leave_conversation', conversationId);
     } else {
       console.warn('Cannot leave conversation - socket not connected');
@@ -195,7 +195,7 @@ class SocketService {
   // Message operations
   sendMessage(data: MessageData): void {
     if (this.socket?.connected) {
-      console.log('📤 Sending message via socket:', data);
+      
       this.socket.emit('send_message', data);
     } else {
       console.warn('Cannot send message - socket not connected');
@@ -205,7 +205,7 @@ class SocketService {
 
   editMessage(data: EditMessageData): void {
     if (this.socket?.connected) {
-      console.log('✏️ Editing message via socket:', data);
+      
       this.socket.emit('edit_message', data);
     } else {
       console.warn('Cannot edit message - socket not connected');
@@ -215,7 +215,7 @@ class SocketService {
 
   deleteMessage(data: DeleteMessageData): void {
     if (this.socket?.connected) {
-      console.log('🗑️ Deleting message via socket:', data);
+      
       this.socket.emit('delete_message', data);
     } else {
       console.warn('Cannot delete message - socket not connected');
@@ -225,7 +225,7 @@ class SocketService {
 
   markMessagesAsRead(data: ReadMessagesData): void {
     if (this.socket?.connected) {
-      console.log('📖 Marking messages as read via socket:', data);
+      
       this.socket.emit('mark_messages_read', data);
     } else {
       console.warn('Cannot mark messages as read - socket not connected');
@@ -248,35 +248,35 @@ class SocketService {
   // Event listeners
   onNewMessage(callback: (data: any) => void): void {
     this.socket?.on('new_message', (data) => {
-      console.log('📨 Received new message:', data);
+      
       callback(data);
     });
   }
 
   onMessageSent(callback: (data: any) => void): void {
     this.socket?.on('message_sent', (data) => {
-      console.log('✅ Message sent confirmation:', data);
+      
       callback(data);
     });
   }
 
   onMessageEdited(callback: (data: any) => void): void {
     this.socket?.on('message_edited', (data) => {
-      console.log('✏️ Message edited:', data);
+      
       callback(data);
     });
   }
 
   onMessageDeleted(callback: (data: any) => void): void {
     this.socket?.on('message_deleted', (data) => {
-      console.log('🗑️ Message deleted:', data);
+      
       callback(data);
     });
   }
 
   onMessagesRead(callback: (data: any) => void): void {
     this.socket?.on('messages_read', (data) => {
-      console.log('📖 Messages read:', data);
+      
       callback(data);
     });
   }
@@ -295,7 +295,7 @@ class SocketService {
 
   onUserStatusChanged(callback: (data: any) => void): void {
     this.socket?.on('user_status_changed', (data) => {
-      console.log('👤 User status changed:', data);
+      
       callback(data);
     });
   }

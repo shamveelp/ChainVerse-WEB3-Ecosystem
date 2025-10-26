@@ -17,7 +17,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
     async getProfile(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
-            console.log("Getting community admin profile for:", communityAdminId);
+            
 
             const profile = await this._profileService.getProfile(communityAdminId);
 
@@ -41,7 +41,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
     async updateProfile(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
-            console.log("Updating community admin profile for:", communityAdminId, "with data:", req.body);
+            
 
             const updatedProfile = await this._profileService.updateProfile(communityAdminId, req.body);
 
@@ -66,7 +66,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
     async uploadProfilePicture(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
-            console.log("Uploading profile picture for community admin:", communityAdminId);
+            
 
             if (!req.file) {
                 res.status(StatusCode.BAD_REQUEST).json({
@@ -101,7 +101,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
                 profilePic: result.secure_url
             });
 
-            console.log("Profile picture uploaded successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: updatedProfile,
@@ -125,7 +125,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             const communityAdminId = (req as any).user.id;
             const { period = 'week' } = req.query;
             
-            console.log("Getting community stats for admin:", communityAdminId, "period:", period);
+            
 
             const stats = await this._profileService.getCommunityStats(communityAdminId, period as string);
 

@@ -18,7 +18,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const communityAdminId = (req as any).user.id;
             const { cursor, limit = '20', search, role, status, sortBy = 'recent' } = req.query;
 
-            console.log("Getting community members for admin:", communityAdminId);
+            
 
             let validLimit = 20;
             if (limit && typeof limit === 'string') {
@@ -59,7 +59,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const communityAdminId = (req as any).user.id;
             const { memberId } = req.params;
 
-            console.log("Getting member details for admin:", communityAdminId, "member:", memberId);
+            
 
             const member = await this._membersService.getMemberDetails(communityAdminId, memberId);
 
@@ -85,7 +85,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const communityAdminId = (req as any).user.id;
             const { memberId, role, reason } = req.body;
 
-            console.log("Updating member role for admin:", communityAdminId, "member:", memberId, "role:", role);
+            
 
             if (!memberId || !role) {
                 res.status(StatusCode.BAD_REQUEST).json({
@@ -120,7 +120,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const communityAdminId = (req as any).user.id;
             const { memberId, reason, durationDays } = req.body;
 
-            console.log("Banning member for admin:", communityAdminId, "member:", memberId, "reason:", reason);
+            
 
             if (!memberId || !reason) {
                 res.status(StatusCode.BAD_REQUEST).json({
@@ -155,7 +155,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const communityAdminId = (req as any).user.id;
             const { memberId } = req.params;
 
-            console.log("Unbanning member for admin:", communityAdminId, "member:", memberId);
+            
 
             const unbannedMember = await this._membersService.unbanMember(communityAdminId, memberId);
 
@@ -179,7 +179,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const { memberId } = req.params;
             const { reason } = req.body;
 
-            console.log("Removing member for admin:", communityAdminId, "member:", memberId);
+            
 
             const result = await this._membersService.removeMember(communityAdminId, memberId, reason);
 
@@ -207,7 +207,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const { memberId } = req.params;
             const { period = 'week' } = req.query;
 
-            console.log("Getting member activity for admin:", communityAdminId, "member:", memberId, "period:", period);
+            
 
             const activity = await this._membersService.getMemberActivity(communityAdminId, memberId, period as string);
 
@@ -233,7 +233,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const communityAdminId = (req as any).user.id;
             const { memberIds, action, reason } = req.body;
 
-            console.log("Bulk updating members for admin:", communityAdminId, "action:", action, "members:", memberIds?.length);
+            
 
             if (!memberIds || !Array.isArray(memberIds) || memberIds.length === 0) {
                 res.status(StatusCode.BAD_REQUEST).json({

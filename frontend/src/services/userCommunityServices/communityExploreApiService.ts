@@ -273,9 +273,9 @@ export const communityExploreApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      console.log('API: Searching with params:', params.toString());
+      );
       const response = await API.get(`/api/user/communities/search?${params.toString()}`);
-      console.log('API: Search response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
@@ -325,9 +325,9 @@ export const communityExploreApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       if (category && category.trim()) params.append('category', category.trim());
 
-      console.log('API: Getting popular communities with params:', params.toString());
+      );
       const response = await API.get(`/api/user/communities/popular?${params.toString()}`);
-      console.log('API: Popular communities response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
@@ -357,10 +357,10 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = username.trim();
-      console.log(`API: Getting community profile for: ${cleanUsername}`);
+      
 
       const response = await API.get(`/api/user/communities/username/${encodeURIComponent(cleanUsername)}`);
-      console.log(`API: Community profile response for ${cleanUsername}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return transformCommunityData(response.data.data) as CommunityProfile;
@@ -382,10 +382,10 @@ export const communityExploreApiService = {
 
     try {
       const cleanId = communityId.trim();
-      console.log(`API: Getting community by ID: ${cleanId}`);
+      
 
       const response = await API.get(`/api/user/communities/${encodeURIComponent(cleanId)}`);
-      console.log(`API: Community by ID response for ${cleanId}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return transformCommunityData(response.data.data) as CommunityProfile;
@@ -407,10 +407,10 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = username.trim();
-      console.log(`API: Getting user profile for: ${cleanUsername}`);
+      
 
       const response = await API.get(`/api/user/community/profile/username/${encodeURIComponent(cleanUsername)}`);
-      console.log(`API: User profile response for ${cleanUsername}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return transformUserData(response.data.data);
@@ -432,12 +432,12 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = communityUsername.trim();
-      console.log(`API: Joining community: ${cleanUsername}`);
+      
 
       const response = await API.post("/api/user/communities/join", {
         communityUsername: cleanUsername
       });
-      console.log(`API: Join community response for ${cleanUsername}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -459,12 +459,12 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = communityUsername.trim();
-      console.log(`API: Leaving community: ${cleanUsername}`);
+      
 
       const response = await API.post("/api/user/communities/leave", {
         communityUsername: cleanUsername
       });
-      console.log(`API: Leave community response for ${cleanUsername}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -494,9 +494,9 @@ export const communityExploreApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      console.log(`API: Getting members for community: ${cleanUsername}`);
+      
       const response = await API.get(`/api/user/communities/${encodeURIComponent(cleanUsername)}/members?${params.toString()}`);
-      console.log(`API: Community members response for ${cleanUsername}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -522,10 +522,10 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = communityUsername.trim();
-      console.log(`API: Getting member status for community: ${cleanUsername}`);
+      
 
       const response = await API.get(`/api/user/communities/${encodeURIComponent(cleanUsername)}/member-status`);
-      console.log(`API: Member status response for ${cleanUsername}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -547,12 +547,12 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = username.trim();
-      console.log(`API: Following user: ${cleanUsername}`);
+      
 
       const response = await API.post("/api/user/community/follow", {
         username: cleanUsername
       });
-      console.log(`API: Follow user response for ${cleanUsername}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -574,12 +574,12 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = username.trim();
-      console.log(`API: Unfollowing user: ${cleanUsername}`);
+      
 
       const response = await API.post("/api/user/community/unfollow", {
         username: cleanUsername
       });
-      console.log(`API: Unfollow user response for ${cleanUsername}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -601,10 +601,10 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = username.trim();
-      console.log(`API: Getting follow status for: ${cleanUsername}`);
+      
 
       const response = await API.get(`/api/user/community/follow-status/${encodeURIComponent(cleanUsername)}`);
-      console.log(`API: Follow status response for ${cleanUsername}:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;

@@ -26,7 +26,7 @@ export default function HomePage() {
     requestAnimationFrame(raf);
 
     lenis.on('scroll', ({ scroll, velocity }: { scroll: number; velocity: number }) => {
-      console.log(`Scroll position: ${scroll}, Velocity: ${velocity}`);
+      
     });
 
     return () => lenis.destroy();

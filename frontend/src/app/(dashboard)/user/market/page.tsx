@@ -16,7 +16,7 @@ export default function HomePage() {
       <MarketHeader
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        onWatchlistClick={() => console.log("Watchlist clicked")}
+        onWatchlistClick={() => }
       />
       <main className="container mx-auto px-4 py-6 space-y-6">
         <MarketStats />

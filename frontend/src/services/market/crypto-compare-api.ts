@@ -72,7 +72,7 @@ export async function fetchCryptoCompareHistoricalData(
 
     const url = `https://min-api.cryptocompare.com/data/v2/${endpoint}?fsym=${cryptoCompareSymbol}&tsym=USD&limit=${limitParam}&api_key=${apiKey}`
 
-    console.log("[v0] Fetching CryptoCompare data:", url.replace(apiKey, "API_KEY_HIDDEN"))
+    )
 
     const response = await fetch(url, {
       headers: {
@@ -94,7 +94,7 @@ export async function fetchCryptoCompareHistoricalData(
       return getFallbackChartData(symbol, limit)
     }
 
-    console.log("[v0] CryptoCompare data received:", data.Data.Data.length, "points")
+    
 
     return data.Data.Data.map((point) => ({
       timestamp: point.time * 1000, // Convert to milliseconds

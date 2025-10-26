@@ -52,7 +52,7 @@ export default function BookmarksPage() {
   }
 
   const handleDeleteSelected = () => {
-    console.log('Deleting bookmarks:', selectedPosts)
+    
     setSelectedPosts([])
   }
 

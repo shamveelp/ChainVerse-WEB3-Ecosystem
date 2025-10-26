@@ -80,7 +80,7 @@ export default function CommunityMembersPage({ params }: CommunityMembersPagePro
       
       setError(null)
       
-      console.log('Fetching members for community:', communityUsername, 'cursor:', cursor)
+      
       const response: CommunityMemberListResponse = await communityExploreApiService.getCommunityMembers(
         communityUsername,
         cursor,
@@ -97,7 +97,7 @@ export default function CommunityMembersPage({ params }: CommunityMembersPagePro
       setNextCursor(response.nextCursor)
       setTotalCount(response.totalCount)
       
-      console.log('Members loaded:', response.members.length, 'Total:', response.totalCount)
+      
     } catch (err: any) {
       console.error('Failed to fetch members:', err)
       setError(err.message || 'Failed to load community members')

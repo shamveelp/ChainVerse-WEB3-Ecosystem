@@ -70,14 +70,14 @@ export default function ChartPage() {
   const fetchChartData = async () => {
     try {
       setLoading(true)
-      console.log("[v0] Fetching chart data for:", symbol, selectedTimeframe)
+      
       const response = await fetch(
         `/api/crypto/${symbol}/history?interval=${selectedTimeframe.interval}&limit=${selectedTimeframe.limit}`,
       )
       if (!response.ok) throw new Error("Failed to fetch chart data")
 
       const data: ChartDataPoint[] = await response.json()
-      console.log("[v0] Chart data fetched:", data?.length, "points")
+      
       setChartData(data)
       setError(null)
     } catch (err) {

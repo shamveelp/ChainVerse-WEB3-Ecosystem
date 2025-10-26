@@ -28,7 +28,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async getCommunityFeed(adminId: string, cursor?: string, limit: number = 10, type: string = 'all'): Promise<CommunityFeedResponseDto> {
         try {
-            console.log("CommunityAdminFeedService: Getting community feed for admin:", adminId);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -79,7 +79,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
             const communityStats = await this._getCommunityStats(communityId);
 
-            console.log("CommunityAdminFeedService: Community feed retrieved successfully, posts count:", transformedPosts.length);
+            
 
             return new CommunityFeedResponseDto(
                 transformedPosts,
@@ -99,7 +99,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async togglePostLike(adminId: string, postId: string): Promise<LikeResponseDto> {
         try {
-            console.log("CommunityAdminFeedService: Admin toggling post like:", adminId, "post:", postId);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -133,7 +133,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 message = "Post liked successfully";
             }
 
-            console.log("CommunityAdminFeedService: Post like toggled successfully");
+            
 
             return {
                 success: true,
@@ -152,7 +152,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async createComment(adminId: string, data: CreateCommentDto): Promise<any> {
         try {
-            console.log("CommunityAdminFeedService: Admin creating comment:", adminId, "data:", data);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -184,7 +184,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 data.parentCommentId
             );
 
-            console.log("CommunityAdminFeedService: Comment created successfully");
+            
             return this._transformCommentForAdmin(comment, adminId);
         } catch (error) {
             console.error("CommunityAdminFeedService: Create comment error:", error);
@@ -197,7 +197,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async sharePost(adminId: string, postId: string, shareText?: string): Promise<ShareResponseDto> {
         try {
-            console.log("CommunityAdminFeedService: Admin sharing post:", adminId, "post:", postId);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -233,7 +233,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async getEngagementStats(adminId: string, period: string = 'week'): Promise<CommunityEngagementStatsDto> {
         try {
-            console.log("CommunityAdminFeedService: Getting engagement stats for admin:", adminId, "period:", period);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -297,7 +297,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 memberActivity
             };
 
-            console.log("CommunityAdminFeedService: Engagement stats retrieved successfully");
+            
             return new CommunityEngagementStatsDto(engagementData);
         } catch (error) {
             console.error("CommunityAdminFeedService: Get engagement stats error:", error);
@@ -310,7 +310,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async pinPost(adminId: string, postId: string): Promise<any> {
         try {
-            console.log("CommunityAdminFeedService: Admin pinning post:", postId);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -336,7 +336,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
             // TODO: Implement post pinning logic in post repository
             // For now, return success
-            console.log("CommunityAdminFeedService: Post pinned successfully");
+            
 
             return {
                 success: true,
@@ -355,7 +355,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async deletePost(adminId: string, postId: string, reason?: string): Promise<any> {
         try {
-            console.log("CommunityAdminFeedService: Admin deleting post:", postId, "reason:", reason);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -385,7 +385,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 throw new CustomError("Failed to delete post", StatusCode.INTERNAL_SERVER_ERROR);
             }
 
-            console.log("CommunityAdminFeedService: Post deleted successfully by admin");
+            
 
             return {
                 success: true,

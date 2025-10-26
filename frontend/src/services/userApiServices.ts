@@ -56,9 +56,9 @@ export interface ApiResponse<T> {
 export const userApiService = {
   getProfile: async (): Promise<{ data: UserProfile }> => {
     try {
-      console.log("Fetching profile...");
+      
       const response = await API.get("/api/user/get-profile");
-      console.log("Profile API response:", response.data);
+      
       
       if (response.data.success && response.data.data) {
         const data = response.data.data;
@@ -110,9 +110,9 @@ export const userApiService = {
     profilePic?: string;
   }): Promise<{ success: boolean; data?: any; error?: string; message?: string }> => {
     try {
-      console.log("Updating profile...", profileData);
+      
       const response = await API.put("/api/user/profile", profileData);
-      console.log("Update profile API response:", response.data);
+      
       
       if (response.data.success && response.data.data) {
         const data = response.data.data;
@@ -154,9 +154,9 @@ export const userApiService = {
         return { success: false, available: false, error: "Username cannot be empty" };
       }
       
-      console.log("Checking username availability:", username);
+      
       const response = await API.post("/api/user/check-username", { username });
-      console.log("Username check API response:", response.data);
+      
       
       return {
         success: true,
@@ -181,13 +181,13 @@ export const userApiService = {
       const formData = new FormData();
       formData.append("profileImage", file);
 
-      console.log("Uploading profile image...");
+      
       const response = await API.post("/api/user/upload-profile-image", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Upload image API response:", response.data);
+      
 
       if (response.data.success && response.data.data) {
         return {
@@ -214,9 +214,9 @@ export const userApiService = {
   // Referral API methods
   getReferralStats: async (): Promise<{ success: boolean; data?: ReferralStats; error?: string }> => {
     try {
-      console.log("Fetching referral stats...");
+      
       const response = await API.get("/api/user/referrals/stats");
-      console.log("Referral stats API response:", response.data);
+      
       
       if (response.data.success) {
         return {
@@ -240,9 +240,9 @@ export const userApiService = {
     error?: string;
   }> => {
     try {
-      console.log("Fetching referral history...");
+      
       const response = await API.get(`/api/user/referrals/history?page=${page}&limit=${limit}`);
-      console.log("Referral history API response:", response.data);
+      
       
       if (response.data.success) {
         return {
@@ -263,9 +263,9 @@ export const userApiService = {
   // Points API methods
   performDailyCheckIn: async (): Promise<{ success: boolean; data?: DailyCheckInResult; error?: string }> => {
     try {
-      console.log("Performing daily check-in...");
+      
       const response = await API.post("/api/user/points/daily-checkin");
-      console.log("Daily check-in API response:", response.data);
+      
       
       if (response.data.success) {
         return {
@@ -285,9 +285,9 @@ export const userApiService = {
 
   getCheckInStatus: async (): Promise<{ success: boolean; data?: CheckInStatus; error?: string }> => {
     try {
-      console.log("Fetching check-in status...");
+      
       const response = await API.get("/api/user/points/checkin-status");
-      console.log("Check-in status API response:", response.data);
+      
       
       if (response.data.success) {
         return {
@@ -311,9 +311,9 @@ export const userApiService = {
     error?: string;
   }> => {
     try {
-      console.log("Fetching check-in calendar...");
+      
       const response = await API.get(`/api/user/points/checkin-calendar?month=${month}&year=${year}`);
-      console.log("Check-in calendar API response:", response.data);
+      
       
       if (response.data.success) {
         return {
@@ -337,9 +337,9 @@ export const userApiService = {
     error?: string;
   }> => {
     try {
-      console.log("Fetching points history...");
+      
       const response = await API.get(`/api/user/points/history?page=${page}&limit=${limit}`);
-      console.log("Points history API response:", response.data);
+      
       
       if (response.data.success) {
         return {

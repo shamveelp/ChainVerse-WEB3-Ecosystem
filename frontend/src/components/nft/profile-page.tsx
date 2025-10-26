@@ -59,7 +59,7 @@ export default function ProfilePage() {
       
       // Get all NFTs and filter by current user
       const allNFTs = await getAllNFTs();
-      console.log('All NFTs fetched:', allNFTs.length);
+      
       
       if (allNFTs.length > 0) {
         // Filter NFTs that belong to the current user (owned or created by them)
@@ -69,11 +69,11 @@ export default function ProfilePage() {
           nft.creator.toLowerCase() === account.address.toLowerCase()
         );
         
-        console.log('User NFTs filtered:', userNFTs.length);
+        
 
         if (userNFTs.length > 0) {
           const enriched = await enrichNFTsWithMetadata(userNFTs);
-          console.log('Enriched NFTs:', enriched.length);
+          
 
           // Separate owned vs listed NFTs
           const owned = enriched.filter(nft => {
@@ -88,8 +88,8 @@ export default function ProfilePage() {
             return isSeller && isListed;
           });
 
-          console.log('Owned NFTs:', owned.length);
-          console.log('Listed NFTs:', listed.length);
+          
+          
 
           setOwnedNFTs(owned);
           setListedNFTs(listed);

@@ -114,7 +114,7 @@ export default function CommunitiesPage() {
       setNextCursor(response.nextCursor)
       setTotalCount(response.totalCount)
       
-      console.log('Communities loaded:', response.communities.length, 'Total:', response.totalCount)
+      
     } catch (err: any) {
       console.error('Failed to load communities:', err)
       setError(err.message || 'Failed to load communities')

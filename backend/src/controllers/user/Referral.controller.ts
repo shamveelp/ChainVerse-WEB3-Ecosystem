@@ -15,7 +15,7 @@ export class ReferralController implements IReferralController {
 
   async getReferralHistory(req: Request, res: Response): Promise<void> {
     try {
-      console.log("ReferralController: Getting referral history");
+      
       const user = req.user as { id: string; role: string };
       
       if (!user || !user.id) {
@@ -50,7 +50,7 @@ export class ReferralController implements IReferralController {
 
   async getReferralStats(req: Request, res: Response): Promise<void> {
     try {
-      console.log("ReferralController: Getting referral stats");
+      
       const user = req.user as { id: string; role: string };
       
       if (!user || !user.id) {

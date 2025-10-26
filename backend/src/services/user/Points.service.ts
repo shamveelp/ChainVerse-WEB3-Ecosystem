@@ -68,7 +68,7 @@ export class PointsService implements IPointsService {
         } as any);
       }
 
-      console.log("PointsService: Daily check-in successful");
+      
       
       return {
         success: true,
@@ -91,7 +91,7 @@ export class PointsService implements IPointsService {
     nextCheckInAvailable: Date | null;
   }> {
     try {
-      console.log("PointsService: Getting check-in status for user:", userId);
+      
       
       const todayCheckIn = await this._dailyCheckInRepository.findTodayCheckIn(userId);
       const currentStreak = await this._dailyCheckInRepository.getStreakCount(userId);
@@ -123,7 +123,7 @@ export class PointsService implements IPointsService {
     }>;
   }> {
     try {
-      console.log("PointsService: Getting check-in calendar for user:", userId, "month:", month, "year:", year);
+      
       
       const checkIns = await this._dailyCheckInRepository.getCheckInHistory(userId, month, year);
       
@@ -156,7 +156,7 @@ export class PointsService implements IPointsService {
     };
   }> {
     try {
-      console.log("PointsService: Getting points history for user:", userId);
+      
       
       const result = await this._pointsHistoryRepository.getPointsHistory(userId, page, limit);
       

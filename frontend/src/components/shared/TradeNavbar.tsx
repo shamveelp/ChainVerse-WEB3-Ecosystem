@@ -21,7 +21,7 @@ export default function TradeNavbar({ topOffset = 'top-4' }: FloatingWalletButto
     if (account && account.address && account.address !== lastSavedAddress.current) {
       setError(null);
       lastSavedAddress.current = account.address;
-      console.log('Wallet connected:', account.address);
+      
     }
 
     return () => {

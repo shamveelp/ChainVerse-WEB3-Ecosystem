@@ -12,7 +12,7 @@ export default function CreatePost() {
 
   const handlePost = () => {
     if (content.trim()) {
-      console.log('Posting:', content)
+      
       setContent('')
     }
   }

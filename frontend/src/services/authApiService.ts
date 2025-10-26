@@ -67,7 +67,7 @@ export const register = async (username: string, email: string, password: string
       payload.referralCode = referralCode.trim().toUpperCase()
     }
     
-    console.log("Sending registration request with payload:", payload);
+    
     
     const response = await API.post<RegisterResponse>("/api/user/register", payload)
     return {
@@ -98,7 +98,7 @@ export const signup = async (username: string, email: string, password: string, 
       payload.referralCode = referralCode.trim().toUpperCase()
     }
     
-    console.log("Sending OTP verification with payload:", payload);
+    
     
     const response = await API.post<LoginResponse>("/api/user/verify-otp", payload)
     return {

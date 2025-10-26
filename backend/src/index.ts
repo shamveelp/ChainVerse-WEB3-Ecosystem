@@ -5,6 +5,7 @@ import connectDB from './config/db';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { setupSocketHandlers } from './socket/socketHandlers';
+import logger from './utils/logger';
 
 const PORT = process.env.PORT || 5000;
 
@@ -25,8 +26,8 @@ setupSocketHandlers(io);
 
 connectDB().then(() => {
   server.listen(PORT, () => {
-    console.log(`Server is running on port http://localhost:${PORT}`);
-    console.log('Socket.IO server initialized');
+    logger.info(`Server is running on port http://localhost:${PORT}`);
+    logger.info('Socket.IO server initialized');
   });
 });
 

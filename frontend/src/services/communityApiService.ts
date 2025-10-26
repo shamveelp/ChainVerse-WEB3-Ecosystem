@@ -227,13 +227,13 @@ export const communityApiService = {
   // Get own community profile
   getCommunityProfile: async (): Promise<{ data: CommunityProfile }> => {
     try {
-      console.log('API: Fetching own community profile...');
+      
       const response = await API.get("/api/user/community/profile");
-      console.log('API: Profile response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformProfileData(response.data.data);
-        console.log('API: Transformed profile data:', transformedData);
+        
         return { data: transformedData };
       }
       
@@ -253,14 +253,14 @@ export const communityApiService = {
 
     try {
       const cleanUsername = username.trim();
-      console.log(`API: Fetching profile for username: ${cleanUsername}`);
+      
       
       const response = await API.get(`/api/user/community/profile/username/${encodeURIComponent(cleanUsername)}`);
-      console.log(`API: Profile response for ${cleanUsername}:`, response.data);
+      
       
       if (response.data?.success && response.data?.data) {
         const transformedData = transformProfileData(response.data.data);
-        console.log(`API: Transformed profile data for ${cleanUsername}:`, transformedData);
+        
         return { data: transformedData };
       }
       
@@ -280,10 +280,10 @@ export const communityApiService = {
 
     try {
       const cleanUsername = username.trim();
-      console.log(`API: Following user: ${cleanUsername}`);
+      
       
       const response = await API.post("/api/user/community/follow", { username: cleanUsername });
-      console.log(`API: Follow response for ${cleanUsername}:`, response.data);
+      
       
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -305,10 +305,10 @@ export const communityApiService = {
 
     try {
       const cleanUsername = username.trim();
-      console.log(`API: Unfollowing user: ${cleanUsername}`);
+      
       
       const response = await API.post("/api/user/community/unfollow", { username: cleanUsername });
-      console.log(`API: Unfollow response for ${cleanUsername}:`, response.data);
+      
       
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -329,9 +329,9 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      console.log('API: Fetching followers with params:', params.toString());
+      );
       const response = await API.get(`/api/user/community/followers?${params.toString()}`);
-      console.log('API: Followers response:', response.data);
+      
       
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -352,9 +352,9 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      console.log('API: Fetching following with params:', params.toString());
+      );
       const response = await API.get(`/api/user/community/following?${params.toString()}`);
-      console.log('API: Following response:', response.data);
+      
       
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -380,9 +380,9 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       
-      console.log(`API: Fetching followers for ${cleanUsername} with params:`, params.toString());
+      );
       const response = await API.get(`/api/user/community/user/${encodeURIComponent(cleanUsername)}/followers?${params.toString()}`);
-      console.log(`API: User followers response for ${cleanUsername}:`, response.data);
+      
       
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -408,9 +408,9 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       
-      console.log(`API: Fetching following for ${cleanUsername} with params:`, params.toString());
+      );
       const response = await API.get(`/api/user/community/user/${encodeURIComponent(cleanUsername)}/following?${params.toString()}`);
-      console.log(`API: User following response for ${cleanUsername}:`, response.data);
+      
       
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -432,10 +432,10 @@ export const communityApiService = {
 
     try {
       const cleanUsername = username.trim();
-      console.log(`API: Getting follow status for: ${cleanUsername}`);
+      
       
       const response = await API.get(`/api/user/community/follow-status/${encodeURIComponent(cleanUsername)}`);
-      console.log(`API: Follow status response for ${cleanUsername}:`, response.data);
+      
       
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -461,9 +461,9 @@ export const communityApiService = {
     }
 
     try {
-      console.log('API: Updating community profile with data:', profileData);
+      
       const response = await API.put("/api/user/community/profile", profileData);
-      console.log('API: Update profile response:', response.data);
+      
       
       if (response.data?.success && response.data?.data) {
         const transformedData = transformProfileData(response.data.data);
@@ -499,7 +499,7 @@ export const communityApiService = {
     }
 
     try {
-      console.log('API: Uploading banner image:', file.name, file.size);
+      
       const formData = new FormData();
       formData.append("bannerImage", file);
 
@@ -508,7 +508,7 @@ export const communityApiService = {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log('API: Upload banner response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformProfileData(response.data.data);
@@ -540,12 +540,12 @@ export const communityApiService = {
     }
 
     try {
-      console.log(`API: Sending message to: ${receiverUsername}`);
+      
       const response = await API.post("/api/user/chat/send", {
         receiverUsername: receiverUsername.trim(),
         content: content.trim()
       });
-      console.log('API: Send message response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -567,9 +567,9 @@ export const communityApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       if (search && search.trim()) params.append('search', search.trim());
 
-      console.log('API: Fetching conversations with params:', params.toString());
+      );
       const response = await API.get(`/api/user/chat/conversations?${params.toString()}`);
-      console.log('API: Conversations response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -594,9 +594,9 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-      console.log(`API: Fetching messages for conversation: ${conversationId}`);
+      
       const response = await API.get(`/api/user/chat/conversations/${encodeURIComponent(conversationId)}/messages?${params.toString()}`);
-      console.log('API: Messages response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -618,10 +618,10 @@ export const communityApiService = {
 
     try {
       const cleanUsername = username.trim();
-      console.log(`API: Getting or creating conversation with: ${cleanUsername}`);
+      
       
       const response = await API.get(`/api/user/chat/conversation/${encodeURIComponent(cleanUsername)}`);
-      console.log('API: Get/create conversation response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -642,11 +642,11 @@ export const communityApiService = {
     }
 
     try {
-      console.log(`API: Editing message: ${messageId}`);
+      
       const response = await API.put(`/api/user/chat/messages/${encodeURIComponent(messageId)}`, {
         content: content.trim()
       });
-      console.log('API: Edit message response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -667,9 +667,9 @@ export const communityApiService = {
     }
 
     try {
-      console.log(`API: Deleting message: ${messageId}`);
+      
       const response = await API.delete(`/api/user/chat/messages/${encodeURIComponent(messageId)}`);
-      console.log('API: Delete message response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -690,11 +690,11 @@ export const communityApiService = {
     }
 
     try {
-      console.log(`API: Marking messages as read for conversation: ${conversationId}`);
+      
       const response = await API.post("/api/user/chat/messages/read", {
         conversationId: conversationId.trim()
       });
-      console.log('API: Mark messages as read response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;

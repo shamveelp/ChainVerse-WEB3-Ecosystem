@@ -22,7 +22,7 @@ export class PostController implements IPostController {
     // Post CRUD operations
     async createPost(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Create post controller called");
+            
             const user = req.user as { id: string; role: string };
 
             if (!user || !user.id) {
@@ -51,7 +51,7 @@ export class PostController implements IPostController {
 
             const post = await this._postService.createPost(user.id, postData);
 
-            console.log("Post created successfully");
+            
             res.status(StatusCode.CREATED).json({
                 success: true,
                 data: post,
@@ -72,7 +72,7 @@ export class PostController implements IPostController {
 
     async getPostById(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get post by ID controller called");
+            
             const { postId } = req.params;
             const user = req.user as { id: string; role: string } | undefined;
 
@@ -86,7 +86,7 @@ export class PostController implements IPostController {
 
             const postDetail = await this._postService.getPostById(postId, user?.id);
 
-            console.log("Post fetched successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: postDetail
@@ -106,7 +106,7 @@ export class PostController implements IPostController {
 
     async updatePost(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Update post controller called");
+            
             const { postId } = req.params;
             const user = req.user as { id: string; role: string };
             const { content, mediaUrls }: UpdatePostDto = req.body;
@@ -142,7 +142,7 @@ export class PostController implements IPostController {
 
             const updatedPost = await this._postService.updatePost(postId, user.id, updateData);
 
-            console.log("Post updated successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: updatedPost,
@@ -163,7 +163,7 @@ export class PostController implements IPostController {
 
     async deletePost(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Delete post controller called");
+            
             const { postId } = req.params;
             const user = req.user as { id: string; role: string };
 
@@ -185,7 +185,7 @@ export class PostController implements IPostController {
 
             const result = await this._postService.deletePost(postId, user.id);
 
-            console.log("Post deleted successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -207,7 +207,7 @@ export class PostController implements IPostController {
     // Post queries
     async getFeedPosts(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get feed posts controller called");
+            
             const user = req.user as { id: string; role: string };
             const { cursor, limit } = req.query;
 
@@ -234,7 +234,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            console.log("Feed posts fetched successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -254,7 +254,7 @@ export class PostController implements IPostController {
 
     async getUserPosts(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get user posts controller called");
+            
             const { userId } = req.params;
             const user = req.user as { id: string; role: string } | undefined;
             const { cursor, limit } = req.query;
@@ -283,7 +283,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            console.log("User posts fetched successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -303,7 +303,7 @@ export class PostController implements IPostController {
 
     async getLikedPosts(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get liked posts controller called");
+            
             const { userId } = req.params;
             const user = req.user as { id: string; role: string } | undefined;
             const { cursor, limit } = req.query;
@@ -332,7 +332,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            console.log("Liked posts fetched successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -352,7 +352,7 @@ export class PostController implements IPostController {
 
     async getTrendingPosts(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get trending posts controller called");
+            
             const { cursor, limit } = req.query;
 
             // Validate limit
@@ -369,7 +369,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            console.log("Trending posts fetched successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -389,7 +389,7 @@ export class PostController implements IPostController {
 
     async getPostsByHashtag(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get posts by hashtag controller called");
+            
             const { hashtag } = req.params;
             const { cursor, limit } = req.query;
 
@@ -416,7 +416,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            console.log("Posts by hashtag fetched successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -436,7 +436,7 @@ export class PostController implements IPostController {
 
     async searchPosts(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Search posts controller called");
+            
             const { q: query, cursor, limit } = req.query;
 
             if (!query || typeof query !== 'string' || query.trim().length === 0) {
@@ -462,7 +462,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            console.log("Posts search completed successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -483,7 +483,7 @@ export class PostController implements IPostController {
     // Like operations
     async togglePostLike(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Toggle post like controller called");
+            
             const { postId } = req.params;
             const user = req.user as { id: string; role: string };
 
@@ -505,7 +505,7 @@ export class PostController implements IPostController {
 
             const result = await this._postService.togglePostLike(user.id, postId);
 
-            console.log("Post like toggled successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -526,7 +526,7 @@ export class PostController implements IPostController {
 
     async toggleCommentLike(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Toggle comment like controller called");
+            
             const { commentId } = req.params;
             const user = req.user as { id: string; role: string };
 
@@ -548,7 +548,7 @@ export class PostController implements IPostController {
 
             const result = await this._postService.toggleCommentLike(user.id, commentId);
 
-            console.log("Comment like toggled successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -569,7 +569,7 @@ export class PostController implements IPostController {
 
     async getPostLikers(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get post likers controller called");
+            
             const { postId } = req.params;
             const { cursor, limit } = req.query;
 
@@ -596,7 +596,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            console.log("Post likers fetched successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: likers
@@ -617,7 +617,7 @@ export class PostController implements IPostController {
     // Comment operations
     async createComment(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Create comment controller called");
+            
             const user = req.user as { id: string; role: string };
             const { postId, content, parentCommentId }: CreateCommentDto = req.body;
 
@@ -653,7 +653,7 @@ export class PostController implements IPostController {
 
             const comment = await this._postService.createComment(user.id, commentData);
 
-            console.log("Comment created successfully");
+            
             res.status(StatusCode.CREATED).json({
                 success: true,
                 data: comment,
@@ -674,7 +674,7 @@ export class PostController implements IPostController {
 
     async updateComment(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Update comment controller called");
+            
             const { commentId } = req.params;
             const user = req.user as { id: string; role: string };
             const { content } = req.body;
@@ -705,7 +705,7 @@ export class PostController implements IPostController {
 
             const updatedComment = await this._postService.updateComment(commentId, user.id, content.trim());
 
-            console.log("Comment updated successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: updatedComment,
@@ -726,7 +726,7 @@ export class PostController implements IPostController {
 
     async deleteComment(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Delete comment controller called");
+            
             const { commentId } = req.params;
             const user = req.user as { id: string; role: string };
 
@@ -748,7 +748,7 @@ export class PostController implements IPostController {
 
             const result = await this._postService.deleteComment(commentId, user.id);
 
-            console.log("Comment deleted successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -769,7 +769,7 @@ export class PostController implements IPostController {
 
     async getPostComments(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get post comments controller called");
+            
             const { postId } = req.params;
             const user = req.user as { id: string; role: string } | undefined;
             const { cursor, limit } = req.query;
@@ -798,7 +798,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            console.log("Post comments fetched successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: comments
@@ -818,7 +818,7 @@ export class PostController implements IPostController {
 
     async getCommentReplies(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get comment replies controller called");
+            
             const { commentId } = req.params;
             const user = req.user as { id: string; role: string } | undefined;
             const { cursor, limit } = req.query;
@@ -847,7 +847,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            console.log("Comment replies fetched successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: replies
@@ -868,7 +868,7 @@ export class PostController implements IPostController {
     // Media operations
     async uploadPostMedia(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Upload post media controller called");
+            
             const user = req.user as { id: string; role: string };
 
             if (!user || !user.id) {
@@ -887,10 +887,10 @@ export class PostController implements IPostController {
                 return;
             }
 
-            console.log("Uploading media to cloud storage");
+            
             const result = await this._postService.uploadPostMedia(req.file);
 
-            console.log("Media uploaded successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -912,7 +912,7 @@ export class PostController implements IPostController {
     // Share operations
     async sharePost(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Share post controller called");
+            
             const user = req.user as { id: string; role: string };
             const { postId, shareText }: SharePostDto = req.body;
 
@@ -939,7 +939,7 @@ export class PostController implements IPostController {
 
             const result = await this._postService.sharePost(user.id, shareData);
 
-            console.log("Post shared successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -961,7 +961,7 @@ export class PostController implements IPostController {
     // Analytics
     async getPostStats(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get post stats controller called");
+            
             const user = req.user as { id: string; role: string } | undefined;
             const { userId } = req.query;
 
@@ -970,7 +970,7 @@ export class PostController implements IPostController {
 
             const stats = await this._postService.getPostStats(targetUserId);
 
-            console.log("Post stats fetched successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: stats
@@ -990,7 +990,7 @@ export class PostController implements IPostController {
 
     async getPopularHashtags(req: Request, res: Response): Promise<void> {
         try {
-            console.log("Get popular hashtags controller called");
+            
             const { limit } = req.query;
 
             // Validate limit
@@ -1004,7 +1004,7 @@ export class PostController implements IPostController {
 
             const hashtags = await this._postService.getPopularHashtags(validLimit);
 
-            console.log("Popular hashtags fetched successfully");
+            
             res.status(StatusCode.OK).json({
                 success: true,
                 data: { hashtags }

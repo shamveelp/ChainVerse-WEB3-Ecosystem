@@ -45,7 +45,7 @@ export const useCommunityProfile = () => {
   // Fetch own community profile with force refresh option
   const fetchCommunityProfile = useCallback(async (forceRefresh: boolean = false): Promise<CommunityProfile | null> => {
     if (!user) {
-      console.log('No user found, redirecting to login');
+      
       router.replace("/user/login");
       return null;
     }
@@ -56,7 +56,7 @@ export const useCommunityProfile = () => {
     }
 
     if (loading && !forceRefresh) {
-      console.log('Already loading, skipping request');
+      
       return profile;
     }
 
@@ -64,7 +64,7 @@ export const useCommunityProfile = () => {
     dispatch(clearError());
     
     try {
-      console.log('Fetching community profile for user:', user._id);
+      
       const response = await communityApiService.getCommunityProfile();
       dispatch(setProfile(response.data));
       setRetryCount(0);
@@ -114,7 +114,7 @@ export const useCommunityProfile = () => {
 
     dispatch(setViewedProfileLoading(true));
     try {
-      console.log('Fetching profile for username:', username);
+      
       const response = await communityApiService.getCommunityProfileByUsername(username);
       dispatch(setViewedProfile(response.data));
       return response.data;

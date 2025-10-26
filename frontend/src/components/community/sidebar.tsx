@@ -35,7 +35,7 @@ export default function Sidebar() {
   // Fetch profile on mount and when user changes
   useEffect(() => {
     if (currentUser && (!profile || profile.username !== currentUser.username)) {
-      console.log('Sidebar: Fetching community profile for user:', currentUser.username)
+      
       fetchCommunityProfile(true) // Force refresh to ensure we get the latest data
     }
   }, [currentUser?._id, currentUser?.username, fetchCommunityProfile])

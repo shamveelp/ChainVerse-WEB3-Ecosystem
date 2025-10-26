@@ -217,9 +217,9 @@ export const postsApiService = {
   // Create post
   createPost: async (postData: CreatePostData): Promise<{ data: Post }> => {
     try {
-      console.log('API: Creating post with data:', postData);
+      
       const response = await API.post("/api/user/posts/create", postData);
-      console.log('API: Create post response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformPostData(response.data.data);
@@ -237,9 +237,9 @@ export const postsApiService = {
   // Get post by ID
   getPostById: async (postId: string): Promise<{ data: PostDetailResponse }> => {
     try {
-      console.log(`API: Fetching post: ${postId}`);
+      
       const response = await API.get(`/api/user/posts/${postId}`);
-      console.log(`API: Post response:`, response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedPost = transformPostData(response.data.data.post);
@@ -267,12 +267,12 @@ export const postsApiService = {
   // Update post
   updatePost: async (postId: string, content: string, mediaUrls?: string[]): Promise<{ data: Post }> => {
     try {
-      console.log(`API: Updating post ${postId} with content:`, content);
+      
       const response = await API.put(`/api/user/posts/${postId}`, {
         content,
         mediaUrls: mediaUrls || []
       });
-      console.log('API: Update post response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformPostData(response.data.data);
@@ -290,9 +290,9 @@ export const postsApiService = {
   // Delete post
   deletePost: async (postId: string): Promise<{ success: boolean; message: string }> => {
     try {
-      console.log(`API: Deleting post: ${postId}`);
+      
       const response = await API.delete(`/api/user/posts/${postId}`);
-      console.log('API: Delete post response:', response.data);
+      
 
       if (response.data?.success) {
         return response.data.data;
@@ -313,9 +313,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      console.log('API: Fetching feed posts with params:', params.toString());
+      );
       const response = await API.get(`/api/user/posts/feed/all?${params.toString()}`);
-      console.log('API: Feed posts response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedPosts = response.data.data.posts.map(transformPostData);
@@ -342,9 +342,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      console.log(`API: Fetching posts for user ${userId} with params:`, params.toString());
+      );
       const response = await API.get(`/api/user/posts/user/${userId}/all?${params.toString()}`);
-      console.log('API: User posts response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedPosts = response.data.data.posts.map(transformPostData);
@@ -371,9 +371,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      console.log(`API: Fetching liked posts for user ${userId} with params:`, params.toString());
+      );
       const response = await API.get(`/api/user/posts/user/${userId}/liked?${params.toString()}`);
-      console.log('API: Liked posts response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedPosts = response.data.data.posts.map(transformPostData);
@@ -400,9 +400,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      console.log('API: Fetching trending posts with params:', params.toString());
+      );
       const response = await API.get(`/api/user/posts/trending/all?${params.toString()}`);
-      console.log('API: Trending posts response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedPosts = response.data.data.posts.map(transformPostData);
@@ -430,9 +430,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      console.log('API: Searching posts with params:', params.toString());
+      );
       const response = await API.get(`/api/user/posts/search/all?${params.toString()}`);
-      console.log('API: Search posts response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedPosts = response.data.data.posts.map(transformPostData);
@@ -455,9 +455,9 @@ export const postsApiService = {
   // Toggle post like
   togglePostLike: async (postId: string): Promise<LikeResponse> => {
     try {
-      console.log(`API: Toggling like for post: ${postId}`);
+      
       const response = await API.post(`/api/user/posts/${postId}/like`);
-      console.log('API: Toggle post like response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -474,9 +474,9 @@ export const postsApiService = {
   // Create comment
   createComment: async (commentData: CreateCommentData): Promise<{ data: Comment }> => {
     try {
-      console.log('API: Creating comment with data:', commentData);
+      
       const response = await API.post("/api/user/posts/comments/create", commentData);
-      console.log('API: Create comment response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformCommentData(response.data.data);
@@ -494,9 +494,9 @@ export const postsApiService = {
   // Update comment
   updateComment: async (commentId: string, content: string): Promise<{ data: Comment }> => {
     try {
-      console.log(`API: Updating comment ${commentId} with content:`, content);
+      
       const response = await API.put(`/api/user/posts/comments/${commentId}`, { content });
-      console.log('API: Update comment response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformCommentData(response.data.data);
@@ -514,9 +514,9 @@ export const postsApiService = {
   // Delete comment
   deleteComment: async (commentId: string): Promise<{ success: boolean; message: string }> => {
     try {
-      console.log(`API: Deleting comment: ${commentId}`);
+      
       const response = await API.delete(`/api/user/posts/comments/${commentId}`);
-      console.log('API: Delete comment response:', response.data);
+      
 
       if (response.data?.success) {
         return response.data.data;
@@ -537,9 +537,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      console.log(`API: Fetching comments for post ${postId} with params:`, params.toString());
+      );
       const response = await API.get(`/api/user/posts/${postId}/comments?${params.toString()}`);
-      console.log('API: Post comments response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedComments = response.data.data.comments.map(transformCommentData);
@@ -566,9 +566,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      console.log(`API: Fetching replies for comment ${commentId} with params:`, params.toString());
+      );
       const response = await API.get(`/api/user/posts/comments/${commentId}/replies?${params.toString()}`);
-      console.log('API: Comment replies response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         const transformedComments = response.data.data.comments.map(transformCommentData);
@@ -591,9 +591,9 @@ export const postsApiService = {
   // Toggle comment like
   toggleCommentLike: async (commentId: string): Promise<LikeResponse> => {
     try {
-      console.log(`API: Toggling like for comment: ${commentId}`);
+      
       const response = await API.post(`/api/user/posts/comments/${commentId}/like`);
-      console.log('API: Toggle comment like response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -610,7 +610,7 @@ export const postsApiService = {
   // Upload media
   uploadMedia: async (file: File): Promise<MediaUploadResponse> => {
     try {
-      console.log('API: Uploading media file:', file.name);
+      
       const formData = new FormData();
       formData.append('media', file);
 
@@ -619,7 +619,7 @@ export const postsApiService = {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log('API: Upload media response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -636,9 +636,9 @@ export const postsApiService = {
   // Share post
   sharePost: async (postId: string, shareText?: string): Promise<ShareResponse> => {
     try {
-      console.log(`API: Sharing post: ${postId}`);
+      
       const response = await API.post("/api/user/posts/share", { postId, shareText });
-      console.log('API: Share post response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -658,9 +658,9 @@ export const postsApiService = {
       const params = new URLSearchParams();
       if (userId) params.append('userId', userId);
 
-      console.log('API: Fetching post stats with params:', params.toString());
+      );
       const response = await API.get(`/api/user/posts/stats/analytics?${params.toString()}`);
-      console.log('API: Post stats response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -680,9 +680,9 @@ export const postsApiService = {
       const params = new URLSearchParams();
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      console.log('API: Fetching popular hashtags with params:', params.toString());
+      );
       const response = await API.get(`/api/user/posts/hashtags/popular?${params.toString()}`);
-      console.log('API: Popular hashtags response:', response.data);
+      
 
       if (response.data?.success && response.data?.data) {
         return response.data.data.hashtags || [];

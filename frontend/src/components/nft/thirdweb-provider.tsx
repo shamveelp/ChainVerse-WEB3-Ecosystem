@@ -19,7 +19,7 @@ function WalletSaver({ children }: { children: ReactNode }) {
       saveWallet(account.address)
         .then(() => {
           if (!cancelled) {
-            console.log('Wallet saved successfully:', account.address);
+            
           }
         })
         .catch((err) => {

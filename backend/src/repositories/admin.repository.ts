@@ -19,7 +19,7 @@ export class AdminRepository implements IAdminRepository {
   }
 
   async incrementTokenVersion(id: string): Promise<void> {
-    console.log("ithinte id", id);
+    
     await Admin.findByIdAndUpdate(id, { $inc: { tokenVersion: 15 } }).exec();
   }
 

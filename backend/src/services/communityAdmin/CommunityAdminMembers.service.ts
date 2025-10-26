@@ -28,7 +28,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
     async getCommunityMembers(adminId: string, filters: GetCommunityMembersDto): Promise<CommunityMembersListResponseDto> {
         try {
-            console.log("CommunityAdminMembersService: Getting community members for admin:", adminId, "filters:", filters);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -119,7 +119,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 ? membersList[membersList.length - 1]._id.toString()
                 : undefined;
 
-            console.log("CommunityAdminMembersService: Community members retrieved successfully, count:", transformedMembers.length);
+            
 
             return new CommunityMembersListResponseDto(
                 transformedMembers,
@@ -139,7 +139,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
     async getMemberDetails(adminId: string, memberId: string): Promise<MemberDetailResponseDto> {
         try {
-            console.log("CommunityAdminMembersService: Getting member details for admin:", adminId, "member:", memberId);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -158,7 +158,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 throw new CustomError("Member not found", StatusCode.NOT_FOUND);
             }
 
-            console.log("CommunityAdminMembersService: Member details retrieved successfully");
+            
             const memberDetailDto = new CommunityMemberDetailDto(member, (member as any).userId);
             return new MemberDetailResponseDto(memberDetailDto);
         } catch (error) {
@@ -172,7 +172,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
     async updateMemberRole(adminId: string, data: UpdateMemberRoleDto): Promise<MemberActionResponseDto> {
         try {
-            console.log("CommunityAdminMembersService: Updating member role for admin:", adminId, "data:", data);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -197,7 +197,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             member.role = data.role;
             await member.save();
 
-            console.log("CommunityAdminMembersService: Member role updated successfully");
+            
 
             const updatedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
             return new MemberActionResponseDto(updatedMemberDto, "Member role updated successfully");
@@ -212,7 +212,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
     async banMember(adminId: string, data: BanMemberDto): Promise<MemberActionResponseDto> {
         try {
-            console.log("CommunityAdminMembersService: Banning member for admin:", adminId, "data:", data);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -244,7 +244,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
             await member.save();
 
-            console.log("CommunityAdminMembersService: Member banned successfully");
+            
 
             const bannedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
             return new MemberActionResponseDto(bannedMemberDto, "Member banned successfully");
@@ -259,7 +259,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
     async unbanMember(adminId: string, memberId: string): Promise<MemberActionResponseDto> {
         try {
-            console.log("CommunityAdminMembersService: Unbanning member for admin:", adminId, "member:", memberId);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -283,7 +283,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
             await member.save();
 
-            console.log("CommunityAdminMembersService: Member unbanned successfully");
+            
 
             const unbannedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
             return new MemberActionResponseDto(unbannedMemberDto, "Member unbanned successfully");
@@ -298,7 +298,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
     async removeMember(adminId: string, memberId: string, reason?: string): Promise<any> {
         try {
-            console.log("CommunityAdminMembersService: Removing member for admin:", adminId, "member:", memberId);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -322,7 +322,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             // Remove member from community
             await CommunityMemberModel.findByIdAndDelete(memberId);
 
-            console.log("CommunityAdminMembersService: Member removed successfully");
+            
 
             return {
                 success: true,
@@ -342,7 +342,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
     async getMemberActivity(adminId: string, memberId: string, period: string = 'week'): Promise<any> {
         try {
-            console.log("CommunityAdminMembersService: Getting member activity for admin:", adminId, "member:", memberId, "period:", period);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -393,7 +393,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 timeline: [] // TODO: Implement activity timeline
             };
 
-            console.log("CommunityAdminMembersService: Member activity retrieved successfully");
+            
             return activityData;
         } catch (error) {
             console.error("CommunityAdminMembersService: Get member activity error:", error);
@@ -406,7 +406,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
     async bulkUpdateMembers(adminId: string, data: any): Promise<any> {
         try {
-            console.log("CommunityAdminMembersService: Bulk updating members for admin:", adminId, "data:", data);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -456,7 +456,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 }
             }
 
-            console.log("CommunityAdminMembersService: Bulk update completed");
+            
 
             return {
                 success: true,

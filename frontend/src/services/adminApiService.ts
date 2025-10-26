@@ -195,7 +195,7 @@ export const getAllCommunityRequests = async (page: number = 1, limit: number = 
 export const getCommunityRequestById = async (requestId: string) => {
   try {
     const response = await API.get(`/api/admin/community-requests/${requestId}`);
-    console.log("Get community request by ID response:", response.data);
+    
     return {
       success: true,
       data: response.data.request || response.data.data,

@@ -28,7 +28,7 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
 
     async getDashboardData(adminId: string, period: string = 'week'): Promise<CommunityAdminDashboardResponseDto> {
         try {
-            console.log("CommunityAdminDashboardService: Getting dashboard data for admin:", adminId);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -42,7 +42,7 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
                 this._getTopMembers(admin.communityId.toString())
             ]);
 
-            console.log("CommunityAdminDashboardService: Dashboard data retrieved successfully");
+            
             return new CommunityAdminDashboardResponseDto(communityOverview, stats, recentActivity, topMembers);
         } catch (error) {
             console.error("CommunityAdminDashboardService: Get dashboard data error:", error);
@@ -55,7 +55,7 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
 
     async getCommunityOverview(adminId: string): Promise<CommunityOverviewDto> {
         try {
-            console.log("CommunityAdminDashboardService: Getting community overview for admin:", adminId);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -110,7 +110,7 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
 
     async getCommunityStats(adminId: string, period: string = 'week'): Promise<CommunityStatsDto> {
         try {
-            console.log("CommunityAdminDashboardService: Getting community stats for admin:", adminId, "period:", period);
+            
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
