@@ -1,6 +1,5 @@
 "use client"
 
-import { useRouter, useSearchParams } from "next/navigation"
 import { Home, MessageCircle } from "lucide-react"
 
 interface PillNavigationProps {
@@ -8,25 +7,13 @@ interface PillNavigationProps {
   onViewChange: (view: "community" | "chats") => void
 }
 
-export function PillNavigation({ activeView, onViewChange }: PillNavigationProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-
-  const handleViewChange = (view: "community" | "chats") => {
-    onViewChange(view)
-    // Create new URL with updated tab parameter
-    const newSearchParams = new URLSearchParams(searchParams)
-    newSearchParams.set("tab", view === "community" ? "channel" : "group")
-    // Update URL without reloading
-    router.push(`?${newSearchParams.toString()}`, { scroll: false })
-  }
-
+export default function PillNavigation({ activeView, onViewChange }: PillNavigationProps) {
   return (
     <div className="bg-slate-950 border-b border-slate-700/50 px-4 py-3 flex justify-center flex-shrink-0">
       <div className="flex gap-2 bg-slate-900/50 rounded-full p-1">
         {/* Community Pill */}
         <button
-          onClick={() => handleViewChange("community")}
+          onClick={() => onViewChange("community")}
           className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 font-medium text-sm ${
             activeView === "community"
               ? "bg-cyan-600 text-white shadow-md"
@@ -39,7 +26,7 @@ export function PillNavigation({ activeView, onViewChange }: PillNavigationProps
 
         {/* Community Chats Pill */}
         <button
-          onClick={() => handleViewChange("chats")}
+          onClick={() => onViewChange("chats")}
           className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 font-medium text-sm ${
             activeView === "chats"
               ? "bg-cyan-600 text-white shadow-md"

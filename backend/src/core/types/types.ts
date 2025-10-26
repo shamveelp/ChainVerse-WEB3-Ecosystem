@@ -113,6 +113,12 @@ const TYPES = {
 
   IUserMyCommunitiesService: Symbol.for("IUserMyCommunitiesService"),
   IUserMyCommunitiesController: Symbol.for("IUserMyCommunitiesController"),
+
+  ICommunityMessageRepository: Symbol.for("ICommunityMessageRepository"),
+  ICommunityAdminCommunityService: Symbol.for("ICommunityAdminCommunityService"),
+  IUserCommunityChatService: Symbol.for("IUserCommunityChatService"),
+  ICommunityAdminCommunityController: Symbol.for("ICommunityAdminCommunityController"),
+  IUserCommunityChatController: Symbol.for("IUserCommunityChatController"),
 };
 
 export { TYPES };

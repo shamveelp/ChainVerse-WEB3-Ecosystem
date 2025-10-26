@@ -51,6 +51,7 @@ import { CommunityController } from '../controllers/community/Community.controll
 import { JoinCommunityDto, LeaveCommunityDto, SearchCommunitiesDto } from '../dtos/community/Community.dto';
 import { GetCommunityMembersDto } from '../dtos/communityAdmin/CommunityAdminMembers.dto';
 import { GetMyCommunitiesDto } from '../dtos/community/MyCommunities.dto';
+import { UserCommunityChatController } from '../controllers/community/UserCommunityChat.controller';
 
 // Configure Multer for file uploads
 const storage = multer.memoryStorage();
@@ -80,6 +81,7 @@ const pointsController = container.get<PointsController>(TYPES.IPointsController
 const userDexController = container.get<UserDexController>(TYPES.IUserDexController);
 const communityController = container.get<CommunityController>(TYPES.ICommunityController);
 const userMyCommunitiesController = container.get<UserMyCommunitiesController>(TYPES.IUserMyCommunitiesController);
+const userCommunityChatController = container.get<UserCommunityChatController>(TYPES.IUserCommunityChatController);
 
 // Auth Routes with DTO validation
 router.post("/register",
@@ -547,5 +549,58 @@ router.delete('/my-communities/:communityId/leave',
   roleMiddleware(['user']),
   userMyCommunitiesController.leaveCommunityFromMy.bind(userMyCommunitiesController)
 );
+
+
+
+// Community Channel Routes
+router.get('/community/:username/channel/messages',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userCommunityChatController.getChannelMessages.bind(userCommunityChatController)
+);
+
+router.post('/community/channel/messages/:messageId/react',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userCommunityChatController.reactToMessage.bind(userCommunityChatController)
+);
+
+router.delete('/community/channel/messages/:messageId/react',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userCommunityChatController.removeReaction.bind(userCommunityChatController)
+);
+
+// Community Group Chat Routes
+router.post('/community/group-chat/send',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userCommunityChatController.sendGroupMessage.bind(userCommunityChatController)
+);
+
+router.get('/community/:username/group-chat/messages',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userCommunityChatController.getGroupMessages.bind(userCommunityChatController)
+);
+
+router.put('/community/group-chat/messages/:messageId',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userCommunityChatController.editGroupMessage.bind(userCommunityChatController)
+);
+
+router.delete('/community/group-chat/messages/:messageId',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userCommunityChatController.deleteGroupMessage.bind(userCommunityChatController)
+);
+
+router.post('/community/:username/group-chat/read',
+  authMiddleware,
+  roleMiddleware(['user']),
+  userCommunityChatController.markGroupMessagesAsRead.bind(userCommunityChatController)
+);
+
 
 export default router;

@@ -165,6 +165,16 @@ import { ICommunityController } from "../interfaces/controllers/community/ICommu
 import { CommunityController } from "../../controllers/community/Community.controller"
 import { ICommunityService } from "../interfaces/services/community/ICommunityService"
 import { CommunityService } from "../../services/community/Community.service"
+import { ICommunityAdminCommunityController } from "../interfaces/controllers/communityAdmin/ICommunityAdminCommunity.controller"
+import { CommunityAdminCommunityController } from "../../controllers/communityAdmin/CommunityAdminCommunity.controller"
+import { IUserCommunityChatController } from "../interfaces/controllers/community/IUserCommunityChat.controller"
+import { UserCommunityChatController } from "../../controllers/community/UserCommunityChat.controller"
+import { ICommunityAdminCommunityService } from "../interfaces/services/communityAdmin/ICommunityAdminCommunityService"
+import { UserCommunityChatService } from "../../services/community/UserCommunityChat.service"
+import { CommunityAdminCommunityService } from "../../services/communityAdmin/CommunityAdminCommunity.service"
+import { CommunityMessageRepository } from "../../repositories/community/communityMessage.repository"
+import { IUserCommunityChatService } from "../interfaces/services/community/IUserCommunityChatService"
+import { ICommunityMessageRepository } from "../interfaces/repositories/community/ICommunityMessageRepository"
 
 // Create Container
 const container = new Container()
@@ -283,5 +293,12 @@ container.bind<ICommunityAdminDashboardService>(TYPES.ICommunityAdminDashboardSe
 
 container.bind<ICommunityController>(TYPES.ICommunityController).to(CommunityController)
 container.bind<ICommunityService>(TYPES.ICommunityService).to(CommunityService)
+
+
+container.bind<ICommunityAdminCommunityController>(TYPES.ICommunityAdminCommunityController).to(CommunityAdminCommunityController);
+container.bind<IUserCommunityChatController>(TYPES.IUserCommunityChatController).to(UserCommunityChatController);
+container.bind<ICommunityAdminCommunityService>(TYPES.ICommunityAdminCommunityService).to(CommunityAdminCommunityService);
+container.bind<IUserCommunityChatService>(TYPES.IUserCommunityChatService).to(UserCommunityChatService);
+container.bind<ICommunityMessageRepository>(TYPES.ICommunityMessageRepository).to(CommunityMessageRepository);
 
 export default container

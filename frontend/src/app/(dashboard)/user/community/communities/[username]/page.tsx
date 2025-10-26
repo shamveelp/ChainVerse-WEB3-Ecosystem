@@ -1,22 +1,34 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useSelector } from "react-redux"
+import { useSearchParams } from "next/navigation"
 import { RootState } from "@/redux/store"
-import { useIsMobile } from "@/hooks/use-mobile"
-import CommunitySection from "@/components/comms-admin/chats/community-section"
-import CommunityChatsSection from "@/components/comms-admin/chats/community-chats-section"
-import PillNavigation from "@/components/comms-admin/chats/pill-navigation"
+import { CommunityView } from "@/components/community/chat/community-view"
+import { CommunityChatsView } from "@/components/community/chat/community-chats-view"
+import { PillNavigation } from "@/components/community/chat/pill-navigation"
+import Sidebar from "@/components/community/sidebar"
+import RightSidebar from "@/components/community/right-sidebar"
 import { toast } from "sonner"
 import { communitySocketService } from "@/services/socket/communitySocketService"
 
 type ViewType = "community" | "chats"
 
-export default function Page() {
-  const [activeView, setActiveView] = useState<ViewType>("community")
-  const isMobile = useIsMobile()
-  const currentAdmin = useSelector((state: RootState) => state.communityAdminAuth?.communityAdmin)
-  const token = useSelector((state: RootState) => state.communityAdminAuth?.token)
+interface CommunityPageProps {
+  params: Promise<{
+    username: string
+  }>
+}
+
+export default function CommunityPage({ params }: CommunityPageProps) {
+  // Resolve params using React's use hook
+  const { username } = use(params)
+  const searchParams = useSearchParams()
+  // Initialize activeView based on tab query parameter
+  const initialView = searchParams.get("tab") === "group" ? "chats" : "community"
+  const [activeView, setActiveView] = useState<ViewType>(initialView)
+  const currentUser = useSelector((state: RootState) => state.userAuth?.user)
+  const token = useSelector((state: RootState) => state.userAuth?.token)
 
   // Connect to community socket when component mounts
   useEffect(() => {
@@ -25,7 +37,7 @@ export default function Page() {
     const connectSocket = async () => {
       try {
         await communitySocketService.connect(token)
-        console.log('Admin connected to community socket')
+        console.log('Connected to community socket')
       } catch (error: any) {
         console.error('Failed to connect to community socket:', error)
         toast.error('Connection Error', {
@@ -44,8 +56,11 @@ export default function Page() {
 
   return (
     <div className="flex min-h-screen bg-slate-950">
+      {/* Left Sidebar */}
+      <Sidebar />
+
       {/* Main Content */}
-      <main className="flex-1 min-h-screen">
+      <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen">
         <div className="h-screen flex flex-col">
           {/* Pill Navigation */}
           <PillNavigation activeView={activeView} onViewChange={setActiveView} />
@@ -58,7 +73,7 @@ export default function Page() {
                 activeView === "community" ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
             >
-              <CommunitySection />
+              <CommunityView />
             </div>
 
             {/* Community Chats View */}
@@ -67,11 +82,14 @@ export default function Page() {
                 activeView === "chats" ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
             >
-              <CommunityChatsSection />
+              <CommunityChatsView />
             </div>
           </div>
         </div>
       </main>
+
+      {/* Right Sidebar */}
+      <RightSidebar />
     </div>
   )
 }

@@ -1,32 +1,43 @@
+"use client"
+
 interface MessageBubbleProps {
-  author: string
-  avatar: string
   content: string
+  isCurrentUser: boolean
   timestamp: string
-  isCurrentUser?: boolean
+  senderName: string
+  isEdited?: boolean
+  className?: string
 }
 
-export function MessageBubble({ author, avatar, content, timestamp, isCurrentUser = false }: MessageBubbleProps) {
+export function MessageBubble({ 
+  content, 
+  isCurrentUser, 
+  timestamp, 
+  senderName, 
+  isEdited = false,
+  className = "" 
+}: MessageBubbleProps) {
   return (
-    <div className={`flex gap-3 ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}>
-      {/* Avatar */}
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm">
-        {avatar}
+    <div className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} ${className}`}>
+      <div className={`flex items-baseline gap-2 px-3 ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}>
+        <span className="font-semibold text-white text-xs">
+          {isCurrentUser ? "You" : senderName}
+        </span>
+        <span className="text-xs text-slate-500">
+          {timestamp}
+        </span>
+        {isEdited && (
+          <span className="text-xs text-slate-500">(edited)</span>
+        )}
       </div>
-
-      {/* Message Content */}
-      <div className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}>
-        <div className="flex items-baseline gap-2 px-3">
-          <span className="font-semibold text-foreground text-xs">{author}</span>
-          <span className="text-xs text-muted-foreground">{timestamp}</span>
-        </div>
-        <div
-          className={`mt-1 px-3 py-2 rounded-lg max-w-xs break-words ${
-            isCurrentUser ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-          }`}
-        >
-          <p className="text-sm">{content}</p>
-        </div>
+      <div
+        className={`mt-1 px-3 py-2 rounded-lg max-w-xs break-words ${
+          isCurrentUser 
+            ? "bg-cyan-600 text-white rounded-br-none" 
+            : "bg-slate-800 text-slate-200 rounded-bl-none"
+        }`}
+      >
+        <p className="text-sm whitespace-pre-wrap">{content}</p>
       </div>
     </div>
   )
