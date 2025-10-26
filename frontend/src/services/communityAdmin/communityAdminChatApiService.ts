@@ -204,6 +204,34 @@ export const communityAdminChatApiService = {
     }
   },
 
+  // Admin delete group message
+  deleteGroupMessage: async (messageId: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      if (!messageId) {
+        throw new Error("Message ID is required");
+      }
+
+      console.log('API: Admin deleting group message:', { messageId });
+
+      const response = await API.delete(`/api/community-admin/community/group-chat/messages/${encodeURIComponent(messageId)}`);
+
+      console.log('API: Group message deleted successfully by admin:', {
+        messageId,
+        success: response.data?.data?.success
+      });
+
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to delete group message");
+    } catch (error: any) {
+      console.error('API: Admin delete group message failed:', error);
+      handleApiError(error, "Failed to delete group message");
+      throw error;
+    }
+  },
+
   // Update channel message
   updateChannelMessage: async (messageId: string, content: string): Promise<CommunityMessage> => {
     try {

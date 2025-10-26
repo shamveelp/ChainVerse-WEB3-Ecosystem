@@ -110,7 +110,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
         socketId: socket.id,
         userId: socket.userId,
         username: socket.username,
-        userType: socket.userType
+        userType: socket.userType,
+        communityId: socket.communityId
       });
       next();
     } catch (error: any) {
@@ -132,13 +133,36 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
       socketId: socket.id,
       userId: socket.userId,
       username: socket.username,
-      userType: socket.userType
+      userType: socket.userType,
+      communityId: socket.communityId
     });
 
     // Store user socket mapping
     userSocketMap.set(socket.userId, socket.id);
 
-    // Join community rooms
+    // Auto-join admin to their community
+    if (socket.userType === 'communityAdmin' && socket.communityId) {
+      const communityRoom = `community:${socket.communityId}`;
+      const channelRoom = `community:${socket.communityId}:channel`;
+      const chatRoom = `community:${socket.communityId}:chat`;
+
+      socket.join([communityRoom, channelRoom, chatRoom]);
+
+      // Track community connections
+      if (!communitySocketMap.has(socket.communityId)) {
+        communitySocketMap.set(socket.communityId, new Set());
+      }
+      communitySocketMap.get(socket.communityId)!.add(socket.id);
+      socketCommunityMap.set(socket.id, socket.communityId);
+
+      logger.info('Admin auto-joined community rooms', {
+        socketId: socket.id,
+        userId: socket.userId,
+        communityId: socket.communityId
+      });
+    }
+
+    // Join community rooms (for users)
     socket.on('join_community', (data: { communityId: string }) => {
       if (!data.communityId) {
         socket.emit('error', { message: 'Community ID is required' });
@@ -210,26 +234,24 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           return;
         }
 
-        if (!data.content?.trim()) {
-          socket.emit('message_error', { error: 'Message content is required' });
+        if (!data.content?.trim() && (!data.mediaFiles || data.mediaFiles.length === 0)) {
+          socket.emit('message_error', { error: 'Message content or media is required' });
           return;
         }
 
         const communityService = container.get<ICommunityAdminCommunityService>(TYPES.ICommunityAdminCommunityService);
         const message = await communityService.sendMessage(socket.userId!, {
-          content: data.content.trim(),
-          mediaFiles: data.mediaFiles,
+          content: data.content?.trim() || '',
+          mediaFiles: data.mediaFiles || [],
           messageType: data.messageType
         });
 
         const channelRoom = `community:${socket.communityId}:channel`;
         
-        // Emit to all community members in channel room
+        // Emit to all community members in channel room (including the admin)
         communityNamespace.to(channelRoom).emit('new_channel_message', {
           message
         });
-
-        socket.emit('channel_message_sent', { message });
 
         logger.info('Channel message sent successfully', {
           socketId: socket.id,
@@ -272,11 +294,6 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           });
         }
 
-        socket.emit('reaction_added', { 
-          messageId: data.messageId,
-          reactions: result.reactions 
-        });
-
         logger.info('Reaction added to channel message', {
           socketId: socket.id,
           userId: socket.userId,
@@ -313,12 +330,10 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
 
         const chatRoom = `community:${message.communityId}:chat`;
         
-        // Emit to all community members in chat room
+        // Emit to all community members in chat room (including admins)
         communityNamespace.to(chatRoom).emit('new_group_message', {
           message
         });
-
-        socket.emit('group_message_sent', { message });
 
         logger.info('Group message sent successfully', {
           socketId: socket.id,
@@ -358,8 +373,6 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           message
         });
 
-        socket.emit('group_message_edit_success', { message });
-
         logger.info('Group message edited successfully', {
           socketId: socket.id,
           userId: socket.userId,
@@ -376,7 +389,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
       }
     });
 
-    // User delete group message
+    // User or Admin delete group message
     socket.on('delete_group_message', async (data: {
       messageId: string;
       communityId: string;
@@ -397,11 +410,10 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           });
         }
 
-        socket.emit('group_message_delete_success', { messageId: data.messageId });
-
         logger.info('Group message deleted successfully', {
           socketId: socket.id,
           userId: socket.userId,
+          userType: socket.userType,
           messageId: data.messageId
         });
 
@@ -409,6 +421,51 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
         logger.error('Delete group message error', {
           socketId: socket.id,
           userId: socket.userId,
+          error: error.message
+        });
+        socket.emit('group_message_error', { error: error.message || 'Failed to delete message' });
+      }
+    });
+
+    // Admin delete any group message
+    socket.on('admin_delete_group_message', async (data: {
+      messageId: string;
+      communityId: string;
+    }) => {
+      try {
+        if (socket.userType !== 'communityAdmin') {
+          socket.emit('group_message_error', { error: 'Only admins can delete any messages' });
+          return;
+        }
+
+        if (!data.messageId) {
+          socket.emit('group_message_error', { error: 'Message ID is required' });
+          return;
+        }
+
+        // Admin can delete any message in their community
+        // We'll need to add this service method
+        const chatService = container.get<IUserCommunityChatService>(TYPES.IUserCommunityChatService);
+        // For now, we'll use the same method but we should add admin-specific delete
+        const result = await chatService.deleteGroupMessage(socket.userId!, data.messageId);
+
+        if (data.communityId) {
+          const chatRoom = `community:${data.communityId}:chat`;
+          communityNamespace.to(chatRoom).emit('group_message_deleted', {
+            messageId: data.messageId
+          });
+        }
+
+        logger.info('Admin deleted group message successfully', {
+          socketId: socket.id,
+          adminId: socket.userId,
+          messageId: data.messageId
+        });
+
+      } catch (error: any) {
+        logger.error('Admin delete group message error', {
+          socketId: socket.id,
+          adminId: socket.userId,
           error: error.message
         });
         socket.emit('group_message_error', { error: error.message || 'Failed to delete message' });
@@ -425,7 +482,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
       const chatRoom = `community:${data.communityId}:chat`;
       socket.to(chatRoom).emit('user_typing_start_group', {
         userId: socket.userId,
-        username: socket.username
+        username: socket.username,
+        userType: socket.userType
       });
     });
 
@@ -438,7 +496,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
       const chatRoom = `community:${data.communityId}:chat`;
       socket.to(chatRoom).emit('user_typing_stop_group', {
         userId: socket.userId,
-        username: socket.username
+        username: socket.username,
+        userType: socket.userType
       });
     });
 

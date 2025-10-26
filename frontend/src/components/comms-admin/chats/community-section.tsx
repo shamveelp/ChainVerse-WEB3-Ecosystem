@@ -130,15 +130,12 @@ export default function CommunitySection() {
     const setupSocket = async () => {
       try {
         await communitySocketService.connect(token)
+        console.log('Admin socket connected successfully')
 
-        // Join community for channel
-        if (currentAdmin.communityId) {
-          communitySocketService.joinCommunity(currentAdmin.communityId)
-        }
-
-        // Listen for message sent confirmation
-        communitySocketService.onChannelMessageSent((data) => {
-          console.log('Channel message sent confirmation:', data)
+        // Listen for new channel messages
+        communitySocketService.onNewChannelMessage((data) => {
+          console.log('New channel message received:', data)
+          setMessages(prev => [data.message, ...prev])
         })
 
         // Listen for errors
@@ -151,14 +148,14 @@ export default function CommunitySection() {
         })
 
       } catch (error: any) {
-        console.error('Failed to setup socket:', error)
+        console.error('Failed to setup admin socket:', error)
       }
     }
 
     setupSocket()
 
     return () => {
-      communitySocketService.offChannelMessageSent()
+      communitySocketService.offNewChannelMessage()
       communitySocketService.offMessageError()
     }
   }, [token, currentAdmin?._id, currentAdmin?.communityId])
@@ -242,22 +239,14 @@ export default function CommunitySection() {
         messageType = messageContent ? 'mixed' : 'media'
       }
 
-      // Send via API
-      const message = await communityAdminChatApiService.sendChannelMessage({
-        content: messageContent,
-        mediaFiles,
-        messageType
-      })
-
-      // Add to local state
-      setMessages(prev => [message, ...prev])
-
-      // Also send via socket for real-time delivery to other users
+      // Send via socket for real-time delivery
       communitySocketService.sendChannelMessage({
         content: messageContent,
         mediaFiles,
         messageType
       })
+
+      console.log('Channel message sent via socket')
 
     } catch (error: any) {
       console.error('Failed to send message:', error)

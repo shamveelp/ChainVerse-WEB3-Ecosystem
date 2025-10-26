@@ -2,6 +2,7 @@ import { injectable, inject } from "inversify";
 import { IUserCommunityChatService } from "../../core/interfaces/services/community/IUserCommunityChatService";
 import { ICommunityMessageRepository } from "../../core/interfaces/repositories/community/ICommunityMessageRepository";
 import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
+import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -20,7 +21,8 @@ import {
 export class UserCommunityChatService implements IUserCommunityChatService {
     constructor(
         @inject(TYPES.ICommunityMessageRepository) private _messageRepository: ICommunityMessageRepository,
-        @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository
+        @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository,
+        @inject(TYPES.ICommunityAdminRepository) private _adminRepository: ICommunityAdminRepository
     ) {}
 
     // Community Channel Methods
@@ -182,10 +184,22 @@ export class UserCommunityChatService implements IUserCommunityChatService {
                 throw new CustomError("Community not found", StatusCode.NOT_FOUND);
             }
 
-            // Check if user is a member
+            // Check if user is a member or admin
+            let hasAccess = false;
             const memberStatus = await this._communityRepository.checkCommunityMembership(userId, community._id.toString());
-            if (!memberStatus.isMember) {
-                throw new CustomError("You must be a member to view messages", StatusCode.FORBIDDEN);
+            
+            if (memberStatus.isMember) {
+                hasAccess = true;
+            } else {
+                // Check if user is community admin
+                const admin = await this._adminRepository.findById(userId);
+                if (admin && admin.communityId.toString() === community._id.toString()) {
+                    hasAccess = true;
+                }
+            }
+
+            if (!hasAccess) {
+                throw new CustomError("You must be a member or admin to view messages", StatusCode.FORBIDDEN);
             }
 
             if (!community.settings?.allowGroupChat) {
@@ -251,7 +265,20 @@ export class UserCommunityChatService implements IUserCommunityChatService {
                 throw new CustomError("Message not found", StatusCode.NOT_FOUND);
             }
 
-            if (message.senderId.toString() !== userId) {
+            // Check if user is the sender or admin
+            let canDelete = false;
+            
+            if (message.senderId.toString() === userId) {
+                canDelete = true;
+            } else {
+                // Check if user is community admin
+                const admin = await this._adminRepository.findById(userId);
+                if (admin && admin.communityId.toString() === message.communityId.toString()) {
+                    canDelete = true;
+                }
+            }
+
+            if (!canDelete) {
                 throw new CustomError("Unauthorized to delete this message", StatusCode.FORBIDDEN);
             }
 

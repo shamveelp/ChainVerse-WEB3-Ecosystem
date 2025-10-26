@@ -2,6 +2,7 @@ import { injectable, inject } from "inversify";
 import { ICommunityAdminCommunityService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminCommunityService";
 import { ICommunityMessageRepository } from "../../core/interfaces/repositories/community/ICommunityMessageRepository";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
+import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -12,12 +13,17 @@ import {
     CommunityMessageResponseDto,
     CommunityMessagesListResponseDto
 } from "../../dtos/communityChat/CommunityMessage.dto";
+import {
+    CommunityGroupMessageResponseDto,
+    CommunityGroupMessagesListResponseDto
+} from "../../dtos/communityChat/CommunityGroupMessage.dto";
 
 @injectable()
 export class CommunityAdminCommunityService implements ICommunityAdminCommunityService {
     constructor(
         @inject(TYPES.ICommunityMessageRepository) private _messageRepository: ICommunityMessageRepository,
-        @inject(TYPES.ICommunityAdminRepository) private _adminRepository: ICommunityAdminRepository
+        @inject(TYPES.ICommunityAdminRepository) private _adminRepository: ICommunityAdminRepository,
+        @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository
     ) {}
 
     async sendMessage(adminId: string, data: CreateCommunityMessageDto): Promise<CommunityMessageResponseDto> {
@@ -31,7 +37,7 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
             let messageType = data.messageType || 'text';
             if (!data.messageType) {
                 if (data.mediaFiles && data.mediaFiles.length > 0) {
-                    messageType = data.content.trim() ? 'mixed' : 'media';
+                    messageType = data.content?.trim() ? 'mixed' : 'media';
                 } else {
                     messageType = 'text';
                 }
@@ -40,7 +46,7 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
             const message = await this._messageRepository.createMessage({
                 communityId: admin.communityId,
                 adminId: admin._id,
-                content: data.content,
+                content: data.content || '',
                 mediaFiles: data.mediaFiles || [],
                 messageType,
                 reactions: [],
@@ -89,6 +95,42 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
                 throw error;
             }
             throw new CustomError("Failed to get messages", StatusCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Get group messages for admin view
+    async getGroupMessages(adminId: string, cursor?: string, limit: number = 50): Promise<CommunityGroupMessagesListResponseDto> {
+        try {
+            const admin = await this._adminRepository.findById(adminId);
+            if (!admin) {
+                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+            }
+
+            const community = await this._communityRepository.findById(admin.communityId.toString());
+            if (!community) {
+                throw new CustomError("Community not found", StatusCode.NOT_FOUND);
+            }
+
+            const result = await this._messageRepository.getGroupMessages(
+                admin.communityId.toString(),
+                cursor,
+                limit
+            );
+
+            const messages = result.messages.map(msg => this.transformGroupMessageToDTO(msg, adminId));
+
+            return {
+                messages,
+                hasMore: result.hasMore,
+                nextCursor: result.nextCursor,
+                totalCount: result.totalCount
+            };
+        } catch (error) {
+            console.error("CommunityAdminCommunityService: Get group messages error:", error);
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError("Failed to get group messages", StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -301,6 +343,25 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
             totalReactions: message.totalReactions,
             isEdited: message.isEdited,
             editedAt: message.editedAt,
+            createdAt: message.createdAt,
+            updatedAt: message.updatedAt
+        };
+    }
+
+    private transformGroupMessageToDTO(message: any, viewerId?: string): CommunityGroupMessageResponseDto {
+        return {
+            _id: message._id.toString(),
+            communityId: message.communityId.toString(),
+            sender: {
+                _id: message.senderId._id.toString(),
+                username: message.senderId.username,
+                name: message.senderId.name,
+                profilePic: message.senderId.profilePic || ''
+            },
+            content: message.content,
+            isEdited: message.isEdited,
+            editedAt: message.editedAt,
+            isCurrentUser: false, // Admin is always viewing as observer
             createdAt: message.createdAt,
             updatedAt: message.updatedAt
         };

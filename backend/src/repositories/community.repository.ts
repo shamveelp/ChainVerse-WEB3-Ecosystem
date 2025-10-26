@@ -1170,4 +1170,8 @@ export class CommunityRepository implements ICommunityRepository {
       );
     }
   }
+
+  findById(communityId: string): Promise<ICommunity | null> {
+    return this.findCommunityById(communityId);
+  }
 }

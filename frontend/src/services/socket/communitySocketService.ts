@@ -70,8 +70,17 @@ class CommunitySocketService {
   private connectionPromise: Promise<void> | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private isConnecting = false;
+  private userType: 'user' | 'communityAdmin' | null = null;
+  private communityId: string | null = null;
 
   async connect(token: string): Promise<void> {
+    // Prevent multiple simultaneous connections
+    if (this.isConnecting) {
+      return this.connectionPromise || Promise.resolve();
+    }
+
+    // If already connected, return immediately
     if (this.socket?.connected) {
       return Promise.resolve();
     }
@@ -81,15 +90,25 @@ class CommunitySocketService {
       return Promise.reject(new Error("No valid token provided"));
     }
 
+    // If there's already a connection promise, return it
     if (this.connectionPromise) {
       return this.connectionPromise;
     }
+
+    this.isConnecting = true;
 
     this.connectionPromise = new Promise((resolve, reject) => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const socketUrl = `${apiUrl}/community`;
 
       console.log("Attempting to connect to community socket:", socketUrl);
+
+      // Disconnect any existing socket first
+      if (this.socket) {
+        this.socket.removeAllListeners();
+        this.socket.disconnect();
+        this.socket = null;
+      }
 
       this.socket = io(socketUrl, {
         auth: {
@@ -107,6 +126,7 @@ class CommunitySocketService {
 
       const timeout = setTimeout(() => {
         console.error("Community socket connection timeout");
+        this.isConnecting = false;
         this.connectionPromise = null;
         reject(new Error("Community socket connection timeout"));
       }, 15000);
@@ -117,6 +137,7 @@ class CommunitySocketService {
           socketId: this.socket?.id,
           transport: this.socket?.io.engine.transport.name
         });
+        this.isConnecting = false;
         this.connectionPromise = null;
         this.reconnectAttempts = 0;
         resolve();
@@ -129,6 +150,7 @@ class CommunitySocketService {
           type: error,
           description: error.toString()
         });
+        this.isConnecting = false;
         this.connectionPromise = null;
 
         if (
@@ -153,8 +175,9 @@ class CommunitySocketService {
 
     this.socket.on("disconnect", (reason) => {
       console.log("🔌 Disconnected from community socket:", reason);
+      this.isConnecting = false;
       this.connectionPromise = null;
-      
+
       if (reason === "io server disconnect") {
         // The disconnection was initiated by the server, reconnect manually
         setTimeout(() => this.reconnect(), 1000);
@@ -163,6 +186,7 @@ class CommunitySocketService {
 
     this.socket.on("reconnect", (attemptNumber) => {
       console.log("🔄 Reconnected to community socket after", attemptNumber, "attempts");
+      this.isConnecting = false;
       this.connectionPromise = null;
       this.reconnectAttempts = 0;
     });
@@ -178,6 +202,8 @@ class CommunitySocketService {
 
     this.socket.on("reconnect_failed", () => {
       console.error("❌ Community socket failed to reconnect after", this.maxReconnectAttempts, "attempts");
+      this.isConnecting = false;
+      this.connectionPromise = null;
     });
 
     this.socket.on("error", (error) => {
@@ -186,14 +212,14 @@ class CommunitySocketService {
   }
 
   private async reconnect(): Promise<void> {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error("Max reconnection attempts reached");
+    if (this.reconnectAttempts >= this.maxReconnectAttempts || this.isConnecting) {
+      console.error("Max reconnection attempts reached or already connecting");
       return;
     }
 
     this.reconnectAttempts++;
     console.log(`Attempting manual reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
-    
+
     try {
       this.socket?.connect();
     } catch (error) {
@@ -209,14 +235,18 @@ class CommunitySocketService {
       this.socket.disconnect();
       this.socket = null;
     }
+    this.isConnecting = false;
     this.connectionPromise = null;
     this.reconnectAttempts = 0;
+    this.userType = null;
+    this.communityId = null;
   }
 
   // Community management
   joinCommunity(communityId: string): void {
     if (this.socket?.connected) {
       console.log("🏠 Joining community:", communityId);
+      this.communityId = communityId;
       this.socket.emit("join_community", { communityId });
     } else {
       console.warn("Cannot join community - socket not connected");
@@ -227,6 +257,9 @@ class CommunitySocketService {
     if (this.socket?.connected) {
       console.log("🚪 Leaving community:", communityId);
       this.socket.emit("leave_community", { communityId });
+      if (this.communityId === communityId) {
+        this.communityId = null;
+      }
     } else {
       console.warn("Cannot leave community - socket not connected");
     }
@@ -285,6 +318,17 @@ class CommunitySocketService {
     if (this.socket?.connected) {
       console.log("🗑️ Deleting group message:", messageId);
       this.socket.emit("delete_group_message", { messageId, communityId });
+    } else {
+      console.warn("Cannot delete message - socket not connected");
+      throw new Error("Socket not connected");
+    }
+  }
+
+  // Admin delete group message
+  adminDeleteGroupMessage(messageId: string, communityId: string): void {
+    if (this.socket?.connected) {
+      console.log("🗑️ Admin deleting group message:", messageId);
+      this.socket.emit("admin_delete_group_message", { messageId, communityId });
     } else {
       console.warn("Cannot delete message - socket not connected");
       throw new Error("Socket not connected");
@@ -355,11 +399,11 @@ class CommunitySocketService {
   }
 
   // Typing indicators for group chat
-  onUserTypingStartGroup(callback: (data: { userId: string; username: string }) => void): void {
+  onUserTypingStartGroup(callback: (data: { userId: string; username: string; userType?: string }) => void): void {
     this.socket?.on("user_typing_start_group", callback);
   }
 
-  onUserTypingStopGroup(callback: (data: { userId: string; username: string }) => void): void {
+  onUserTypingStopGroup(callback: (data: { userId: string; username: string; userType?: string }) => void): void {
     this.socket?.on("user_typing_stop_group", callback);
   }
 
@@ -501,8 +545,12 @@ class CommunitySocketService {
   getConnectionState(): string {
     if (!this.socket) return "disconnected";
     if (this.socket.connected) return "connected";
-    // if (this.socket.connecting) return "connecting";
+    if (this.isConnecting) return "connecting";
     return "disconnected";
+  }
+
+  getCurrentCommunityId(): string | null {
+    return this.communityId;
   }
 }
 

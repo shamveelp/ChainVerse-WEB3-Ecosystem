@@ -32,6 +32,7 @@ export function CommunityView() {
   const [hasMore, setHasMore] = useState(false)
   const [nextCursor, setNextCursor] = useState<string | undefined>()
   const [selectedMedia, setSelectedMedia] = useState<any>(null)
+  const [communityId, setCommunityId] = useState<string | null>(null)
 
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -54,6 +55,10 @@ export function CommunityView() {
 
       if (reset) {
         setMessages(response.messages)
+        // Get community ID from first message
+        if (response.messages.length > 0) {
+          setCommunityId(response.messages[0].communityId)
+        }
       } else {
         setMessages(prev => [...prev, ...response.messages])
       }
@@ -89,11 +94,13 @@ export function CommunityView() {
     const setupSocket = async () => {
       try {
         await communitySocketService.connect(token)
-        
-        // Join community for channel messages
-        // Note: We'll need to get community ID - for now using username
-        // communitySocketService.joinCommunity(communityId)
-        
+        console.log('User socket connected for channel messages')
+
+        // Join community if we have the ID
+        if (communityId) {
+          communitySocketService.joinCommunity(communityId)
+        }
+
         // Listen for new channel messages
         communitySocketService.onNewChannelMessage((data) => {
           console.log('New channel message received:', data)
@@ -103,8 +110,8 @@ export function CommunityView() {
         // Listen for reaction updates
         communitySocketService.onMessageReactionUpdated((data) => {
           console.log('Message reaction updated:', data)
-          setMessages(prev => prev.map(msg => 
-            msg._id === data.messageId 
+          setMessages(prev => prev.map(msg =>
+            msg._id === data.messageId
               ? { ...msg, reactions: data.reactions }
               : msg
           ))
@@ -138,7 +145,14 @@ export function CommunityView() {
       communitySocketService.offMessageError()
       communitySocketService.offReactionError()
     }
-  }, [token, username])
+  }, [token, username, communityId])
+
+  // Join community when we get the ID
+  useEffect(() => {
+    if (communityId && communitySocketService.isConnected()) {
+      communitySocketService.joinCommunity(communityId)
+    }
+  }, [communityId])
 
   // Scroll to bottom for new messages
   const scrollToBottom = () => {
@@ -166,8 +180,8 @@ export function CommunityView() {
       }
 
       // Update local state
-      setMessages(prev => prev.map(msg => 
-        msg._id === messageId 
+      setMessages(prev => prev.map(msg =>
+        msg._id === messageId
           ? { ...msg, reactions: result.reactions }
           : msg
       ))
@@ -294,7 +308,7 @@ export function CommunityView() {
                           <span className="text-xs text-slate-500">(edited)</span>
                         )}
                       </div>
-                      
+
                       {/* Text Content */}
                       {message.content && (
                         <p className="text-slate-200 text-sm mb-2 break-words whitespace-pre-wrap">
@@ -305,7 +319,7 @@ export function CommunityView() {
                       {/* Media Content */}
                       {message.mediaFiles && message.mediaFiles.length > 0 && (
                         <div className="grid gap-2 mb-2" style={{
-                          gridTemplateColumns: message.mediaFiles.length === 1 ? '1fr' : 
+                          gridTemplateColumns: message.mediaFiles.length === 1 ? '1fr' :
                                              message.mediaFiles.length === 2 ? '1fr 1fr' :
                                              'repeat(auto-fit, minmax(150px, 1fr))'
                         }}>
@@ -355,7 +369,7 @@ export function CommunityView() {
                         {/* Add Reaction Button */}
                         <div className="relative">
                           <button
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 transition-colors text-xs opacity-0 group-hover:opacity-100 text-slate-400"      
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 transition-colors text-xs opacity-0 group-hover:opacity-100 text-slate-400"
                             onClick={() => setSelectedMessageId(selectedMessageId === message._id ? null : message._id)}
                           >
                             +

@@ -438,4 +438,23 @@ router.post(
   )
 );
 
+// Community Group Chat Management (Admin can view and delete)
+router.get(
+  "/community/group-chat/messages",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminCommunityController.getGroupMessages.bind(
+    communityAdminCommunityController
+  )
+);
+
+router.delete(
+  "/community/group-chat/messages/:messageId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminCommunityController.deleteGroupMessage.bind(
+    communityAdminCommunityController
+  )
+);
+
 export default router;

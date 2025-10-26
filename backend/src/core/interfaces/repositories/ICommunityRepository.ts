@@ -99,4 +99,6 @@ export interface ICommunityRepository {
     }>;
 
     updateMemberNotifications(userId: string, communityId: string, enabled: boolean): Promise<boolean>;
+
+    findById(communityId: string): Promise<ICommunity | null>;
 }

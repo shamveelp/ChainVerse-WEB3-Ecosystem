@@ -1,3 +1,4 @@
+import { CommunityGroupMessagesListResponseDto } from "../../../../dtos/communityChat/CommunityGroupMessage.dto";
 import { 
     CreateCommunityMessageDto,
     UpdateCommunityMessageDto,
@@ -14,4 +15,11 @@ export interface ICommunityAdminCommunityService {
     unpinMessage(adminId: string, messageId: string): Promise<{ success: boolean; message: string }>;
     getMessageReactions(adminId: string, messageId: string): Promise<any>;
     uploadMedia(adminId: string, files: Express.Multer.File[]): Promise<{ mediaFiles: any[] }>;
+    getGroupMessages(
+  adminId: string,
+  cursor?: string,
+  limit?: number
+): Promise<CommunityGroupMessagesListResponseDto>;
+
+
 }

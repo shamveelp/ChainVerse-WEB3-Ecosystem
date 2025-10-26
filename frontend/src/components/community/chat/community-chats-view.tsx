@@ -32,6 +32,7 @@ export function CommunityChatsView() {
   const [nextCursor, setNextCursor] = useState<string | undefined>()
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set())
   const [isTyping, setIsTyping] = useState(false)
+  const [communityId, setCommunityId] = useState<string | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -56,6 +57,10 @@ export function CommunityChatsView() {
 
       if (reset) {
         setMessages(response.messages)
+        // Get community ID from first message
+        if (response.messages.length > 0) {
+          setCommunityId(response.messages[0].communityId)
+        }
       } else {
         // Prepend older messages to the beginning
         setMessages(prev => [...response.messages, ...prev])
@@ -92,7 +97,13 @@ export function CommunityChatsView() {
     const setupSocket = async () => {
       try {
         await communitySocketService.connect(token)
-        
+        console.log('User socket connected for group chat')
+
+        // Join community if we have the ID
+        if (communityId) {
+          communitySocketService.joinCommunity(communityId)
+        }
+
         // Listen for new group messages
         communitySocketService.onNewGroupMessage((data) => {
           console.log('New group message received:', data)
@@ -109,7 +120,7 @@ export function CommunityChatsView() {
         // Listen for message edits
         communitySocketService.onGroupMessageEdited((data) => {
           console.log('Group message edited:', data)
-          setMessages(prev => prev.map(msg => 
+          setMessages(prev => prev.map(msg =>
             msg._id === data.message._id ? data.message : msg
           ))
         })
@@ -162,7 +173,14 @@ export function CommunityChatsView() {
       communitySocketService.offUserTypingStopGroup()
       communitySocketService.offGroupMessageError()
     }
-  }, [token, username, currentUser?._id])
+  }, [token, username, currentUser?._id, communityId])
+
+  // Join community when we get the ID
+  useEffect(() => {
+    if (communityId && communitySocketService.isConnected()) {
+      communitySocketService.joinCommunity(communityId)
+    }
+  }, [communityId])
 
   // Scroll to bottom
   const scrollToBottom = () => {
@@ -181,7 +199,7 @@ export function CommunityChatsView() {
     const messageContent = inputValue.trim()
     setInputValue("")
     setSending(true)
-    
+
     try {
       // Send via socket for real-time delivery
       communitySocketService.sendGroupMessage({
@@ -218,9 +236,9 @@ export function CommunityChatsView() {
 
   // Typing indicators
   const handleStartTyping = () => {
-    if (!isTyping && username) {
+    if (!isTyping && communityId) {
       setIsTyping(true)
-      // communitySocketService.startTypingGroup({ communityId: username }) // We'll need actual communityId
+      communitySocketService.startTypingGroup({ communityId })
     }
 
     // Reset typing timeout
@@ -234,9 +252,9 @@ export function CommunityChatsView() {
   }
 
   const handleStopTyping = () => {
-    if (isTyping && username) {
+    if (isTyping && communityId) {
       setIsTyping(false)
-      // communitySocketService.stopTypingGroup({ communityId: username }) // We'll need actual communityId
+      communitySocketService.stopTypingGroup({ communityId })
     }
 
     if (typingTimeoutRef.current) {
@@ -358,8 +376,8 @@ export function CommunityChatsView() {
                       </div>
                       <div
                         className={`mt-1 px-3 py-2 rounded-lg break-words ${
-                          message.isCurrentUser 
-                            ? "bg-cyan-600 text-white rounded-br-none" 
+                          message.isCurrentUser
+                            ? "bg-cyan-600 text-white rounded-br-none"
                             : "bg-slate-800 text-slate-200 rounded-bl-none"
                         }`}
                       >
@@ -379,7 +397,7 @@ export function CommunityChatsView() {
                     <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                   <span>
-                    {Array.from(typingUsers).slice(0, 3).join(', ')} 
+                    {Array.from(typingUsers).slice(0, 3).join(', ')}
                     {typingUsers.size > 3 && ` and ${typingUsers.size - 3} others`}
                     {typingUsers.size === 1 ? ' is' : ' are'} typing...
                   </span>
