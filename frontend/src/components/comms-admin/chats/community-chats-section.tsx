@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useSelector } from "react-redux"
 import { RootState } from "@/redux/store"
-import { Send, Loader2, AlertCircle, Trash2 } from "lucide-react"
+import { Send, Loader2, AlertCircle, Trash2, Smile } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -16,20 +16,25 @@ interface Message extends CommunityGroupMessage {}
 export default function CommunityChatsSection() {
   const currentAdmin = useSelector((state: RootState) => state.communityAdminAuth?.communityAdmin)
   const token = useSelector((state: RootState) => state.communityAdminAuth?.token)
-  console.log('Rendering CommunityChatsSection with admin:', token)
-  
+
   const [messages, setMessages] = useState<Message[]>([])
+  const [inputValue, setInputValue] = useState("")
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
   const [nextCursor, setNextCursor] = useState<string | undefined>()
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set())
-  
+  const [isTyping, setIsTyping] = useState(false)
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isLoadingRef = useRef(false)
   const socketSetupRef = useRef(false)
   const componentMountedRef = useRef(false)
+  const messageSentRef = useRef<Set<string>>(new Set())
 
   // Debug logs
   useEffect(() => {
@@ -78,13 +83,14 @@ export default function CommunityChatsSection() {
         setLoading(true)
         setMessages([])
         setError(null)
+        messageSentRef.current.clear()
       } else {
         setLoadingMore(true)
       }
 
       const cursor = reset ? undefined : nextCursor
       console.log('Calling getGroupMessages with cursor:', cursor)
-      
+
       const response = await communityAdminChatApiService.getGroupMessages(cursor, 50)
       console.log('Group API response received:', {
         messagesCount: response?.messages?.length,
@@ -98,15 +104,18 @@ export default function CommunityChatsSection() {
       }
 
       if (reset) {
-        setMessages(response.messages || [])
+        // For group messages, we want newest at bottom
+        const reversedMessages = [...(response.messages || [])].reverse()
+        setMessages(reversedMessages)
       } else {
-        // Prepend older messages to the beginning
-        setMessages(prev => [...(response.messages || []), ...prev])
+        // For load more, prepend older messages
+        const reversedOlderMessages = [...(response.messages || [])].reverse()
+        setMessages(prev => [...reversedOlderMessages, ...prev])
       }
-      
+
       setHasMore(response.hasMore || false)
       setNextCursor(response.nextCursor)
-      setError(null) // Clear any previous errors
+      setError(null)
 
     } catch (err: any) {
       console.error('loadMessages (group) error:', {
@@ -114,12 +123,12 @@ export default function CommunityChatsSection() {
         status: err?.response?.status,
         data: err?.response?.data
       })
-      
+
       if (!componentMountedRef.current) return
 
       const errorMessage = err?.message || 'Failed to load messages'
       setError(errorMessage)
-      
+
       if (reset) {
         toast.error('Failed to load messages', {
           description: errorMessage
@@ -168,7 +177,7 @@ export default function CommunityChatsSection() {
       try {
         socketSetupRef.current = true
         console.log('Setting up admin socket for group chat')
-        
+
         await communitySocketService.connect(token)
         console.log('Admin socket connected for group chat')
 
@@ -177,11 +186,21 @@ export default function CommunityChatsSection() {
           console.log('New group message received:', data)
           if (!componentMountedRef.current) return
 
+          const messageId = data.message._id
+
+          // Check if we've already processed this message
+          if (messageSentRef.current.has(messageId)) {
+            console.log('Message already processed, skipping:', messageId)
+            return
+          }
+
+          messageSentRef.current.add(messageId)
+
           setMessages(prev => {
-            // Check if message already exists to prevent duplicates
-            const exists = prev.some(msg => msg._id === data.message._id)
+            // Double check to prevent duplicates in state
+            const exists = prev.some(msg => msg._id === messageId)
             if (exists) {
-              console.log('Message already exists, skipping:', data.message._id)
+              console.log('Message already exists in state, skipping:', messageId)
               return prev
             }
             return [...prev, data.message]
@@ -189,10 +208,15 @@ export default function CommunityChatsSection() {
           scrollToBottom()
         }
 
+        const handleGroupMessageSent = (data: any) => {
+          console.log('Group message sent confirmation:', data)
+          setSending(false)
+        }
+
         const handleGroupMessageEdited = (data: any) => {
           console.log('Group message edited:', data)
           if (!componentMountedRef.current) return
-          
+
           setMessages(prev => prev.map(msg =>
             msg._id === data.message._id ? data.message : msg
           ))
@@ -201,8 +225,9 @@ export default function CommunityChatsSection() {
         const handleGroupMessageDeleted = (data: any) => {
           console.log('Group message deleted:', data)
           if (!componentMountedRef.current) return
-          
+
           setMessages(prev => prev.filter(msg => msg._id !== data.messageId))
+          messageSentRef.current.delete(data.messageId)
         }
 
         const handleUserTypingStartGroup = (data: any) => {
@@ -224,14 +249,16 @@ export default function CommunityChatsSection() {
         const handleGroupMessageError = (data: any) => {
           console.error('Group message error:', data)
           if (!componentMountedRef.current) return
-          
+
           toast.error('Message Error', {
             description: data.error
           })
+          setSending(false)
         }
 
         // Remove existing listeners first to prevent duplicates
         communitySocketService.offNewGroupMessage()
+        communitySocketService.offGroupMessageSent()
         communitySocketService.offGroupMessageEdited()
         communitySocketService.offGroupMessageDeleted()
         communitySocketService.offUserTypingStartGroup()
@@ -240,6 +267,7 @@ export default function CommunityChatsSection() {
 
         // Add new listeners
         communitySocketService.onNewGroupMessage(handleNewGroupMessage)
+        communitySocketService.onGroupMessageSent(handleGroupMessageSent)
         communitySocketService.onGroupMessageEdited(handleGroupMessageEdited)
         communitySocketService.onGroupMessageDeleted(handleGroupMessageDeleted)
         communitySocketService.onUserTypingStartGroup(handleUserTypingStartGroup)
@@ -249,7 +277,6 @@ export default function CommunityChatsSection() {
       } catch (error: any) {
         console.error('Failed to setup admin socket for group chat:', error)
         socketSetupRef.current = false
-        // Don't show error toast for socket issues as they're not critical for viewing
       }
     }
 
@@ -258,6 +285,7 @@ export default function CommunityChatsSection() {
     return () => {
       socketSetupRef.current = false
       communitySocketService.offNewGroupMessage()
+      communitySocketService.offGroupMessageSent()
       communitySocketService.offGroupMessageEdited()
       communitySocketService.offGroupMessageDeleted()
       communitySocketService.offUserTypingStartGroup()
@@ -277,6 +305,79 @@ export default function CommunityChatsSection() {
   const handleLoadMore = () => {
     if (hasMore && !loadingMore && nextCursor && !isLoadingRef.current) {
       loadMessages(false)
+    }
+  }
+
+  // Send message as admin
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || sending || !currentAdmin) return
+
+    const messageContent = inputValue.trim()
+    setInputValue("")
+    setSending(true)
+
+    try {
+      // Send via socket for real-time delivery
+      communitySocketService.sendGroupMessage({
+        communityUsername: currentAdmin.communityId, // Use communityId as username
+        content: messageContent
+      })
+
+      // Stop typing indicator
+      handleStopTyping()
+    } catch (error: any) {
+      console.error('Failed to send message:', error)
+      toast.error('Failed to send message', {
+        description: error.message
+      })
+      setInputValue(messageContent) // Restore message
+      setSending(false)
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleSendMessage()
+    }
+  }
+
+  // Typing indicators
+  const handleStartTyping = () => {
+    if (!isTyping && currentAdmin?.communityId) {
+      setIsTyping(true)
+      communitySocketService.startTypingGroup({ communityId: currentAdmin.communityId })
+    }
+
+    // Reset typing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      handleStopTyping()
+    }, 3000)
+  }
+
+  const handleStopTyping = () => {
+    if (isTyping && currentAdmin?.communityId) {
+      setIsTyping(false)
+      communitySocketService.stopTypingGroup({ communityId: currentAdmin.communityId })
+    }
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+  }
+
+  // Input change handler with typing indicator
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value)
+    if (e.target.value.trim() && !isTyping) {
+      handleStartTyping()
+    } else if (!e.target.value.trim() && isTyping) {
+      handleStopTyping()
     }
   }
 
@@ -305,7 +406,7 @@ export default function CommunityChatsSection() {
       <div className="flex flex-col h-full bg-slate-950">
         <div className="bg-slate-900/50 border-b border-slate-700/50 px-4 py-3">
           <h2 className="text-lg font-semibold text-white">Community Chat</h2>
-          <p className="text-sm text-slate-400">👀 Admin can view community group chat</p>
+          <p className="text-sm text-slate-400">👀 Admin can participate in community group chat</p>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
@@ -326,7 +427,7 @@ export default function CommunityChatsSection() {
       <div className="flex flex-col h-full bg-slate-950">
         <div className="bg-slate-900/50 border-b border-slate-700/50 px-4 py-3">
           <h2 className="text-lg font-semibold text-white">Community Chat</h2>
-          <p className="text-sm text-slate-400">👀 Admin can view community group chat</p>
+          <p className="text-sm text-slate-400">👀 Admin can participate in community group chat</p>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
@@ -338,9 +439,9 @@ export default function CommunityChatsSection() {
                 Admin: {currentAdmin ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
               </p>
             </div>
-            <Button 
-              onClick={() => loadMessages(true)} 
-              variant="outline" 
+            <Button
+              onClick={() => loadMessages(true)}
+              variant="outline"
               className="border-slate-600 hover:bg-slate-800"
             >
               Try Again
@@ -356,7 +457,7 @@ export default function CommunityChatsSection() {
       {/* Header */}
       <div className="bg-slate-900/50 border-b border-slate-700/50 px-4 py-3 flex-shrink-0">
         <h2 className="text-lg font-semibold text-white">Community Chat</h2>
-        <p className="text-sm text-slate-400">👀 Admin can view community group chat • Can delete messages</p>
+        <p className="text-sm text-slate-400">👀 Admin can participate in community group chat • Can delete any message</p>
       </div>
 
       {/* Messages Area - Fixed Height with Proper Scrolling */}
@@ -387,25 +488,28 @@ export default function CommunityChatsSection() {
                 </div>
               ) : (
                 messages.map((message) => {
-                  // Fix the message positioning - community members on left, admin always sees them as "others"
-                  const isCurrentUser = false // Admin is always viewing other users' messages
+                  // Check if message is from current admin
+                  const isCurrentAdmin = message.sender._id === currentAdmin?._id
+                  
                   return (
-                    <div key={message._id} className="flex gap-3 group">
-                      {/* Avatar - Always on left for group chat messages */}
-                      <div className="flex-shrink-0">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={message.sender.profilePic} alt={message.sender.name} />
-                          <AvatarFallback className="bg-slate-700 text-slate-300 text-xs">
-                            {message.sender.name.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
+                    <div key={message._id} className={`flex gap-3 group ${isCurrentAdmin ? "justify-end" : "justify-start"}`}>
+                      {/* Avatar - Show on left for others, right for current admin */}
+                      {!isCurrentAdmin && (
+                        <div className="flex-shrink-0">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={message.sender.profilePic} alt={message.sender.name} />
+                            <AvatarFallback className="bg-slate-700 text-slate-300 text-xs">
+                              {message.sender.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                      )}
 
-                      {/* Message Bubble - Always left-aligned for group chat */}
-                      <div className="flex flex-col items-start max-w-[70%]">
-                        <div className="flex items-baseline gap-2 px-3">
+                      {/* Message Bubble */}
+                      <div className={`flex flex-col max-w-[70%] ${isCurrentAdmin ? "items-end" : "items-start"}`}>
+                        <div className={`flex items-baseline gap-2 px-3 ${isCurrentAdmin ? "flex-row-reverse" : "flex-row"}`}>
                           <span className="font-semibold text-white text-xs">
-                            {message.sender.name}
+                            {isCurrentAdmin ? "You (Admin)" : message.sender.name}
                           </span>
                           <span className="text-xs text-slate-500">
                             {communityAdminChatApiService.formatTime(message.createdAt)}
@@ -426,10 +530,28 @@ export default function CommunityChatsSection() {
                             </Button>
                           </div>
                         </div>
-                        <div className="mt-1 px-3 py-2 rounded-lg rounded-bl-none bg-slate-800 text-slate-200 break-words">
+                        <div 
+                          className={`mt-1 px-3 py-2 rounded-lg break-words ${
+                            isCurrentAdmin 
+                              ? "bg-cyan-600 text-white rounded-br-none" 
+                              : "bg-slate-800 text-slate-200 rounded-bl-none"
+                          }`}
+                        >
                           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                         </div>
                       </div>
+
+                      {/* Avatar for current admin on the right */}
+                      {isCurrentAdmin && (
+                        <div className="flex-shrink-0">
+                          <Avatar className="w-8 h-8">
+                            {/* <AvatarImage src={currentAdmin?.profilePicture} alt={currentAdmin?.name} /> */}
+                            <AvatarFallback className="bg-cyan-500/20 text-cyan-400 text-xs">
+                              {currentAdmin?.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                      )}
                     </div>
                   )
                 })
@@ -456,20 +578,33 @@ export default function CommunityChatsSection() {
         </ScrollArea>
       </div>
 
-      {/* Read-only notice */}
+      {/* Input Area - Admin can send messages */}
       <div className="bg-slate-900/50 border-t border-slate-700/50 px-4 py-3 flex-shrink-0">
-        <div className="flex gap-2 opacity-50 pointer-events-none">
+        <div className="flex gap-2">
           <Input
-            placeholder="Admin read-only view - members chat here"
-            disabled
+            ref={inputRef}
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            placeholder="Type a message as admin..."
             className="flex-1 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
+            disabled={sending}
           />
-          <Button disabled size="icon" className="bg-cyan-600 shrink-0">
-            <Send className="h-4 w-4" />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim() || sending}
+            size="icon"
+            className="bg-cyan-600 hover:bg-cyan-700 shrink-0"
+          >
+            {sending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
           </Button>
         </div>
         <p className="text-xs text-slate-500 mt-2">
-          👀 Admin can view and delete messages but cannot send messages in group chat
+          ✅ Admin can participate in group chat and delete any message
         </p>
       </div>
     </div>

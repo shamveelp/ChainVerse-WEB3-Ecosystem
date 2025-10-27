@@ -36,10 +36,13 @@ export function CommunityView() {
 
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const isLoadingRef = useRef(false)
 
   // Load messages
   const loadMessages = useCallback(async (reset: boolean = false) => {
-    if (!username || !currentUser) return
+    if (!username || !currentUser || isLoadingRef.current) return
+
+    isLoadingRef.current = true
 
     try {
       if (reset) {
@@ -54,13 +57,17 @@ export function CommunityView() {
       const response = await userCommunityChatApiService.getChannelMessages(username, cursor, 20)
 
       if (reset) {
-        setMessages(response.messages)
+        // For channel messages, we want newest at bottom, so reverse the array
+        const reversedMessages = [...(response.messages || [])].reverse()
+        setMessages(reversedMessages)
         // Get community ID from first message
-        if (response.messages.length > 0) {
-          setCommunityId(response.messages[0].communityId)
+        if (reversedMessages.length > 0) {
+          setCommunityId(reversedMessages[0].communityId)
         }
       } else {
-        setMessages(prev => [...prev, ...response.messages])
+        // For load more, prepend older messages (which come reversed from API)
+        const reversedOlderMessages = [...(response.messages || [])].reverse()
+        setMessages(prev => [...reversedOlderMessages, ...prev])
       }
 
       setHasMore(response.hasMore)
@@ -77,6 +84,7 @@ export function CommunityView() {
     } finally {
       setLoading(false)
       setLoadingMore(false)
+      isLoadingRef.current = false
     }
   }, [username, currentUser, nextCursor])
 
@@ -104,7 +112,8 @@ export function CommunityView() {
         // Listen for new channel messages
         communitySocketService.onNewChannelMessage((data) => {
           console.log('New channel message received:', data)
-          setMessages(prev => [data.message, ...prev])
+          // Add new message at the end (bottom) for channel messages
+          setMessages(prev => [...prev, data.message])
         })
 
         // Listen for reaction updates
@@ -197,7 +206,7 @@ export function CommunityView() {
 
   // Handle load more
   const handleLoadMore = () => {
-    if (hasMore && !loadingMore && nextCursor) {
+    if (hasMore && !loadingMore && nextCursor && !isLoadingRef.current) {
       loadMessages(false)
     }
   }
@@ -262,12 +271,12 @@ export function CommunityView() {
                 <div className="text-center pb-4">
                   <Button
                     onClick={handleLoadMore}
-                    disabled={loadingMore}
+                    disabled={loadingMore || isLoadingRef.current}
                     variant="outline"
                     size="sm"
                     className="border-slate-600 hover:bg-slate-800 text-slate-300"
                   >
-                    {loadingMore && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    {(loadingMore || isLoadingRef.current) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Load Earlier Messages
                   </Button>
                 </div>

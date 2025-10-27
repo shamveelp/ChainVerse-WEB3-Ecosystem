@@ -52,7 +52,7 @@ interface SendChannelMessageData {
 }
 
 interface SendGroupMessageData {
-  communityUsername: string;
+  communityUsername: string | undefined;
   content: string;
 }
 
@@ -73,6 +73,7 @@ class CommunitySocketService {
   private isConnecting = false;
   private userType: 'user' | 'communityAdmin' | null = null;
   private communityId: string | null = null;
+  private reconnectTimeout: NodeJS.Timeout | null = null;
 
   async connect(token: string): Promise<void> {
     // Prevent multiple simultaneous connections
@@ -90,11 +91,6 @@ class CommunitySocketService {
       return Promise.reject(new Error("No valid token provided"));
     }
 
-    // If there's already a connection promise, return it
-    if (this.connectionPromise) {
-      return this.connectionPromise;
-    }
-
     this.isConnecting = true;
 
     this.connectionPromise = new Promise((resolve, reject) => {
@@ -104,11 +100,7 @@ class CommunitySocketService {
       console.log("Attempting to connect to community socket:", socketUrl);
 
       // Disconnect any existing socket first
-      if (this.socket) {
-        this.socket.removeAllListeners();
-        this.socket.disconnect();
-        this.socket = null;
-      }
+      this.cleanupSocket();
 
       this.socket = io(socketUrl, {
         auth: {
@@ -118,16 +110,12 @@ class CommunitySocketService {
         timeout: 20000,
         forceNew: true,
         autoConnect: true,
-        reconnection: true,
-        reconnectionAttempts: this.maxReconnectAttempts,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
+        reconnection: false, // Disable automatic reconnection to handle it manually
       });
 
       const timeout = setTimeout(() => {
         console.error("Community socket connection timeout");
-        this.isConnecting = false;
-        this.connectionPromise = null;
+        this.cleanupConnection();
         reject(new Error("Community socket connection timeout"));
       }, 15000);
 
@@ -135,7 +123,7 @@ class CommunitySocketService {
         clearTimeout(timeout);
         console.log("✅ Connected to community socket", {
           socketId: this.socket?.id,
-          transport: this.socket?.io.engine.transport.name
+          transport: this.socket?.io.engine?.transport?.name
         });
         this.isConnecting = false;
         this.connectionPromise = null;
@@ -147,11 +135,10 @@ class CommunitySocketService {
         clearTimeout(timeout);
         console.error("❌ Community socket connection error:", {
           message: error.message,
-          type: error,
-          description: error.toString()
+          type: error.toString()
         });
-        this.isConnecting = false;
-        this.connectionPromise = null;
+        
+        this.cleanupConnection();
 
         if (
           error.message?.includes("Authentication failed") ||
@@ -170,73 +157,95 @@ class CommunitySocketService {
     return this.connectionPromise;
   }
 
+  private cleanupSocket(): void {
+    if (this.socket) {
+      this.socket.removeAllListeners();
+      this.socket.disconnect();
+      this.socket = null;
+    }
+  }
+
+  private cleanupConnection(): void {
+    this.isConnecting = false;
+    this.connectionPromise = null;
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+  }
+
   private setupEventListeners(): void {
     if (!this.socket) return;
 
     this.socket.on("disconnect", (reason) => {
       console.log("🔌 Disconnected from community socket:", reason);
-      this.isConnecting = false;
-      this.connectionPromise = null;
+      this.cleanupConnection();
 
-      if (reason === "io server disconnect") {
-        // The disconnection was initiated by the server, reconnect manually
-        setTimeout(() => this.reconnect(), 1000);
+      // Handle reconnection manually with delay
+      if (reason === "io server disconnect" || reason === "transport error") {
+        this.scheduleReconnect();
       }
-    });
-
-    this.socket.on("reconnect", (attemptNumber) => {
-      console.log("🔄 Reconnected to community socket after", attemptNumber, "attempts");
-      this.isConnecting = false;
-      this.connectionPromise = null;
-      this.reconnectAttempts = 0;
-    });
-
-    this.socket.on("reconnect_attempt", (attemptNumber) => {
-      console.log("🔄 Attempting to reconnect to community socket, attempt:", attemptNumber);
-      this.reconnectAttempts = attemptNumber;
-    });
-
-    this.socket.on("reconnect_error", (error) => {
-      console.error("❌ Community socket reconnection error:", error.message);
-    });
-
-    this.socket.on("reconnect_failed", () => {
-      console.error("❌ Community socket failed to reconnect after", this.maxReconnectAttempts, "attempts");
-      this.isConnecting = false;
-      this.connectionPromise = null;
     });
 
     this.socket.on("error", (error) => {
       console.error("🚨 Community socket error:", error);
+      this.cleanupConnection();
+      this.scheduleReconnect();
     });
   }
 
-  private async reconnect(): Promise<void> {
+  private scheduleReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts || this.isConnecting) {
       console.error("Max reconnection attempts reached or already connecting");
       return;
     }
 
     this.reconnectAttempts++;
-    console.log(`Attempting manual reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 10000);
+    
+    console.log(`⏱️ Scheduling reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
+    
+    this.reconnectTimeout = setTimeout(() => {
+      this.reconnectSocket();
+    }, delay);
+  }
 
+  private async reconnectSocket(): Promise<void> {
+    console.log(`🔄 Attempting manual reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+    
     try {
-      this.socket?.connect();
+      // Get fresh token from Redux store or wherever it's stored
+      const token = this.getCurrentToken();
+      if (token) {
+        await this.connect(token);
+      } else {
+        console.error("No token available for reconnection");
+      }
     } catch (error) {
       console.error("Manual reconnection failed:", error);
-      setTimeout(() => this.reconnect(), 2000 * this.reconnectAttempts);
+      this.scheduleReconnect();
     }
   }
 
-  disconnect(): void {
-    if (this.socket) {
-      console.log("👋 Disconnecting from community socket");
-      this.socket.removeAllListeners();
-      this.socket.disconnect();
-      this.socket = null;
+  private getCurrentToken(): string | null {
+    // This is a placeholder - you'll need to get the current token from your Redux store
+    // or wherever it's stored in your application
+    if (typeof window !== 'undefined') {
+      // Try to get token from Redux store if available
+      try {
+        const state = (window as any).__REDUX_STORE__?.getState();
+        return state?.userAuth?.token || state?.communityAdminAuth?.token || null;
+      } catch (e) {
+        console.warn("Could not get token from Redux store for reconnection");
+      }
     }
-    this.isConnecting = false;
-    this.connectionPromise = null;
+    return null;
+  }
+
+  disconnect(): void {
+    console.log("👋 Disconnecting from community socket");
+    this.cleanupSocket();
+    this.cleanupConnection();
     this.reconnectAttempts = 0;
     this.userType = null;
     this.communityId = null;
@@ -428,7 +437,7 @@ class CommunitySocketService {
     this.socket?.on("error", callback);
   }
 
-  // Remove listeners
+  // Remove listeners - Improved cleanup
   offJoinedCommunity(callback?: (data: any) => void): void {
     if (callback) {
       this.socket?.off("joined_community", callback);

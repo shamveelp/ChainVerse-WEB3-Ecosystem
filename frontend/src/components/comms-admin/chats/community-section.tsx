@@ -57,7 +57,7 @@ function MediaViewer({ media, onClose }: MediaViewerProps) {
 export default function CommunitySection() {
   const currentAdmin = useSelector((state: RootState) => state.communityAdminAuth?.communityAdmin)
   const token = useSelector((state: RootState) => state.communityAdminAuth?.token)
-  
+
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
   const [loading, setLoading] = useState(true)
@@ -71,13 +71,15 @@ export default function CommunitySection() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [uploadingMedia, setUploadingMedia] = useState(false)
   const [selectedMedia, setSelectedMedia] = useState<any>(null)
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isLoadingRef = useRef(false)
   const socketSetupRef = useRef(false)
   const componentMountedRef = useRef(false)
+  const messageSentRef = useRef<Set<string>>(new Set())
 
   // Debug logs
   useEffect(() => {
@@ -126,13 +128,14 @@ export default function CommunitySection() {
         setLoading(true)
         setMessages([])
         setError(null)
+        messageSentRef.current.clear()
       } else {
         setLoadingMore(true)
       }
 
       const cursor = reset ? undefined : nextCursor
       console.log('Calling getChannelMessages with cursor:', cursor)
-      
+
       const response = await communityAdminChatApiService.getChannelMessages(cursor, 20)
       console.log('API response received:', {
         messagesCount: response?.messages?.length,
@@ -146,14 +149,18 @@ export default function CommunitySection() {
       }
 
       if (reset) {
-        setMessages(response.messages || [])
+        // For channel messages, we want newest at bottom, so reverse the array
+        const reversedMessages = [...(response.messages || [])].reverse()
+        setMessages(reversedMessages)
       } else {
-        setMessages(prev => [...(response.messages || []), ...prev])
+        // For load more, prepend older messages (which come reversed from API)
+        const reversedOlderMessages = [...(response.messages || [])].reverse()
+        setMessages(prev => [...reversedOlderMessages, ...prev])
       }
-      
+
       setHasMore(response.hasMore || false)
       setNextCursor(response.nextCursor)
-      setError(null) // Clear any previous errors
+      setError(null)
 
     } catch (err: any) {
       console.error('loadMessages error:', {
@@ -161,12 +168,12 @@ export default function CommunitySection() {
         status: err?.response?.status,
         data: err?.response?.data
       })
-      
+
       if (!componentMountedRef.current) return
 
       const errorMessage = err?.message || 'Failed to load messages'
       setError(errorMessage)
-      
+
       if (reset) {
         toast.error('Failed to load messages', {
           description: errorMessage
@@ -215,7 +222,7 @@ export default function CommunitySection() {
       try {
         socketSetupRef.current = true
         console.log('Setting up admin socket for community channel')
-        
+
         await communitySocketService.connect(token)
         console.log('Admin socket connected successfully for channel')
 
@@ -223,20 +230,37 @@ export default function CommunitySection() {
           console.log('New channel message received:', data)
           if (!componentMountedRef.current) return
 
+          const messageId = data.message._id
+          
+          // Check if we've already processed this message
+          if (messageSentRef.current.has(messageId)) {
+            console.log('Message already processed, skipping:', messageId)
+            return
+          }
+
+          messageSentRef.current.add(messageId)
+
           setMessages(prev => {
-            const exists = prev.some(msg => msg._id === data.message._id)
+            // Double check to prevent duplicates in state
+            const exists = prev.some(msg => msg._id === messageId)
             if (exists) {
-              console.log('Message already exists, skipping:', data.message._id)
+              console.log('Message already exists in state, skipping:', messageId)
               return prev
             }
-            return [data.message, ...prev]
+            // Add new message at the end (bottom) for channel messages
+            return [...prev, data.message]
           })
+        }
+
+        const handleChannelMessageSent = (data: any) => {
+          console.log('Channel message sent confirmation:', data)
+          setSending(false)
         }
 
         const handleMessageError = (data: any) => {
           console.error('Message error:', data)
           if (!componentMountedRef.current) return
-          
+
           toast.error('Message Error', {
             description: data.error
           })
@@ -245,16 +269,17 @@ export default function CommunitySection() {
 
         // Remove existing listeners
         communitySocketService.offNewChannelMessage()
+        communitySocketService.offChannelMessageSent()
         communitySocketService.offMessageError()
 
         // Add new listeners
         communitySocketService.onNewChannelMessage(handleNewChannelMessage)
+        communitySocketService.onChannelMessageSent(handleChannelMessageSent)
         communitySocketService.onMessageError(handleMessageError)
 
       } catch (error: any) {
         console.error('Failed to setup admin socket:', error)
         socketSetupRef.current = false
-        // Don't show error toast for socket issues as they're not critical
       }
     }
 
@@ -263,6 +288,7 @@ export default function CommunitySection() {
     return () => {
       socketSetupRef.current = false
       communitySocketService.offNewChannelMessage()
+      communitySocketService.offChannelMessageSent()
       communitySocketService.offMessageError()
     }
   }, [token, currentAdmin?._id])
@@ -326,6 +352,7 @@ export default function CommunitySection() {
     const messageContent = newMessage.trim()
     const filesToUpload = [...selectedFiles]
 
+    // Clear inputs immediately
     setNewMessage("")
     setSelectedFiles([])
     setSending(true)
@@ -357,9 +384,9 @@ export default function CommunitySection() {
       toast.error('Failed to send message', {
         description: error.message
       })
+      // Restore inputs on error
       setNewMessage(messageContent)
       setSelectedFiles(filesToUpload)
-    } finally {
       setSending(false)
     }
   }
@@ -387,6 +414,7 @@ export default function CommunitySection() {
     try {
       await communityAdminChatApiService.deleteChannelMessage(messageId)
       setMessages(prev => prev.filter(msg => msg._id !== messageId))
+      messageSentRef.current.delete(messageId)
       toast.success('Message deleted successfully')
     } catch (error: any) {
       toast.error('Failed to delete message', {
@@ -452,7 +480,7 @@ export default function CommunitySection() {
     return (
       <div className="flex flex-col h-full bg-slate-950">
         <div className="bg-slate-900/50 border-b border-slate-700/50 px-4 py-3">
-          <h2 className="text-lg font-semibold text-white">Community Channel</h2>
+          <h2 className="text-lg font-semibent text-white">Community Channel</h2>
           <p className="text-sm text-slate-400">Admin only • You can post messages</p>
         </div>
         <div className="flex-1 flex items-center justify-center">
@@ -465,9 +493,9 @@ export default function CommunitySection() {
                 Admin: {currentAdmin ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
               </p>
             </div>
-            <Button 
-              onClick={() => loadMessages(true)} 
-              variant="outline" 
+            <Button
+              onClick={() => loadMessages(true)}
+              variant="outline"
               className="border-slate-600 hover:bg-slate-800"
             >
               Try Again
@@ -488,7 +516,7 @@ export default function CommunitySection() {
 
       {/* Messages Area - Fixed Height with Proper Scrolling */}
       <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
+        <ScrollArea className="h-full" ref={scrollAreaRef}>
           <div className="p-4">
             <div className="space-y-4">
               {/* Load More Button */}
