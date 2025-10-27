@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useSelector } from "react-redux"
 import { RootState } from "@/redux/store"
@@ -58,7 +57,7 @@ function MediaViewer({ media, onClose }: MediaViewerProps) {
 export default function CommunitySection() {
   const currentAdmin = useSelector((state: RootState) => state.communityAdminAuth?.communityAdmin)
   const token = useSelector((state: RootState) => state.communityAdminAuth?.token)
-
+  
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
   const [loading, setLoading] = useState(true)
@@ -72,16 +71,57 @@ export default function CommunitySection() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [uploadingMedia, setUploadingMedia] = useState(false)
   const [selectedMedia, setSelectedMedia] = useState<any>(null)
-
+  
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const isLoadingRef = useRef(false)
+  const socketSetupRef = useRef(false)
+  const componentMountedRef = useRef(false)
 
-  // Load messages
+  // Debug logs
+  useEffect(() => {
+    console.log('Community Section Debug:', {
+      currentAdmin: !!currentAdmin,
+      token: !!token,
+      adminId: currentAdmin?._id,
+      loading,
+      messagesCount: messages.length,
+      error
+    })
+  }, [currentAdmin, token, loading, messages.length, error])
+
+  // Load messages with better error handling
   const loadMessages = useCallback(async (reset: boolean = false) => {
-    if (!currentAdmin || !token) return
+    if (!componentMountedRef.current) {
+      console.log('Component not mounted, skipping loadMessages')
+      return
+    }
+
+    if (!currentAdmin) {
+      console.log('No currentAdmin, setting error')
+      setError("Admin authentication required")
+      setLoading(false)
+      return
+    }
+
+    if (!token) {
+      console.log('No token, setting error')
+      setError("Authentication token required")
+      setLoading(false)
+      return
+    }
+
+    if (isLoadingRef.current) {
+      console.log('Already loading, skipping')
+      return
+    }
+
+    isLoadingRef.current = true
 
     try {
+      console.log('Starting loadMessages:', { reset, cursor: reset ? undefined : nextCursor })
+
       if (reset) {
         setLoading(true)
         setMessages([])
@@ -91,74 +131,141 @@ export default function CommunitySection() {
       }
 
       const cursor = reset ? undefined : nextCursor
+      console.log('Calling getChannelMessages with cursor:', cursor)
+      
       const response = await communityAdminChatApiService.getChannelMessages(cursor, 20)
+      console.log('API response received:', {
+        messagesCount: response?.messages?.length,
+        hasMore: response?.hasMore,
+        nextCursor: response?.nextCursor
+      })
 
-      if (reset) {
-        setMessages(response.messages)
-      } else {
-        setMessages(prev => [...response.messages, ...prev])
+      if (!componentMountedRef.current) {
+        console.log('Component unmounted during API call')
+        return
       }
 
-      setHasMore(response.hasMore)
+      if (reset) {
+        setMessages(response.messages || [])
+      } else {
+        setMessages(prev => [...(response.messages || []), ...prev])
+      }
+      
+      setHasMore(response.hasMore || false)
       setNextCursor(response.nextCursor)
+      setError(null) // Clear any previous errors
 
     } catch (err: any) {
-      console.error('Failed to load channel messages:', err)
-      setError(err.message || 'Failed to load messages')
+      console.error('loadMessages error:', {
+        message: err?.message,
+        status: err?.response?.status,
+        data: err?.response?.data
+      })
+      
+      if (!componentMountedRef.current) return
+
+      const errorMessage = err?.message || 'Failed to load messages'
+      setError(errorMessage)
+      
       if (reset) {
         toast.error('Failed to load messages', {
-          description: err.message || 'Please try again'
+          description: errorMessage
         })
       }
     } finally {
-      setLoading(false)
-      setLoadingMore(false)
+      if (componentMountedRef.current) {
+        setLoading(false)
+        setLoadingMore(false)
+      }
+      isLoadingRef.current = false
     }
   }, [currentAdmin, token, nextCursor])
 
-  // Initial load
+  // Component mounted effect
   useEffect(() => {
-    if (currentAdmin && token) {
-      loadMessages(true)
+    componentMountedRef.current = true
+    return () => {
+      componentMountedRef.current = false
     }
-  }, [currentAdmin, token, loadMessages])
+  }, [])
 
-  // Socket setup
+  // Initial load with dependency on admin and token
   useEffect(() => {
-    if (!token || !currentAdmin) return
+    console.log('Initial load effect triggered:', {
+      currentAdmin: !!currentAdmin,
+      token: !!token,
+      isLoading: isLoadingRef.current
+    })
+
+    if (currentAdmin && token && !isLoadingRef.current) {
+      loadMessages(true)
+    } else if (!currentAdmin || !token) {
+      console.log('Missing auth, setting appropriate error')
+      setLoading(false)
+      if (!currentAdmin) setError("Admin authentication required")
+      else if (!token) setError("Authentication token required")
+    }
+  }, [currentAdmin?._id, token, loadMessages])
+
+  // Socket setup with better error handling
+  useEffect(() => {
+    if (!token || !currentAdmin || socketSetupRef.current) return
 
     const setupSocket = async () => {
       try {
+        socketSetupRef.current = true
+        console.log('Setting up admin socket for community channel')
+        
         await communitySocketService.connect(token)
-        console.log('Admin socket connected successfully')
+        console.log('Admin socket connected successfully for channel')
 
-        // Listen for new channel messages
-        communitySocketService.onNewChannelMessage((data) => {
+        const handleNewChannelMessage = (data: any) => {
           console.log('New channel message received:', data)
-          setMessages(prev => [data.message, ...prev])
-        })
+          if (!componentMountedRef.current) return
 
-        // Listen for errors
-        communitySocketService.onMessageError((data) => {
+          setMessages(prev => {
+            const exists = prev.some(msg => msg._id === data.message._id)
+            if (exists) {
+              console.log('Message already exists, skipping:', data.message._id)
+              return prev
+            }
+            return [data.message, ...prev]
+          })
+        }
+
+        const handleMessageError = (data: any) => {
           console.error('Message error:', data)
+          if (!componentMountedRef.current) return
+          
           toast.error('Message Error', {
             description: data.error
           })
           setSending(false)
-        })
+        }
+
+        // Remove existing listeners
+        communitySocketService.offNewChannelMessage()
+        communitySocketService.offMessageError()
+
+        // Add new listeners
+        communitySocketService.onNewChannelMessage(handleNewChannelMessage)
+        communitySocketService.onMessageError(handleMessageError)
 
       } catch (error: any) {
         console.error('Failed to setup admin socket:', error)
+        socketSetupRef.current = false
+        // Don't show error toast for socket issues as they're not critical
       }
     }
 
     setupSocket()
 
     return () => {
+      socketSetupRef.current = false
       communitySocketService.offNewChannelMessage()
       communitySocketService.offMessageError()
     }
-  }, [token, currentAdmin?._id, currentAdmin?.communityId])
+  }, [token, currentAdmin?._id])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -180,12 +287,10 @@ export default function CommunitySection() {
         toast.error(`${file.name} is not a valid image or video file`)
         return false
       }
-
       if (!isValidSize) {
         toast.error(`${file.name} is too large. Maximum size is 50MB`)
         return false
       }
-
       return true
     })
 
@@ -247,7 +352,6 @@ export default function CommunitySection() {
       })
 
       console.log('Channel message sent via socket')
-
     } catch (error: any) {
       console.error('Failed to send message:', error)
       toast.error('Failed to send message', {
@@ -300,7 +404,6 @@ export default function CommunitySection() {
         await communityAdminChatApiService.pinChannelMessage(messageId)
         toast.success('Message pinned')
       }
-
       // Refresh messages to get updated pin status
       loadMessages(true)
     } catch (error: any) {
@@ -318,7 +421,7 @@ export default function CommunitySection() {
   }
 
   const handleLoadMore = () => {
-    if (hasMore && !loadingMore && nextCursor) {
+    if (hasMore && !loadingMore && nextCursor && !isLoadingRef.current) {
       loadMessages(false)
     }
   }
@@ -335,6 +438,9 @@ export default function CommunitySection() {
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-cyan-400 mx-auto" />
             <p className="text-slate-400">Loading messages...</p>
+            <p className="text-xs text-slate-500">
+              Admin: {currentAdmin ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
+            </p>
           </div>
         </div>
       </div>
@@ -342,7 +448,7 @@ export default function CommunitySection() {
   }
 
   // Show error
-  if (error && messages.length === 0) {
+  if (error) {
     return (
       <div className="flex flex-col h-full bg-slate-950">
         <div className="bg-slate-900/50 border-b border-slate-700/50 px-4 py-3">
@@ -355,8 +461,15 @@ export default function CommunitySection() {
             <div>
               <p className="text-lg font-semibold text-white">Failed to load messages</p>
               <p className="text-sm text-slate-400">{error}</p>
+              <p className="text-xs text-slate-500 mt-2">
+                Admin: {currentAdmin ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
+              </p>
             </div>
-            <Button onClick={() => loadMessages(true)} variant="outline" className="border-slate-600 hover:bg-slate-800">
+            <Button 
+              onClick={() => loadMessages(true)} 
+              variant="outline" 
+              className="border-slate-600 hover:bg-slate-800"
+            >
               Try Again
             </Button>
           </div>
@@ -383,12 +496,12 @@ export default function CommunitySection() {
                 <div className="text-center pb-4">
                   <Button
                     onClick={handleLoadMore}
-                    disabled={loadingMore}
+                    disabled={loadingMore || isLoadingRef.current}
                     variant="outline"
                     size="sm"
                     className="border-slate-600 hover:bg-slate-800 text-slate-300"
                   >
-                    {loadingMore && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    {(loadingMore || isLoadingRef.current) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Load Earlier Messages
                   </Button>
                 </div>
@@ -400,144 +513,164 @@ export default function CommunitySection() {
                   <p className="text-sm text-slate-500">Send your first message to the community</p>
                 </div>
               ) : (
-                messages.map((message) => (
-                  <div key={message._id} className="flex gap-3 group">
-                    {/* Avatar */}
-                    <div className="relative">
-                      <Avatar className="w-10 h-10 flex-shrink-0">
-                        <AvatarImage src={message.admin.profilePicture} alt={message.admin.name} />
-                        <AvatarFallback className="bg-cyan-500/20 text-cyan-400">
-                          {message.admin.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-
-                    {/* Message Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="font-semibold text-white text-sm">{message.admin.name}</span>
-                        {message.isPinned && (
-                          <Badge variant="secondary" className="text-xs bg-yellow-500/20 text-yellow-400">
-                            <Pin className="w-3 h-3 mr-1" />
-                            Pinned
-                          </Badge>
-                        )}
-                        <span className="text-xs text-slate-500">
-                          {communityAdminChatApiService.formatTime(message.createdAt)}
-                        </span>
-                        {message.isEdited && (
-                          <span className="text-xs text-slate-500">(edited)</span>
-                        )}
-
-                        {/* Message Actions */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-slate-400 hover:text-white"
-                            onClick={() => {
-                              setEditingMessageId(message._id)
-                              setEditingContent(message.content)
-                            }}
-                          >
-                            <Edit2 className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-slate-400 hover:text-white"
-                            onClick={() => handlePinMessage(message._id, message.isPinned)}
-                          >
-                            <Pin className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-red-400 hover:text-red-300"
-                            onClick={() => handleDeleteMessage(message._id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                messages.map((message) => {
+                  // Admin messages are always on the right (current user side)
+                  const isCurrentAdmin = message.admin._id === currentAdmin?._id
+                  return (
+                    <div key={message._id} className={`flex gap-3 group ${isCurrentAdmin ? 'justify-end' : 'justify-start'}`}>
+                      {!isCurrentAdmin && (
+                        <div className="relative">
+                          <Avatar className="w-10 h-10 flex-shrink-0">
+                            <AvatarImage src={message.admin.profilePicture} alt={message.admin.name} />
+                            <AvatarFallback className="bg-cyan-500/20 text-cyan-400">
+                              {message.admin.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
                         </div>
-                      </div>
+                      )}
 
-                      {/* Message Content or Edit Form */}
-                      {editingMessageId === message._id ? (
-                        <div className="space-y-2">
-                          <Textarea
-                            value={editingContent}
-                            onChange={(e) => setEditingContent(e.target.value)}
-                            className="min-h-[80px] bg-slate-800/50 border-slate-600 text-white"
-                            placeholder="Edit message..."
-                          />
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => handleEditMessage(message._id, editingContent)}
-                              disabled={!editingContent.trim()}
-                              className="bg-cyan-600 hover:bg-cyan-700"
-                            >
-                              Save
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-slate-600 hover:bg-slate-800"
-                              onClick={() => {
-                                setEditingMessageId(null)
-                                setEditingContent("")
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          {/* Text Content */}
-                          {message.content && (
-                            <p className="text-slate-200 text-sm mb-2 break-words whitespace-pre-wrap">
-                              {message.content}
-                            </p>
+                      {/* Message Content */}
+                      <div className={`flex-1 min-w-0 max-w-[70%] ${isCurrentAdmin ? 'items-end' : 'items-start'} flex flex-col`}>
+                        <div className={`flex items-baseline gap-2 mb-1 ${isCurrentAdmin ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <span className="font-semibold text-white text-sm">
+                            {isCurrentAdmin ? 'You' : message.admin.name}
+                          </span>
+                          {message.isPinned && (
+                            <Badge variant="secondary" className="text-xs bg-yellow-500/20 text-yellow-400">
+                              <Pin className="w-3 h-3 mr-1" />
+                              Pinned
+                            </Badge>
+                          )}
+                          <span className="text-xs text-slate-500">
+                            {communityAdminChatApiService.formatTime(message.createdAt)}
+                          </span>
+                          {message.isEdited && (
+                            <span className="text-xs text-slate-500">(edited)</span>
                           )}
 
-                          {/* Media Content */}
-                          {message.mediaFiles && message.mediaFiles.length > 0 && (
-                            <div className="grid gap-2 mb-2" style={{
-                              gridTemplateColumns: message.mediaFiles.length === 1 ? '1fr' :
-                                                 message.mediaFiles.length === 2 ? '1fr 1fr' :
-                                                 'repeat(auto-fit, minmax(150px, 1fr))'
-                            }}>
-                              {message.mediaFiles.map((media, index) => (
-                                <div
-                                  key={index}
-                                  className="relative rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                                  onClick={() => setSelectedMedia(media)}
-                                >
-                                  {media.type === 'image' ? (
-                                    <img
-                                      src={media.url}
-                                      alt={media.filename}
-                                      className="w-full h-auto max-h-96 object-cover"
-                                      loading="lazy"
-                                    />
-                                  ) : (
-                                    <video
-                                      src={media.url}
-                                      className="w-full h-auto max-h-96"
-                                      controls
-                                      preload="metadata"
-                                    />
-                                  )}
-                                </div>
-                              ))}
+                          {/* Message Actions - Only for current admin */}
+                          {isCurrentAdmin && (
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-slate-400 hover:text-white"
+                                onClick={() => {
+                                  setEditingMessageId(message._id)
+                                  setEditingContent(message.content)
+                                }}
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-slate-400 hover:text-white"
+                                onClick={() => handlePinMessage(message._id, message.isPinned)}
+                              >
+                                <Pin className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-red-400 hover:text-red-300"
+                                onClick={() => handleDeleteMessage(message._id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
                             </div>
                           )}
-                        </>
+                        </div>
+
+                        {/* Message Content or Edit Form */}
+                        {editingMessageId === message._id ? (
+                          <div className="space-y-2 w-full">
+                            <Textarea
+                              value={editingContent}
+                              onChange={(e) => setEditingContent(e.target.value)}
+                              className="min-h-[80px] bg-slate-800/50 border-slate-600 text-white"
+                              placeholder="Edit message..."
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleEditMessage(message._id, editingContent)}
+                                disabled={!editingContent.trim()}
+                                className="bg-cyan-600 hover:bg-cyan-700"
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-slate-600 hover:bg-slate-800"
+                                onClick={() => {
+                                  setEditingMessageId(null)
+                                  setEditingContent("")
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={`${isCurrentAdmin ? 'items-end' : 'items-start'} flex flex-col w-full`}>
+                            {/* Text Content */}
+                            {message.content && (
+                              <div className={`${isCurrentAdmin ? 'bg-cyan-600 text-white rounded-br-none' : 'bg-slate-800 text-slate-200 rounded-bl-none'} rounded-lg px-3 py-2 mb-2 break-words whitespace-pre-wrap max-w-full`}>
+                                <p className="text-sm">{message.content}</p>
+                              </div>
+                            )}
+
+                            {/* Media Content */}
+                            {message.mediaFiles && message.mediaFiles.length > 0 && (
+                              <div className="grid gap-2 mb-2 w-full" style={{
+                                gridTemplateColumns: message.mediaFiles.length === 1 ? '1fr' :
+                                                   message.mediaFiles.length === 2 ? '1fr 1fr' :
+                                                   'repeat(auto-fit, minmax(150px, 1fr))'
+                              }}>
+                                {message.mediaFiles.map((media, index) => (
+                                  <div
+                                    key={index}
+                                    className="relative rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => setSelectedMedia(media)}
+                                  >
+                                    {media.type === 'image' ? (
+                                      <img
+                                        src={media.url}
+                                        alt={media.filename}
+                                        className="w-full h-auto max-h-96 object-cover"
+                                        loading="lazy"
+                                      />
+                                    ) : (
+                                      <video
+                                        src={media.url}
+                                        className="w-full h-auto max-h-96"
+                                        controls
+                                        preload="metadata"
+                                      />
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {isCurrentAdmin && (
+                        <div className="relative">
+                          <Avatar className="w-10 h-10 flex-shrink-0">
+                            <AvatarImage src={message.admin.profilePicture} alt={message.admin.name} />
+                            <AvatarFallback className="bg-cyan-500/20 text-cyan-400">
+                              {message.admin.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
                       )}
                     </div>
-                  </div>
-                ))
+                  )
+                })
               )}
               <div ref={messagesEndRef} />
             </div>
@@ -630,7 +763,7 @@ export default function CommunitySection() {
           </div>
         </div>
         <p className="text-xs text-slate-500 mt-2">
-          ✓ Admin messaging enabled • Supports images and videos (max 50MB, 5 files)
+          ✅ Admin messaging enabled • Supports images and videos (max 50MB, 5 files)
         </p>
       </div>
 

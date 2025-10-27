@@ -37,17 +37,23 @@ export function CommunityChatsView() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const typingTimeoutRef = useRef<NodeJS.Timeout>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isLoadingRef = useRef(false)
+  const socketSetupRef = useRef(false)
+  const messageSentRef = useRef<Set<string>>(new Set())
 
   // Load messages
   const loadMessages = useCallback(async (reset: boolean = false) => {
-    if (!username || !currentUser) return
+    if (!username || !currentUser || isLoadingRef.current) return
+
+    isLoadingRef.current = true
 
     try {
       if (reset) {
         setLoading(true)
         setMessages([])
         setError(null)
+        messageSentRef.current.clear()
       } else {
         setLoadingMore(true)
       }
@@ -71,31 +77,34 @@ export function CommunityChatsView() {
 
     } catch (err: any) {
       console.error('Failed to load group messages:', err)
-      setError(err.message || 'Failed to load messages')
+      const errorMessage = err.message || 'Failed to load messages'
+      setError(errorMessage)
       if (reset) {
         toast.error('Failed to load messages', {
-          description: err.message || 'Please try again'
+          description: errorMessage
         })
       }
     } finally {
       setLoading(false)
       setLoadingMore(false)
+      isLoadingRef.current = false
     }
   }, [username, currentUser, nextCursor])
 
   // Initial load
   useEffect(() => {
-    if (username && currentUser) {
+    if (username && currentUser && !isLoadingRef.current) {
       loadMessages(true)
     }
   }, [username, currentUser])
 
   // Socket setup
   useEffect(() => {
-    if (!token || !username || !currentUser) return
+    if (!token || !username || !currentUser || socketSetupRef.current) return
 
     const setupSocket = async () => {
       try {
+        socketSetupRef.current = true
         await communitySocketService.connect(token)
         console.log('User socket connected for group chat')
 
@@ -104,41 +113,58 @@ export function CommunityChatsView() {
           communitySocketService.joinCommunity(communityId)
         }
 
-        // Listen for new group messages
-        communitySocketService.onNewGroupMessage((data) => {
+        // Listen for new group messages - avoid duplicate handling
+        const handleNewGroupMessage = (data: any) => {
           console.log('New group message received:', data)
-          setMessages(prev => [...prev, data.message])
+          const messageId = data.message._id
+          
+          // Check if we've already processed this message
+          if (messageSentRef.current.has(messageId)) {
+            console.log('Message already processed, skipping:', messageId)
+            return
+          }
+
+          messageSentRef.current.add(messageId)
+          
+          setMessages(prev => {
+            // Double check to prevent duplicates in state
+            const exists = prev.some(msg => msg._id === messageId)
+            if (exists) {
+              console.log('Message already exists in state, skipping:', messageId)
+              return prev
+            }
+            return [...prev, data.message]
+          })
+          
           scrollToBottom()
-        })
+        }
 
-        // Listen for message sent confirmation
-        communitySocketService.onGroupMessageSent((data) => {
+        const handleGroupMessageSent = (data: any) => {
           console.log('Group message sent confirmation:', data)
-          // Message should already be in the list from onNewGroupMessage
-        })
+          // Don't add to state here as it should already be added by handleNewGroupMessage
+          setSending(false)
+        }
 
-        // Listen for message edits
-        communitySocketService.onGroupMessageEdited((data) => {
+        const handleGroupMessageEdited = (data: any) => {
           console.log('Group message edited:', data)
           setMessages(prev => prev.map(msg =>
             msg._id === data.message._id ? data.message : msg
           ))
-        })
+        }
 
-        // Listen for message deletes
-        communitySocketService.onGroupMessageDeleted((data) => {
+        const handleGroupMessageDeleted = (data: any) => {
           console.log('Group message deleted:', data)
           setMessages(prev => prev.filter(msg => msg._id !== data.messageId))
-        })
+          messageSentRef.current.delete(data.messageId)
+        }
 
-        // Listen for typing indicators
-        communitySocketService.onUserTypingStartGroup((data) => {
+        const handleUserTypingStartGroup = (data: any) => {
           if (data.userId !== currentUser._id) {
             setTypingUsers(prev => new Set([...prev, data.username]))
           }
-        })
+        }
 
-        communitySocketService.onUserTypingStopGroup((data) => {
+        const handleUserTypingStopGroup = (data: any) => {
           if (data.userId !== currentUser._id) {
             setTypingUsers(prev => {
               const newSet = new Set(prev)
@@ -146,25 +172,44 @@ export function CommunityChatsView() {
               return newSet
             })
           }
-        })
+        }
 
-        // Listen for errors
-        communitySocketService.onGroupMessageError((data) => {
+        const handleGroupMessageError = (data: any) => {
           console.error('Group message error:', data)
           toast.error('Message Error', {
             description: data.error
           })
           setSending(false)
-        })
+        }
+
+        // Remove existing listeners first to prevent duplicates
+        communitySocketService.offNewGroupMessage()
+        communitySocketService.offGroupMessageSent()
+        communitySocketService.offGroupMessageEdited()
+        communitySocketService.offGroupMessageDeleted()
+        communitySocketService.offUserTypingStartGroup()
+        communitySocketService.offUserTypingStopGroup()
+        communitySocketService.offGroupMessageError()
+
+        // Add new listeners
+        communitySocketService.onNewGroupMessage(handleNewGroupMessage)
+        communitySocketService.onGroupMessageSent(handleGroupMessageSent)
+        communitySocketService.onGroupMessageEdited(handleGroupMessageEdited)
+        communitySocketService.onGroupMessageDeleted(handleGroupMessageDeleted)
+        communitySocketService.onUserTypingStartGroup(handleUserTypingStartGroup)
+        communitySocketService.onUserTypingStopGroup(handleUserTypingStopGroup)
+        communitySocketService.onGroupMessageError(handleGroupMessageError)
 
       } catch (error: any) {
         console.error('Failed to setup socket:', error)
+        socketSetupRef.current = false
       }
     }
 
     setupSocket()
 
     return () => {
+      socketSetupRef.current = false
       communitySocketService.offNewGroupMessage()
       communitySocketService.offGroupMessageSent()
       communitySocketService.offGroupMessageEdited()
@@ -215,7 +260,6 @@ export function CommunityChatsView() {
         description: error.message
       })
       setInputValue(messageContent) // Restore message
-    } finally {
       setSending(false)
     }
   }
@@ -229,7 +273,7 @@ export function CommunityChatsView() {
 
   // Handle load more
   const handleLoadMore = () => {
-    if (hasMore && !loadingMore && nextCursor) {
+    if (hasMore && !loadingMore && nextCursor && !isLoadingRef.current) {
       loadMessages(false)
     }
   }
@@ -259,6 +303,7 @@ export function CommunityChatsView() {
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
     }
   }
 
@@ -332,12 +377,12 @@ export function CommunityChatsView() {
                 <div className="text-center pb-4">
                   <Button
                     onClick={handleLoadMore}
-                    disabled={loadingMore}
+                    disabled={loadingMore || isLoadingRef.current}
                     variant="outline"
                     size="sm"
                     className="border-slate-600 hover:bg-slate-800 text-slate-300"
                   >
-                    {loadingMore && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    {(loadingMore || isLoadingRef.current) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Load Earlier Messages
                   </Button>
                 </div>
@@ -349,43 +394,62 @@ export function CommunityChatsView() {
                   <p className="text-sm text-slate-500">Be the first to start the conversation!</p>
                 </div>
               ) : (
-                messages.map((message) => (
-                  <div key={message._id} className={`flex gap-3 ${message.isCurrentUser ? "flex-row-reverse" : "flex-row"}`}>
-                    {/* Avatar */}
-                    <div className="flex-shrink-0">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={message.sender.profilePic} alt={message.sender.name} />
-                        <AvatarFallback className="bg-slate-700 text-slate-300 text-xs">
-                          {userCommunityChatApiService.getUserAvatarFallback(message.sender.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
+                messages.map((message) => {
+                  // Fix message positioning - current user on right, others on left
+                  const isCurrentUser = message.sender._id === currentUser?._id
+                  
+                  return (
+                    <div key={message._id} className={`flex gap-3 ${isCurrentUser ? "justify-end" : "justify-start"}`}>
+                      {/* Avatar - Show on left for others, right for current user */}
+                      {!isCurrentUser && (
+                        <div className="flex-shrink-0">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={message.sender.profilePic} alt={message.sender.name} />
+                            <AvatarFallback className="bg-slate-700 text-slate-300 text-xs">
+                              {userCommunityChatApiService.getUserAvatarFallback(message.sender.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                      )}
 
-                    {/* Message Bubble */}
-                    <div className={`flex flex-col ${message.isCurrentUser ? "items-end" : "items-start"} max-w-[70%]`}>
-                      <div className={`flex items-baseline gap-2 px-3 ${message.isCurrentUser ? "flex-row-reverse" : "flex-row"}`}>
-                        <span className="font-semibold text-white text-xs">
-                          {message.isCurrentUser ? "You" : message.sender.name}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {userCommunityChatApiService.formatTime(message.createdAt)}
-                        </span>
-                        {message.isEdited && (
-                          <span className="text-xs text-slate-500">(edited)</span>
-                        )}
+                      {/* Message Bubble */}
+                      <div className={`flex flex-col max-w-[70%] ${isCurrentUser ? "items-end" : "items-start"}`}>
+                        <div className={`flex items-baseline gap-2 px-3 ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}>
+                          <span className="font-semibold text-white text-xs">
+                            {isCurrentUser ? "You" : message.sender.name}
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            {userCommunityChatApiService.formatTime(message.createdAt)}
+                          </span>
+                          {message.isEdited && (
+                            <span className="text-xs text-slate-500">(edited)</span>
+                          )}
+                        </div>
+                        <div
+                          className={`mt-1 px-3 py-2 rounded-lg break-words ${
+                            isCurrentUser
+                              ? "bg-cyan-600 text-white rounded-br-none"
+                              : "bg-slate-800 text-slate-200 rounded-bl-none"
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        </div>
                       </div>
-                      <div
-                        className={`mt-1 px-3 py-2 rounded-lg break-words ${
-                          message.isCurrentUser
-                            ? "bg-cyan-600 text-white rounded-br-none"
-                            : "bg-slate-800 text-slate-200 rounded-bl-none"
-                        }`}
-                      >
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      </div>
+
+                      {/* Avatar for current user on the right */}
+                      {isCurrentUser && (
+                        <div className="flex-shrink-0">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={currentUser?.profileImage} alt={currentUser?.name} />
+                            <AvatarFallback className="bg-cyan-500/20 text-cyan-400 text-xs">
+                              {userCommunityChatApiService.getUserAvatarFallback(currentUser?.name || '')}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
+                  )
+                })
               )}
 
               {/* Typing Indicators */}
