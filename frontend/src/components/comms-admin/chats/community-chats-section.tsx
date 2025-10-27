@@ -1,8 +1,6 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from "react"
-import { useSelector } from "react-redux"
-import { RootState } from "@/redux/store"
-import { Send, Loader2, AlertCircle, Trash2, Smile } from "lucide-react"
+import { Send, Loader2, AlertCircle, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -10,12 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "sonner"
 import { communitySocketService } from "@/services/socket/communitySocketService"
 import { communityAdminChatApiService, type CommunityGroupMessage } from "@/services/communityAdmin/communityAdminChatApiService"
+import { useCommunityAdminAuth } from "@/hooks/communityAdmin/useAuthCheck"
 
 interface Message extends CommunityGroupMessage {}
 
 export default function CommunityChatsSection() {
-  const currentAdmin = useSelector((state: RootState) => state.communityAdminAuth?.communityAdmin)
-  const token = useSelector((state: RootState) => state.communityAdminAuth?.token)
+  const { isReady, isAuthenticated, admin: currentAdmin, token, loading: authLoading } = useCommunityAdminAuth()
 
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
@@ -39,14 +37,17 @@ export default function CommunityChatsSection() {
   // Debug logs
   useEffect(() => {
     console.log('Community Chats Section Debug:', {
+      isReady,
+      isAuthenticated,
       currentAdmin: !!currentAdmin,
       token: !!token,
+      authLoading,
       adminId: currentAdmin?._id,
       loading,
       messagesCount: messages.length,
       error
     })
-  }, [currentAdmin, token, loading, messages.length, error])
+  }, [isReady, isAuthenticated, currentAdmin, token, authLoading, loading, messages.length, error])
 
   // Load messages with better error handling
   const loadMessages = useCallback(async (reset: boolean = false) => {
@@ -55,7 +56,12 @@ export default function CommunityChatsSection() {
       return
     }
 
-    if (!currentAdmin) {
+    if (!isReady) {
+      console.log('Auth not ready, skipping loadMessages')
+      return
+    }
+
+    if (!isAuthenticated || !currentAdmin) {
       console.log('No currentAdmin, setting error')
       setError("Admin authentication required")
       setLoading(false)
@@ -141,7 +147,7 @@ export default function CommunityChatsSection() {
       }
       isLoadingRef.current = false
     }
-  }, [currentAdmin, token, nextCursor])
+  }, [isReady, isAuthenticated, currentAdmin, token, nextCursor])
 
   // Component mounted effect
   useEffect(() => {
@@ -151,27 +157,29 @@ export default function CommunityChatsSection() {
     }
   }, [])
 
-  // Initial load with dependency on admin and token
+  // Initial load with dependency on auth readiness
   useEffect(() => {
     console.log('Initial load effect triggered (group):', {
+      isReady,
+      isAuthenticated,
       currentAdmin: !!currentAdmin,
       token: !!token,
       isLoading: isLoadingRef.current
     })
 
-    if (currentAdmin && token && !isLoadingRef.current) {
+    if (isReady && isAuthenticated && currentAdmin && token && !isLoadingRef.current) {
       loadMessages(true)
-    } else if (!currentAdmin || !token) {
+    } else if (isReady && (!isAuthenticated || !currentAdmin || !token)) {
       console.log('Missing auth, setting appropriate error')
       setLoading(false)
-      if (!currentAdmin) setError("Admin authentication required")
+      if (!isAuthenticated || !currentAdmin) setError("Admin authentication required")
       else if (!token) setError("Authentication token required")
     }
-  }, [currentAdmin?._id, token, loadMessages])
+  }, [isReady, isAuthenticated, currentAdmin?._id, token, loadMessages])
 
   // Socket setup
   useEffect(() => {
-    if (!token || !currentAdmin || socketSetupRef.current) return
+    if (!isReady || !isAuthenticated || !token || !currentAdmin || socketSetupRef.current) return
 
     const setupSocket = async () => {
       try {
@@ -277,6 +285,9 @@ export default function CommunityChatsSection() {
       } catch (error: any) {
         console.error('Failed to setup admin socket for group chat:', error)
         socketSetupRef.current = false
+        toast.error('Connection Error', {
+          description: 'Failed to connect to real-time messaging'
+        })
       }
     }
 
@@ -292,7 +303,7 @@ export default function CommunityChatsSection() {
       communitySocketService.offUserTypingStopGroup()
       communitySocketService.offGroupMessageError()
     }
-  }, [token, currentAdmin?._id])
+  }, [isReady, isAuthenticated, token, currentAdmin?._id])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -310,7 +321,7 @@ export default function CommunityChatsSection() {
 
   // Send message as admin
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || sending || !currentAdmin) return
+    if (!inputValue.trim() || sending || !currentAdmin || !currentAdmin.communityId) return
 
     const messageContent = inputValue.trim()
     setInputValue("")
@@ -400,8 +411,8 @@ export default function CommunityChatsSection() {
     }
   }
 
-  // Show loading
-  if (loading) {
+  // Show loading while auth is not ready or still loading
+  if (!isReady || authLoading || loading) {
     return (
       <div className="flex flex-col h-full bg-slate-950">
         <div className="bg-slate-900/50 border-b border-slate-700/50 px-4 py-3">
@@ -411,9 +422,11 @@ export default function CommunityChatsSection() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-cyan-400 mx-auto" />
-            <p className="text-slate-400">Loading messages...</p>
+            <p className="text-slate-400">
+              {authLoading ? 'Checking authentication...' : 'Loading messages...'}
+            </p>
             <p className="text-xs text-slate-500">
-              Admin: {currentAdmin ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
+              Ready: {isReady ? '✓' : '✗'} | Auth: {isAuthenticated ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
             </p>
           </div>
         </div>
@@ -436,7 +449,7 @@ export default function CommunityChatsSection() {
               <p className="text-lg font-semibold text-white">Failed to load messages</p>
               <p className="text-sm text-slate-400">{error}</p>
               <p className="text-xs text-slate-500 mt-2">
-                Admin: {currentAdmin ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
+                Ready: {isReady ? '✓' : '✗'} | Auth: {isAuthenticated ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
               </p>
             </div>
             <Button
@@ -490,7 +503,7 @@ export default function CommunityChatsSection() {
                 messages.map((message) => {
                   // Check if message is from current admin
                   const isCurrentAdmin = message.sender._id === currentAdmin?._id
-                  
+
                   return (
                     <div key={message._id} className={`flex gap-3 group ${isCurrentAdmin ? "justify-end" : "justify-start"}`}>
                       {/* Avatar - Show on left for others, right for current admin */}
@@ -530,10 +543,10 @@ export default function CommunityChatsSection() {
                             </Button>
                           </div>
                         </div>
-                        <div 
+                        <div
                           className={`mt-1 px-3 py-2 rounded-lg break-words ${
-                            isCurrentAdmin 
-                              ? "bg-cyan-600 text-white rounded-br-none" 
+                            isCurrentAdmin
+                              ? "bg-cyan-600 text-white rounded-br-none"
                               : "bg-slate-800 text-slate-200 rounded-bl-none"
                           }`}
                         >
@@ -588,11 +601,11 @@ export default function CommunityChatsSection() {
             onKeyPress={handleKeyPress}
             placeholder="Type a message as admin..."
             className="flex-1 bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
-            disabled={sending}
+            disabled={sending || !isAuthenticated}
           />
           <Button
             onClick={handleSendMessage}
-            disabled={!inputValue.trim() || sending}
+            disabled={!inputValue.trim() || sending || !isAuthenticated}
             size="icon"
             className="bg-cyan-600 hover:bg-cyan-700 shrink-0"
           >
@@ -604,7 +617,10 @@ export default function CommunityChatsSection() {
           </Button>
         </div>
         <p className="text-xs text-slate-500 mt-2">
-          ✅ Admin can participate in group chat and delete any message
+          {isAuthenticated ? 
+            '✅ Admin can participate in group chat and delete any message' :
+            '❌ Authentication required to send messages'
+          }
         </p>
       </div>
     </div>

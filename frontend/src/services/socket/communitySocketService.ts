@@ -1,4 +1,5 @@
 import { io, Socket } from "socket.io-client";
+import { store } from "@/redux/store";
 
 interface CommunityMessage {
   _id: string;
@@ -74,6 +75,7 @@ class CommunitySocketService {
   private userType: 'user' | 'communityAdmin' | null = null;
   private communityId: string | null = null;
   private reconnectTimeout: NodeJS.Timeout | null = null;
+  private currentToken: string | null = null;
 
   async connect(token: string): Promise<void> {
     // Prevent multiple simultaneous connections
@@ -91,6 +93,8 @@ class CommunitySocketService {
       return Promise.reject(new Error("No valid token provided"));
     }
 
+    // Store current token for reconnection
+    this.currentToken = token;
     this.isConnecting = true;
 
     this.connectionPromise = new Promise((resolve, reject) => {
@@ -137,7 +141,7 @@ class CommunitySocketService {
           message: error.message,
           type: error.toString()
         });
-        
+
         this.cleanupConnection();
 
         if (
@@ -202,9 +206,9 @@ class CommunitySocketService {
 
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 10000);
-    
+
     console.log(`⏱️ Scheduling reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
-    
+
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectSocket();
     }, delay);
@@ -212,9 +216,9 @@ class CommunitySocketService {
 
   private async reconnectSocket(): Promise<void> {
     console.log(`🔄 Attempting manual reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
-    
+
     try {
-      // Get fresh token from Redux store or wherever it's stored
+      // Get fresh token from Redux store
       const token = this.getCurrentToken();
       if (token) {
         await this.connect(token);
@@ -228,18 +232,18 @@ class CommunitySocketService {
   }
 
   private getCurrentToken(): string | null {
-    // This is a placeholder - you'll need to get the current token from your Redux store
-    // or wherever it's stored in your application
-    if (typeof window !== 'undefined') {
-      // Try to get token from Redux store if available
-      try {
-        const state = (window as any).__REDUX_STORE__?.getState();
-        return state?.userAuth?.token || state?.communityAdminAuth?.token || null;
-      } catch (e) {
-        console.warn("Could not get token from Redux store for reconnection");
-      }
+    try {
+      // Get token from Redux store
+      const state = store.getState();
+      const userToken = state?.userAuth?.token;
+      const adminToken = state?.communityAdminAuth?.token;
+      
+      // Return the current token we're using, or try to get from store
+      return this.currentToken || adminToken || userToken || null;
+    } catch (e) {
+      console.warn("Could not get token from Redux store for reconnection");
+      return this.currentToken;
     }
-    return null;
   }
 
   disconnect(): void {
@@ -249,6 +253,7 @@ class CommunitySocketService {
     this.reconnectAttempts = 0;
     this.userType = null;
     this.communityId = null;
+    this.currentToken = null;
   }
 
   // Community management

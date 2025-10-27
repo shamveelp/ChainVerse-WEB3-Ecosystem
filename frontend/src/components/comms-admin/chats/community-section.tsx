@@ -1,7 +1,5 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from "react"
-import { useSelector } from "react-redux"
-import { RootState } from "@/redux/store"
 import { Send, Image, Video, Loader2, AlertCircle, Pin, Trash2, CreditCard as Edit2, Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { communitySocketService } from "@/services/socket/communitySocketService"
 import { communityAdminChatApiService, type CommunityMessage } from "@/services/communityAdmin/communityAdminChatApiService"
+import { useCommunityAdminAuth } from "@/hooks/communityAdmin/useAuthCheck"
 
 interface Message extends CommunityMessage {}
 
@@ -55,8 +54,7 @@ function MediaViewer({ media, onClose }: MediaViewerProps) {
 }
 
 export default function CommunitySection() {
-  const currentAdmin = useSelector((state: RootState) => state.communityAdminAuth?.communityAdmin)
-  const token = useSelector((state: RootState) => state.communityAdminAuth?.token)
+  const { isReady, isAuthenticated, admin: currentAdmin, token, loading: authLoading } = useCommunityAdminAuth()
 
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
@@ -84,14 +82,17 @@ export default function CommunitySection() {
   // Debug logs
   useEffect(() => {
     console.log('Community Section Debug:', {
+      isReady,
+      isAuthenticated,
       currentAdmin: !!currentAdmin,
       token: !!token,
+      authLoading,
       adminId: currentAdmin?._id,
       loading,
       messagesCount: messages.length,
       error
     })
-  }, [currentAdmin, token, loading, messages.length, error])
+  }, [isReady, isAuthenticated, currentAdmin, token, authLoading, loading, messages.length, error])
 
   // Load messages with better error handling
   const loadMessages = useCallback(async (reset: boolean = false) => {
@@ -100,7 +101,12 @@ export default function CommunitySection() {
       return
     }
 
-    if (!currentAdmin) {
+    if (!isReady) {
+      console.log('Auth not ready, skipping loadMessages')
+      return
+    }
+
+    if (!isAuthenticated || !currentAdmin) {
       console.log('No currentAdmin, setting error')
       setError("Admin authentication required")
       setLoading(false)
@@ -186,7 +192,7 @@ export default function CommunitySection() {
       }
       isLoadingRef.current = false
     }
-  }, [currentAdmin, token, nextCursor])
+  }, [isReady, isAuthenticated, currentAdmin, token, nextCursor])
 
   // Component mounted effect
   useEffect(() => {
@@ -196,27 +202,29 @@ export default function CommunitySection() {
     }
   }, [])
 
-  // Initial load with dependency on admin and token
+  // Initial load with dependency on auth readiness
   useEffect(() => {
     console.log('Initial load effect triggered:', {
+      isReady,
+      isAuthenticated,
       currentAdmin: !!currentAdmin,
       token: !!token,
       isLoading: isLoadingRef.current
     })
 
-    if (currentAdmin && token && !isLoadingRef.current) {
+    if (isReady && isAuthenticated && currentAdmin && token && !isLoadingRef.current) {
       loadMessages(true)
-    } else if (!currentAdmin || !token) {
+    } else if (isReady && (!isAuthenticated || !currentAdmin || !token)) {
       console.log('Missing auth, setting appropriate error')
       setLoading(false)
-      if (!currentAdmin) setError("Admin authentication required")
+      if (!isAuthenticated || !currentAdmin) setError("Admin authentication required")
       else if (!token) setError("Authentication token required")
     }
-  }, [currentAdmin?._id, token, loadMessages])
+  }, [isReady, isAuthenticated, currentAdmin?._id, token, loadMessages])
 
   // Socket setup with better error handling
   useEffect(() => {
-    if (!token || !currentAdmin || socketSetupRef.current) return
+    if (!isReady || !isAuthenticated || !token || !currentAdmin || socketSetupRef.current) return
 
     const setupSocket = async () => {
       try {
@@ -231,7 +239,7 @@ export default function CommunitySection() {
           if (!componentMountedRef.current) return
 
           const messageId = data.message._id
-          
+
           // Check if we've already processed this message
           if (messageSentRef.current.has(messageId)) {
             console.log('Message already processed, skipping:', messageId)
@@ -280,6 +288,9 @@ export default function CommunitySection() {
       } catch (error: any) {
         console.error('Failed to setup admin socket:', error)
         socketSetupRef.current = false
+        toast.error('Connection Error', {
+          description: 'Failed to connect to real-time messaging'
+        })
       }
     }
 
@@ -291,7 +302,7 @@ export default function CommunitySection() {
       communitySocketService.offChannelMessageSent()
       communitySocketService.offMessageError()
     }
-  }, [token, currentAdmin?._id])
+  }, [isReady, isAuthenticated, token, currentAdmin?._id])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -454,8 +465,8 @@ export default function CommunitySection() {
     }
   }
 
-  // Show loading
-  if (loading) {
+  // Show loading while auth is not ready or still loading
+  if (!isReady || authLoading || loading) {
     return (
       <div className="flex flex-col h-full bg-slate-950">
         <div className="bg-slate-900/50 border-b border-slate-700/50 px-4 py-3">
@@ -465,9 +476,11 @@ export default function CommunitySection() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-cyan-400 mx-auto" />
-            <p className="text-slate-400">Loading messages...</p>
+            <p className="text-slate-400">
+              {authLoading ? 'Checking authentication...' : 'Loading messages...'}
+            </p>
             <p className="text-xs text-slate-500">
-              Admin: {currentAdmin ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
+              Ready: {isReady ? '✓' : '✗'} | Auth: {isAuthenticated ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
             </p>
           </div>
         </div>
@@ -480,7 +493,7 @@ export default function CommunitySection() {
     return (
       <div className="flex flex-col h-full bg-slate-950">
         <div className="bg-slate-900/50 border-b border-slate-700/50 px-4 py-3">
-          <h2 className="text-lg font-semibent text-white">Community Channel</h2>
+          <h2 className="text-lg font-semibold text-white">Community Channel</h2>
           <p className="text-sm text-slate-400">Admin only • You can post messages</p>
         </div>
         <div className="flex-1 flex items-center justify-center">
@@ -490,7 +503,7 @@ export default function CommunitySection() {
               <p className="text-lg font-semibold text-white">Failed to load messages</p>
               <p className="text-sm text-slate-400">{error}</p>
               <p className="text-xs text-slate-500 mt-2">
-                Admin: {currentAdmin ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
+                Ready: {isReady ? '✓' : '✗'} | Auth: {isAuthenticated ? '✓' : '✗'} | Token: {token ? '✓' : '✗'}
               </p>
             </div>
             <Button
@@ -751,7 +764,7 @@ export default function CommunitySection() {
               onKeyPress={handleKeyPress}
               placeholder="Send a message to the community..."
               className="min-h-[40px] max-h-32 resize-none bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
-              disabled={sending || uploadingMedia}
+              disabled={sending || uploadingMedia || !isAuthenticated}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -767,7 +780,7 @@ export default function CommunitySection() {
               variant="outline"
               size="icon"
               onClick={() => fileInputRef.current?.click()}
-              disabled={sending || uploadingMedia || selectedFiles.length >= 5}
+              disabled={sending || uploadingMedia || selectedFiles.length >= 5 || !isAuthenticated}
               className="border-slate-600 hover:bg-slate-800 text-slate-400"
             >
               {uploadingMedia ? (
@@ -778,7 +791,7 @@ export default function CommunitySection() {
             </Button>
             <Button
               onClick={handleSendMessage}
-              disabled={(!newMessage.trim() && selectedFiles.length === 0) || sending || uploadingMedia}
+              disabled={(!newMessage.trim() && selectedFiles.length === 0) || sending || uploadingMedia || !isAuthenticated}
               size="icon"
               className="bg-cyan-600 hover:bg-cyan-700"
             >
@@ -791,7 +804,7 @@ export default function CommunitySection() {
           </div>
         </div>
         <p className="text-xs text-slate-500 mt-2">
-          ✅ Admin messaging enabled • Supports images and videos (max 50MB, 5 files)
+          ✅ Admin messaging {isAuthenticated ? 'enabled' : 'disabled'} • Supports images and videos (max 50MB, 5 files)
         </p>
       </div>
 
