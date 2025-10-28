@@ -36,6 +36,15 @@ import { uploadMiddleware } from "../middlewares/upload.middleware";
 import multer from "multer";
 import { ICommunityAdminDashboardController } from "../core/interfaces/controllers/communityAdmin/ICommunityAdminDashboard.controller";
 import { CommunityAdminCommunityController } from "../controllers/communityAdmin/CommunityAdminCommunity.controller";
+import { CommunityAdminChainCastController } from "../controllers/chainCast/CommunityAdminChainCast.controller";
+import {
+  CreateChainCastDto,
+  GetChainCastsQueryDto,
+  GetParticipantsQueryDto,
+  GetReactionsQueryDto,
+  ReviewModerationRequestDto,
+  UpdateChainCastDto,
+} from "../dtos/chainCast/ChainCast.dto";
 
 // Configure Multer for profile picture uploads
 const storage = multer.memoryStorage();
@@ -82,6 +91,10 @@ const communityAdminDashboardController =
 const communityAdminCommunityController =
   container.get<CommunityAdminCommunityController>(
     TYPES.ICommunityAdminCommunityController
+  );
+const communityAdminChainCastController =
+  container.get<CommunityAdminChainCastController>(
+    TYPES.ICommunityAdminChainCastController
   );
 
 // Live validation endpoints
@@ -454,6 +467,134 @@ router.delete(
   roleMiddleware(["communityAdmin"]),
   communityAdminCommunityController.deleteGroupMessage.bind(
     communityAdminCommunityController
+  )
+);
+
+router.post(
+  "/chaincast/create",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(CreateChainCastDto),
+  communityAdminChainCastController.createChainCast.bind(
+    communityAdminChainCastController
+  )
+);
+
+router.get(
+  "/chaincast",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateQuery(GetChainCastsQueryDto),
+  communityAdminChainCastController.getChainCasts.bind(
+    communityAdminChainCastController
+  )
+);
+
+router.get(
+  "/chaincast/:chainCastId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminChainCastController.getChainCast.bind(
+    communityAdminChainCastController
+  )
+);
+
+router.put(
+  "/chaincast/:chainCastId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(UpdateChainCastDto),
+  communityAdminChainCastController.updateChainCast.bind(
+    communityAdminChainCastController
+  )
+);
+
+router.delete(
+  "/chaincast/:chainCastId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminChainCastController.deleteChainCast.bind(
+    communityAdminChainCastController
+  )
+);
+
+// ChainCast control routes
+router.post(
+  "/chaincast/:chainCastId/start",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminChainCastController.startChainCast.bind(
+    communityAdminChainCastController
+  )
+);
+
+router.post(
+  "/chaincast/:chainCastId/end",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminChainCastController.endChainCast.bind(
+    communityAdminChainCastController
+  )
+);
+
+// Participant management routes
+router.get(
+  "/chaincast/:chainCastId/participants",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateQuery(GetParticipantsQueryDto),
+  communityAdminChainCastController.getParticipants.bind(
+    communityAdminChainCastController
+  )
+);
+
+router.delete(
+  "/chaincast/:chainCastId/participants/:participantId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminChainCastController.removeParticipant.bind(
+    communityAdminChainCastController
+  )
+);
+
+// Moderation routes
+router.get(
+  "/chaincast/:chainCastId/moderation-requests",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminChainCastController.getModerationRequests.bind(
+    communityAdminChainCastController
+  )
+);
+
+router.post(
+  "/chaincast/moderation-requests/review",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(ReviewModerationRequestDto),
+  communityAdminChainCastController.reviewModerationRequest.bind(
+    communityAdminChainCastController
+  )
+);
+
+// Analytics routes
+router.get(
+  "/chaincast/analytics",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminChainCastController.getAnalytics.bind(
+    communityAdminChainCastController
+  )
+);
+
+// Reactions routes
+router.get(
+  "/chaincast/:chainCastId/reactions",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateQuery(GetReactionsQueryDto),
+  communityAdminChainCastController.getReactions.bind(
+    communityAdminChainCastController
   )
 );
 

@@ -32,6 +32,7 @@ import { communityAdminDashboardApiService } from "@/services/communityAdmin/com
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
+import ChainCastJoinButton from "@/components/chainCast/chainCastJoinButton";
 
 interface DashboardData {
   communityOverview: {

@@ -175,6 +175,14 @@ import { CommunityAdminCommunityService } from "../../services/communityAdmin/Co
 import { CommunityMessageRepository } from "../../repositories/community/communityMessage.repository"
 import { IUserCommunityChatService } from "../interfaces/services/community/IUserCommunityChatService"
 import { ICommunityMessageRepository } from "../interfaces/repositories/community/ICommunityMessageRepository"
+import { IChainCastRepository } from "../interfaces/repositories/chainCast/IChainCastRepository"
+import { ChainCastRepository } from "../../repositories/chainCast/chainCast.repository"
+import { IChainCastService } from "../interfaces/services/chainCast/IChainCastService"
+import { ChainCastService } from "../../services/chainCast/chainCast.service"
+import { UserChainCastController } from "../../controllers/chainCast/UserChainCast.controller"
+import { CommunityAdminChainCastController } from "../../controllers/chainCast/CommunityAdminChainCast.controller"
+import { IUserChainCastController } from "../interfaces/controllers/chainCast/IUserChainCast.controller"
+import { ICommunityAdminChainCastController } from "../interfaces/controllers/chainCast/ICommunityAdminChainCast.controller"
 
 // Create Container
 const container = new Container()
@@ -300,5 +308,17 @@ container.bind<IUserCommunityChatController>(TYPES.IUserCommunityChatController)
 container.bind<ICommunityAdminCommunityService>(TYPES.ICommunityAdminCommunityService).to(CommunityAdminCommunityService);
 container.bind<IUserCommunityChatService>(TYPES.IUserCommunityChatService).to(UserCommunityChatService);
 container.bind<ICommunityMessageRepository>(TYPES.ICommunityMessageRepository).to(CommunityMessageRepository);
+
+
+
+// Bind ChainCast Services
+container.bind<IChainCastService>(TYPES.IChainCastService).to(ChainCastService);
+
+// Bind ChainCast Repositories
+container.bind<IChainCastRepository>(TYPES.IChainCastRepository).to(ChainCastRepository);
+
+container.bind<IUserChainCastController>(TYPES.IUserChainCastController).to(UserChainCastController);
+container.bind<ICommunityAdminChainCastController>(TYPES.ICommunityAdminChainCastController).to(CommunityAdminChainCastController);
+
 
 export default container

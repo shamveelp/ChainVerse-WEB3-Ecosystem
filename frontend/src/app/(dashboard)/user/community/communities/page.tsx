@@ -24,9 +24,11 @@ import {
   Loader2,
   AlertCircle,
   ExternalLink,
+  Video,
 } from "lucide-react";
 import Sidebar from "@/components/community/sidebar";
 import RightSidebar from "@/components/community/right-sidebar";
+import ChainCastJoinButton from "@/components/chainCast/chainCastJoinButton";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { toast } from "sonner";
@@ -364,6 +366,15 @@ export default function CommunitiesPage() {
                 </div>
               </div>
 
+              {/* Live ChainCasts Banner */}
+              <div className="mb-4">
+                <ChainCastJoinButton
+                  variant="card"
+                  showDetails={true}
+                  className="w-full"
+                />
+              </div>
+
               {/* Stats */}
               {stats.totalCommunities > 0 && (
                 <div className="grid grid-cols-4 gap-3 mb-4">
@@ -590,6 +601,16 @@ export default function CommunitiesPage() {
                           <p className="text-slate-400 text-sm mb-3 line-clamp-2">
                             {community.description}
                           </p>
+
+                          {/* ChainCast Join Button for this community */}
+                          <div className="mb-3">
+                            <ChainCastJoinButton
+                              communityId={community._id}
+                              communityUsername={community.username}
+                              variant="inline"
+                              size="sm"
+                            />
+                          </div>
 
                           <div className="flex items-center gap-4 mb-3 text-sm text-slate-500">
                             <div className="flex items-center gap-1">

@@ -11,6 +11,7 @@ import Sidebar from "@/components/community/sidebar";
 import RightSidebar from "@/components/community/right-sidebar";
 import CreatePost from "@/components/community/posts/create-posts";
 import PostsFeed from "@/components/community/posts/posts-feed";
+import ChainCastJoinButton from "@/components/chainCast/chainCastJoinButton";
 import { Post } from "@/services/postsApiService";
 
 export default function CommunityPage() {
@@ -154,6 +155,15 @@ export default function CommunityPage() {
               </p>
             </div>
 
+            {/* Live ChainCasts Banner */}
+            <div className="px-4">
+              <ChainCastJoinButton
+                variant="card"
+                showDetails={true}
+                className="w-full"
+              />
+            </div>
+
             {/* Create Post */}
             <div className="px-4">
               <CreatePost onPostCreated={handlePostCreated} />
@@ -161,9 +171,9 @@ export default function CommunityPage() {
 
             {/* Posts Feed */}
             <div className="px-4 pb-6">
-              <PostsFeed 
+              <PostsFeed
                 key={feedKey}
-                type="feed" 
+                type="feed"
                 onPostClick={handlePostClick}
               />
             </div>

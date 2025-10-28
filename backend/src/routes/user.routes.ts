@@ -52,6 +52,11 @@ import { JoinCommunityDto, LeaveCommunityDto, SearchCommunitiesDto } from '../dt
 import { GetCommunityMembersDto } from '../dtos/communityAdmin/CommunityAdminMembers.dto';
 import { GetMyCommunitiesDto } from '../dtos/community/MyCommunities.dto';
 import { UserCommunityChatController } from '../controllers/community/UserCommunityChat.controller';
+import { UserChainCastController } from "../controllers/chainCast/UserChainCast.controller";
+import { AddReactionDto, GetChainCastsQueryDto, GetReactionsQueryDto, JoinChainCastDto, RequestModerationDto, UpdateParticipantDto } from '../dtos/chainCast/ChainCast.dto';
+
+// Get controller instance
+
 
 // Configure Multer for file uploads
 const storage = multer.memoryStorage();
@@ -82,6 +87,9 @@ const userDexController = container.get<UserDexController>(TYPES.IUserDexControl
 const communityController = container.get<CommunityController>(TYPES.ICommunityController);
 const userMyCommunitiesController = container.get<UserMyCommunitiesController>(TYPES.IUserMyCommunitiesController);
 const userCommunityChatController = container.get<UserCommunityChatController>(TYPES.IUserCommunityChatController);
+const userChainCastController = container.get<UserChainCastController>(TYPES.IUserChainCastController);
+
+
 
 // Auth Routes with DTO validation
 router.post("/register",
@@ -600,6 +608,81 @@ router.post('/community/:username/group-chat/read',
   authMiddleware,
   roleMiddleware(['user']),
   userCommunityChatController.markGroupMessagesAsRead.bind(userCommunityChatController)
+);
+
+
+
+
+router.get(
+  "/community/:communityId/chaincasts",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateQuery(GetChainCastsQueryDto),
+  userChainCastController.getCommunityChainCasts.bind(userChainCastController)
+);
+
+router.get(
+  "/chaincast/:chainCastId",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  userChainCastController.getChainCast.bind(userChainCastController)
+);
+
+router.get(
+  "/chaincast/:chainCastId/can-join",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  userChainCastController.canJoinChainCast.bind(userChainCastController)
+);
+
+// Participation routes
+router.post(
+  "/chaincast/join",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateBody(JoinChainCastDto),
+  userChainCastController.joinChainCast.bind(userChainCastController)
+);
+
+router.post(
+  "/chaincast/:chainCastId/leave",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  userChainCastController.leaveChainCast.bind(userChainCastController)
+);
+
+router.put(
+  "/chaincast/:chainCastId/participant",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateBody(UpdateParticipantDto),
+  userChainCastController.updateParticipant.bind(userChainCastController)
+);
+
+// Moderation routes
+router.post(
+  "/chaincast/request-moderation",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateBody(RequestModerationDto),
+  userChainCastController.requestModeration.bind(userChainCastController)
+);
+
+// Reaction routes
+router.post(
+  "/chaincast/reaction",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateBody(AddReactionDto),
+  userChainCastController.addReaction.bind(userChainCastController)
+);
+
+router.get(
+  "/chaincast/:chainCastId/reactions",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateQuery(GetReactionsQueryDto),
+  userChainCastController.getReactions.bind(userChainCastController)
 );
 
 

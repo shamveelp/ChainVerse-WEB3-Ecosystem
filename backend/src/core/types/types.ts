@@ -119,6 +119,13 @@ const TYPES = {
   IUserCommunityChatService: Symbol.for("IUserCommunityChatService"),
   ICommunityAdminCommunityController: Symbol.for("ICommunityAdminCommunityController"),
   IUserCommunityChatController: Symbol.for("IUserCommunityChatController"),
+
+  IChainCastRepository: Symbol.for("IChainCastRepository"),
+  ICommunityAdminChainCastService: Symbol.for("ICommunityAdminChainCastService"),
+  IUserChainCastService: Symbol.for("IUserChainCastService"),
+  ICommunityAdminChainCastController: Symbol.for("ICommunityAdminChainCastController"),
+  IUserChainCastController: Symbol.for("IUserChainCastController"),
+  IChainCastService: Symbol.for("IChainCastService"),
 };
 
 export { TYPES };

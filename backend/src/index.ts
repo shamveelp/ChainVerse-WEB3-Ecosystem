@@ -7,6 +7,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { setupSocketHandlers } from './socket/socketHandlers';
 import logger from './utils/logger';
 import { setupCommunitySocketHandlers } from './socket/communitySocketHandlers';
+import { setupChainCastSocketHandlers } from './socket/chainCastSocketHandlers';
 
 const PORT = process.env.PORT || 5000;
 
@@ -25,6 +26,7 @@ const io = new SocketIOServer(server, {
 // Setup socket handlers
 setupSocketHandlers(io);
 setupCommunitySocketHandlers(io);
+setupChainCastSocketHandlers(io);
 
 connectDB().then(() => {
   server.listen(PORT, () => {
