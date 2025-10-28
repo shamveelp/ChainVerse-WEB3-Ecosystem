@@ -116,7 +116,7 @@ export const userChainCastApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       params.append('sortBy', sortBy);
 
-      console.log('API: Fetching community ChainCasts:', { communityId, status, cursor, limit, sortBy });
+      
 
       const response = await API.get(`/api/user/community/${encodeURIComponent(communityId.trim())}/chaincasts?${params.toString()}`);
 
@@ -144,7 +144,7 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Fetching ChainCast:', { chainCastId });
+      
 
       const response = await API.get(`/api/user/chaincast/${encodeURIComponent(chainCastId.trim())}`);
 
@@ -173,7 +173,7 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Checking can join ChainCast:', { chainCastId });
+      
 
       const response = await API.get(`/api/user/chaincast/${encodeURIComponent(chainCastId.trim())}/can-join`);
 
@@ -235,7 +235,7 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Leaving ChainCast:', { chainCastId });
+      
 
       const response = await API.post(`/api/user/chaincast/${encodeURIComponent(chainCastId.trim())}/leave`);
 
@@ -262,7 +262,7 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Updating participant:', { chainCastId, data });
+      
 
       const response = await API.put(`/api/user/chaincast/${encodeURIComponent(chainCastId.trim())}/participant`, data);
 
@@ -368,7 +368,7 @@ export const userChainCastApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-      console.log('API: Fetching reactions:', { chainCastId, cursor, limit });
+      
 
       const response = await API.get(`/api/user/chaincast/${encodeURIComponent(chainCastId.trim())}/reactions?${params.toString()}`);
 

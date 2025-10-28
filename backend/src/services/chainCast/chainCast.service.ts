@@ -372,7 +372,7 @@ export class ChainCastService implements IChainCastService {
           ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
           : chainCast.adminId;
 
-      console.log("Starting ChainCast:", adminIdFromCast, "neeyanne", adminId);
+      
 
       // Verify ownership
       if (adminIdFromCast !== adminId) {
@@ -1344,7 +1344,7 @@ export class ChainCastService implements IChainCastService {
       if (chainCast.status !== "live") {
         return { canJoin: false, reason: "ChainCast is not live" };
       }
-      console.log("Checking if user can join ChainCast:", userId, chainCast.communityId._id.toString());
+      
 
       // Check if user is community member
       const isMember = await this.isUserCommunityMember(

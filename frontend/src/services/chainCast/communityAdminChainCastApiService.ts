@@ -248,7 +248,7 @@ export const communityAdminChainCastApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       params.append('sortBy', sortBy);
 
-      console.log('API: Fetching ChainCasts:', { status, cursor, limit, sortBy });
+      
 
       const response = await API.get(`/api/community-admin/chaincast?${params.toString()}`);
 
@@ -276,7 +276,7 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Fetching ChainCast:', { chainCastId });
+      
 
       const response = await API.get(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}`);
 
@@ -304,7 +304,7 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Updating ChainCast:', { chainCastId, data });
+      
 
       const response = await API.put(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}`, data);
 
@@ -331,7 +331,7 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Deleting ChainCast:', { chainCastId });
+      
 
       const response = await API.delete(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}`);
 
@@ -359,7 +359,7 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Starting ChainCast:', { chainCastId });
+      
 
       const response = await API.post(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/start`);
 
@@ -387,7 +387,7 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Ending ChainCast:', { chainCastId });
+      
 
       const response = await API.post(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/end`);
 
@@ -425,7 +425,7 @@ export const communityAdminChainCastApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-      console.log('API: Fetching participants:', { chainCastId, filter, cursor, limit });
+      
 
       const response = await API.get(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/participants?${params.toString()}`);
 
@@ -453,7 +453,7 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID and participant ID are required");
       }
 
-      console.log('API: Removing participant:', { chainCastId, participantId, reason });
+      
 
       const response = await API.delete(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/participants/${encodeURIComponent(participantId.trim())}`, {
         data: { reason }
@@ -484,7 +484,7 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Fetching moderation requests:', { chainCastId });
+      
 
       const response = await API.get(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/moderation-requests`);
 
@@ -515,7 +515,7 @@ export const communityAdminChainCastApiService = {
         throw new Error("Request ID is required");
       }
 
-      console.log('API: Reviewing moderation request:', { requestId, status, reviewMessage });
+      
 
       const response = await API.post('/api/community-admin/chaincast/moderation-requests/review', {
         requestId: requestId.trim(),
@@ -547,7 +547,7 @@ export const communityAdminChainCastApiService = {
       const params = new URLSearchParams();
       params.append('period', period);
 
-      console.log('API: Fetching ChainCast analytics:', { period });
+      
 
       const response = await API.get(`/api/community-admin/chaincast/analytics?${params.toString()}`);
 
@@ -583,7 +583,7 @@ export const communityAdminChainCastApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-      console.log('API: Fetching reactions:', { chainCastId, cursor, limit });
+      
 
       const response = await API.get(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/reactions?${params.toString()}`);
 

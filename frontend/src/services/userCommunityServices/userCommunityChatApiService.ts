@@ -123,7 +123,7 @@ export const userCommunityChatApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      console.log('API: Fetching channel messages:', { communityUsername, cursor, limit });
+      
 
       const response = await API.get(`/api/user/community/${encodeURIComponent(communityUsername.trim())}/channel/messages?${params.toString()}`);
 
@@ -152,7 +152,7 @@ export const userCommunityChatApiService = {
         throw new Error("Message ID and emoji are required");
       }
 
-      console.log('API: Reacting to channel message:', { messageId, emoji });
+      
 
       const response = await API.post(`/api/user/community/channel/messages/${encodeURIComponent(messageId.trim())}/react`, {
         emoji: emoji.trim()
@@ -183,7 +183,7 @@ export const userCommunityChatApiService = {
         throw new Error("Message ID and emoji are required");
       }
 
-      console.log('API: Removing reaction from channel message:', { messageId, emoji });
+      
 
       const response = await API.delete(`/api/user/community/channel/messages/${encodeURIComponent(messageId.trim())}/react`, {
         data: { emoji: emoji.trim() }
@@ -252,7 +252,7 @@ export const userCommunityChatApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-      console.log('API: Fetching group messages:', { communityUsername, cursor, limit });
+      
 
       const response = await API.get(`/api/user/community/${encodeURIComponent(communityUsername.trim())}/group-chat/messages?${params.toString()}`);
 
@@ -281,7 +281,7 @@ export const userCommunityChatApiService = {
         throw new Error("Message ID and content are required");
       }
 
-      console.log('API: Editing group message:', { messageId, contentLength: content.length });
+      
 
       const response = await API.put(`/api/user/community/group-chat/messages/${encodeURIComponent(messageId.trim())}`, {
         content: content.trim()
@@ -311,7 +311,7 @@ export const userCommunityChatApiService = {
         throw new Error("Message ID is required");
       }
 
-      console.log('API: Deleting group message:', { messageId });
+      
 
       const response = await API.delete(`/api/user/community/group-chat/messages/${encodeURIComponent(messageId.trim())}`);
 
@@ -339,7 +339,7 @@ export const userCommunityChatApiService = {
         throw new Error("Community username is required");
       }
 
-      console.log('API: Marking group messages as read:', { communityUsername });
+      
 
       const response = await API.post(`/api/user/community/${encodeURIComponent(communityUsername.trim())}/group-chat/read`);
 

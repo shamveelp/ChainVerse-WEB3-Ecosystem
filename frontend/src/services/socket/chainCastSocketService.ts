@@ -71,7 +71,7 @@ class ChainCastSocketService {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const socketUrl = `${apiUrl}/chaincast`;
 
-      console.log("Attempting to connect to ChainCast socket:", socketUrl);
+      
 
       // Disconnect any existing socket first
       this.cleanupSocket();
@@ -152,7 +152,7 @@ class ChainCastSocketService {
     if (!this.socket) return;
 
     this.socket.on("disconnect", (reason) => {
-      console.log("🔌 Disconnected from ChainCast socket:", reason);
+      
       this.cleanupConnection();
 
       // Handle reconnection manually with delay
@@ -177,7 +177,7 @@ class ChainCastSocketService {
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 10000);
 
-    console.log(`⏱️ Scheduling reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
+    
 
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectSocket();
@@ -185,7 +185,7 @@ class ChainCastSocketService {
   }
 
   private async reconnectSocket(): Promise<void> {
-    console.log(`🔄 Attempting manual reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+    
 
     try {
       // Get fresh token from Redux store
@@ -222,7 +222,7 @@ class ChainCastSocketService {
   }
 
   disconnect(): void {
-    console.log("👋 Disconnecting from ChainCast socket");
+    
     this.cleanupSocket();
     this.cleanupConnection();
     this.reconnectAttempts = 0;
@@ -233,7 +233,7 @@ class ChainCastSocketService {
   // ChainCast room management
   async joinChainCast(chainCastId: string): Promise<void> {
     if (this.socket?.connected) {
-      console.log("🎬 Joining ChainCast:", chainCastId);
+      
       this.currentChainCastId = chainCastId;
       this.socket.emit("join_chaincast", { chainCastId });
     } else {
@@ -244,7 +244,7 @@ class ChainCastSocketService {
 
   leaveChainCast(chainCastId: string): void {
     if (this.socket?.connected) {
-      console.log("🚪 Leaving ChainCast:", chainCastId);
+      
       this.socket.emit("leave_chaincast", { chainCastId });
       if (this.currentChainCastId === chainCastId) {
         this.currentChainCastId = null;
@@ -278,7 +278,7 @@ class ChainCastSocketService {
   // Chat
   sendMessage(chainCastId: string, message: string): void {
     if (this.socket?.connected) {
-      console.log("💬 Sending message to ChainCast:", chainCastId);
+      
       this.socket.emit("send_message", { chainCastId, message });
     } else {
       console.warn("Cannot send message - socket not connected");
@@ -289,7 +289,7 @@ class ChainCastSocketService {
   // Reactions
   addReaction(chainCastId: string, emoji: string): void {
     if (this.socket?.connected) {
-      console.log("👍 Adding reaction:", { chainCastId, emoji });
+      
       this.socket.emit("add_reaction", { chainCastId, emoji });
     } else {
       console.warn("Cannot add reaction - socket not connected");

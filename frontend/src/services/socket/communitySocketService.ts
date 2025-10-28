@@ -101,7 +101,7 @@ class CommunitySocketService {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const socketUrl = `${apiUrl}/community`;
 
-      console.log("Attempting to connect to community socket:", socketUrl);
+      
 
       // Disconnect any existing socket first
       this.cleanupSocket();
@@ -182,7 +182,7 @@ class CommunitySocketService {
     if (!this.socket) return;
 
     this.socket.on("disconnect", (reason) => {
-      console.log("🔌 Disconnected from community socket:", reason);
+      
       this.cleanupConnection();
 
       // Handle reconnection manually with delay
@@ -207,7 +207,7 @@ class CommunitySocketService {
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 10000);
 
-    console.log(`⏱️ Scheduling reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
+    
 
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectSocket();
@@ -215,7 +215,7 @@ class CommunitySocketService {
   }
 
   private async reconnectSocket(): Promise<void> {
-    console.log(`🔄 Attempting manual reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+    
 
     try {
       // Get fresh token from Redux store
@@ -247,7 +247,7 @@ class CommunitySocketService {
   }
 
   disconnect(): void {
-    console.log("👋 Disconnecting from community socket");
+    
     this.cleanupSocket();
     this.cleanupConnection();
     this.reconnectAttempts = 0;
@@ -259,7 +259,7 @@ class CommunitySocketService {
   // Community management
   joinCommunity(communityId: string): void {
     if (this.socket?.connected) {
-      console.log("🏠 Joining community:", communityId);
+      
       this.communityId = communityId;
       this.socket.emit("join_community", { communityId });
     } else {
@@ -269,7 +269,7 @@ class CommunitySocketService {
 
   leaveCommunity(communityId: string): void {
     if (this.socket?.connected) {
-      console.log("🚪 Leaving community:", communityId);
+      
       this.socket.emit("leave_community", { communityId });
       if (this.communityId === communityId) {
         this.communityId = null;
@@ -296,7 +296,7 @@ class CommunitySocketService {
 
   reactToChannelMessage(data: ReactionData): void {
     if (this.socket?.connected) {
-      console.log("👍 Reacting to channel message:", data);
+      
       this.socket.emit("react_to_channel_message", data);
     } else {
       console.warn("Cannot react to message - socket not connected");
@@ -320,7 +320,7 @@ class CommunitySocketService {
 
   editGroupMessage(messageId: string, content: string): void {
     if (this.socket?.connected) {
-      console.log("✏️ Editing group message:", messageId);
+      
       this.socket.emit("edit_group_message", { messageId, content });
     } else {
       console.warn("Cannot edit message - socket not connected");
@@ -330,7 +330,7 @@ class CommunitySocketService {
 
   deleteGroupMessage(messageId: string, communityId: string): void {
     if (this.socket?.connected) {
-      console.log("🗑️ Deleting group message:", messageId);
+      
       this.socket.emit("delete_group_message", { messageId, communityId });
     } else {
       console.warn("Cannot delete message - socket not connected");
@@ -341,7 +341,7 @@ class CommunitySocketService {
   // Admin delete group message
   adminDeleteGroupMessage(messageId: string, communityId: string): void {
     if (this.socket?.connected) {
-      console.log("🗑️ Admin deleting group message:", messageId);
+      
       this.socket.emit("admin_delete_group_message", { messageId, communityId });
     } else {
       console.warn("Cannot delete message - socket not connected");
