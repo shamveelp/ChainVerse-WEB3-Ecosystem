@@ -3,9 +3,7 @@ import { JwtService } from '../utils/jwt';
 import { UserModel } from '../models/user.models';
 import CommunityAdminModel from '../models/communityAdmin.model';
 import logger from '../utils/logger';
-import container from '../core/di/container';
-import { IChainCastService } from '../core/interfaces/services/chainCast/IChainCastService';
-import { TYPES } from '../core/types/types';
+
 
 interface AuthenticatedChainCastSocket extends Socket {
   userId?: string;
@@ -36,13 +34,18 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
         return next(new Error('No token provided'));
       }
 
-      // Basic token verification without strict expiry check
+      // Simplified token verification
       let decoded;
       try {
-        decoded = JwtService.verifySocketToken(token) as { id: string; role: string };
+        decoded = JwtService.verifyToken(token) as { id: string; role: string };
       } catch (error) {
-        logger.warn('ChainCast socket: Token verification failed', { socketId: socket.id });
-        return next(new Error('Authentication failed'));
+        // Try as socket token for backward compatibility
+        try {
+          decoded = JwtService.verifySocketToken(token) as { id: string; role: string };
+        } catch (socketError) {
+          logger.warn('ChainCast socket: Token verification failed', { socketId: socket.id });
+          return next(new Error('Authentication failed'));
+        }
       }
 
       if (!decoded?.id) {
@@ -81,8 +84,9 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
         userType: socket.userType
       });
       next();
-    } catch (error: any) {
-      logger.error('ChainCast socket auth error', { error: error.message });
+    } catch (error) {
+      const err = error as Error;
+      logger.error('ChainCast socket auth error', { error: err.message });
       next(new Error('Authentication failed'));
     }
   });
@@ -270,6 +274,35 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
       }
     });
 
+    // Handle chat messages
+    socket.on('send_message', (data: { chainCastId: string; message: string }) => {
+      if (!data.chainCastId || !data.message?.trim() || !socket.chainCastId || socket.chainCastId !== data.chainCastId) {
+        socket.emit('message_error', { error: 'Invalid message data' });
+        return;
+      }
+
+      const chainCastRoom = `chaincast:${data.chainCastId}`;
+      const messageId = `${Date.now()}-${socket.userId}-${Math.random().toString(36).substr(2, 9)}`;
+      const messageData = {
+        id: messageId,
+        userId: socket.userId,
+        username: socket.username,
+        message: data.message.trim(),
+        timestamp: new Date()
+      };
+
+      // Emit to all participants including sender
+      chainCastNamespace.to(chainCastRoom).emit('new_message', messageData);
+      socket.emit('new_message', messageData);
+      
+      logger.info('Chat message sent', {
+        socketId: socket.id,
+        userId: socket.userId,
+        chainCastId: data.chainCastId,
+        messageId
+      });
+    });
+
     // Handle admin actions
     socket.on('admin_action', async (data: {
       action: 'start' | 'end' | 'remove_participant' | 'approve_moderation' | 'reject_moderation';
@@ -336,31 +369,6 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
         logger.error('Admin action error', { error: error.message });
         socket.emit('admin_error', { error: 'Failed to perform admin action' });
       }
-    });
-
-    // Handle chat messages
-    socket.on('send_message', (data: { chainCastId: string; message: string }) => {
-      if (!data.chainCastId || !data.message?.trim() || !socket.chainCastId || socket.chainCastId !== data.chainCastId) {
-        socket.emit('message_error', { error: 'Invalid message data' });
-        return;
-      }
-
-      const chainCastRoom = `chaincast:${data.chainCastId}`;
-      const messageData = {
-        id: Date.now().toString(),
-        userId: socket.userId,
-        username: socket.username,
-        message: data.message.trim(),
-        timestamp: new Date()
-      };
-
-      chainCastNamespace.to(chainCastRoom).emit('new_message', messageData);
-      
-      logger.info('Chat message sent', {
-        socketId: socket.id,
-        userId: socket.userId,
-        chainCastId: data.chainCastId
-      });
     });
 
     // Handle disconnect

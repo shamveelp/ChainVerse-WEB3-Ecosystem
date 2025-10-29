@@ -39,194 +39,112 @@ interface ChatMessage {
 
 class ChainCastSocketService {
   public socket: Socket | null = null;
-  private connectionPromise: Promise<void> | null = null;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 3;
   private isConnecting = false;
   private currentToken: string | null = null;
   private currentChainCastId: string | null = null;
-  private reconnectTimeout: NodeJS.Timeout | null = null;
+  private eventListenersSetup = false;
 
   async connect(token: string): Promise<void> {
     // Prevent multiple simultaneous connections
     if (this.isConnecting) {
-      return this.connectionPromise || Promise.resolve();
+      return;
     }
 
-    // If already connected, return immediately
-    if (this.socket?.connected) {
+    // If already connected with same token, return
+    if (this.socket?.connected && this.currentToken === token) {
       return Promise.resolve();
     }
 
-    if (!token || typeof token !== "string" || token.trim().length === 0) {
-      console.warn("No valid token provided to ChainCast socket");
-      return Promise.reject(new Error("No valid token provided"));
+    if (!token?.trim()) {
+      throw new Error("No valid token provided");
     }
 
-    // Store current token for reconnection
     this.currentToken = token;
     this.isConnecting = true;
 
-    this.connectionPromise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const socketUrl = `${apiUrl}/chaincast`;
 
       console.log('Connecting to ChainCast socket:', socketUrl);
 
-      // Disconnect any existing socket first
-      this.cleanupSocket();
+      // Clean up existing connection
+      this.cleanup();
 
       this.socket = io(socketUrl, {
-        auth: {
-          token: token.trim(),
-        },
+        auth: { token: token.trim() },
         transports: ["websocket", "polling"],
-        timeout: 10000, // Reduced timeout
+        timeout: 5000,
         forceNew: true,
         autoConnect: true,
-        reconnection: false, // Handle reconnection manually
+        reconnection: true,
+        reconnectionAttempts: 3,
+        reconnectionDelay: 1000,
       });
 
       const timeout = setTimeout(() => {
         console.error("ChainCast socket connection timeout");
-        this.cleanupConnection();
-        reject(new Error("ChainCast socket connection timeout"));
-      }, 8000); // Reduced timeout
+        this.cleanup();
+        reject(new Error("Connection timeout"));
+      }, 6000);
 
       this.socket.on("connect", () => {
         clearTimeout(timeout);
-        console.log("✅ Connected to ChainCast socket", {
-          socketId: this.socket?.id,
-          transport: this.socket?.io.engine?.transport?.name
-        });
+        console.log("✅ Connected to ChainCast socket", { socketId: this.socket?.id });
         this.isConnecting = false;
-        this.connectionPromise = null;
-        this.reconnectAttempts = 0;
+        this.setupEventListeners();
         resolve();
       });
 
       this.socket.on("connect_error", (error) => {
         clearTimeout(timeout);
         console.error("❌ ChainCast socket connection error:", error.message);
-
-        this.cleanupConnection();
-        reject(new Error("ChainCast socket connection failed: " + error.message));
+        this.cleanup();
+        reject(error);
       });
 
-      this.setupEventListeners();
+      this.socket.on("disconnect", () => {
+        console.log("ChainCast socket disconnected");
+        this.eventListenersSetup = false;
+      });
     });
-
-    return this.connectionPromise;
   }
 
-  private cleanupSocket(): void {
+  private setupEventListeners(): void {
+    if (!this.socket || this.eventListenersSetup) return;
+    this.eventListenersSetup = true;
+
+    this.socket.on("error", (error) => {
+      console.error("ChainCast socket error:", error);
+    });
+  }
+
+  private cleanup(): void {
     if (this.socket) {
       this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;
     }
-  }
-
-  private cleanupConnection(): void {
     this.isConnecting = false;
-    this.connectionPromise = null;
-    if (this.reconnectTimeout) {
-      clearTimeout(this.reconnectTimeout);
-      this.reconnectTimeout = null;
-    }
-  }
-
-  private setupEventListeners(): void {
-    if (!this.socket) return;
-
-    this.socket.on("disconnect", (reason) => {
-      console.log("ChainCast socket disconnected:", reason);
-      this.cleanupConnection();
-
-      // Handle reconnection manually with delay
-      if (reason === "io server disconnect" || reason === "transport error") {
-        this.scheduleReconnect();
-      }
-    });
-
-    this.socket.on("error", (error) => {
-      console.error("🚨 ChainCast socket error:", error);
-      this.cleanupConnection();
-    });
-  }
-
-  private scheduleReconnect(): void {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts || this.isConnecting) {
-      console.error("Max reconnection attempts reached or already connecting");
-      return;
-    }
-
-    this.reconnectAttempts++;
-    const delay = Math.min(1000 * this.reconnectAttempts, 5000);
-
-    console.log(`Scheduling reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
-
-    this.reconnectTimeout = setTimeout(() => {
-      this.reconnectSocket();
-    }, delay);
-  }
-
-  private async reconnectSocket(): Promise<void> {
-    console.log('Attempting to reconnect ChainCast socket...');
-
-    try {
-      // Get fresh token from Redux store
-      const token = this.getCurrentToken();
-      if (token) {
-        await this.connect(token);
-
-        // Rejoin ChainCast if we were in one
-        if (this.currentChainCastId) {
-          await this.joinChainCast(this.currentChainCastId);
-        }
-      } else {
-        console.error("No token available for reconnection");
-      }
-    } catch (error) {
-      console.error("Manual reconnection failed:", error);
-      this.scheduleReconnect();
-    }
-  }
-
-  private getCurrentToken(): string | null {
-    try {
-      // Get token from Redux store
-      const state = store.getState();
-      const userToken = state?.userAuth?.token;
-      const adminToken = state?.communityAdminAuth?.token;
-
-      // Return the current token we're using, or try to get from store
-      return this.currentToken || adminToken || userToken || null;
-    } catch (e) {
-      console.warn("Could not get token from Redux store for reconnection");
-      return this.currentToken;
-    }
+    this.eventListenersSetup = false;
   }
 
   disconnect(): void {
     console.log('Disconnecting ChainCast socket');
-    this.cleanupSocket();
-    this.cleanupConnection();
-    this.reconnectAttempts = 0;
+    this.cleanup();
     this.currentToken = null;
     this.currentChainCastId = null;
   }
 
   // ChainCast room management
   async joinChainCast(chainCastId: string): Promise<void> {
-    if (this.socket?.connected) {
-      console.log('Joining ChainCast:', chainCastId);
-      this.currentChainCastId = chainCastId;
-      this.socket.emit("join_chaincast", { chainCastId });
-    } else {
-      console.warn("Cannot join ChainCast - socket not connected");
+    if (!this.socket?.connected) {
       throw new Error("Socket not connected");
     }
+
+    console.log('Joining ChainCast:', chainCastId);
+    this.currentChainCastId = chainCastId;
+    this.socket.emit("join_chaincast", { chainCastId });
   }
 
   leaveChainCast(chainCastId: string): void {
@@ -236,8 +154,6 @@ class ChainCastSocketService {
       if (this.currentChainCastId === chainCastId) {
         this.currentChainCastId = null;
       }
-    } else {
-      console.warn("Cannot leave ChainCast - socket not connected");
     }
   }
 
@@ -252,18 +168,14 @@ class ChainCastSocketService {
     if (this.socket?.connected) {
       console.log("📹 Updating stream:", data);
       this.socket.emit("stream_update", data);
-    } else {
-      console.warn("Cannot update stream - socket not connected");
     }
   }
 
   // Chat
   sendMessage(chainCastId: string, message: string): void {
-    if (this.socket?.connected) {
+    if (this.socket?.connected && message.trim()) {
       console.log('Sending message:', message);
-      this.socket.emit("send_message", { chainCastId, message });
-    } else {
-      console.warn("Cannot send message - socket not connected");
+      this.socket.emit("send_message", { chainCastId, message: message.trim() });
     }
   }
 
@@ -272,79 +184,52 @@ class ChainCastSocketService {
     if (this.socket?.connected) {
       console.log('Adding reaction:', emoji);
       this.socket.emit("add_reaction", { chainCastId, emoji });
-    } else {
-      console.warn("Cannot add reaction - socket not connected");
     }
   }
 
-  // Moderation (for users)
+  // Moderation
   requestModeration(data: {
     chainCastId: string;
-    requestedPermissions: {
-      video: boolean;
-      audio: boolean;
-    };
+    requestedPermissions: { video: boolean; audio: boolean };
     message?: string;
   }): void {
     if (this.socket?.connected) {
       console.log("🛡️ Requesting moderation:", data);
       this.socket.emit("request_moderation", data);
-    } else {
-      console.warn("Cannot request moderation - socket not connected");
     }
   }
 
-  // Admin actions
-  performAdminAction(data: {
-    action: 'start' | 'end' | 'remove_participant' | 'approve_moderation' | 'reject_moderation';
-    chainCastId: string;
-    targetUserId?: string;
-    requestId?: string;
-    reason?: string;
-  }): void {
-    if (this.socket?.connected) {
-      console.log("⚡ Performing admin action:", data);
-      this.socket.emit("admin_action", data);
-    } else {
-      console.warn("Cannot perform admin action - socket not connected");
-    }
-  }
-
-  // Event listeners
+  // Event listeners - only set up once per connection
   onJoinedChainCast(callback: (data: { chainCastId: string; participantCount: number; userRole: string }) => void): void {
-    this.socket?.on("joined_chaincast", callback);
+    this.socket?.off("joined_chaincast").on("joined_chaincast", callback);
   }
 
   onLeftChainCast(callback: (data: { chainCastId: string; participantCount: number }) => void): void {
-    this.socket?.on("left_chaincast", callback);
+    this.socket?.off("left_chaincast").on("left_chaincast", callback);
   }
 
   onParticipantJoined(callback: (participant: ChainCastParticipant) => void): void {
-    this.socket?.on("participant_joined", callback);
+    this.socket?.off("participant_joined").on("participant_joined", callback);
   }
 
   onParticipantLeft(callback: (participant: ChainCastParticipant) => void): void {
-    this.socket?.on("participant_left", callback);
+    this.socket?.off("participant_left").on("participant_left", callback);
   }
 
   onParticipantStreamUpdate(callback: (data: ChainCastParticipant) => void): void {
-    this.socket?.on("participant_stream_update", callback);
+    this.socket?.off("participant_stream_update").on("participant_stream_update", callback);
   }
 
   onNewMessage(callback: (message: ChatMessage) => void): void {
-    this.socket?.on("new_message", callback);
+    this.socket?.off("new_message").on("new_message", callback);
   }
 
   onNewReaction(callback: (reaction: ChainCastReaction) => void): void {
-    this.socket?.on("new_reaction", callback);
-  }
-
-  onModerationRequest(callback: (request: ModerationRequest) => void): void {
-    this.socket?.on("moderation_request", callback);
+    this.socket?.off("new_reaction").on("new_reaction", callback);
   }
 
   onModerationRequested(callback: (data: { message: string }) => void): void {
-    this.socket?.on("moderation_requested", callback);
+    this.socket?.off("moderation_requested").on("moderation_requested", callback);
   }
 
   onModerationReviewed(callback: (data: {
@@ -353,59 +238,28 @@ class ChainCastSocketService {
     adminName: string;
     timestamp: Date;
   }) => void): void {
-    this.socket?.on("moderation_reviewed", callback);
+    this.socket?.off("moderation_reviewed").on("moderation_reviewed", callback);
   }
 
-  onChainCastStarted(callback: (data: {
-    adminId: string;
-    adminName: string;
-    timestamp: Date;
-  }) => void): void {
-    this.socket?.on("chaincast_started", callback);
+  onChainCastStarted(callback: (data: { adminId: string; adminName: string; timestamp: Date }) => void): void {
+    this.socket?.off("chaincast_started").on("chaincast_started", callback);
   }
 
-  onChainCastEnded(callback: (data: {
-    adminId: string;
-    adminName: string;
-    timestamp: Date;
-  }) => void): void {
-    this.socket?.on("chaincast_ended", callback);
+  onChainCastEnded(callback: (data: { adminId: string; adminName: string; timestamp: Date }) => void): void {
+    this.socket?.off("chaincast_ended").on("chaincast_ended", callback);
   }
 
-  onRemovedFromChainCast(callback: (data: {
-    adminName: string;
-    reason?: string;
-    timestamp: Date;
-  }) => void): void {
-    this.socket?.on("removed_from_chaincast", callback);
-  }
-
-  onAdminActionSuccess(callback: (data: {
-    action: string;
-    message: string;
-  }) => void): void {
-    this.socket?.on("admin_action_success", callback);
+  onRemovedFromChainCast(callback: (data: { adminName: string; reason?: string; timestamp: Date }) => void): void {
+    this.socket?.off("removed_from_chaincast").on("removed_from_chaincast", callback);
   }
 
   // Error handlers
   onJoinError(callback: (data: { error: string }) => void): void {
-    this.socket?.on("join_error", callback);
-  }
-
-  onReactionError(callback: (data: { error: string }) => void): void {
-    this.socket?.on("reaction_error", callback);
-  }
-
-  onModerationError(callback: (data: { error: string }) => void): void {
-    this.socket?.on("moderation_error", callback);
-  }
-
-  onAdminError(callback: (data: { error: string }) => void): void {
-    this.socket?.on("admin_error", callback);
+    this.socket?.off("join_error").on("join_error", callback);
   }
 
   onError(callback: (data: { message: string }) => void): void {
-    this.socket?.on("error", callback);
+    this.socket?.off("error").on("error", callback);
   }
 
   // Utility methods
@@ -415,13 +269,6 @@ class ChainCastSocketService {
 
   getSocketId(): string | undefined {
     return this.socket?.id;
-  }
-
-  getConnectionState(): string {
-    if (!this.socket) return "disconnected";
-    if (this.socket.connected) return "connected";
-    if (this.isConnecting) return "connecting";
-    return "disconnected";
   }
 
   getCurrentChainCastId(): string | null {

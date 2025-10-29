@@ -54,16 +54,17 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
       let decoded;
       try {
         decoded = JwtService.verifySocketToken(token) as { id: string; role: string };
-      } catch (verifyError: any) {
+      } catch (verifyError) {
+        const error = verifyError as Error;
         logger.warn('Socket token verification failed', {
           socketId: socket.id,
-          error: verifyError.message,
+          error: error.message,
           tokenPresent: !!token
         });
         
-        if (verifyError.message?.includes('expired')) {
+        if (error.message?.includes('expired')) {
           return next(new Error('Access token expired'));
-        } else if (verifyError.message?.includes('invalid')) {
+        } else if (error.message?.includes('invalid')) {
           return next(new Error('Invalid token'));
         } else {
           return next(new Error('Token verification failed'));
@@ -85,11 +86,12 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
           .select('_id username isBlocked isBanned')
           .lean()
           .exec();
-      } catch (dbError: any) {
+      } catch (dbError) {
+        const error = dbError as Error;
         logger.error('Database error during socket authentication', {
           socketId: socket.id,
           userId: decoded.id,
-          error: dbError.message
+          error: error.message
         });
         return next(new Error('Authentication failed'));
       }
@@ -122,17 +124,18 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
         username: user.username
       });
       next();
-    } catch (error: any) {
+    } catch (error) {
+      let err = error as Error;
       logger.error('Socket authentication error', {
         socketId: socket.id,
-        error: error.message,
-        stack: error.stack,
+        error: err.message,
+        stack: err.stack,
         tokenPresent: !!socket.handshake.auth.token
       });
 
-      if (error.message.includes('expired')) {
+      if (err.message.includes('expired')) {
         next(new Error('Access token expired'));
-      } else if (error.message.includes('invalid')) {
+      } else if (err.message.includes('invalid')) {
         next(new Error('Invalid token'));
       } else {
         next(new Error('Authentication failed'));
@@ -309,18 +312,19 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
           // messageId: result.message._id 
         });
 
-      } catch (error: any) {
+      } catch (error) {
+        const err = error as Error;
         logger.error('Socket send message error', {
           socketId: socket.id,
           userId: socket.userId,
           username: socket.username,
           receiverUsername: data.receiverUsername,
-          error: error.message,
-          stack: error.stack
+          error: err.message,
+          stack: err.stack
         });
 
         socket.emit('message_error', {
-          error: error.message || 'Failed to send message'
+          error: err.message || 'Failed to send message'
         });
       }
     });
@@ -362,18 +366,19 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
           conversationId: data.conversationId 
         });
 
-      } catch (error: any) {
+      } catch (error) {
+        const err = error as Error;
         logger.error('Socket edit message error', {
           socketId: socket.id,
           userId: socket.userId,
           username: socket.username,
           messageId: data.messageId,
-          error: error.message,
-          stack: error.stack
+          error: err.message,
+          stack: err.stack
         });
 
         socket.emit('message_error', {
-          error: error.message || 'Failed to edit message'
+          error: err.message || 'Failed to edit message'
         });
       }
     });
@@ -410,18 +415,19 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
           conversationId: data.conversationId 
         });
 
-      } catch (error: any) {
+      } catch (error) {
+          const err = error as Error;
         logger.error('Socket delete message error', {
           socketId: socket.id,
           userId: socket.userId,
           username: socket.username,
           messageId: data.messageId,
-          error: error.message,
-          stack: error.stack
+          error: err.message,
+          stack: err.stack
         });
 
         socket.emit('message_error', {
-          error: error.message || 'Failed to delete message'
+          error: err.message || 'Failed to delete message'
         });
       }
     });
@@ -458,18 +464,19 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
           conversationId: data.conversationId 
         });
 
-      } catch (error: any) {
+      } catch (error) {
+        const err = error as Error;
         logger.error('Socket mark messages as read error', {
           socketId: socket.id,
           userId: socket.userId,
           username: socket.username,
           conversationId: data.conversationId,
-          error: error.message,
-          stack: error.stack
+          error: err.message,
+          stack: err.stack
         });
 
         socket.emit('message_error', {
-          error: error.message || 'Failed to mark messages as read'
+          error: err.message || 'Failed to mark messages as read'
         });
       }
     });

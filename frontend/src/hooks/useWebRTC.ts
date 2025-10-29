@@ -35,10 +35,14 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
       console.log('Initializing media stream:', { video, audio })
       
       if (!video && !audio) {
-        // No media needed, just set connected
         setIsConnected(true)
         setIsConnecting(false)
         return null
+      }
+
+      // Stop existing stream if any
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop())
       }
 
       const constraints: MediaStreamConstraints = {
@@ -61,11 +65,6 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
         audioTracks: stream.getAudioTracks().length
       })
 
-      // Stop existing stream if any
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop())
-      }
-
       setLocalStream(stream)
       
       if (localVideoRef.current) {
@@ -86,16 +85,21 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
     } catch (error: any) {
       console.error('Failed to get user media:', error)
       
-      if (error.name === 'NotAllowedError') {
-        toast.error('Camera/Microphone access denied. Please enable permissions.')
-      } else if (error.name === 'NotFoundError') {
-        toast.error('No camera or microphone found.')
-      } else if (error.name === 'NotReadableError') {
-        toast.error('Camera/microphone is being used by another application.')
-      } else {
-        toast.error('Failed to access camera/microphone')
+      let errorMessage = 'Failed to access camera/microphone'
+      
+      switch (error.name) {
+        case 'NotAllowedError':
+          errorMessage = 'Camera/Microphone access denied. Please enable permissions.'
+          break
+        case 'NotFoundError':
+          errorMessage = 'No camera or microphone found.'
+          break
+        case 'NotReadableError':
+          errorMessage = 'Camera/microphone is being used by another application.'
+          break
       }
       
+      toast.error(errorMessage)
       setIsConnected(false)
       throw error
     } finally {
@@ -106,7 +110,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
   // Toggle video
   const toggleVideo = useCallback(() => {
     if (!localStream) {
-      console.log('No local stream available')
+      console.log('No local stream available for video toggle')
       return false
     }
 
@@ -127,7 +131,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
   // Toggle audio
   const toggleAudio = useCallback(() => {
     if (!localStream) {
-      console.log('No local stream available')
+      console.log('No local stream available for audio toggle')
       return false
     }
 

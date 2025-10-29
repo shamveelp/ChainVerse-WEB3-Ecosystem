@@ -195,31 +195,30 @@ export class ChainCastService implements IChainCastService {
 
       if (userId) {
         // Check if user is admin
-        const isAdmin = chainCast.adminId.toString() === userId;
+        const adminIdFromCast =
+          typeof chainCast.adminId === "object"
+            ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
+            : chainCast.adminId;
+
+        const isAdmin = adminIdFromCast === userId;
         if (isAdmin) {
           userRole = "admin";
           canJoin = true;
           canModerate = true;
         } else {
-          // Check if user is a community member
-          const isMember = await this.isUserCommunityMember(
-            userId,
-            chainCast.communityId.toString()
-          );
-          if (isMember) {
-            canJoin = chainCast.status === "live";
-            userRole = "viewer";
+          // Liberal join policy - allow users to join if ChainCast is live
+          canJoin = chainCast.status === "live";
+          userRole = "viewer";
 
-            // Check if user is already a participant
-            const participant =
-              await this._chainCastRepository.findParticipantByChainCastAndUser(
-                chainCastId,
-                userId
-              );
-            if (participant) {
-              userRole = participant.role;
-              canModerate = participant.permissions.canModerate;
-            }
+          // Check if user is already a participant
+          const participant =
+            await this._chainCastRepository.findParticipantByChainCastAndUser(
+              chainCastId,
+              userId
+            );
+          if (participant) {
+            userRole = participant.role;
+            canModerate = participant.permissions.canModerate;
           }
         }
       }
@@ -256,7 +255,12 @@ export class ChainCastService implements IChainCastService {
       }
 
       // Verify ownership
-      if (chainCast.adminId.toString() !== adminId) {
+      const adminIdFromCast =
+        typeof chainCast.adminId === "object"
+          ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
+          : chainCast.adminId;
+
+      if (adminIdFromCast !== adminId) {
         throw new CustomError(
           "You are not authorized to update this ChainCast",
           StatusCode.FORBIDDEN
@@ -324,7 +328,12 @@ export class ChainCastService implements IChainCastService {
       }
 
       // Verify ownership
-      if (chainCast.adminId.toString() !== adminId) {
+      const adminIdFromCast =
+        typeof chainCast.adminId === "object"
+          ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
+          : chainCast.adminId;
+
+      if (adminIdFromCast !== adminId) {
         throw new CustomError(
           "You are not authorized to delete this ChainCast",
           StatusCode.FORBIDDEN
@@ -375,7 +384,7 @@ export class ChainCastService implements IChainCastService {
       if (!chainCast) {
         throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
       }
-      
+
       const adminIdFromCast =
         typeof chainCast.adminId === "object"
           ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
@@ -450,7 +459,7 @@ export class ChainCastService implements IChainCastService {
       if (!chainCast) {
         throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
       }
-      
+
       const adminIdFromCast =
         typeof chainCast.adminId === "object"
           ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
@@ -519,7 +528,6 @@ export class ChainCastService implements IChainCastService {
     query: GetChainCastsQueryDto
   ): Promise<ChainCastsListResponseDto> {
     try {
-      // Liberal membership check - allow access to view ChainCasts
       const limit = Math.min(query.limit || 10, 50);
       const skip = query.cursor ? await this._getCursorSkip(query.cursor) : 0;
 
@@ -597,7 +605,7 @@ export class ChainCastService implements IChainCastService {
         );
       }
 
-      // Liberal join policy - check basic requirements only
+      // Check participant limit
       const currentCount =
         await this._chainCastRepository.getActiveParticipantsCount(
           data.chainCastId
@@ -610,7 +618,7 @@ export class ChainCastService implements IChainCastService {
       }
 
       // Check if user is already a participant
-      const existingParticipant =
+      let existingParticipant =
         await this._chainCastRepository.findParticipantByChainCastAndUser(
           data.chainCastId,
           userId
@@ -707,8 +715,11 @@ export class ChainCastService implements IChainCastService {
         };
       }
 
-      // Remove participant
-      await this._chainCastRepository.removeParticipant(chainCastId, userId);
+      // Mark participant as inactive instead of removing
+      await this._chainCastRepository.updateParticipant(chainCastId, userId, {
+        isActive: false,
+        leftAt: new Date(),
+      });
 
       // Update participant count
       const newCount =
@@ -859,7 +870,12 @@ export class ChainCastService implements IChainCastService {
       }
 
       // Verify ownership
-      if (chainCast.adminId.toString() !== adminId) {
+      const adminIdFromCast =
+        typeof chainCast.adminId === "object"
+          ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
+          : chainCast.adminId;
+
+      if (adminIdFromCast !== adminId) {
         throw new CustomError(
           "You are not authorized to remove participants",
           StatusCode.FORBIDDEN
@@ -1003,7 +1019,12 @@ export class ChainCastService implements IChainCastService {
       }
 
       // Verify ownership
-      if (chainCast.adminId.toString() !== adminId) {
+      const adminIdFromCast =
+        typeof chainCast.adminId === "object"
+          ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
+          : chainCast.adminId;
+
+      if (adminIdFromCast !== adminId) {
         throw new CustomError(
           "You are not authorized to view moderation requests",
           StatusCode.FORBIDDEN
@@ -1073,7 +1094,12 @@ export class ChainCastService implements IChainCastService {
       }
 
       // Verify ownership
-      if (chainCast.adminId.toString() !== adminId) {
+      const adminIdFromCast =
+        typeof chainCast.adminId === "object"
+          ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
+          : chainCast.adminId;
+
+      if (adminIdFromCast !== adminId) {
         throw new CustomError(
           "You are not authorized to review this request",
           StatusCode.FORBIDDEN
@@ -1157,7 +1183,6 @@ export class ChainCastService implements IChainCastService {
         );
       }
 
-      // Liberal reaction policy - allow all connected users to react
       // Create reaction
       await this._chainCastRepository.createReaction({
         chainCastId: chainCast._id,
@@ -1315,28 +1340,11 @@ export class ChainCastService implements IChainCastService {
         return { canJoin: false, reason: "ChainCast is full" };
       }
 
-      // Liberal join policy - allow most users to join
+      // Liberal join policy - allow users to join
       return { canJoin: true };
     } catch (error) {
       logger.error("Can user join ChainCast error:", error);
       return { canJoin: false, reason: "Error checking permissions" };
-    }
-  }
-
-  async isUserCommunityMember(
-    userId: string,
-    communityId: string
-  ): Promise<boolean> {
-    try {
-      const member = await CommunityMemberModel.findOne({
-        userId: new Types.ObjectId(userId),
-        communityId: new Types.ObjectId(communityId),
-        isActive: true,
-      });
-      return !!member;
-    } catch (error) {
-      logger.error("Check community member error:", error);
-      return false; // Liberal policy - don't block on errors
     }
   }
 

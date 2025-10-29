@@ -16,14 +16,12 @@ import {
   Users,
   MessageCircle,
   PhoneOff,
-  Settings,
   Crown,
-  Shield,
-  Heart,
   Loader2,
   Send,
   Hand,
-  Clock
+  Clock,
+  Heart
 } from 'lucide-react'
 import { RootState } from '@/redux/store'
 import { useWebRTC } from '@/hooks/useWebRTC'
@@ -42,6 +40,14 @@ interface ChatMessage {
   username: string
   message: string
   timestamp: Date
+}
+
+interface FloatingReaction {
+  id: string
+  emoji: string
+  username: string
+  x: number
+  y: number
 }
 
 const reactions = [
@@ -78,6 +84,7 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
   const [requestingSent, setRequestingSent] = useState(false)
   const [activeTab, setActiveTab] = useState<'participants' | 'chat' | 'reactions'>('participants')
   const [participantCount, setParticipantCount] = useState(1)
+  const [floatingReactions, setFloatingReactions] = useState<FloatingReaction[]>([])
 
   const chatScrollRef = useRef<HTMLDivElement>(null)
 
@@ -109,8 +116,10 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
 
   // Initialize ChainCast room
   useEffect(() => {
+    let mounted = true
+
     const initializeRoom = async () => {
-      if (!token || !chainCast) {
+      if (!token || !chainCast || !mounted) {
         setLoading(false)
         return
       }
@@ -127,42 +136,50 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
           await chainCastSocketService.connect(token)
         }
 
+        if (!mounted) return
+
+        // Setup socket listeners first
+        setupSocketListeners()
+
         // Join ChainCast room
         await chainCastSocketService.joinChainCast(chainCast._id)
-        setIsJoined(true)
+        if (mounted) {
+          setIsJoined(true)
+        }
 
         // Initialize media stream based on role
-        if (isAdmin) {
+        if (isAdmin && mounted) {
           console.log('Admin: Initializing with video and audio')
           await initializeLocalStream(true, true)
-        } else {
-          console.log('Viewer: Initializing with audio only (no media required)')
-          // For viewers, we don't need to initialize media stream
-          // They will only listen to the admin
+        } else if (mounted) {
+          console.log('Viewer: Initializing without media')
           await initializeLocalStream(false, false)
         }
 
-        setupSocketListeners()
-
       } catch (error: any) {
         console.error('Failed to initialize ChainCast room:', error)
-        toast.error('Failed to join ChainCast', {
-          description: error.message || 'Please try again'
-        })
+        if (mounted) {
+          toast.error('Failed to join ChainCast', {
+            description: error.message || 'Please try again'
+          })
+        }
       } finally {
-        setLoading(false)
+        if (mounted) {
+          setLoading(false)
+        }
       }
     }
 
     initializeRoom()
 
     return () => {
+      mounted = false
       cleanup()
-      if (isJoined) {
+      if (isJoined && chainCast) {
         chainCastSocketService.leaveChainCast(chainCast._id)
       }
     }
-  }, [chainCast, token, initializeLocalStream, cleanup, isJoined, isAdmin])
+  }, [chainCast._id, token, initializeLocalStream, cleanup, isAdmin])
 
   // Setup socket event listeners
   const setupSocketListeners = useCallback(() => {
@@ -208,7 +225,13 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
 
     // Chat messages
     chainCastSocketService.onNewMessage((message: ChatMessage) => {
-      setChatMessages(prev => [...prev, message])
+      setChatMessages(prev => {
+        // Prevent duplicate messages
+        if (prev.some(m => m.id === message.id)) {
+          return prev
+        }
+        return [...prev, message]
+      })
     })
 
     // Reaction events
@@ -338,16 +361,6 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
     }
   }, [chainCast._id])
 
-  // Handle leave
-  const handleLeave = useCallback(async () => {
-    try {
-      onLeave()
-    } catch (error: any) {
-      console.error('Failed to leave ChainCast:', error)
-      onLeave()
-    }
-  }, [onLeave])
-
   // Send chat message
   const handleSendMessage = useCallback((e: React.FormEvent) => {
     e.preventDefault()
@@ -362,20 +375,20 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
 
   // Show floating reaction
   const showFloatingReaction = useCallback((emoji: string, username: string) => {
-    // Create floating reaction element
-    const reactionEl = document.createElement('div')
-    reactionEl.className = 'fixed text-4xl pointer-events-none z-50 animate-bounce'
-    reactionEl.textContent = emoji
-    reactionEl.style.left = Math.random() * (window.innerWidth - 100) + 'px'
-    reactionEl.style.top = window.innerHeight - 200 + 'px'
+    const id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
+    const reaction: FloatingReaction = {
+      id,
+      emoji,
+      username,
+      x: Math.random() * (window.innerWidth - 100),
+      y: window.innerHeight - 200
+    }
 
-    document.body.appendChild(reactionEl)
+    setFloatingReactions(prev => [...prev, reaction])
 
     // Remove after animation
     setTimeout(() => {
-      if (document.body.contains(reactionEl)) {
-        document.body.removeChild(reactionEl)
-      }
+      setFloatingReactions(prev => prev.filter(r => r.id !== id))
     }, 3000)
 
     // Show toast
@@ -396,6 +409,17 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
+      {/* Floating Reactions */}
+      {floatingReactions.map((reaction) => (
+        <div
+          key={reaction.id}
+          className="fixed text-4xl pointer-events-none z-50 animate-bounce"
+          style={{ left: reaction.x, top: reaction.y }}
+        >
+          {reaction.emoji}
+        </div>
+      ))}
+
       {/* Header */}
       <div className="bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/50 p-4">
         <div className="flex items-center justify-between">
@@ -415,7 +439,7 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
 
           <div className="flex items-center gap-2">
             <Button
-              onClick={handleLeave}
+              onClick={onLeave}
               variant="outline"
               size="sm"
               className="border-red-600 text-red-400 hover:bg-red-600/20"
@@ -434,7 +458,7 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
           <div className="h-full p-4">
             <Card className="bg-slate-900/50 border-slate-700/50 relative overflow-hidden h-full">
               <CardContent className="p-0 h-full relative">
-                {isAdmin && localStream ? (
+                {isAdmin && localStream && isVideoEnabled ? (
                   <video
                     ref={localVideoRef}
                     autoPlay
@@ -456,20 +480,6 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                         <span className="text-white text-xl font-medium">{chainCast.admin.name}</span>
                       </div>
                       <p className="text-slate-400">Community Admin</p>
-                    </div>
-                  </div>
-                )}
-
-                {!isVideoEnabled && isAdmin && (
-                  <div className="absolute inset-0 bg-slate-800/90 flex items-center justify-center">
-                    <div className="text-center">
-                      <Avatar className="w-32 h-32 mx-auto mb-4">
-                        <AvatarImage src={userInfo?.profileImage || userInfo?.profilePicture} />
-                        <AvatarFallback className="bg-gradient-to-r from-red-500 to-pink-600 text-white text-4xl">
-                          {userInfo?.name?.[0]?.toUpperCase() || 'A'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <p className="text-white text-lg">Camera Off</p>
                     </div>
                   </div>
                 )}
@@ -526,7 +536,7 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                 </Button>
 
                 <Button
-                  onClick={handleLeave}
+                  onClick={onLeave}
                   size="icon"
                   className="rounded-full bg-red-600 hover:bg-red-700"
                   title="End ChainCast"
@@ -564,7 +574,7 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                 )}
 
                 <Button
-                  onClick={handleLeave}
+                  onClick={onLeave}
                   size="icon"
                   className="rounded-full bg-red-600 hover:bg-red-700"
                   title="Leave ChainCast"
@@ -693,8 +703,8 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
               <div className="h-full flex flex-col">
                 <ScrollArea className="flex-1 p-4" ref={chatScrollRef}>
                   <div className="space-y-3">
-                    {chatMessages.map((message) => (
-                      <div key={message.id} className="space-y-1">
+                    {chatMessages.map((message, index) => (
+                      <div key={`${message.id}-${index}`} className="space-y-1">
                         <div className="text-xs text-slate-400">
                           {message.username} • {new Date(message.timestamp).toLocaleTimeString()}
                         </div>

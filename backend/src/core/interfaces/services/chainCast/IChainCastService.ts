@@ -52,5 +52,5 @@ export interface IChainCastService {
     
     // Utility methods
     canUserJoinChainCast(userId: string, chainCastId: string): Promise<{ canJoin: boolean; reason?: string }>;
-    isUserCommunityMember(userId: string, communityId: string): Promise<boolean>;
+    // isUserCommunityMember(userId: string, communityId: string): Promise<boolean>;
 }
