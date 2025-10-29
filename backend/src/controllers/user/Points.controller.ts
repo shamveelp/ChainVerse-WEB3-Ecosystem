@@ -101,7 +101,6 @@ export class PointsController implements IPointsController {
       });
     } catch (error) {
       const err = error as Error;
-      console.error("PointsController: Get check-in calendar error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || "Failed to get check-in calendar";
       logger.error("Get check-in calendar error:", { message, stack: err.stack, userId: req.user });
@@ -136,7 +135,6 @@ export class PointsController implements IPointsController {
       });
     } catch (error) {
       const err = error as Error;
-      console.error("PointsController: Get points history error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || "Failed to get points history";
       logger.error("Get points history error:", { message, stack: err.stack, userId: req.user });

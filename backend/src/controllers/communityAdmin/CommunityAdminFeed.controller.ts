@@ -40,7 +40,6 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get community feed error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch community feed";
             logger.error("Get community feed error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -65,7 +64,6 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Toggle post like error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to toggle post like";
             logger.error("Toggle post like error:", { message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
@@ -112,7 +110,6 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Create comment error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to create comment";
             logger.error("Create comment error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -148,7 +145,6 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Share post error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to share post";
             logger.error("Share post error:", { message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
@@ -174,7 +170,6 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get engagement stats error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch engagement stats";
             logger.error("Get engagement stats error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -201,7 +196,6 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Pin post error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to pin post";
             logger.error("Pin post error:", { message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
@@ -229,7 +223,6 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Delete post error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to delete post";
             logger.error("Delete post error:", { message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });

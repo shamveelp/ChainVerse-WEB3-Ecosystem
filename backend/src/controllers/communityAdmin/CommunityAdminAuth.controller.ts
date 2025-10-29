@@ -135,11 +135,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
 
             const result = await this._commAdminAuthService.createCommunityApplication(communityData);
             res.status(StatusCode.CREATED).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Create community error:", error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to submit application"
+                error: err.message || "Failed to submit application"
             });
         }
     }
@@ -148,11 +149,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const result = await this._commAdminAuthService.setPassword(req.body);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Set password error:", error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to set password"
+                error: err.message || "Failed to set password"
             });
         }
     }
@@ -161,11 +163,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const result = await this._commAdminAuthService.verifyOtp(req.body);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Verify OTP error:", error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "OTP verification failed"
+                error: err.message || "OTP verification failed"
             });
         }
     }
@@ -174,11 +177,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const result = await this._commAdminAuthService.resendOtp(req.body);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Resend OTP error:", error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to resend OTP"
+                error: err.message || "Failed to resend OTP"
             });
         }
     }
@@ -187,14 +191,15 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const result = await this._commAdminAuthService.loginCommunityAdmin(req.body, res);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Community admin login error:", error);
             let statusCode = StatusCode.UNAUTHORIZED;
-            const errorMessage = error.message || "Login failed";
+            const errorMessage = err.message || "Login failed";
 
-            if (error.message?.includes('under review')) {
+            if (err.message?.includes('under review')) {
                 statusCode = StatusCode.FORBIDDEN;
-            } else if (error.message?.includes('rejected')) {
+            } else if (err.message?.includes('rejected')) {
                 statusCode = StatusCode.FORBIDDEN;
             }
 
@@ -209,11 +214,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const result = await this._commAdminAuthService.forgotPassword(req.body);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Forgot password error:", error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to send reset code"
+                error: err.message || "Failed to send reset code"
             });
         }
     }
@@ -222,11 +228,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const result = await this._commAdminAuthService.verifyForgotPasswordOtp(req.body);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Verify forgot password OTP error:", error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "OTP verification failed"
+                error: err.message || "OTP verification failed"
             });
         }
     }
@@ -235,11 +242,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const result = await this._commAdminAuthService.resetPassword(req.body);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Reset password error:", error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to reset password"
+                error: err.message || "Failed to reset password"
             });
         }
     }
@@ -248,7 +256,8 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const result = await this._commAdminAuthService.refreshToken(req, res);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Refresh token error:", error);
             res.status(StatusCode.UNAUTHORIZED).json({
                 success: false,
@@ -261,7 +270,8 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         try {
             const result = await this._commAdminAuthService.logout(res);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Logout error:", error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
@@ -275,7 +285,8 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             const communityAdminId = (req as any).user.id;
             const result = await this._commAdminAuthService.getProfile(communityAdminId);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Get profile error:", error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
@@ -289,7 +300,8 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             const communityAdminId = (req as any).user.id;
             const result = await this._commAdminAuthService.getCommunityDetails(communityAdminId);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Get community details error:", error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
@@ -303,11 +315,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             const communityAdminId = (req as any).user.id;
             const result = await this._commAdminAuthService.updateCommunity(communityAdminId, req.body);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Update community error:", error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to update community"
+                error: err.message || "Failed to update community"
             });
         }
     }
@@ -388,11 +401,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
 
             const result = await this._commAdminAuthService.reapplyApplication(communityData);
             res.status(StatusCode.OK).json(result);
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             logger.error("Reapply application error:", error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: error.message || "Failed to reapply"
+                error: err.message || "Failed to reapply"
             });
         }
     }

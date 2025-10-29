@@ -37,7 +37,6 @@ export class ReferralController implements IReferralController {
       });
     } catch (error) {
       const err = error as Error;
-      console.error("ReferralController: Get referral history error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || "Failed to fetch referral history";
       logger.error("Get referral history error:", { message, stack: err.stack, userId: req.user });
@@ -69,7 +68,6 @@ export class ReferralController implements IReferralController {
       });
     } catch (error) {
       const err = error as Error;
-      console.error("ReferralController: Get referral stats error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || "Failed to fetch referral stats";
       logger.error("Get referral stats error:", { message, stack: err.stack, userId: req.user });

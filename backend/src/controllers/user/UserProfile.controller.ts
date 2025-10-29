@@ -51,7 +51,6 @@ export class UserProfileController implements IUserProfileController {
       });
     } catch (error) {
       const err = error as Error;
-      console.error("Get profile controller error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || "Failed to fetch user profile";
       logger.error("Get profile error:", { message, stack: err.stack, userId: req.user });
@@ -95,7 +94,6 @@ export class UserProfileController implements IUserProfileController {
       });
     } catch (error) {
       const err = error as Error;
-      console.error("Update profile controller error:", err);
       if (error instanceof z.ZodError) {
         logger.warn("Update profile validation error:", { issues: error.issues });
         res.status(StatusCode.BAD_REQUEST).json({ 
@@ -137,7 +135,6 @@ export class UserProfileController implements IUserProfileController {
       // });
     } catch (error) {
       const err = error as Error;
-      console.error("Check username controller error:", err);
       if (error instanceof z.ZodError) {
         logger.warn("Check username validation error:", { issues: error.issues });
         res.status(StatusCode.BAD_REQUEST).json({ 
@@ -190,7 +187,6 @@ export class UserProfileController implements IUserProfileController {
           }, 
           (error, result) => {
             if (error) {
-              console.error("Cloudinary upload error:", error);
               reject(new CustomError("Failed to upload image to Cloudinary", StatusCode.INTERNAL_SERVER_ERROR));
             } else {
               resolve(result as UploadApiResponse);
@@ -218,7 +214,6 @@ export class UserProfileController implements IUserProfileController {
       });
     } catch (error) {
       const err = error as Error;
-      console.error("Upload profile image controller error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || "Failed to upload profile image";
       logger.error("Upload profile image error:", { message, stack: err.stack, userId: req.user });

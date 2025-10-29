@@ -26,7 +26,6 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get dashboard data error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch dashboard data";
             logger.error("Get dashboard data error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -50,7 +49,6 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get community overview error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch community overview";
             logger.error("Get community overview error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -74,7 +72,6 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get community stats error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch community stats";
             logger.error("Get community stats error:", { message, stack: err.stack, adminId: (req as any).user?.id });

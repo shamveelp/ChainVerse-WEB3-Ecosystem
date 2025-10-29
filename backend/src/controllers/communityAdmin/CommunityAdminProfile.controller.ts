@@ -27,7 +27,6 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get community admin profile error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch profile";
             logger.error("Get community admin profile error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -52,7 +51,6 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Update community admin profile error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to update profile";
             logger.error("Update community admin profile error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -109,7 +107,6 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Upload profile picture error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to upload profile picture";
             logger.error("Upload profile picture error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -135,7 +132,6 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get community stats error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch community stats";
             logger.error("Get community stats error:", { message, stack: err.stack, adminId: (req as any).user?.id });

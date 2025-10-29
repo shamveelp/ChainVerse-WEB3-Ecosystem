@@ -26,7 +26,6 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
       });
     } catch (error) {
       const err = error as Error;
-      console.error("Create subscription order error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || "Failed to create subscription order";
       logger.error("Create subscription order error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -49,7 +48,6 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
       });
     } catch (error) {
       const err = error as Error;
-      console.error("Verify subscription payment error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || "Failed to verify payment";
       logger.error("Verify subscription payment error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -71,7 +69,6 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
       });
     } catch (error) {
       const err = error as Error;
-      console.error("Get subscription error:", error);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || "Failed to fetch subscription";
       logger.error("Get subscription error:", { message, stack: err.stack, adminId: (req as any).user?.id });

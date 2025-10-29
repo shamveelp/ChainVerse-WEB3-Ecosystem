@@ -43,7 +43,6 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get community members error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch community members";
             logger.error("Get community members error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -69,7 +68,6 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get member details error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch member details";
             logger.error("Get member details error:", { message, stack: err.stack, adminId: (req as any).user?.id, memberId: req.params.memberId });
@@ -104,7 +102,6 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             res.status(StatusCode.OK).json(updatedMember);
         } catch (error) {
             const err = error as Error;
-            console.error("Update member role error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to update member role";
             logger.error("Update member role error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -139,7 +136,6 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             res.status(StatusCode.OK).json(bannedMember);
         } catch (error) {
             const err = error as Error;
-            console.error("Ban member error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to ban member";
             logger.error("Ban member error:", { message, stack: err.stack, adminId: (req as any).user?.id });
@@ -162,7 +158,6 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             res.status(StatusCode.OK).json(unbannedMember);
         } catch (error) {
             const err = error as Error;
-            console.error("Unban member error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to unban member";
             logger.error("Unban member error:", { message, stack: err.stack, adminId: (req as any).user?.id, memberId: req.params.memberId });
@@ -190,7 +185,6 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Remove member error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to remove member";
             logger.error("Remove member error:", { message, stack: err.stack, adminId: (req as any).user?.id, memberId: req.params.memberId });
@@ -217,7 +211,6 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get member activity error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to fetch member activity";
             logger.error("Get member activity error:", { message, stack: err.stack, adminId: (req as any).user?.id, memberId: req.params.memberId });
@@ -264,7 +257,6 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Bulk update members error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to perform bulk action";
             logger.error("Bulk update members error:", { message, stack: err.stack, adminId: (req as any).user?.id });
