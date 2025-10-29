@@ -178,7 +178,7 @@ export default function CommunityAdminDashboard() {
   };
 
   const handleSettingsClick = () => {
-    router.push(COMMUNITY_ADMIN_ROUTES.SETTINGS);
+    router.push(COMMUNITY_ADMIN_ROUTES.PROFILE);
     toast.success("Navigating to Settings...");
   };
 
