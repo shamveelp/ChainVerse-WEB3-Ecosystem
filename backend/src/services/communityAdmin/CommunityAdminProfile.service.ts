@@ -7,8 +7,12 @@ import { ICommunityAdminProfileService } from "../../core/interfaces/services/co
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
 import { IPostRepository } from "../../core/interfaces/repositories/IPostRepository";
+import { ICommunityAdminPostRepository } from "../../core/interfaces/repositories/communityAdmin/ICommunityAdminPost.repository";
 import CommunityModel from "../../models/community.model";
 import CommunityMemberModel from "../../models/communityMember.model";
+import CommunityAdminPostModel from "../../models/communityAdminPost.model";
+import CommunityAdminPostLikeModel from "../../models/communityAdminPostLike.model";
+import CommunityAdminCommentModel from "../../models/communityAdminComment.model";
 import {
     CommunityAdminProfileResponseDto,
     UpdateCommunityAdminProfileDto,
@@ -20,13 +24,12 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
     constructor(
         @inject(TYPES.ICommunityAdminRepository) private _adminRepository: ICommunityAdminRepository,
         @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository,
-        @inject(TYPES.IPostRepository) private _postRepository: IPostRepository
+        @inject(TYPES.IPostRepository) private _postRepository: IPostRepository,
+        @inject(TYPES.ICommunityAdminPostRepository) private _adminPostRepository: ICommunityAdminPostRepository
     ) {}
 
     async getProfile(adminId: string): Promise<CommunityAdminProfileResponseDto> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
                 throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
@@ -39,33 +42,40 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
                 totalPosts: 0,
                 totalQuests: 0,
                 premiumMembers: 0,
-                engagementRate: 0
+                engagementRate: 0,
+                myPostsCount: 0,
+                myLikesCount: 0,
+                myCommentsCount: 0
             };
 
             if (admin.communityId) {
                 // Get community details
                 community = await CommunityModel.findById(admin.communityId);
-                
+
                 if (community) {
-                    // Get member statistics
-                    const memberStats = await this._getMemberStats(admin.communityId.toString());
-                    
-                    // Get post statistics
-                    const postStats = await this._getPostStats(admin.communityId.toString());
-                    
+                    // Get comprehensive statistics
+                    const [memberStats, postStats, adminPostStats] = await Promise.all([
+                        this._getMemberStats(admin.communityId.toString()),
+                        this._getPostStats(admin.communityId.toString()),
+                        this._getAdminPostStats(adminId)
+                    ]);
+
                     stats = {
                         totalMembers: memberStats.totalMembers,
                         activeMembers: memberStats.activeMembers,
                         totalPosts: postStats.totalPosts,
                         totalQuests: 0, // TODO: Implement quests
                         premiumMembers: memberStats.premiumMembers,
-                        engagementRate: postStats.engagementRate
+                        engagementRate: postStats.engagementRate,
+                        myPostsCount: adminPostStats.postsCount,
+                        myLikesCount: adminPostStats.likesCount,
+                        myCommentsCount: adminPostStats.commentsCount
                     };
                 }
             }
 
             const profileResponse = new CommunityAdminProfileResponseDto(admin, community, stats);
-            
+
             return profileResponse;
         } catch (error) {
             console.error("CommunityAdminProfileService: Get profile error:", error);
@@ -78,8 +88,6 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
 
     async updateProfile(adminId: string, data: UpdateCommunityAdminProfileDto): Promise<CommunityAdminProfileResponseDto> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
                 throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
@@ -98,7 +106,9 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
                 website: data.website?.trim() || "",
                 bio: data.bio?.trim() || "",
                 location: data.location?.trim() || "",
-                name: data.name?.trim() || admin.name
+                name: data.name?.trim() || admin.name,
+                profilePic: data.profilePic || admin.profilePic,
+                bannerImage: data.bannerImage || admin.bannerImage
             };
 
             const updatedAdmin = await this._adminRepository.updateCommunityAdmin(adminId, updateData as any);
@@ -106,7 +116,6 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
                 throw new CustomError("Failed to update profile", StatusCode.INTERNAL_SERVER_ERROR);
             }
 
-            
             return await this.getProfile(adminId);
         } catch (error) {
             console.error("CommunityAdminProfileService: Update profile error:", error);
@@ -119,19 +128,17 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
 
     async getCommunityStats(adminId: string, period: string = 'week'): Promise<CommunityStatsDto> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
                 throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
             }
 
             const communityId = admin.communityId.toString();
-            
+
             // Calculate date range based on period
             const now = new Date();
             let startDate: Date;
-            
+
             switch (period) {
                 case 'today':
                     startDate = new Date(now.setHours(0, 0, 0, 0));
@@ -147,10 +154,11 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
             }
 
             // Get comprehensive stats
-            const [memberStats, postStats, topMembers] = await Promise.all([
+            const [memberStats, postStats, topMembers, adminPostStats] = await Promise.all([
                 this._getMemberStatsWithPeriod(communityId, startDate),
                 this._getPostStatsWithPeriod(communityId, startDate),
-                this._getTopActiveMembers(communityId)
+                this._getTopActiveMembers(communityId),
+                this._getAdminPostStats(adminId)
             ]);
 
             const statsData = {
@@ -164,10 +172,12 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
                 premiumMembers: memberStats.premiumMembers,
                 engagementRate: postStats.engagementRate,
                 averagePostsPerMember: memberStats.totalMembers > 0 ? postStats.totalPosts / memberStats.totalMembers : 0,
+                myPostsCount: adminPostStats.postsCount,
+                myLikesCount: adminPostStats.likesCount,
+                myCommentsCount: adminPostStats.commentsCount,
                 topActiveMembers: topMembers
             };
 
-            
             return new CommunityStatsDto(statsData);
         } catch (error) {
             console.error("CommunityAdminProfileService: Get community stats error:", error);
@@ -279,5 +289,19 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
             totalPosts: member.totalPosts || 0,
             totalLikes: member.totalLikes || 0
         }));
+    }
+
+    private async _getAdminPostStats(adminId: string): Promise<any> {
+        const [postsCount, likesCount, commentsCount] = await Promise.all([
+            CommunityAdminPostModel.countDocuments({ author: adminId, isDeleted: false }),
+            CommunityAdminPostLikeModel.countDocuments({ admin: adminId }),
+            CommunityAdminCommentModel.countDocuments({ author: adminId, isDeleted: false })
+        ]);
+
+        return {
+            postsCount,
+            likesCount,
+            commentsCount
+        };
     }
 }

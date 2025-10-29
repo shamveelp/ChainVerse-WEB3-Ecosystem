@@ -47,6 +47,8 @@ import {
 } from "../dtos/chainCast/ChainCast.dto";
 import { ICommunityAdminSubscriptionController } from "../core/interfaces/controllers/communityAdmin/ICommunityAdminSubscription.controller";
 import { CreateSubscriptionDto } from "../dtos/communityAdmin/CommunityAdminSubscription.dto";
+import { ICommunityAdminPostController } from "../core/interfaces/controllers/communityAdmin/ICommunityAdminPost.controller";
+import { CommunityAdminCommentDto, CreateCommunityAdminPostDto, GetCommunityAdminPostsQueryDto, UpdateCommunityAdminPostDto } from "../dtos/communityAdmin/CommunityAdminPost.dto";
 
 // Configure Multer for profile picture uploads
 const storage = multer.memoryStorage();
@@ -102,6 +104,12 @@ const communityAdminSubscriptionController =
   container.get<ICommunityAdminSubscriptionController>(
     TYPES.ICommunityAdminSubscriptionController
   );
+const communityAdminPostController =
+  container.get<ICommunityAdminPostController>(
+    TYPES.ICommunityAdminPostController
+  );
+
+
 
 // Live validation endpoints
 router.get(
@@ -630,6 +638,106 @@ router.get(
   roleMiddleware(["communityAdmin"]),
   communityAdminSubscriptionController.getSubscription.bind(
     communityAdminSubscriptionController
+  )
+);
+
+// Post management routes
+router.post(
+  "/posts/create",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(CreateCommunityAdminPostDto),
+  communityAdminPostController.createPost.bind(communityAdminPostController)
+);
+router.get(
+  "/posts/:postId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminPostController.getPostById.bind(communityAdminPostController)
+);
+router.put(
+  "/posts/:postId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(UpdateCommunityAdminPostDto),
+  communityAdminPostController.updatePost.bind(communityAdminPostController)
+);
+router.delete(
+  "/posts/:postId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminPostController.deletePost.bind(communityAdminPostController)
+);
+router.get(
+  "/posts",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateQuery(GetCommunityAdminPostsQueryDto),
+  communityAdminPostController.getAdminPosts.bind(communityAdminPostController)
+);
+
+// Post interaction routes
+router.post(
+  "/posts/:postId/like",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminPostController.togglePostLike.bind(communityAdminPostController)
+);
+
+// Comment routes
+router.post(
+  "/posts/comments/create",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(CommunityAdminCommentDto),
+  communityAdminPostController.createComment.bind(communityAdminPostController)
+);
+router.get(
+  "/posts/:postId/comments",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminPostController.getPostComments.bind(
+    communityAdminPostController
+  )
+);
+router.post(
+  "/posts/comments/:commentId/like",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminPostController.toggleCommentLike.bind(
+    communityAdminPostController
+  )
+);
+
+// Media upload route
+router.post(
+  "/posts/upload-media",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  upload.single("media"),
+  communityAdminPostController.uploadPostMedia.bind(
+    communityAdminPostController
+  )
+);
+
+// Enhanced profile routes
+// router.post(
+//   "/profile/upload-banner",
+//   authMiddleware,
+//   roleMiddleware(["communityAdmin"]),
+//   upload.single("bannerImage"),
+//   communityAdminProfileController.uploadBannerImage.bind(
+//     communityAdminProfileController
+//   )
+// );
+
+// Community members feed route
+router.get(
+  "/feed/members",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminPostController.getCommunityMembersFeed.bind(
+    communityAdminPostController
   )
 );
 

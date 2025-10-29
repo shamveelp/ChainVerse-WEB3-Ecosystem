@@ -7,18 +7,33 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Mail, MapPin, Globe, Calendar, Upload, CreditCard as Edit3, Save, X, Activity, Users, TrendingUp, MessageSquare, Award, Settings, Crown, Sparkles, ExternalLink } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, Mail, MapPin, Globe, Calendar, Upload, CreditCard as Edit3, Save, X, Activity, Users, TrendingUp, MessageSquare, Award, Settings, Crown, Sparkles, ExternalLink, Camera, Image as ImageIcon, Heart, MessageCircle, Share, MoreHorizontal, Loader2, Plus, Grid2x2 as Grid, List, Image as ImageIconLucide } from "lucide-react";
 import { communityAdminProfileApiService } from "@/services/communityAdmin/communityAdminProfileApiService";
+import { communityAdminPostApiService, type CommunityAdminPost } from "@/services/communityAdmin/communityAdminPostApiService";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import CreateCommunityAdminPost from "@/components/comms-admin/posts/CreateCommunityAdminPost";
+import CommunityAdminPostCard from "@/components/comms-admin/posts/CommunityAdminPostCard";
 
 interface CommunityAdminProfile {
   _id: string;
   name: string;
   email: string;
+  username: string;
   bio?: string;
   location?: string;
   website?: string;
   profilePic?: string;
+  bannerImage?: string;
   communityId?: string;
   communityName?: string;
   communityLogo?: string;
@@ -32,6 +47,9 @@ interface CommunityAdminProfile {
     totalQuests: number;
     premiumMembers: number;
     engagementRate: number;
+    myPostsCount: number;
+    myLikesCount: number;
+    myCommentsCount: number;
   };
 }
 
@@ -41,6 +59,15 @@ export default function CommunityAdminProfile() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  
+  // Posts state
+  const [posts, setPosts] = useState<CommunityAdminPost[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [postsHasMore, setPostsHasMore] = useState(true);
+  const [postsCursor, setPostsCursor] = useState<string>();
+  const [postsView, setPostsView] = useState<'all' | 'media' | 'likes'>('all');
+  const [showCreatePost, setShowCreatePost] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -51,16 +78,24 @@ export default function CommunityAdminProfile() {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const observerRef = useRef<IntersectionObserver>(null);
 
   useEffect(() => {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    if (profile) {
+      loadPosts(true);
+    }
+  }, [profile, postsView]);
+
   const fetchProfile = async () => {
     try {
       setLoading(true);
       const response = await communityAdminProfileApiService.getProfile();
-      
+
       if (response.success && response.data) {
         setProfile(response.data);
         setFormData({
@@ -79,6 +114,65 @@ export default function CommunityAdminProfile() {
       setLoading(false);
     }
   };
+
+  const loadPosts = async (reset = false) => {
+    try {
+      if (reset) {
+        setPostsLoading(true);
+        setPostsCursor(undefined);
+      }
+
+      const response = await communityAdminPostApiService.getAdminPosts(
+        reset ? undefined : postsCursor,
+        10,
+        postsView
+      );
+
+      if (response.success && response.data) {
+        if (reset) {
+          setPosts(response.data.posts);
+        } else {
+          setPosts(prev => [...prev, ...response.data!.posts]);
+        }
+        setPostsHasMore(response.data.hasMore);
+        setPostsCursor(response.data.nextCursor);
+      } else {
+        toast.error(response.error || "Failed to load posts");
+      }
+    } catch (error: any) {
+      console.error("Error loading posts:", error);
+      toast.error("Failed to load posts");
+    } finally {
+      if (reset) {
+        setPostsLoading(false);
+      }
+    }
+  };
+
+  // Infinite scroll observer
+  const lastPostRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (postsLoading || !postsHasMore) return;
+
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && postsHasMore) {
+        loadPosts(false);
+      }
+    });
+
+    if (lastPostRef.current) {
+      observerRef.current.observe(lastPostRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [postsLoading, postsHasMore, posts.length]);
 
   const handleEdit = () => {
     setEditing(true);
@@ -117,7 +211,7 @@ export default function CommunityAdminProfile() {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -148,15 +242,89 @@ export default function CommunityAdminProfile() {
       toast.error('Failed to upload profile picture');
     } finally {
       setUploading(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   };
 
+  const handleBannerImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+
+    try {
+      setUploadingBanner(true);
+      // Upload banner using the same profile picture upload endpoint
+      const response = await communityAdminProfileApiService.uploadBannerImage(file);
+
+      if (response.success && response.data) {
+        setProfile(response.data);
+        toast.success('Banner image updated successfully!');
+      } else {
+        toast.error(response.error || 'Failed to upload banner image');
+      }
+    } catch (error: any) {
+      console.error('Error uploading banner image:', error);
+      toast.error('Failed to upload banner image');
+    } finally {
+      setUploadingBanner(false);
+      if (bannerInputRef.current) {
+        bannerInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const onPostCreated = (newPost: CommunityAdminPost) => {
+    setPosts(prev => [newPost, ...prev]);
+    setProfile(prev => prev ? {
+      ...prev,
+      stats: {
+        ...prev.stats,
+        myPostsCount: prev.stats.myPostsCount + 1
+      }
+    } : prev);
+    setShowCreatePost(false);
+  };
+
+  const onPostUpdated = (updatedPost: CommunityAdminPost) => {
+    setPosts(prev => prev.map(post => 
+      post._id === updatedPost._id ? updatedPost : post
+    ));
+  };
+
+  const onPostDeleted = (postId: string) => {
+    setPosts(prev => prev.filter(post => post._id !== postId));
+    setProfile(prev => prev ? {
+      ...prev,
+      stats: {
+        ...prev.stats,
+        myPostsCount: Math.max(0, prev.stats.myPostsCount - 1)
+      }
+    } : prev);
+  };
+
+  const onPostLiked = (postId: string, isLiked: boolean, likesCount: number) => {
+    setPosts(prev => prev.map(post => 
+      post._id === postId 
+        ? { ...post, isLiked, likesCount }
+        : post
+    ));
   };
 
   const formatDate = (date: Date | string) => {
@@ -203,7 +371,7 @@ export default function CommunityAdminProfile() {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-950 flex items-center justify-center">
         <div className="text-center space-y-6">
           <p className="text-white text-xl font-semibold">Failed to load profile</p>
-          <Button onClick={fetchProfile} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+          <Button onClick={fetchProfile} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">    
             Retry
           </Button>
         </div>
@@ -223,7 +391,7 @@ export default function CommunityAdminProfile() {
             Manage your community administrator profile
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           {!editing ? (
             <Button
@@ -260,10 +428,41 @@ export default function CommunityAdminProfile() {
         {/* Profile Card */}
         <div className="lg:col-span-1">
           <Card className="bg-black/40 backdrop-blur-xl border-gray-700/50 overflow-hidden">
-            <div className="h-32 bg-gradient-to-r from-blue-600/30 to-purple-600/30 relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-gray-900/50 to-transparent" />
+            {/* Banner Image */}
+            <div className="relative h-32 bg-gradient-to-r from-blue-600/30 to-purple-600/30">
+              {profile.bannerImage ? (
+                <img 
+                  src={profile.bannerImage} 
+                  alt="Banner" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-900/50 to-transparent" />
+              )}
+              
+              {/* Banner upload button */}
+              <Button
+                onClick={() => bannerInputRef.current?.click()}
+                disabled={uploadingBanner}
+                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 p-0"
+                size="sm"
+              >
+                {uploadingBanner ? (
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Camera className="w-3 h-3 text-white" />
+                )}
+              </Button>
+              
+              <input
+                ref={bannerInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleBannerImageUpload}
+                className="hidden"
+              />
             </div>
-            
+
             <CardContent className="p-6 relative -mt-16">
               <div className="flex flex-col items-center text-center space-y-4">
                 {/* Profile Picture */}
@@ -274,7 +473,7 @@ export default function CommunityAdminProfile() {
                       {profile.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  
+
                   <Button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
@@ -287,12 +486,12 @@ export default function CommunityAdminProfile() {
                       <Upload className="w-3 h-3 text-white" />
                     )}
                   </Button>
-                  
+
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    onChange={handleFileUpload}
+                    onChange={handleProfileImageUpload}
                     className="hidden"
                   />
                 </div>
@@ -306,6 +505,7 @@ export default function CommunityAdminProfile() {
                   <Badge className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border-blue-500/30">
                     Community Administrator
                   </Badge>
+                  <p className="text-gray-400 text-sm">@{profile.username}</p>
                 </div>
 
                 {/* Community Info */}
@@ -415,7 +615,7 @@ export default function CommunityAdminProfile() {
           </Card>
         </div>
 
-        {/* Stats and Community Overview */}
+        {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Community Stats */}
           <Card className="bg-black/40 backdrop-blur-xl border-gray-700/50">
@@ -469,8 +669,8 @@ export default function CommunityAdminProfile() {
                       <Award className="h-6 w-6 text-yellow-400" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white">{profile.stats.totalQuests}</p>
-                      <p className="text-sm text-yellow-300">Total Quests</p>
+                      <p className="text-2xl font-bold text-white">{profile.stats.myPostsCount}</p>
+                      <p className="text-sm text-yellow-300">My Posts</p>
                     </div>
                   </div>
                 </div>
@@ -478,11 +678,11 @@ export default function CommunityAdminProfile() {
                 <div className="p-4 bg-gradient-to-br from-pink-900/50 to-pink-800/30 rounded-lg border border-pink-500/30">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-pink-500/20 rounded-lg">
-                      <Sparkles className="h-6 w-6 text-pink-400" />
+                      <Heart className="h-6 w-6 text-pink-400" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white">{profile.stats.premiumMembers}</p>
-                      <p className="text-sm text-pink-300">Premium Members</p>
+                      <p className="text-2xl font-bold text-white">{profile.stats.myLikesCount}</p>
+                      <p className="text-sm text-pink-300">My Likes</p>
                     </div>
                   </div>
                 </div>
@@ -490,11 +690,11 @@ export default function CommunityAdminProfile() {
                 <div className="p-4 bg-gradient-to-br from-indigo-900/50 to-indigo-800/30 rounded-lg border border-indigo-500/30">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-indigo-500/20 rounded-lg">
-                      <TrendingUp className="h-6 w-6 text-indigo-400" />
+                      <MessageCircle className="h-6 w-6 text-indigo-400" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white">{profile.stats.engagementRate.toFixed(1)}%</p>
-                      <p className="text-sm text-indigo-300">Engagement Rate</p>
+                      <p className="text-2xl font-bold text-white">{profile.stats.myCommentsCount}</p>
+                      <p className="text-sm text-indigo-300">My Comments</p>
                     </div>
                   </div>
                 </div>
@@ -502,51 +702,121 @@ export default function CommunityAdminProfile() {
             </CardContent>
           </Card>
 
-          {/* Account Status */}
+          {/* Posts Section */}
           <Card className="bg-black/40 backdrop-blur-xl border-gray-700/50">
             <CardHeader>
-              <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                <Settings className="h-5 w-5 text-gray-400" />
-                Account Status
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-blue-400" />
+                  My Posts
+                </CardTitle>
+                <Button
+                  onClick={() => setShowCreatePost(true)}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Post
+                </Button>
+              </div>
+              
+              {/* Posts Filter */}
+              <div className="flex items-center gap-2 pt-4">
+                <Button
+                  onClick={() => setPostsView('all')}
+                  variant={postsView === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  className={cn(
+                    postsView === 'all'
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'border-blue-600/50 text-blue-400 hover:bg-blue-950/30'
+                  )}
+                >
+                  <List className="w-4 h-4 mr-2" />
+                  All Posts
+                </Button>
+                <Button
+                  onClick={() => setPostsView('media')}
+                  variant={postsView === 'media' ? 'default' : 'outline'}
+                  size="sm"
+                  className={cn(
+                    postsView === 'media'
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'border-blue-600/50 text-blue-400 hover:bg-blue-950/30'
+                  )}
+                >
+                  <ImageIconLucide className="w-4 h-4 mr-2" />
+                  Media
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
-                <div>
-                  <p className="text-white font-medium">Account Status</p>
-                  <p className="text-sm text-gray-400">Your administrator account status</p>
+            
+            <CardContent>
+              {postsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center space-y-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
+                    <p className="text-gray-400">Loading posts...</p>
+                  </div>
                 </div>
-                <Badge className={profile.isActive 
-                  ? "bg-green-500/20 text-green-300 border-green-500/30" 
-                  : "bg-red-500/20 text-red-300 border-red-500/30"
-                }>
-                  {profile.isActive ? 'Active' : 'Inactive'}
-                </Badge>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
-                <div>
-                  <p className="text-white font-medium">Community Role</p>
-                  <p className="text-sm text-gray-400">Your role in the community</p>
+              ) : posts.length === 0 ? (
+                <div className="text-center py-12">
+                  <MessageSquare className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-white mb-2">No posts yet</h3>
+                  <p className="text-gray-400">Start sharing your thoughts with your community!</p>
+                  <Button
+                    onClick={() => setShowCreatePost(true)}
+                    className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Your First Post
+                  </Button>
                 </div>
-                <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
-                  Administrator
-                </Badge>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
-                <div>
-                  <p className="text-white font-medium">Member Since</p>
-                  <p className="text-sm text-gray-400">When you joined ChainVerse</p>
+              ) : (
+                <div className="space-y-6">
+                  {posts.map((post, index) => (
+                    <div
+                      key={post._id}
+                      ref={index === posts.length - 1 ? lastPostRef : undefined}
+                    >
+                      <CommunityAdminPostCard
+                        post={post}
+                        onLikeToggle={onPostLiked}
+                        onPostUpdate={onPostUpdated}
+                        onPostDelete={onPostDeleted}
+                      />
+                    </div>
+                  ))}
+                  
+                  {postsHasMore && (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-center space-y-2">
+                        <Loader2 className="h-6 w-6 animate-spin text-blue-500 mx-auto" />
+                        <p className="text-gray-400 text-sm">Loading more posts...</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <span className="text-white font-medium">
-                  {formatDate(profile.joinDate)}
-                </span>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Create Post Dialog */}
+      <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
+        <DialogContent className="sm:max-w-[600px] bg-black/90 backdrop-blur-xl border-gray-700/50">
+          <DialogHeader>
+            <DialogTitle className="text-white">Create New Post</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Share your thoughts with your community members.
+            </DialogDescription>
+          </DialogHeader>
+          <CreateCommunityAdminPost 
+            onPostCreated={onPostCreated}
+            onCancel={() => setShowCreatePost(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

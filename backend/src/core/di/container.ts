@@ -189,6 +189,12 @@ import { ICommunityAdminSubscriptionService } from "../interfaces/services/commu
 import { CommunityAdminSubscriptionService } from "../../services/communityAdmin/CommunityAdminSubscription.service"
 import { ICommunityAdminSubscriptionController } from "../interfaces/controllers/communityAdmin/ICommunityAdminSubscription.controller"
 import { CommunityAdminSubscriptionController } from "../../controllers/communityAdmin/CommunityAdminSubscription.controller"
+import { ICommunityAdminPostRepository } from "../interfaces/repositories/communityAdmin/ICommunityAdminPost.repository"
+import { CommunityAdminPostRepository } from "../../repositories/communityAdmin/communityAdminPost.repository"
+import { ICommunityAdminPostService } from "../interfaces/services/communityAdmin/ICommunityAdminPostService"
+import { CommunityAdminPostController } from "../../controllers/communityAdmin/CommunityAdminPost.controller"
+import { ICommunityAdminPostController } from "../interfaces/controllers/communityAdmin/ICommunityAdminPost.controller"
+import { CommunityAdminPostService } from "../../services/communityAdmin/CommunityAdminPost.service"
 
 // Create Container
 const container = new Container()
@@ -334,6 +340,13 @@ container.bind<ICommunityAdminSubscriptionService>(TYPES.ICommunityAdminSubscrip
 
 // Bind Subscription Controller
 container.bind<ICommunityAdminSubscriptionController>(TYPES.ICommunityAdminSubscriptionController).to(CommunityAdminSubscriptionController);
+
+
+// comms admin post repo and service and controller
+container.bind<ICommunityAdminPostRepository>(TYPES.ICommunityAdminPostRepository).to(CommunityAdminPostRepository);
+container.bind<ICommunityAdminPostService>(TYPES.ICommunityAdminPostService).to(CommunityAdminPostService);
+container.bind<ICommunityAdminPostController>(TYPES.ICommunityAdminPostController).to(CommunityAdminPostController);
+
 
 
 export default container

@@ -130,6 +130,9 @@ const TYPES = {
   ICommunityAdminSubscriptionService      : Symbol.for("ICommunityAdminSubscriptionService"),
 
   ICommunityAdminSubscriptionController   : Symbol.for("ICommunityAdminSubscriptionController"),
+  ICommunityAdminPostRepository : Symbol.for("ICommunityAdminPostRepository"),
+  ICommunityAdminPostService    : Symbol.for("ICommunityAdminPostService"),
+  ICommunityAdminPostController : Symbol.for("ICommunityAdminPostController"),
 };
 
 export { TYPES };

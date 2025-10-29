@@ -7,6 +7,8 @@ export interface ICommunityAdmin extends Document {
     communityId: Types.ObjectId;
     email: string;
     password: string;
+    profilePic: string;
+    bannerImage: string;
     name: string;
     role: "communityAdmin";
     isActive: boolean;
@@ -22,6 +24,8 @@ const CommunityAdminSchema: Schema<ICommunityAdmin> = new Schema({
     communityId: { type: Schema.Types.ObjectId },
     email: { type: String, required: true },
     password: { type: String, required: true },
+    profilePic: { type: String },
+    bannerImage: { type: String },
     name: { type: String },
     role: { type: String, enum: ['communityAdmin'], default: 'communityAdmin' },
     isActive: { type: Boolean, default: true },

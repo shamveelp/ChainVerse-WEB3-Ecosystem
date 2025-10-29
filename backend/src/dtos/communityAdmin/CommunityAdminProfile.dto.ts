@@ -29,16 +29,22 @@ export class UpdateCommunityAdminProfileDto {
   @IsOptional()
   @IsString({ message: 'Profile picture must be a string' })
   profilePic?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Banner image must be a string' })
+  bannerImage?: string;
 }
 
 export class CommunityAdminProfileResponseDto extends BaseResponseDto {
   _id: string;
   name: string;
   email: string;
+  username: string; // Community username
   bio?: string;
   location?: string;
   website?: string;
   profilePic?: string;
+  bannerImage?: string;
   communityId?: string;
   communityName?: string;
   communityLogo?: string;
@@ -52,6 +58,9 @@ export class CommunityAdminProfileResponseDto extends BaseResponseDto {
     totalQuests: number;
     premiumMembers: number;
     engagementRate: number;
+    myPostsCount: number;
+    myLikesCount: number;
+    myCommentsCount: number;
   };
 
   constructor(admin: any, community?: any, stats?: any) {
@@ -59,10 +68,12 @@ export class CommunityAdminProfileResponseDto extends BaseResponseDto {
     this._id = admin._id.toString();
     this.name = admin.name;
     this.email = admin.email;
+    this.username = community?.username || '';
     this.bio = admin.bio || '';
     this.location = admin.location || '';
     this.website = admin.website || '';
     this.profilePic = admin.profilePic || '';
+    this.bannerImage = admin.bannerImage || '';
     this.communityId = admin.communityId?.toString();
     this.communityName = community?.communityName || '';
     this.communityLogo = community?.logo || '';
@@ -75,7 +86,10 @@ export class CommunityAdminProfileResponseDto extends BaseResponseDto {
       totalPosts: 0,
       totalQuests: 0,
       premiumMembers: 0,
-      engagementRate: 0
+      engagementRate: 0,
+      myPostsCount: 0,
+      myLikesCount: 0,
+      myCommentsCount: 0
     };
   }
 }
@@ -91,6 +105,9 @@ export class CommunityStatsDto {
   premiumMembers: number;
   engagementRate: number;
   averagePostsPerMember: number;
+  myPostsCount: number;
+  myLikesCount: number;
+  myCommentsCount: number;
   topActiveMembers: {
     _id: string;
     username: string;
@@ -111,6 +128,9 @@ export class CommunityStatsDto {
     this.premiumMembers = data.premiumMembers || 0;
     this.engagementRate = data.engagementRate || 0;
     this.averagePostsPerMember = data.averagePostsPerMember || 0;
+    this.myPostsCount = data.myPostsCount || 0;
+    this.myLikesCount = data.myLikesCount || 0;
+    this.myCommentsCount = data.myCommentsCount || 0;
     this.topActiveMembers = data.topActiveMembers || [];
   }
 }

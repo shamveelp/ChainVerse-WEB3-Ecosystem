@@ -8,16 +8,21 @@ interface CommunityStats {
   totalQuests: number;
   premiumMembers: number;
   engagementRate: number;
+  myPostsCount: number; // Added to match the component's interface
+  myLikesCount: number; // Added to match the component's interface
+  myCommentsCount: number; // Added to match the component's interface
 }
 
 interface CommunityAdminProfile {
   _id: string;
   name: string;
   email: string;
+  username: string; // Added to match the component's interface
   bio?: string;
   location?: string;
   website?: string;
   profilePic?: string;
+  bannerImage?: string; // Added to match the component's interface
   communityId?: string;
   communityName?: string;
   communityLogo?: string;
@@ -112,6 +117,36 @@ class CommunityAdminProfileApiService {
                error.response?.data?.message || 
                error.message || 
                "Failed to upload profile picture",
+      };
+    }
+  }
+
+  // Upload banner image
+  async uploadBannerImage(file: File): Promise<ApiResponse<CommunityAdminProfile>> {
+    try {
+      const formData = new FormData();
+      formData.append('bannerImage', file);
+
+      const response = await api.post(`${this.baseUrl}/profile/upload-banner`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 30000, // 30 seconds timeout
+      });
+
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message
+      };
+    } catch (error: any) {
+      console.error("Upload banner image error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error || 
+               error.response?.data?.message || 
+               error.message || 
+               "Failed to upload banner image",
       };
     }
   }

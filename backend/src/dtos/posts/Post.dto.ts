@@ -170,8 +170,8 @@ export class CommentResponseDto {
 
 // Posts List Response DTO
 export class PostsListResponseDto {
-    posts: PostResponseDto[] | undefined;
-    hasMore: boolean | undefined;
+    posts!: PostResponseDto[];
+    hasMore!: boolean;
     nextCursor?: string;
     totalCount?: number;
 }
