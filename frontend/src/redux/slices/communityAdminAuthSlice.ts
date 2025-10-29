@@ -3,6 +3,10 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 interface CommunityAdminType {
   _id: string;
   name: string;
+  username?: string;
+  profileImage?: string;
+  profilePicture?: string;
+  profilePic?: string
   email: string;
   communityId?: string;
   isActive: boolean;

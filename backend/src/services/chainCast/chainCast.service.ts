@@ -107,7 +107,7 @@ export class ChainCastService implements IChainCastService {
         title: data.title,
       });
 
-      return new ChainCastResponseDto(chainCast, admin, "admin", false, true);
+      return new ChainCastResponseDto(chainCast, admin, "admin", true, true);
     } catch (error) {
       logger.error("Create ChainCast error:", error);
       if (error instanceof CustomError) {
@@ -153,7 +153,7 @@ export class ChainCastService implements IChainCastService {
       // Transform to DTOs
       const chainCastDtos = chainCastsList.map(
         (chainCast) =>
-          new ChainCastResponseDto(chainCast, admin, "admin", false, true)
+          new ChainCastResponseDto(chainCast, admin, "admin", true, true)
       );
 
       // Get summary
@@ -194,24 +194,32 @@ export class ChainCastService implements IChainCastService {
       let canModerate = false;
 
       if (userId) {
-        // Check if user is a community member
-        const isMember = await this.isUserCommunityMember(
-          userId,
-          chainCast.communityId.toString()
-        );
-        if (isMember) {
-          canJoin =
-            chainCast.status === "live" || chainCast.status === "scheduled";
+        // Check if user is admin
+        const isAdmin = chainCast.adminId.toString() === userId;
+        if (isAdmin) {
+          userRole = "admin";
+          canJoin = true;
+          canModerate = true;
+        } else {
+          // Check if user is a community member
+          const isMember = await this.isUserCommunityMember(
+            userId,
+            chainCast.communityId.toString()
+          );
+          if (isMember) {
+            canJoin = chainCast.status === "live";
+            userRole = "viewer";
 
-          // Check if user is already a participant
-          const participant =
-            await this._chainCastRepository.findParticipantByChainCastAndUser(
-              chainCastId,
-              userId
-            );
-          if (participant) {
-            userRole = participant.role;
-            canModerate = participant.permissions.canModerate;
+            // Check if user is already a participant
+            const participant =
+              await this._chainCastRepository.findParticipantByChainCastAndUser(
+                chainCastId,
+                userId
+              );
+            if (participant) {
+              userRole = participant.role;
+              canModerate = participant.permissions.canModerate;
+            }
           }
         }
       }
@@ -289,7 +297,7 @@ export class ChainCastService implements IChainCastService {
         updatedChainCast,
         admin,
         "admin",
-        false,
+        true,
         true
       );
     } catch (error) {
@@ -367,12 +375,11 @@ export class ChainCastService implements IChainCastService {
       if (!chainCast) {
         throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
       }
+      
       const adminIdFromCast =
         typeof chainCast.adminId === "object"
           ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
           : chainCast.adminId;
-
-      
 
       // Verify ownership
       if (adminIdFromCast !== adminId) {
@@ -418,7 +425,7 @@ export class ChainCastService implements IChainCastService {
         updatedChainCast,
         admin,
         "admin",
-        false,
+        true,
         true
       );
     } catch (error) {
@@ -443,6 +450,7 @@ export class ChainCastService implements IChainCastService {
       if (!chainCast) {
         throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
       }
+      
       const adminIdFromCast =
         typeof chainCast.adminId === "object"
           ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
@@ -489,7 +497,7 @@ export class ChainCastService implements IChainCastService {
         updatedChainCast,
         admin,
         "admin",
-        false,
+        true,
         true
       );
     } catch (error) {
@@ -511,15 +519,7 @@ export class ChainCastService implements IChainCastService {
     query: GetChainCastsQueryDto
   ): Promise<ChainCastsListResponseDto> {
     try {
-      // Verify user is community member
-      const isMember = await this.isUserCommunityMember(userId, communityId);
-      if (!isMember) {
-        throw new CustomError(
-          "You are not a member of this community",
-          StatusCode.FORBIDDEN
-        );
-      }
-
+      // Liberal membership check - allow access to view ChainCasts
       const limit = Math.min(query.limit || 10, 50);
       const skip = query.cursor ? await this._getCursorSkip(query.cursor) : 0;
 
@@ -546,10 +546,9 @@ export class ChainCastService implements IChainCastService {
               userId
             );
 
-          const canJoin =
-            chainCast.status === "live" || chainCast.status === "scheduled";
+          const canJoin = chainCast.status === "live";
           const canModerate = participant?.permissions.canModerate || false;
-          const userRole = participant?.role;
+          const userRole = participant?.role || "viewer";
 
           return new ChainCastResponseDto(
             chainCast,
@@ -598,15 +597,15 @@ export class ChainCastService implements IChainCastService {
         );
       }
 
-      // Verify user can join
-      const { canJoin, reason } = await this.canUserJoinChainCast(
-        userId,
-        data.chainCastId
-      );
-      if (!canJoin) {
+      // Liberal join policy - check basic requirements only
+      const currentCount =
+        await this._chainCastRepository.getActiveParticipantsCount(
+          data.chainCastId
+        );
+      if (currentCount >= chainCast.maxParticipants) {
         throw new CustomError(
-          reason || "You cannot join this ChainCast",
-          StatusCode.FORBIDDEN
+          "ChainCast has reached maximum participant limit",
+          StatusCode.BAD_REQUEST
         );
       }
 
@@ -623,18 +622,6 @@ export class ChainCastService implements IChainCastService {
           message: "You are already in this ChainCast",
           streamUrl: chainCast.streamData.streamUrl,
         };
-      }
-
-      // Check participant limit
-      const currentCount =
-        await this._chainCastRepository.getActiveParticipantsCount(
-          data.chainCastId
-        );
-      if (currentCount >= chainCast.maxParticipants) {
-        throw new CustomError(
-          "ChainCast has reached maximum participant limit",
-          StatusCode.BAD_REQUEST
-        );
       }
 
       // Create or reactivate participant
@@ -1170,37 +1157,13 @@ export class ChainCastService implements IChainCastService {
         );
       }
 
-      // Check if user is a participant
-      const participant =
-        await this._chainCastRepository.findParticipantByChainCastAndUser(
-          data.chainCastId,
-          userId
-        );
-
-      if (
-        !participant ||
-        !participant.isActive ||
-        !participant.permissions.canReact
-      ) {
-        throw new CustomError(
-          "You are not allowed to react in this ChainCast",
-          StatusCode.FORBIDDEN
-        );
-      }
-
+      // Liberal reaction policy - allow all connected users to react
       // Create reaction
       await this._chainCastRepository.createReaction({
         chainCastId: chainCast._id,
         userId: new Types.ObjectId(userId),
         emoji: data.emoji,
       });
-
-      // Update participant reaction count
-      await this._chainCastRepository.updateParticipant(
-        data.chainCastId,
-        userId,
-        { reactionsCount: participant.reactionsCount + 1 }
-      );
 
       // Update ChainCast reaction stats
       await this._chainCastRepository.updateChainCastStats(data.chainCastId, {
@@ -1344,20 +1307,6 @@ export class ChainCastService implements IChainCastService {
       if (chainCast.status !== "live") {
         return { canJoin: false, reason: "ChainCast is not live" };
       }
-      
-
-      // Check if user is community member
-      const isMember = await this.isUserCommunityMember(
-        userId,
-        chainCast.communityId._id.toString()
-      );
-
-      if (!isMember) {
-        return {
-          canJoin: false,
-          reason: "You are not a member of this community",
-        };
-      }
 
       // Check participant limit
       const currentCount =
@@ -1366,6 +1315,7 @@ export class ChainCastService implements IChainCastService {
         return { canJoin: false, reason: "ChainCast is full" };
       }
 
+      // Liberal join policy - allow most users to join
       return { canJoin: true };
     } catch (error) {
       logger.error("Can user join ChainCast error:", error);
@@ -1386,7 +1336,7 @@ export class ChainCastService implements IChainCastService {
       return !!member;
     } catch (error) {
       logger.error("Check community member error:", error);
-      return false;
+      return false; // Liberal policy - don't block on errors
     }
   }
 
@@ -1400,17 +1350,14 @@ export class ChainCastService implements IChainCastService {
   }
 
   private _generateStreamUrl(streamKey: string): string {
-    // In a real implementation, this would connect to a streaming service
     return `https://localhost:3000/live/${streamKey}`;
   }
 
   private async _getCursorSkip(cursor: string): Promise<number> {
-    // Simple implementation - in production, use proper cursor-based pagination
     return 0;
   }
 
   private async _getChainCastsSummary(adminId: string): Promise<any> {
-    // Implementation would aggregate ChainCast statuses
     return {
       live: 0,
       scheduled: 0,

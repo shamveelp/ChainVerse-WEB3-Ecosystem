@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSelector } from 'react-redux'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -15,40 +15,21 @@ import {
   MicOff,
   Users,
   MessageCircle,
-  Phone,
+  PhoneOff,
   Settings,
   Crown,
   Shield,
   Heart,
   Loader2,
   Send,
-  PhoneOff,
   Hand,
-  MoreVertical,
-  Camera,
-  CameraOff
+  Clock
 } from 'lucide-react'
 import { RootState } from '@/redux/store'
 import { useWebRTC } from '@/hooks/useWebRTC'
-import { chainCastSocketService, type ChainCastParticipant as SocketParticipant } from '@/services/socket/chainCastSocketService'
+import { chainCastSocketService } from '@/services/socket/chainCastSocketService'
 import { toast } from 'sonner'
-import {
-  type ChainCast,
-  userChainCastApiService,
-  type AddReactionRequest,
-  type RequestModerationRequest
-} from '@/services/chainCast/userChainCastApiService'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
+import type { ChainCast } from '@/services/chainCast/userChainCastApiService'
 
 interface ChainCastRoomProps {
   chainCast: ChainCast
@@ -63,25 +44,10 @@ interface ChatMessage {
   timestamp: Date
 }
 
-interface ParticipantData {
-  userId: string
-  username: string
-  userType: 'user' | 'communityAdmin'
-  hasVideo: boolean
-  hasAudio: boolean
-  isMuted: boolean
-  isVideoOff: boolean
-}
-
 const reactions = [
-  { emoji: '👍', label: 'Like' },
+  { emoji: '👏', label: 'Clap' },
   { emoji: '❤️', label: 'Love' },
   { emoji: '😂', label: 'Laugh' },
-  { emoji: '😮', label: 'Wow' },
-  { emoji: '😢', label: 'Sad' },
-  { emoji: '😡', label: 'Angry' },
-  { emoji: '👏', label: 'Clap' },
-  { emoji: '👎', label: 'Dislike' },
   { emoji: '🔥', label: 'Fire' },
   { emoji: '💯', label: '100' }
 ]
@@ -91,19 +57,16 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
   const currentAdmin = useSelector((state: RootState) => state.communityAdminAuth?.communityAdmin)
   const token = useSelector((state: RootState) => state.userAuth?.token || state.communityAdminAuth?.token)
 
-  // Determine user info
+  // Determine user info and role
   const userInfo = currentUser || currentAdmin
-  const isAdmin = chainCast.userRole === 'admin'
-  const isModerator = chainCast.canModerate
-  const isViewer = !isAdmin && !isModerator
+  const isAdmin = !!currentAdmin || chainCast.userRole === 'admin'
+  const userRole = isAdmin ? 'admin' : 'viewer'
 
-  console.log('ChainCast Room Debug:', {
-    userRole: chainCast.userRole,
-    canModerate: chainCast.canModerate,
+  console.log('ChainCast Room - User Info:', {
     isAdmin,
-    isModerator,
-    isViewer,
-    userInfo: userInfo?.name
+    userRole,
+    userName: userInfo?.name || userInfo?.username,
+    chainCastId: chainCast._id
   })
 
   // State
@@ -113,12 +76,8 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
   const [newMessage, setNewMessage] = useState('')
   const [showModeratorRequest, setShowModeratorRequest] = useState(false)
   const [requestingSent, setRequestingSent] = useState(false)
-  const [moderationRequest, setModerationRequest] = useState({
-    video: false,
-    audio: false,
-    message: ''
-  })
   const [activeTab, setActiveTab] = useState<'participants' | 'chat' | 'reactions'>('participants')
+  const [participantCount, setParticipantCount] = useState(1)
 
   const chatScrollRef = useRef<HTMLDivElement>(null)
 
@@ -139,9 +98,9 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
     updateParticipant,
     cleanup
   } = useWebRTC({
-    maxParticipants: 5,
+    maxParticipants: chainCast.maxParticipants,
     onParticipantJoined: (participant) => {
-      toast.success(`${participant.userId} joined the ChainCast`)
+      toast.success(`User joined the ChainCast`)
     },
     onParticipantLeft: (userId) => {
       toast.info(`User left the ChainCast`)
@@ -159,12 +118,11 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
       try {
         console.log('Initializing ChainCast room...', {
           chainCastId: chainCast._id,
-          userRole: chainCast.userRole,
-          isAdmin,
-          isModerator
+          userRole,
+          isAdmin
         })
 
-        // Connect to socket if not connected
+        // Connect to socket
         if (!chainCastSocketService.isConnected()) {
           await chainCastSocketService.connect(token)
         }
@@ -175,14 +133,13 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
 
         // Initialize media stream based on role
         if (isAdmin) {
-          console.log('Admin: Initializing with full video and audio')
-          await initializeLocalStream(true, true)
-        } else if (isModerator) {
-          console.log('Moderator: Initializing with video and audio')
+          console.log('Admin: Initializing with video and audio')
           await initializeLocalStream(true, true)
         } else {
-          console.log('Viewer: Initializing with audio only')
-          await initializeLocalStream(false, true)
+          console.log('Viewer: Initializing with audio only (no media required)')
+          // For viewers, we don't need to initialize media stream
+          // They will only listen to the admin
+          await initializeLocalStream(false, false)
         }
 
         setupSocketListeners()
@@ -205,27 +162,42 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
         chainCastSocketService.leaveChainCast(chainCast._id)
       }
     }
-  }, [chainCast, token, initializeLocalStream, cleanup, isJoined, isAdmin, isModerator])
+  }, [chainCast, token, initializeLocalStream, cleanup, isJoined, isAdmin])
 
   // Setup socket event listeners
   const setupSocketListeners = useCallback(() => {
+    // Connection events
+    chainCastSocketService.onJoinedChainCast((data) => {
+      console.log('Joined ChainCast:', data)
+      setParticipantCount(data.participantCount)
+    })
+
+    chainCastSocketService.onLeftChainCast((data) => {
+      console.log('Left ChainCast:', data)
+      setParticipantCount(data.participantCount)
+    })
+
     // Participant events
-    chainCastSocketService.onParticipantJoined((participant: SocketParticipant) => {
+    chainCastSocketService.onParticipantJoined((participant) => {
+      console.log('Participant joined:', participant)
       addParticipant({
         userId: participant.userId,
         username: participant.username,
+        userType: participant.userType || 'user',
         hasVideo: participant.hasVideo || false,
         hasAudio: participant.hasAudio || false,
         isMuted: participant.isMuted || false,
-        isVideoOff: participant.isVideoOff || false
+        isVideoOff: participant.isVideoOff || true
       })
     })
 
-    chainCastSocketService.onParticipantLeft((participant: SocketParticipant) => {
+    chainCastSocketService.onParticipantLeft((participant) => {
+      console.log('Participant left:', participant)
       removeParticipant(participant.userId)
     })
 
-    chainCastSocketService.onParticipantStreamUpdate((participant: SocketParticipant) => {
+    chainCastSocketService.onParticipantStreamUpdate((participant) => {
+      console.log('Participant stream update:', participant)
       updateParticipant(participant.userId, {
         hasVideo: participant.hasVideo || false,
         hasAudio: participant.hasAudio || false,
@@ -234,20 +206,19 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
       })
     })
 
-    // Chat messages (if implemented)
-    chainCastSocketService.socket?.on('new_message', (message: ChatMessage) => {
+    // Chat messages
+    chainCastSocketService.onNewMessage((message: ChatMessage) => {
       setChatMessages(prev => [...prev, message])
     })
 
     // Reaction events
     chainCastSocketService.onNewReaction((reaction) => {
-      // Show floating reaction animation
       showFloatingReaction(reaction.emoji, reaction.username)
     })
 
     // Moderation events
     chainCastSocketService.onModerationRequested((data) => {
-      toast.success(data.message)
+      toast.success('Moderation request sent to admin')
       setShowModeratorRequest(false)
       setRequestingSent(true)
     })
@@ -255,19 +226,26 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
     chainCastSocketService.onModerationReviewed((data) => {
       if (data.status === 'approved') {
         toast.success(`Moderation approved by ${data.adminName}`)
-        // Re-initialize stream with video if approved
-        if (moderationRequest.video) {
-          initializeLocalStream(true, true)
-        }
+        setRequestingSent(false)
       } else {
-        toast.error(`Moderation rejected: ${data.adminName}`)
+        toast.error(`Moderation rejected by ${data.adminName}`)
+        setRequestingSent(false)
       }
     })
 
     // ChainCast control events
+    chainCastSocketService.onChainCastStarted((data) => {
+      toast.info(`ChainCast started by ${data.adminName}`)
+    })
+
     chainCastSocketService.onChainCastEnded(() => {
       toast.info('ChainCast has ended')
-      setTimeout(onLeave, 2000) // Auto-leave after 2 seconds
+      setTimeout(onLeave, 2000)
+    })
+
+    chainCastSocketService.onRemovedFromChainCast((data) => {
+      toast.error(`Removed from ChainCast by ${data.adminName}`)
+      setTimeout(onLeave, 1000)
     })
 
     // Error handlers
@@ -280,7 +258,7 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
         description: data.error
       })
     })
-  }, [addParticipant, removeParticipant, updateParticipant, moderationRequest, initializeLocalStream, onLeave])
+  }, [addParticipant, removeParticipant, updateParticipant, onLeave])
 
   // Auto-scroll chat
   useEffect(() => {
@@ -289,10 +267,10 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
     }
   }, [chatMessages])
 
-  // Handle video toggle
+  // Handle video toggle (admin only)
   const handleVideoToggle = useCallback(() => {
-    if (!isAdmin && !isModerator) {
-      toast.error('You need permission to enable video. Request moderator access first.')
+    if (!isAdmin) {
+      toast.error('Only admin can control video')
       return
     }
 
@@ -307,10 +285,15 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
         isVideoOff: !enabled
       })
     }
-  }, [toggleVideo, isAudioEnabled, chainCast._id, isAdmin, isModerator])
+  }, [toggleVideo, isAudioEnabled, chainCast._id, isAdmin])
 
-  // Handle audio toggle
+  // Handle audio toggle (admin only)
   const handleAudioToggle = useCallback(() => {
+    if (!isAdmin) {
+      toast.error('Only admin can control audio')
+      return
+    }
+
     const enabled = toggleAudio()
 
     if (chainCastSocketService.isConnected()) {
@@ -322,90 +305,60 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
         isVideoOff: !isVideoEnabled
       })
     }
-  }, [toggleAudio, isVideoEnabled, chainCast._id])
+  }, [toggleAudio, isVideoEnabled, chainCast._id, isAdmin])
 
   // Handle reaction
   const handleReaction = useCallback(async (emoji: string) => {
     try {
-      await userChainCastApiService.addReaction({
-        chainCastId: chainCast._id,
-        emoji
-      })
-      // The socket will handle broadcasting the reaction
+      if (chainCastSocketService.isConnected()) {
+        chainCastSocketService.addReaction(chainCast._id, emoji)
+      }
     } catch (error: any) {
-      toast.error('Failed to send reaction', {
-        description: error.message
-      })
+      toast.error('Failed to send reaction')
     }
   }, [chainCast._id])
 
   // Handle moderation request
   const handleModerationRequest = useCallback(async () => {
-    if (!moderationRequest.video && !moderationRequest.audio) {
-      toast.error('Please select at least one permission to request')
-      return
-    }
-
     try {
       setRequestingSent(true)
       
-      const requestData: RequestModerationRequest = {
-        chainCastId: chainCast._id,
-        requestedPermissions: {
-          video: moderationRequest.video,
-          audio: moderationRequest.audio
-        },
-        message: moderationRequest.message
+      if (chainCastSocketService.isConnected()) {
+        chainCastSocketService.requestModeration({
+          chainCastId: chainCast._id,
+          requestedPermissions: { video: false, audio: true },
+          message: 'Requesting to speak'
+        })
       }
-
-      await userChainCastApiService.requestModeration(requestData)
-      toast.success('Moderation request sent to admin')
+      
       setShowModeratorRequest(false)
     } catch (error: any) {
-      toast.error('Failed to send moderation request', {
-        description: error.message
-      })
+      toast.error('Failed to send moderation request')
       setRequestingSent(false)
     }
-  }, [chainCast._id, moderationRequest])
+  }, [chainCast._id])
 
   // Handle leave
   const handleLeave = useCallback(async () => {
     try {
-      if (!isAdmin) {
-        await userChainCastApiService.leaveChainCast(chainCast._id)
-      }
       onLeave()
     } catch (error: any) {
       console.error('Failed to leave ChainCast:', error)
-      onLeave() // Leave anyway
+      onLeave()
     }
-  }, [chainCast._id, onLeave, isAdmin])
+  }, [onLeave])
 
   // Send chat message
   const handleSendMessage = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim()) return
 
-    const message: ChatMessage = {
-      id: Date.now().toString(),
-      userId: userInfo?._id || '',
-      username: userInfo?.username || userInfo?.name || 'Unknown',
-      message: newMessage.trim(),
-      timestamp: new Date()
-    }
-
     // Send through socket for real-time chat
     if (chainCastSocketService.isConnected()) {
-      chainCastSocketService.socket?.emit('send_message', {
-        chainCastId: chainCast._id,
-        message: message.message
-      })
+      chainCastSocketService.sendMessage(chainCast._id, newMessage.trim())
+      setNewMessage('')
     }
-
-    setChatMessages(prev => [...prev, message])
-    setNewMessage('')
-  }, [newMessage, userInfo, chainCast._id])
+  }, [newMessage, chainCast._id])
 
   // Show floating reaction
   const showFloatingReaction = useCallback((emoji: string, username: string) => {
@@ -456,18 +409,11 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
             </div>
             <div className="flex items-center gap-1 text-slate-400 text-sm">
               <Users className="h-4 w-4" />
-              <span>{participants.length + 1}/{chainCast.maxParticipants}</span>
+              <span>{participantCount}/{chainCast.maxParticipants}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-slate-600 hover:bg-slate-700"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
             <Button
               onClick={handleLeave}
               variant="outline"
@@ -484,12 +430,11 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
       <div className="flex-1 flex">
         {/* Main Video Area */}
         <div className="flex-1 relative">
-          {/* Video Grid */}
+          {/* Admin Video (Large) */}
           <div className="h-full p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-full">
-              {/* Local Video */}
-              <Card className="bg-slate-900/50 border-slate-700/50 relative overflow-hidden">
-                <CardContent className="p-0 h-full relative">
+            <Card className="bg-slate-900/50 border-slate-700/50 relative overflow-hidden h-full">
+              <CardContent className="p-0 h-full relative">
+                {isAdmin && localStream ? (
                   <video
                     ref={localVideoRef}
                     autoPlay
@@ -497,94 +442,76 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                     playsInline
                     className="w-full h-full object-cover"
                   />
-                  {!isVideoEnabled && (
-                    <div className="absolute inset-0 bg-slate-800 flex items-center justify-center">
-                      <Avatar className="w-20 h-20">
-                        <AvatarImage src={userInfo?.profilePic || userInfo?.profilePicture} />
-                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-600 text-white text-xl">
-                          {userInfo?.name?.[0]?.toUpperCase() || 'U'}
+                ) : (
+                  <div className="h-full bg-slate-800 flex items-center justify-center">
+                    <div className="text-center">
+                      <Avatar className="w-32 h-32 mx-auto mb-4">
+                        <AvatarImage src={chainCast.admin.profilePicture} />
+                        <AvatarFallback className="bg-gradient-to-r from-red-500 to-pink-600 text-white text-4xl">
+                          {chainCast.admin.name?.[0]?.toUpperCase() || 'A'}
                         </AvatarFallback>
                       </Avatar>
-                    </div>
-                  )}
-
-                  {/* User Info Overlay */}
-                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-white text-sm font-medium bg-black/50 px-2 py-1 rounded">
-                        {userInfo?.name || 'You'} (You)
-                      </span>
-                      {isAdmin && <Crown className="h-4 w-4 text-yellow-400" />}
-                      {isModerator && <Shield className="h-4 w-4 text-blue-400" />}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {!isAudioEnabled && <MicOff className="h-4 w-4 text-red-400" />}
-                      {!isVideoEnabled && <VideoOff className="h-4 w-4 text-red-400" />}
+                      <div className="flex items-center gap-2 justify-center mb-2">
+                        <Crown className="h-6 w-6 text-yellow-400" />
+                        <span className="text-white text-xl font-medium">{chainCast.admin.name}</span>
+                      </div>
+                      <p className="text-slate-400">Community Admin</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                )}
 
-              {/* Remote Participants */}
-              {participants.map((participant) => (
-                <Card key={participant.userId} className="bg-slate-900/50 border-slate-700/50 relative overflow-hidden">
-                  <CardContent className="p-0 h-full relative">
-                    {participant.stream ? (
-                      <video
-                        autoPlay
-                        playsInline
-                        className="w-full h-full object-cover"
-                        ref={(video) => {
-                          if (video && participant.stream) {
-                            video.srcObject = participant.stream
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="h-full bg-slate-800 flex items-center justify-center">
-                        <Avatar className="w-20 h-20">
-                          <AvatarFallback className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white text-xl">
-                            {participant.username?.[0]?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
-                    )}
-
-                    {/* Participant Info */}
-                    <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                      <span className="text-white text-sm font-medium bg-black/50 px-2 py-1 rounded">
-                        {participant.username}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        {participant.isMuted && <MicOff className="h-4 w-4 text-red-400" />}
-                        {participant.isVideoOff && <VideoOff className="h-4 w-4 text-red-400" />}
-                      </div>
+                {!isVideoEnabled && isAdmin && (
+                  <div className="absolute inset-0 bg-slate-800/90 flex items-center justify-center">
+                    <div className="text-center">
+                      <Avatar className="w-32 h-32 mx-auto mb-4">
+                        <AvatarImage src={userInfo?.profileImage || userInfo?.profilePicture} />
+                        <AvatarFallback className="bg-gradient-to-r from-red-500 to-pink-600 text-white text-4xl">
+                          {userInfo?.name?.[0]?.toUpperCase() || 'A'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="text-white text-lg">Camera Off</p>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  </div>
+                )}
+
+                {/* Stream Status Overlay */}
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white text-lg font-medium bg-black/50 px-3 py-1 rounded">
+                      {isAdmin ? `${userInfo?.name} (You)` : chainCast.admin.name}
+                    </span>
+                    {isAdmin && <Crown className="h-5 w-5 text-yellow-400" />}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isAdmin && (
+                      <>
+                        {!isAudioEnabled && <MicOff className="h-5 w-5 text-red-400" />}
+                        {!isVideoEnabled && <VideoOff className="h-5 w-5 text-red-400" />}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Controls */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-            <div className="flex items-center gap-3 bg-slate-900/90 backdrop-blur-xl rounded-full px-6 py-3 border border-slate-700/50">
-              {/* Audio control - always available */}
-              <Button
-                onClick={handleAudioToggle}
-                size="icon"
-                className={`rounded-full ${
-                  isAudioEnabled
-                    ? 'bg-slate-700 hover:bg-slate-600'
-                    : 'bg-red-600 hover:bg-red-700'
-                }`}
-                title={isAudioEnabled ? 'Mute' : 'Unmute'}
-              >
-                {isAudioEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
-              </Button>
+          {/* Admin Controls (Bottom Center) */}
+          {isAdmin && (
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+              <div className="flex items-center gap-3 bg-slate-900/90 backdrop-blur-xl rounded-full px-6 py-3 border border-slate-700/50">
+                <Button
+                  onClick={handleAudioToggle}
+                  size="icon"
+                  className={`rounded-full ${
+                    isAudioEnabled
+                      ? 'bg-slate-700 hover:bg-slate-600'
+                      : 'bg-red-600 hover:bg-red-700'
+                  }`}
+                  title={isAudioEnabled ? 'Mute' : 'Unmute'}
+                >
+                  {isAudioEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+                </Button>
 
-              {/* Video control - only for admins and moderators */}
-              {(isAdmin || isModerator) && (
                 <Button
                   onClick={handleVideoToggle}
                   size="icon"
@@ -597,47 +524,61 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                 >
                   {isVideoEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
                 </Button>
-              )}
 
-              {/* Request moderation button - only for viewers */}
-              {isViewer && !requestingSent && (
                 <Button
-                  onClick={() => setShowModeratorRequest(true)}
+                  onClick={handleLeave}
                   size="icon"
-                  className="rounded-full bg-blue-600 hover:bg-blue-700"
-                  title="Request video permissions"
+                  className="rounded-full bg-red-600 hover:bg-red-700"
+                  title="End ChainCast"
                 >
-                  <Hand className="h-4 w-4" />
+                  <PhoneOff className="h-4 w-4" />
                 </Button>
-              )}
-
-              {/* Request sent indicator */}
-              {requestingSent && (
-                <Button
-                  disabled
-                  size="icon"
-                  className="rounded-full bg-yellow-600/50"
-                  title="Moderation request sent"
-                >
-                  <Clock className="h-4 w-4" />
-                </Button>
-              )}
-
-              <Button
-                onClick={handleLeave}
-                size="icon"
-                className="rounded-full bg-red-600 hover:bg-red-700"
-                title="Leave ChainCast"
-              >
-                <PhoneOff className="h-4 w-4" />
-              </Button>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Reactions */}
-          <div className="absolute bottom-20 right-4">
+          {/* User Controls (Bottom Center) */}
+          {!isAdmin && (
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+              <div className="flex items-center gap-3 bg-slate-900/90 backdrop-blur-xl rounded-full px-6 py-3 border border-slate-700/50">
+                {!requestingSent && (
+                  <Button
+                    onClick={handleModerationRequest}
+                    size="icon"
+                    className="rounded-full bg-blue-600 hover:bg-blue-700"
+                    title="Request to speak"
+                  >
+                    <Hand className="h-4 w-4" />
+                  </Button>
+                )}
+
+                {requestingSent && (
+                  <Button
+                    disabled
+                    size="icon"
+                    className="rounded-full bg-yellow-600/50"
+                    title="Request sent"
+                  >
+                    <Clock className="h-4 w-4" />
+                  </Button>
+                )}
+
+                <Button
+                  onClick={handleLeave}
+                  size="icon"
+                  className="rounded-full bg-red-600 hover:bg-red-700"
+                  title="Leave ChainCast"
+                >
+                  <PhoneOff className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Reactions (Bottom Right) */}
+          <div className="absolute bottom-24 right-4">
             <div className="flex flex-col gap-2">
-              {reactions.slice(0, 5).map((reaction) => (
+              {reactions.map((reaction) => (
                 <Button
                   key={reaction.emoji}
                   onClick={() => handleReaction(reaction.emoji)}
@@ -685,30 +626,37 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
             {activeTab === 'participants' && (
               <ScrollArea className="h-full p-4">
                 <div className="space-y-3">
-                  {/* Local User */}
+                  {/* Admin */}
                   <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-800/30">
                     <Avatar className="w-10 h-10">
-                      <AvatarImage src={userInfo?.profilePic || userInfo?.profilePicture} />
-                      <AvatarFallback>{userInfo?.name?.[0] || 'U'}</AvatarFallback>
+                      <AvatarImage src={chainCast.admin.profilePicture} />
+                      <AvatarFallback>{chainCast.admin.name?.[0] || 'A'}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-white font-medium">{userInfo?.name} (You)</span>
-                        {isAdmin && <Crown className="h-4 w-4 text-yellow-400" />}
-                        {isModerator && <Shield className="h-4 w-4 text-blue-400" />}
+                        <span className="text-white font-medium">
+                          {chainCast.admin.name} {isAdmin && '(You)'}
+                        </span>
+                        <Crown className="h-4 w-4 text-yellow-400" />
                       </div>
                       <div className="flex items-center gap-2 text-xs text-slate-400">
-                        {isAudioEnabled ? (
-                          <span className="text-green-400">🎤 Speaking</span>
+                        {isAdmin ? (
+                          <>
+                            {isAudioEnabled ? (
+                              <span className="text-green-400">🎤 Speaking</span>
+                            ) : (
+                              <span className="text-red-400">🎤 Muted</span>
+                            )}
+                            {isVideoEnabled && <span className="text-green-400">📹 Video On</span>}
+                          </>
                         ) : (
-                          <span className="text-red-400">🎤 Muted</span>
+                          <span className="text-green-400">🎤 Admin</span>
                         )}
-                        {isVideoEnabled && <span className="text-green-400">📹 Video On</span>}
                       </div>
                     </div>
                   </div>
 
-                  {/* Remote Participants */}
+                  {/* Regular Participants */}
                   {participants.map((participant) => (
                     <div key={participant.userId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800/30">
                       <Avatar className="w-10 h-10">
@@ -717,16 +665,26 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                       <div className="flex-1">
                         <span className="text-white font-medium">{participant.username}</span>
                         <div className="flex items-center gap-2 text-xs text-slate-400">
-                          {participant.hasAudio ? (
-                            <span className="text-green-400">🎤 Speaking</span>
-                          ) : (
-                            <span className="text-red-400">🎤 Muted</span>
-                          )}
-                          {participant.hasVideo && <span className="text-green-400">📹 Video On</span>}
+                          <span className="text-blue-400">👤 Viewer</span>
                         </div>
                       </div>
                     </div>
                   ))}
+
+                  {!isAdmin && (
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-800/30">
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={userInfo?.profileImage || userInfo?.profilePicture} />
+                        <AvatarFallback>{userInfo?.name?.[0] || 'U'}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <span className="text-white font-medium">{userInfo?.name} (You)</span>
+                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                          <span className="text-blue-400">👤 Viewer</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             )}
@@ -793,67 +751,6 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
           </div>
         </div>
       </div>
-
-      {/* Moderation Request Dialog */}
-      <Dialog open={showModeratorRequest} onOpenChange={setShowModeratorRequest}>
-        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700">
-          <DialogHeader>
-            <DialogTitle className="text-white">Request Video Permissions</DialogTitle>
-            <DialogDescription className="text-slate-400">
-              Request permission from the admin to enable your camera and become a moderator in this ChainCast.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="video" className="text-white">Enable Video Camera</Label>
-                <Switch
-                  id="video"
-                  checked={moderationRequest.video}
-                  onCheckedChange={(checked) => setModerationRequest(prev => ({ ...prev, video: checked }))}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="audio" className="text-white">Enhanced Audio Permissions</Label>
-                <Switch
-                  id="audio"
-                  checked={moderationRequest.audio}
-                  onCheckedChange={(checked) => setModerationRequest(prev => ({ ...prev, audio: checked }))}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="message" className="text-white">Message to Admin (Optional)</Label>
-              <Textarea
-                id="message"
-                value={moderationRequest.message}
-                onChange={(e) => setModerationRequest(prev => ({ ...prev, message: e.target.value }))}
-                placeholder="Why do you want to become a moderator? What can you contribute?"
-                className="bg-slate-800 border-slate-600 text-white mt-2"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowModeratorRequest(false)}
-              className="border-slate-600 hover:bg-slate-800"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleModerationRequest}
-              disabled={!moderationRequest.video && !moderationRequest.audio}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Send Request
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

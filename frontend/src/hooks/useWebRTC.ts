@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 
 interface UseWebRTCOptions {
-  onParticipantJoined?: (participant: { userId: string; stream: MediaStream }) => void
+  onParticipantJoined?: (participant: { userId: string }) => void
   onParticipantLeft?: (userId: string) => void
   maxParticipants?: number
 }
@@ -10,9 +10,7 @@ interface UseWebRTCOptions {
 interface Participant {
   userId: string
   username: string
-  stream?: MediaStream
-  peerConnection?: RTCPeerConnection
-  isLocal?: boolean
+  userType: 'user' | 'communityAdmin'
   hasVideo: boolean
   hasAudio: boolean
   isMuted: boolean
@@ -21,35 +19,33 @@ interface Participant {
 
 export const useWebRTC = (options: UseWebRTCOptions = {}) => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
-  const [participants, setParticipants] = useState<Map<string, Participant>>(new Map())
+  const [participants, setParticipants] = useState<Participant[]>([])
   const [isVideoEnabled, setIsVideoEnabled] = useState(false)
   const [isAudioEnabled, setIsAudioEnabled] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
 
   const localVideoRef = useRef<HTMLVideoElement>(null)
-  const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map())
-
-  // ICE servers configuration
-  const iceServers = {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-    ]
-  }
 
   // Initialize local media stream
-  const initializeLocalStream = useCallback(async (video = true, audio = true) => {
+  const initializeLocalStream = useCallback(async (video = false, audio = true) => {
     try {
       setIsConnecting(true)
       
       console.log('Initializing media stream:', { video, audio })
       
+      if (!video && !audio) {
+        // No media needed, just set connected
+        setIsConnected(true)
+        setIsConnecting(false)
+        return null
+      }
+
       const constraints: MediaStreamConstraints = {
         video: video ? {
-          width: { ideal: 1280, max: 1920 },
-          height: { ideal: 720, max: 1080 },
-          frameRate: { ideal: 30, max: 30 }
+          width: { ideal: 640, max: 1280 },
+          height: { ideal: 480, max: 720 },
+          frameRate: { ideal: 15, max: 30 }
         } : false,
         audio: audio ? {
           echoCancellation: true,
@@ -84,16 +80,14 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
       setIsAudioEnabled(audio && audioTracks.length > 0)
       setIsConnected(true)
 
-      console.log('Media stream initialized successfully:', {
-        videoEnabled: video && videoTracks.length > 0,
-        audioEnabled: audio && audioTracks.length > 0
-      })
-
+      console.log('Media stream initialized successfully')
       return stream
+
     } catch (error: any) {
       console.error('Failed to get user media:', error)
+      
       if (error.name === 'NotAllowedError') {
-        toast.error('Camera/Microphone access denied. Please enable permissions and try again.')
+        toast.error('Camera/Microphone access denied. Please enable permissions.')
       } else if (error.name === 'NotFoundError') {
         toast.error('No camera or microphone found.')
       } else if (error.name === 'NotReadableError') {
@@ -101,6 +95,8 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
       } else {
         toast.error('Failed to access camera/microphone')
       }
+      
+      setIsConnected(false)
       throw error
     } finally {
       setIsConnecting(false)
@@ -109,149 +105,68 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
 
   // Toggle video
   const toggleVideo = useCallback(() => {
-    if (localStream) {
-      const videoTracks = localStream.getVideoTracks()
-      if (videoTracks.length > 0) {
-        const newEnabled = !videoTracks[0].enabled
-        videoTracks.forEach(track => {
-          track.enabled = newEnabled
-        })
-        setIsVideoEnabled(newEnabled)
-        console.log('Video toggled:', newEnabled)
-        return newEnabled
-      }
+    if (!localStream) {
+      console.log('No local stream available')
+      return false
     }
-    
-    // If no video tracks, try to add video
-    if (!isVideoEnabled) {
-      initializeLocalStream(true, isAudioEnabled)
-        .then(() => {
-          setIsVideoEnabled(true)
-          console.log('Video initialized and enabled')
-        })
-        .catch(error => {
-          console.error('Failed to enable video:', error)
-        })
-    }
-    
-    return false
-  }, [localStream, isVideoEnabled, isAudioEnabled, initializeLocalStream])
 
-  // Toggle audio
-  const toggleAudio = useCallback(() => {
-    if (localStream) {
-      const audioTracks = localStream.getAudioTracks()
-      if (audioTracks.length > 0) {
-        const newEnabled = !audioTracks[0].enabled
-        audioTracks.forEach(track => {
-          track.enabled = newEnabled
-        })
-        setIsAudioEnabled(newEnabled)
-        console.log('Audio toggled:', newEnabled)
-        return newEnabled
-      }
+    const videoTracks = localStream.getVideoTracks()
+    if (videoTracks.length > 0) {
+      const newEnabled = !videoTracks[0].enabled
+      videoTracks.forEach(track => {
+        track.enabled = newEnabled
+      })
+      setIsVideoEnabled(newEnabled)
+      console.log('Video toggled:', newEnabled)
+      return newEnabled
     }
+    
     return false
   }, [localStream])
 
-  // Create peer connection for a participant
-  const createPeerConnection = useCallback((participantId: string): RTCPeerConnection => {
-    console.log('Creating peer connection for:', participantId)
+  // Toggle audio
+  const toggleAudio = useCallback(() => {
+    if (!localStream) {
+      console.log('No local stream available')
+      return false
+    }
+
+    const audioTracks = localStream.getAudioTracks()
+    if (audioTracks.length > 0) {
+      const newEnabled = !audioTracks[0].enabled
+      audioTracks.forEach(track => {
+        track.enabled = newEnabled
+      })
+      setIsAudioEnabled(newEnabled)
+      console.log('Audio toggled:', newEnabled)
+      return newEnabled
+    }
     
-    const peerConnection = new RTCPeerConnection(iceServers)
-
-    // Add local stream tracks to peer connection
-    if (localStream) {
-      localStream.getTracks().forEach(track => {
-        console.log('Adding track to peer connection:', track.kind)
-        peerConnection.addTrack(track, localStream)
-      })
-    }
-
-    // Handle ICE candidates
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        console.log('ICE candidate for', participantId, ':', event.candidate)
-        // This would be sent through your socket service in a real implementation
-      }
-    }
-
-    // Handle remote stream
-    peerConnection.ontrack = (event) => {
-      console.log('Remote track received from', participantId, ':', event)
-      const [remoteStream] = event.streams
-      
-      setParticipants(prev => {
-        const updated = new Map(prev)
-        const participant = updated.get(participantId)
-        if (participant) {
-          updated.set(participantId, {
-            ...participant,
-            stream: remoteStream
-          })
-        }
-        return updated
-      })
-
-      if (options.onParticipantJoined) {
-        options.onParticipantJoined({
-          userId: participantId,
-          stream: remoteStream
-        })
-      }
-    }
-
-    // Handle connection state changes
-    peerConnection.onconnectionstatechange = () => {
-      console.log(`Peer connection state for ${participantId}: ${peerConnection.connectionState}`)
-      if (peerConnection.connectionState === 'failed') {
-        console.error('Peer connection failed for:', participantId)
-        toast.error(`Connection failed with ${participantId}`)
-      }
-    }
-
-    peerConnections.current.set(participantId, peerConnection)
-    return peerConnection
-  }, [localStream, options])
+    return false
+  }, [localStream])
 
   // Add participant
-  const addParticipant = useCallback((participant: Omit<Participant, 'isLocal'>) => {
+  const addParticipant = useCallback((participant: Participant) => {
     console.log('Adding participant:', participant.userId)
     
     setParticipants(prev => {
-      if (prev.size >= (options.maxParticipants || 5)) {
-        toast.error('Maximum participants reached')
-        return prev
+      const exists = prev.find(p => p.userId === participant.userId)
+      if (exists) {
+        return prev.map(p => p.userId === participant.userId ? { ...p, ...participant } : p)
       }
-
-      const updated = new Map(prev)
-      updated.set(participant.userId, {
-        ...participant,
-        isLocal: false
-      })
-      return updated
+      return [...prev, participant]
     })
 
-    // Create peer connection for this participant
-    createPeerConnection(participant.userId)
-  }, [createPeerConnection, options.maxParticipants])
+    if (options.onParticipantJoined) {
+      options.onParticipantJoined({ userId: participant.userId })
+    }
+  }, [options])
 
   // Remove participant
   const removeParticipant = useCallback((userId: string) => {
     console.log('Removing participant:', userId)
     
-    setParticipants(prev => {
-      const updated = new Map(prev)
-      updated.delete(userId)
-      return updated
-    })
-
-    // Close peer connection
-    const peerConnection = peerConnections.current.get(userId)
-    if (peerConnection) {
-      peerConnection.close()
-      peerConnections.current.delete(userId)
-    }
+    setParticipants(prev => prev.filter(p => p.userId !== userId))
 
     if (options.onParticipantLeft) {
       options.onParticipantLeft(userId)
@@ -262,14 +177,9 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
   const updateParticipant = useCallback((userId: string, updates: Partial<Participant>) => {
     console.log('Updating participant:', userId, updates)
     
-    setParticipants(prev => {
-      const updated = new Map(prev)
-      const participant = updated.get(userId)
-      if (participant) {
-        updated.set(userId, { ...participant, ...updates })
-      }
-      return updated
-    })
+    setParticipants(prev => prev.map(p => 
+      p.userId === userId ? { ...p, ...updates } : p
+    ))
   }, [])
 
   // Cleanup
@@ -285,15 +195,8 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
       setLocalStream(null)
     }
 
-    // Close all peer connections
-    peerConnections.current.forEach((pc, participantId) => {
-      console.log('Closing peer connection for:', participantId)
-      pc.close()
-    })
-    peerConnections.current.clear()
-
     // Clear participants
-    setParticipants(new Map())
+    setParticipants([])
     setIsConnected(false)
     setIsVideoEnabled(false)
     setIsAudioEnabled(false)
@@ -307,7 +210,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
   return {
     // State
     localStream,
-    participants: Array.from(participants.values()),
+    participants,
     isVideoEnabled,
     isAudioEnabled,
     isConnecting,

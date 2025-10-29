@@ -6,6 +6,8 @@ interface UserType {
   email: string
   name: string
   profileImage?: string
+  profilePicture?: string
+  profilePic?: string
   referralCode?: string
 }
 

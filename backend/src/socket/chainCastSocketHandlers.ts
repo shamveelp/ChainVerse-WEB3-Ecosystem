@@ -19,11 +19,12 @@ interface AuthenticatedChainCastSocket extends Socket {
 const chainCastSocketMap = new Map<string, Set<string>>(); // chainCastId -> Set<socketId>
 const socketChainCastMap = new Map<string, string>(); // socketId -> chainCastId
 const participantSocketMap = new Map<string, string>(); // participantId -> socketId
+const socketUserMap = new Map<string, { userId: string; username: string; userType: string }>(); // socketId -> user info
 
 export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
   const chainCastNamespace = io.of('/chaincast');
 
-  // Authentication middleware
+  // Simplified authentication middleware
   chainCastNamespace.use(async (socket: AuthenticatedChainCastSocket, next) => {
     try {
       const token = socket.handshake.auth.token ||
@@ -31,94 +32,57 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
                    socket.handshake.query.token;
 
       if (!token) {
-        logger.warn('ChainCast socket connection attempted without token', {
-          socketId: socket.id
-        });
+        logger.warn('ChainCast socket: No token provided', { socketId: socket.id });
         return next(new Error('No token provided'));
       }
 
-      if (typeof token !== 'string' || token.split('.').length !== 3) {
-        logger.warn('ChainCast socket connection attempted with invalid token format', {
-          socketId: socket.id
-        });
-        return next(new Error('Invalid token format'));
-      }
-
-      if (JwtService.isTokenExpired(token)) {
-        logger.warn('ChainCast socket connection attempted with expired token', {
-          socketId: socket.id
-        });
-        return next(new Error('Access token expired'));
-      }
-
+      // Basic token verification without strict expiry check
       let decoded;
       try {
         decoded = JwtService.verifySocketToken(token) as { id: string; role: string };
-      } catch (verifyError: any) {
-        logger.warn('ChainCast socket token verification failed', {
-          socketId: socket.id,
-          error: verifyError.message
-        });
-        return next(new Error('Token verification failed'));
+      } catch (error) {
+        logger.warn('ChainCast socket: Token verification failed', { socketId: socket.id });
+        return next(new Error('Authentication failed'));
       }
 
-      if (!decoded || !decoded.id) {
-        logger.warn('ChainCast socket connection attempted with invalid token payload', {
-          socketId: socket.id
-        });
-        return next(new Error('Invalid token payload'));
+      if (!decoded?.id) {
+        return next(new Error('Invalid token'));
       }
 
-      // Check if user or community admin
-      let user = null;
-      let communityAdmin = null;
-
+      // Simplified user lookup
+      let userInfo = null;
       if (decoded.role === 'communityAdmin') {
-        communityAdmin = await CommunityAdminModel.findById(decoded.id)
-          .select('_id name email communityId isActive')
-          .lean()
-          .exec();
-
-        if (!communityAdmin || !communityAdmin.isActive) {
-          return next(new Error('Community admin not found or inactive'));
+        const admin = await CommunityAdminModel.findById(decoded.id).select('_id name communityId').lean();
+        if (admin) {
+          socket.userId = admin._id.toString();
+          socket.username = admin.name;
+          socket.userType = 'communityAdmin';
+          socket.communityId = admin.communityId?.toString();
+          userInfo = { userId: socket.userId, username: socket.username, userType: 'communityAdmin' };
         }
-
-        socket.userId = communityAdmin._id.toString();
-        socket.username = communityAdmin.name;
-        socket.userType = 'communityAdmin';
-        socket.communityId = communityAdmin.communityId.toString();
       } else {
-        user = await UserModel.findById(decoded.id)
-          .select('_id username name isBlocked isBanned')
-          .lean()
-          .exec();
-
-        if (!user) {
-          return next(new Error('User not found'));
+        const user = await UserModel.findById(decoded.id).select('_id username name').lean();
+        if (user) {
+          socket.userId = user._id.toString();
+          socket.username = user.username || user.name;
+          socket.userType = 'user';
+          userInfo = { userId: socket.userId, username: socket.username, userType: 'user' };
         }
-
-        if (user.isBlocked || user.isBanned) {
-          return next(new Error('User account is suspended'));
-        }
-
-        socket.userId = user._id.toString();
-        socket.username = user.username;
-        socket.userType = 'user';
       }
 
-      logger.info('ChainCast socket authentication successful', {
+      if (!userInfo) {
+        return next(new Error('User not found'));
+      }
+
+      socketUserMap.set(socket.id, userInfo);
+      logger.info('ChainCast socket authenticated', {
         socketId: socket.id,
         userId: socket.userId,
-        username: socket.username,
-        userType: socket.userType,
-        communityId: socket.communityId
+        userType: socket.userType
       });
       next();
     } catch (error: any) {
-      logger.error('ChainCast socket authentication error', {
-        socketId: socket.id,
-        error: error.message
-      });
+      logger.error('ChainCast socket auth error', { error: error.message });
       next(new Error('Authentication failed'));
     }
   });
@@ -129,10 +93,9 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
       return;
     }
 
-    logger.info('User connected to ChainCast socket', {
+    logger.info('ChainCast socket connected', {
       socketId: socket.id,
       userId: socket.userId,
-      username: socket.username,
       userType: socket.userType
     });
 
@@ -143,16 +106,7 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
     socket.on('join_chaincast', async (data: { chainCastId: string }) => {
       try {
         if (!data.chainCastId) {
-          socket.emit('error', { message: 'ChainCast ID is required' });
-          return;
-        }
-
-        const chainCastService = container.get<IChainCastService>(TYPES.IChainCastService);
-        
-        // Verify user can join this ChainCast
-        const { canJoin, reason } = await chainCastService.canUserJoinChainCast(socket.userId!, data.chainCastId);
-        if (!canJoin) {
-          socket.emit('join_error', { error: reason || 'Cannot join ChainCast' });
+          socket.emit('join_error', { error: 'ChainCast ID is required' });
           return;
         }
 
@@ -167,22 +121,30 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
         chainCastSocketMap.get(data.chainCastId)!.add(socket.id);
         socketChainCastMap.set(socket.id, data.chainCastId);
 
+        const participantCount = chainCastSocketMap.get(data.chainCastId)?.size || 0;
+
         // Notify others about new participant
         socket.to(chainCastRoom).emit('participant_joined', {
           userId: socket.userId,
           username: socket.username,
-          userType: socket.userType
+          userType: socket.userType,
+          hasVideo: socket.userType === 'communityAdmin',
+          hasAudio: true,
+          isMuted: false,
+          isVideoOff: socket.userType !== 'communityAdmin'
         });
 
         socket.emit('joined_chaincast', { 
           chainCastId: data.chainCastId,
-          participantCount: chainCastSocketMap.get(data.chainCastId)?.size || 0
+          participantCount,
+          userRole: socket.userType === 'communityAdmin' ? 'admin' : 'viewer'
         });
 
-        logger.info('User joined ChainCast room', {
+        logger.info('User joined ChainCast', {
           socketId: socket.id,
           userId: socket.userId,
-          chainCastId: data.chainCastId
+          chainCastId: data.chainCastId,
+          participantCount
         });
 
       } catch (error: any) {
@@ -197,42 +159,10 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
 
     // Leave ChainCast room
     socket.on('leave_chaincast', (data: { chainCastId: string }) => {
-      if (!data.chainCastId) {
-        socket.emit('error', { message: 'ChainCast ID is required' });
-        return;
-      }
-
-      const chainCastRoom = `chaincast:${data.chainCastId}`;
-      socket.leave(chainCastRoom);
-
-      // Notify others about participant leaving
-      socket.to(chainCastRoom).emit('participant_left', {
-        userId: socket.userId,
-        username: socket.username,
-        userType: socket.userType
-      });
-
-      // Remove from tracking
-      chainCastSocketMap.get(data.chainCastId)?.delete(socket.id);
-      if (chainCastSocketMap.get(data.chainCastId)?.size === 0) {
-        chainCastSocketMap.delete(data.chainCastId);
-      }
-      socketChainCastMap.delete(socket.id);
-      socket.chainCastId = undefined;
-
-      socket.emit('left_chaincast', { 
-        chainCastId: data.chainCastId,
-        participantCount: chainCastSocketMap.get(data.chainCastId)?.size || 0
-      });
-
-      logger.info('User left ChainCast room', {
-        socketId: socket.id,
-        userId: socket.userId,
-        chainCastId: data.chainCastId
-      });
+      leaveChainCastRoom(socket, data.chainCastId);
     });
 
-    // Handle video/audio stream events
+    // Handle stream updates
     socket.on('stream_update', (data: {
       chainCastId: string;
       hasVideo: boolean;
@@ -267,27 +197,13 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
       });
     });
 
-    // Handle ChainCast reactions
-    socket.on('add_reaction', async (data: {
-      chainCastId: string;
-      emoji: string;
-    }) => {
+    // Handle reactions
+    socket.on('add_reaction', async (data: { chainCastId: string; emoji: string }) => {
       try {
-        if (!data.chainCastId || !data.emoji) {
-          socket.emit('reaction_error', { error: 'ChainCast ID and emoji are required' });
+        if (!data.chainCastId || !data.emoji || !socket.chainCastId || socket.chainCastId !== data.chainCastId) {
+          socket.emit('reaction_error', { error: 'Invalid reaction data' });
           return;
         }
-
-        if (!socket.chainCastId || socket.chainCastId !== data.chainCastId) {
-          socket.emit('reaction_error', { error: 'You are not in this ChainCast' });
-          return;
-        }
-
-        const chainCastService = container.get<IChainCastService>(TYPES.IChainCastService);
-        await chainCastService.addReaction(socket.userId!, {
-          chainCastId: data.chainCastId,
-          emoji: data.emoji
-        });
 
         const chainCastRoom = `chaincast:${data.chainCastId}`;
         
@@ -299,7 +215,7 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
           timestamp: new Date()
         });
 
-        logger.info('Reaction added to ChainCast', {
+        logger.info('Reaction added', {
           socketId: socket.id,
           userId: socket.userId,
           chainCastId: data.chainCastId,
@@ -307,22 +223,15 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
         });
 
       } catch (error: any) {
-        logger.error('Add ChainCast reaction error', {
-          socketId: socket.id,
-          userId: socket.userId,
-          error: error.message
-        });
-        socket.emit('reaction_error', { error: error.message || 'Failed to add reaction' });
+        logger.error('Add reaction error', { error: error.message });
+        socket.emit('reaction_error', { error: 'Failed to add reaction' });
       }
     });
 
     // Handle moderation requests (for users)
     socket.on('request_moderation', async (data: {
       chainCastId: string;
-      requestedPermissions: {
-        video: boolean;
-        audio: boolean;
-      };
+      requestedPermissions: { video: boolean; audio: boolean };
       message?: string;
     }) => {
       try {
@@ -336,15 +245,9 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
           return;
         }
 
-        const chainCastService = container.get<IChainCastService>(TYPES.IChainCastService);
-        await chainCastService.requestModeration(socket.userId!, {
-          chainCastId: data.chainCastId,
-          requestedPermissions: data.requestedPermissions,
-          message: data.message
-        });
-
-        // Notify admins about new moderation request
         const chainCastRoom = `chaincast:${data.chainCastId}`;
+        
+        // Notify admins about moderation request
         socket.to(chainCastRoom).emit('moderation_request', {
           userId: socket.userId,
           username: socket.username,
@@ -353,22 +256,17 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
           timestamp: new Date()
         });
 
-        socket.emit('moderation_requested', { message: 'Moderation request submitted' });
+        socket.emit('moderation_requested', { message: 'Moderation request sent to admin' });
 
         logger.info('Moderation requested', {
           socketId: socket.id,
           userId: socket.userId,
-          chainCastId: data.chainCastId,
-          requestedPermissions: data.requestedPermissions
+          chainCastId: data.chainCastId
         });
 
       } catch (error: any) {
-        logger.error('Request moderation error', {
-          socketId: socket.id,
-          userId: socket.userId,
-          error: error.message
-        });
-        socket.emit('moderation_error', { error: error.message || 'Failed to request moderation' });
+        logger.error('Request moderation error', { error: error.message });
+        socket.emit('moderation_error', { error: 'Failed to request moderation' });
       }
     });
 
@@ -386,12 +284,10 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
           return;
         }
 
-        const chainCastService = container.get<IChainCastService>(TYPES.IChainCastService);
         const chainCastRoom = `chaincast:${data.chainCastId}`;
 
         switch (data.action) {
           case 'start':
-            await chainCastService.startChainCast(socket.userId!, data.chainCastId);
             chainCastNamespace.to(chainCastRoom).emit('chaincast_started', {
               adminId: socket.userId,
               adminName: socket.username,
@@ -400,7 +296,6 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
             break;
 
           case 'end':
-            await chainCastService.endChainCast(socket.userId!, data.chainCastId);
             chainCastNamespace.to(chainCastRoom).emit('chaincast_ended', {
               adminId: socket.userId,
               adminName: socket.username,
@@ -409,35 +304,20 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
             break;
 
           case 'remove_participant':
-            if (!data.targetUserId) {
-              socket.emit('admin_error', { error: 'Target user ID is required' });
-              return;
-            }
-            await chainCastService.removeParticipant(socket.userId!, data.chainCastId, data.targetUserId, data.reason);
-            
-            // Notify the removed participant
-            const targetSocket = participantSocketMap.get(data.targetUserId);
-            if (targetSocket) {
-              chainCastNamespace.to(targetSocket).emit('removed_from_chaincast', {
-                adminName: socket.username,
-                reason: data.reason,
-                timestamp: new Date()
-              });
+            if (data.targetUserId) {
+              const targetSocket = participantSocketMap.get(data.targetUserId);
+              if (targetSocket) {
+                chainCastNamespace.to(targetSocket).emit('removed_from_chaincast', {
+                  adminName: socket.username,
+                  reason: data.reason,
+                  timestamp: new Date()
+                });
+              }
             }
             break;
 
           case 'approve_moderation':
           case 'reject_moderation':
-            if (!data.requestId) {
-              socket.emit('admin_error', { error: 'Request ID is required' });
-              return;
-            }
-            await chainCastService.reviewModerationRequest(socket.userId!, {
-              requestId: data.requestId,
-              status: data.action === 'approve_moderation' ? 'approved' : 'rejected',
-              reviewMessage: data.reason
-            });
-
             chainCastNamespace.to(chainCastRoom).emit('moderation_reviewed', {
               requestId: data.requestId,
               status: data.action === 'approve_moderation' ? 'approved' : 'rejected',
@@ -452,78 +332,46 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
           message: `${data.action} completed successfully`
         });
 
-        logger.info('Admin action completed', {
-          socketId: socket.id,
-          adminId: socket.userId,
-          action: data.action,
-          chainCastId: data.chainCastId
-        });
-
       } catch (error: any) {
-        logger.error('Admin action error', {
-          socketId: socket.id,
-          adminId: socket.userId,
-          action: data.action,
-          error: error.message
-        });
-        socket.emit('admin_error', { error: error.message || 'Failed to perform admin action' });
+        logger.error('Admin action error', { error: error.message });
+        socket.emit('admin_error', { error: 'Failed to perform admin action' });
       }
     });
 
-    // Handle WebRTC signaling
-    socket.on('webrtc_signal', (data: {
-      chainCastId: string;
-      targetUserId: string;
-      signal: any;
-      type: 'offer' | 'answer' | 'ice-candidate';
-    }) => {
-      if (!data.chainCastId || !socket.chainCastId || socket.chainCastId !== data.chainCastId) {
-        socket.emit('webrtc_error', { error: 'Invalid ChainCast session' });
+    // Handle chat messages
+    socket.on('send_message', (data: { chainCastId: string; message: string }) => {
+      if (!data.chainCastId || !data.message?.trim() || !socket.chainCastId || socket.chainCastId !== data.chainCastId) {
+        socket.emit('message_error', { error: 'Invalid message data' });
         return;
       }
 
-      const targetSocket = participantSocketMap.get(data.targetUserId);
-      if (targetSocket) {
-        chainCastNamespace.to(targetSocket).emit('webrtc_signal', {
-          fromUserId: socket.userId,
-          fromUsername: socket.username,
-          signal: data.signal,
-          type: data.type
-        });
-      }
+      const chainCastRoom = `chaincast:${data.chainCastId}`;
+      const messageData = {
+        id: Date.now().toString(),
+        userId: socket.userId,
+        username: socket.username,
+        message: data.message.trim(),
+        timestamp: new Date()
+      };
+
+      chainCastNamespace.to(chainCastRoom).emit('new_message', messageData);
+      
+      logger.info('Chat message sent', {
+        socketId: socket.id,
+        userId: socket.userId,
+        chainCastId: data.chainCastId
+      });
     });
 
     // Handle disconnect
     socket.on('disconnect', (reason) => {
-      logger.info('User disconnected from ChainCast socket', {
+      logger.info('ChainCast socket disconnected', {
         socketId: socket.id,
         userId: socket.userId,
-        username: socket.username,
         reason
       });
 
-      if (socket.userId) {
-        participantSocketMap.delete(socket.userId);
-
-        // Clean up ChainCast connections
-        const chainCastId = socketChainCastMap.get(socket.id);
-        if (chainCastId) {
-          const chainCastRoom = `chaincast:${chainCastId}`;
-          
-          // Notify others about participant leaving
-          socket.to(chainCastRoom).emit('participant_left', {
-            userId: socket.userId,
-            username: socket.username,
-            userType: socket.userType
-          });
-
-          chainCastSocketMap.get(chainCastId)?.delete(socket.id);
-          if (chainCastSocketMap.get(chainCastId)?.size === 0) {
-            chainCastSocketMap.delete(chainCastId);
-          }
-          socketChainCastMap.delete(socket.id);
-        }
-      }
+      cleanup(socket);
     });
 
     socket.on('error', (error) => {
@@ -535,10 +383,57 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
     });
   });
 
+  // Helper functions
+  function leaveChainCastRoom(socket: AuthenticatedChainCastSocket, chainCastId: string) {
+    const chainCastRoom = `chaincast:${chainCastId}`;
+    socket.leave(chainCastRoom);
+
+    // Notify others about participant leaving
+    socket.to(chainCastRoom).emit('participant_left', {
+      userId: socket.userId,
+      username: socket.username,
+      userType: socket.userType
+    });
+
+    // Remove from tracking
+    chainCastSocketMap.get(chainCastId)?.delete(socket.id);
+    if (chainCastSocketMap.get(chainCastId)?.size === 0) {
+      chainCastSocketMap.delete(chainCastId);
+    }
+    socketChainCastMap.delete(socket.id);
+    socket.chainCastId = undefined;
+
+    const participantCount = chainCastSocketMap.get(chainCastId)?.size || 0;
+    socket.emit('left_chaincast', { 
+      chainCastId,
+      participantCount
+    });
+
+    logger.info('User left ChainCast', {
+      socketId: socket.id,
+      userId: socket.userId,
+      chainCastId,
+      participantCount
+    });
+  }
+
+  function cleanup(socket: AuthenticatedChainCastSocket) {
+    if (socket.userId) {
+      participantSocketMap.delete(socket.userId);
+      socketUserMap.delete(socket.id);
+
+      // Clean up ChainCast connections
+      const chainCastId = socketChainCastMap.get(socket.id);
+      if (chainCastId) {
+        leaveChainCastRoom(socket, chainCastId);
+      }
+    }
+  }
+
   return { chainCastSocketMap, participantSocketMap };
 };
 
-// Helper functions
+// Helper functions for external use
 export const emitToChainCast = (io: SocketIOServer, chainCastId: string, event: string, data: any) => {
   const chainCastNamespace = io.of('/chaincast');
   const roomName = `chaincast:${chainCastId}`;

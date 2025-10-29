@@ -38,10 +38,10 @@ interface ChatMessage {
 }
 
 class ChainCastSocketService {
-  private socket: Socket | null = null;
+  public socket: Socket | null = null;
   private connectionPromise: Promise<void> | null = null;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+  private maxReconnectAttempts = 3;
   private isConnecting = false;
   private currentToken: string | null = null;
   private currentChainCastId: string | null = null;
@@ -71,7 +71,7 @@ class ChainCastSocketService {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const socketUrl = `${apiUrl}/chaincast`;
 
-      
+      console.log('Connecting to ChainCast socket:', socketUrl);
 
       // Disconnect any existing socket first
       this.cleanupSocket();
@@ -81,7 +81,7 @@ class ChainCastSocketService {
           token: token.trim(),
         },
         transports: ["websocket", "polling"],
-        timeout: 20000,
+        timeout: 10000, // Reduced timeout
         forceNew: true,
         autoConnect: true,
         reconnection: false, // Handle reconnection manually
@@ -91,7 +91,7 @@ class ChainCastSocketService {
         console.error("ChainCast socket connection timeout");
         this.cleanupConnection();
         reject(new Error("ChainCast socket connection timeout"));
-      }, 15000);
+      }, 8000); // Reduced timeout
 
       this.socket.on("connect", () => {
         clearTimeout(timeout);
@@ -107,22 +107,10 @@ class ChainCastSocketService {
 
       this.socket.on("connect_error", (error) => {
         clearTimeout(timeout);
-        console.error("❌ ChainCast socket connection error:", {
-          message: error.message,
-          type: error.toString()
-        });
+        console.error("❌ ChainCast socket connection error:", error.message);
 
         this.cleanupConnection();
-
-        if (
-          error.message?.includes("Authentication failed") ||
-          error.message?.includes("Token expired") ||
-          error.message?.includes("Invalid token")
-        ) {
-          reject(new Error("Authentication failed - token may be expired"));
-        } else {
-          reject(error);
-        }
+        reject(new Error("ChainCast socket connection failed: " + error.message));
       });
 
       this.setupEventListeners();
@@ -152,7 +140,7 @@ class ChainCastSocketService {
     if (!this.socket) return;
 
     this.socket.on("disconnect", (reason) => {
-      
+      console.log("ChainCast socket disconnected:", reason);
       this.cleanupConnection();
 
       // Handle reconnection manually with delay
@@ -164,7 +152,6 @@ class ChainCastSocketService {
     this.socket.on("error", (error) => {
       console.error("🚨 ChainCast socket error:", error);
       this.cleanupConnection();
-      this.scheduleReconnect();
     });
   }
 
@@ -175,9 +162,9 @@ class ChainCastSocketService {
     }
 
     this.reconnectAttempts++;
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 10000);
+    const delay = Math.min(1000 * this.reconnectAttempts, 5000);
 
-    
+    console.log(`Scheduling reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
 
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectSocket();
@@ -185,7 +172,7 @@ class ChainCastSocketService {
   }
 
   private async reconnectSocket(): Promise<void> {
-    
+    console.log('Attempting to reconnect ChainCast socket...');
 
     try {
       // Get fresh token from Redux store
@@ -222,7 +209,7 @@ class ChainCastSocketService {
   }
 
   disconnect(): void {
-    
+    console.log('Disconnecting ChainCast socket');
     this.cleanupSocket();
     this.cleanupConnection();
     this.reconnectAttempts = 0;
@@ -233,7 +220,7 @@ class ChainCastSocketService {
   // ChainCast room management
   async joinChainCast(chainCastId: string): Promise<void> {
     if (this.socket?.connected) {
-      
+      console.log('Joining ChainCast:', chainCastId);
       this.currentChainCastId = chainCastId;
       this.socket.emit("join_chaincast", { chainCastId });
     } else {
@@ -244,7 +231,7 @@ class ChainCastSocketService {
 
   leaveChainCast(chainCastId: string): void {
     if (this.socket?.connected) {
-      
+      console.log('Leaving ChainCast:', chainCastId);
       this.socket.emit("leave_chaincast", { chainCastId });
       if (this.currentChainCastId === chainCastId) {
         this.currentChainCastId = null;
@@ -263,37 +250,30 @@ class ChainCastSocketService {
     isVideoOff: boolean;
   }): void {
     if (this.socket?.connected) {
-      console.log("📹 Updating stream:", {
-        chainCastId: data.chainCastId,
-        hasVideo: data.hasVideo,
-        hasAudio: data.hasAudio
-      });
+      console.log("📹 Updating stream:", data);
       this.socket.emit("stream_update", data);
     } else {
       console.warn("Cannot update stream - socket not connected");
-      throw new Error("Socket not connected");
     }
   }
 
   // Chat
   sendMessage(chainCastId: string, message: string): void {
     if (this.socket?.connected) {
-      
+      console.log('Sending message:', message);
       this.socket.emit("send_message", { chainCastId, message });
     } else {
       console.warn("Cannot send message - socket not connected");
-      throw new Error("Socket not connected");
     }
   }
 
   // Reactions
   addReaction(chainCastId: string, emoji: string): void {
     if (this.socket?.connected) {
-      
+      console.log('Adding reaction:', emoji);
       this.socket.emit("add_reaction", { chainCastId, emoji });
     } else {
       console.warn("Cannot add reaction - socket not connected");
-      throw new Error("Socket not connected");
     }
   }
 
@@ -307,14 +287,10 @@ class ChainCastSocketService {
     message?: string;
   }): void {
     if (this.socket?.connected) {
-      console.log("🛡️ Requesting moderation:", {
-        chainCastId: data.chainCastId,
-        requestedPermissions: data.requestedPermissions
-      });
+      console.log("🛡️ Requesting moderation:", data);
       this.socket.emit("request_moderation", data);
     } else {
       console.warn("Cannot request moderation - socket not connected");
-      throw new Error("Socket not connected");
     }
   }
 
@@ -327,33 +303,15 @@ class ChainCastSocketService {
     reason?: string;
   }): void {
     if (this.socket?.connected) {
-      console.log("⚡ Performing admin action:", {
-        action: data.action,
-        chainCastId: data.chainCastId
-      });
+      console.log("⚡ Performing admin action:", data);
       this.socket.emit("admin_action", data);
     } else {
       console.warn("Cannot perform admin action - socket not connected");
-      throw new Error("Socket not connected");
-    }
-  }
-
-  // WebRTC signaling
-  sendWebRTCSignal(data: {
-    chainCastId: string;
-    targetUserId: string;
-    signal: any;
-    type: 'offer' | 'answer' | 'ice-candidate';
-  }): void {
-    if (this.socket?.connected) {
-      this.socket.emit("webrtc_signal", data);
-    } else {
-      console.warn("Cannot send WebRTC signal - socket not connected");
     }
   }
 
   // Event listeners
-  onJoinedChainCast(callback: (data: { chainCastId: string; participantCount: number }) => void): void {
+  onJoinedChainCast(callback: (data: { chainCastId: string; participantCount: number; userRole: string }) => void): void {
     this.socket?.on("joined_chaincast", callback);
   }
 
@@ -429,15 +387,6 @@ class ChainCastSocketService {
     this.socket?.on("admin_action_success", callback);
   }
 
-  onWebRTCSignal(callback: (data: {
-    fromUserId: string;
-    fromUsername: string;
-    signal: any;
-    type: 'offer' | 'answer' | 'ice-candidate';
-  }) => void): void {
-    this.socket?.on("webrtc_signal", callback);
-  }
-
   // Error handlers
   onJoinError(callback: (data: { error: string }) => void): void {
     this.socket?.on("join_error", callback);
@@ -455,81 +404,8 @@ class ChainCastSocketService {
     this.socket?.on("admin_error", callback);
   }
 
-  onWebRTCError(callback: (data: { error: string }) => void): void {
-    this.socket?.on("webrtc_error", callback);
-  }
-
   onError(callback: (data: { message: string }) => void): void {
     this.socket?.on("error", callback);
-  }
-
-  // Remove listeners
-  offJoinedChainCast(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off("joined_chaincast", callback);
-    } else {
-      this.socket?.removeAllListeners("joined_chaincast");
-    }
-  }
-
-  offParticipantJoined(callback?: (participant: ChainCastParticipant) => void): void {
-    if (callback) {
-      this.socket?.off("participant_joined", callback);
-    } else {
-      this.socket?.removeAllListeners("participant_joined");
-    }
-  }
-
-  offParticipantLeft(callback?: (participant: ChainCastParticipant) => void): void {
-    if (callback) {
-      this.socket?.off("participant_left", callback);
-    } else {
-      this.socket?.removeAllListeners("participant_left");
-    }
-  }
-
-  offNewMessage(callback?: (message: ChatMessage) => void): void {
-    if (callback) {
-      this.socket?.off("new_message", callback);
-    } else {
-      this.socket?.removeAllListeners("new_message");
-    }
-  }
-
-  offNewReaction(callback?: (reaction: ChainCastReaction) => void): void {
-    if (callback) {
-      this.socket?.off("new_reaction", callback);
-    } else {
-      this.socket?.removeAllListeners("new_reaction");
-    }
-  }
-
-  offModerationRequest(callback?: (request: ModerationRequest) => void): void {
-    if (callback) {
-      this.socket?.off("moderation_request", callback);
-    } else {
-      this.socket?.removeAllListeners("moderation_request");
-    }
-  }
-
-  offChainCastStarted(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off("chaincast_started", callback);
-    } else {
-      this.socket?.removeAllListeners("chaincast_started");
-    }
-  }
-
-  offChainCastEnded(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off("chaincast_ended", callback);
-    } else {
-      this.socket?.removeAllListeners("chaincast_ended");
-    }
-  }
-
-  offAllListeners(): void {
-    this.socket?.removeAllListeners();
   }
 
   // Utility methods
@@ -551,11 +427,6 @@ class ChainCastSocketService {
   getCurrentChainCastId(): string | null {
     return this.currentChainCastId;
   }
-
-  // Expose socket for direct access if needed
-  // get socket(): Socket | null {
-  //   return this.socket;
-  // }
 }
 
 export const chainCastSocketService = new ChainCastSocketService();

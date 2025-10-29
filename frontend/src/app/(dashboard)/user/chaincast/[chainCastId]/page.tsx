@@ -126,7 +126,7 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
       if (result.success) {
         setHasJoined(true)
         // Update chainCast to reflect participation
-        setChainCast(prev => prev ? {
+        setChainCast((prev:any) => prev ? {
           ...prev,
           isParticipant: true,
           userRole: 'participant'
