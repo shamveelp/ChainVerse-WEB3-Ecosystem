@@ -60,7 +60,6 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
 
             return this.transformToDTO(populatedMessage, adminId);
         } catch (error) {
-            console.error("CommunityAdminCommunityService: Send message error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -90,7 +89,6 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
                 totalCount: result.totalCount
             };
         } catch (error) {
-            console.error("CommunityAdminCommunityService: Get messages error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -126,7 +124,6 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
                 totalCount: result.totalCount
             };
         } catch (error) {
-            console.error("CommunityAdminCommunityService: Get group messages error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -155,7 +152,6 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
 
             return this.transformToDTO(updatedMessage, adminId);
         } catch (error) {
-            console.error("CommunityAdminCommunityService: Update message error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -184,7 +180,6 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
                 message: "Message deleted successfully"
             };
         } catch (error) {
-            console.error("CommunityAdminCommunityService: Delete message error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -211,7 +206,6 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
                 message: "Message pinned successfully"
             };
         } catch (error) {
-            console.error("CommunityAdminCommunityService: Pin message error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -238,7 +232,6 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
                 message: "Message unpinned successfully"
             };
         } catch (error) {
-            console.error("CommunityAdminCommunityService: Unpin message error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -264,7 +257,6 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
                 totalReactions: message.totalReactions
             };
         } catch (error) {
-            console.error("CommunityAdminCommunityService: Get message reactions error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -314,7 +306,6 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
 
             return { mediaFiles };
         } catch (error) {
-            console.error("CommunityAdminCommunityService: Upload media error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }

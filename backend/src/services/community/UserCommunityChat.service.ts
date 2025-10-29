@@ -54,7 +54,6 @@ export class UserCommunityChatService implements IUserCommunityChatService {
                 totalCount: result.totalCount
             };
         } catch (error) {
-            console.error("UserCommunityChatService: Get channel messages error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -92,7 +91,6 @@ export class UserCommunityChatService implements IUserCommunityChatService {
                 reactions
             };
         } catch (error) {
-            console.error("UserCommunityChatService: React to message error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -130,7 +128,6 @@ export class UserCommunityChatService implements IUserCommunityChatService {
                 reactions
             };
         } catch (error) {
-            console.error("UserCommunityChatService: Remove reaction error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -169,7 +166,6 @@ export class UserCommunityChatService implements IUserCommunityChatService {
 
             return this.transformGroupMessageToDTO(populatedMessage, userId);
         } catch (error) {
-            console.error("UserCommunityChatService: Send group message error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -221,7 +217,6 @@ export class UserCommunityChatService implements IUserCommunityChatService {
                 totalCount: result.totalCount
             };
         } catch (error) {
-            console.error("UserCommunityChatService: Get group messages error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -250,7 +245,6 @@ export class UserCommunityChatService implements IUserCommunityChatService {
 
             return this.transformGroupMessageToDTO(updatedMessage, userId);
         } catch (error) {
-            console.error("UserCommunityChatService: Edit group message error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -292,7 +286,6 @@ export class UserCommunityChatService implements IUserCommunityChatService {
                 message: "Message deleted successfully"
             };
         } catch (error) {
-            console.error("UserCommunityChatService: Delete group message error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -323,7 +316,6 @@ export class UserCommunityChatService implements IUserCommunityChatService {
                 message: "Messages marked as read successfully"
             };
         } catch (error) {
-            console.error("UserCommunityChatService: Mark group messages as read error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }

@@ -13,6 +13,7 @@ import {
   ConversationResponseDto,
   ParticipantDto,
 } from "../../dtos/chat/Chat.dto";
+import logger from "../../utils/logger";
 
 @injectable()
 export class ChatService implements IChatService {
@@ -142,7 +143,6 @@ export class ChatService implements IChatService {
         conversation: conversationResponse,
       };
     } catch (error) {
-      console.error("ChatService: Send message error:", error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -171,7 +171,6 @@ export class ChatService implements IChatService {
         search
       );
     } catch (error) {
-      console.error("ChatService: Get user conversations error:", error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -215,7 +214,6 @@ export class ChatService implements IChatService {
         limit
       );
     } catch (error) {
-      console.error("ChatService: Get conversation messages error:", error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -304,7 +302,6 @@ export class ChatService implements IChatService {
         isOwnMessage: true,
       };
     } catch (error) {
-      console.error("ChatService: Edit message error:", error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -357,7 +354,6 @@ export class ChatService implements IChatService {
         message: "Message deleted successfully",
       };
     } catch (error) {
-      console.error("ChatService: Delete message error:", error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -399,7 +395,6 @@ export class ChatService implements IChatService {
         message: "Messages marked as read",
       };
     } catch (error) {
-      console.error("ChatService: Mark messages as read error:", error);
       if (error instanceof CustomError) {
         throw error;
       }
@@ -431,7 +426,7 @@ export class ChatService implements IChatService {
         throw new CustomError("User not found", StatusCode.NOT_FOUND);
       }
 
-      console.log("ChatService: Found user:", {
+      logger.info("ChatService: Found user:", {
         id: otherUser._id,
         username: otherUser.username,
         hasId: !!otherUser._id,
@@ -443,7 +438,6 @@ export class ChatService implements IChatService {
         : (otherUser as any).id?.toString();
 
       if (!otherUserId) {
-        console.error("ChatService: Unable to get user ID from:", otherUser);
         throw new CustomError(
           "Invalid user data - missing ID",
           StatusCode.INTERNAL_SERVER_ERROR
@@ -530,7 +524,6 @@ export class ChatService implements IChatService {
 
       return response;
     } catch (error) {
-      console.error("ChatService: Get or create conversation error:", error);
       if (error instanceof CustomError) {
         throw error;
       }

@@ -81,7 +81,6 @@ export class UserMyCommunitiesService implements IUserMyCommunitiesService {
                 stats
             };
         } catch (error) {
-            console.error("UserMyCommunitiesService: Get my communities error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -104,7 +103,6 @@ export class UserMyCommunitiesService implements IUserMyCommunitiesService {
                 memberCommunities: stats.member
             };
         } catch (error) {
-            console.error("UserMyCommunitiesService: Get communities stats error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -136,7 +134,6 @@ export class UserMyCommunitiesService implements IUserMyCommunitiesService {
                 mostActiveToday: activity.mostActiveToday
             };
         } catch (error) {
-            console.error("UserMyCommunitiesService: Get communities activity error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -152,7 +149,6 @@ export class UserMyCommunitiesService implements IUserMyCommunitiesService {
 
             return await this._communityRepository.updateMemberNotifications(userId, communityId, enabled);
         } catch (error) {
-            console.error("UserMyCommunitiesService: Update notifications error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -178,7 +174,6 @@ export class UserMyCommunitiesService implements IUserMyCommunitiesService {
                 message: `You left ${community.communityName}`
             };
         } catch (error) {
-            console.error("UserMyCommunitiesService: Leave community error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }

@@ -78,14 +78,12 @@ export class FollowService implements IFollowService {
                             this._communityRepository.decrementFollowersCount(targetUser._id.toString())
                         ]);
                     } catch (rollbackError) {
-                        console.error("Failed to rollback follow operation:", rollbackError);
                     }
                 }
                 throw error;
             }
 
         } catch (error) {
-            console.error("FollowService: Follow user error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -154,14 +152,12 @@ export class FollowService implements IFollowService {
                             this._communityRepository.incrementFollowersCount(targetUser._id.toString())
                         ]);
                     } catch (rollbackError) {
-                        console.error("Failed to rollback unfollow operation:", rollbackError);
                     }
                 }
                 throw error;
             }
 
         } catch (error) {
-            console.error("FollowService: Unfollow user error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -181,7 +177,6 @@ export class FollowService implements IFollowService {
             const result = await this._communityRepository.getFollowers(userId, viewerUserId, cursor, validLimit);
             return result;
         } catch (error) {
-            console.error("FollowService: Get followers error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -201,7 +196,6 @@ export class FollowService implements IFollowService {
             const result = await this._communityRepository.getFollowing(userId, viewerUserId, cursor, validLimit);
             return result;
         } catch (error) {
-            console.error("FollowService: Get following error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -222,7 +216,6 @@ export class FollowService implements IFollowService {
 
             return await this.getFollowers(user._id.toString(), viewerUserId, cursor, limit);
         } catch (error) {
-            console.error("FollowService: Get user followers error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -243,7 +236,6 @@ export class FollowService implements IFollowService {
 
             return await this.getFollowing(user._id.toString(), viewerUserId, cursor, limit);
         } catch (error) {
-            console.error("FollowService: Get user following error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -266,7 +258,6 @@ export class FollowService implements IFollowService {
 
             return { isFollowing };
         } catch (error) {
-            console.error("FollowService: Get follow status error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -290,7 +281,6 @@ export class FollowService implements IFollowService {
                 followingCount: user.followingCount || 0
             };
         } catch (error) {
-            console.error("FollowService: Get follow stats error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -302,7 +292,6 @@ export class FollowService implements IFollowService {
         try {
             return await this._communityRepository.checkIfFollowing(followerId, targetId);
         } catch (error) {
-            console.error("FollowService: Check if following error:", error);
             return false; // Return false on error instead of throwing
         }
     }

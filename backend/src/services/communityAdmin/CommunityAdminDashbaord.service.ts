@@ -45,7 +45,6 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
             
             return new CommunityAdminDashboardResponseDto(communityOverview, stats, recentActivity, topMembers);
         } catch (error) {
-            console.error("CommunityAdminDashboardService: Get dashboard data error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -100,7 +99,6 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
 
             return overview;
         } catch (error) {
-            console.error("CommunityAdminDashboardService: Get community overview error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -194,7 +192,6 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
 
             return stats;
         } catch (error) {
-            console.error("CommunityAdminDashboardService: Get community stats error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -230,7 +227,6 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
 
             return activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         } catch (error) {
-            console.error("Error getting recent activity:", error);
             return [];
         }
     }
@@ -258,7 +254,6 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
                 isPremium: member.isPremium || false
             }));
         } catch (error) {
-            console.error("Error getting top members:", error);
             return [];
         }
     }

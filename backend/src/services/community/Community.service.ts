@@ -78,7 +78,6 @@ export class CommunityService implements ICommunityService {
 
             return profileData;
         } catch (error) {
-            console.error("CommunityService: Get community by ID error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -99,7 +98,6 @@ export class CommunityService implements ICommunityService {
 
             return await this.getCommunityById(community._id.toString(), viewerUserId);
         } catch (error) {
-            console.error("CommunityService: Get community by username error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -207,7 +205,6 @@ export class CommunityService implements ICommunityService {
                 searchType: type
             };
         } catch (error) {
-            console.error("CommunityService: Search communities error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -254,7 +251,6 @@ export class CommunityService implements ICommunityService {
                 totalCount: result.totalCount
             };
         } catch (error) {
-            console.error("CommunityService: Get popular communities error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -298,7 +294,6 @@ export class CommunityService implements ICommunityService {
                 joinedAt: new Date()
             };
         } catch (error) {
-            console.error("CommunityService: Join community error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -338,7 +333,6 @@ export class CommunityService implements ICommunityService {
                 leftAt: new Date()
             };
         } catch (error) {
-            console.error("CommunityService: Leave community error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -396,7 +390,6 @@ export class CommunityService implements ICommunityService {
                 totalCount: result.totalCount
             };
         } catch (error) {
-            console.error("CommunityService: Get community members error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -418,7 +411,6 @@ export class CommunityService implements ICommunityService {
             const memberStatus = await this._communityRepository.checkCommunityMembership(userId, community._id.toString());
             return memberStatus;
         } catch (error) {
-            console.error("CommunityService: Get community member status error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }

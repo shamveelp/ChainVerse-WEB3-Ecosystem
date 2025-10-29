@@ -72,7 +72,6 @@ export class CommunityUserService implements ICommunityUserService {
             
             return profileData;
         } catch (error) {
-            console.error("CommunityUserService: Get community profile error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -96,7 +95,6 @@ export class CommunityUserService implements ICommunityUserService {
 
             return await this.getCommunityProfile(user._id.toString(), viewerUserId);
         } catch (error) {
-            console.error("CommunityUserService: Get community profile by username error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -138,7 +136,6 @@ export class CommunityUserService implements ICommunityUserService {
             
             return await this.getCommunityProfile(userId, userId);
         } catch (error) {
-            console.error("CommunityUserService: Update community profile error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -167,7 +164,6 @@ export class CommunityUserService implements ICommunityUserService {
             
             return await this.getCommunityProfile(userId, userId);
         } catch (error) {
-            console.error("CommunityUserService: Upload banner image error:", error);
             if (error instanceof CustomError) {
                 throw error;
             }
