@@ -38,6 +38,17 @@ interface CommunityAdminAuthState {
   applicationStatus: 'none' | 'pending' | 'approved' | 'rejected';
   tempEmail: string | null;
   tempApplicationData: SerializableApplicationData | null;
+  subscription: Subscription | null; // Add subscription
+}
+
+interface Subscription {
+  communityId: string;
+  plan: "lifetime";
+  status: "active" | "inactive" | "pending";
+  paymentId?: string;
+  orderId?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const initialState: CommunityAdminAuthState = {
@@ -48,6 +59,7 @@ const initialState: CommunityAdminAuthState = {
   applicationStatus: 'none',
   tempEmail: null,
   tempApplicationData: null,
+  subscription: null,
 };
 
 export const communityAdminAuthSlice = createSlice({
@@ -73,6 +85,7 @@ export const communityAdminAuthSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.applicationStatus = 'none';
+      state.subscription = null;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
@@ -94,6 +107,9 @@ export const communityAdminAuthSlice = createSlice({
     updateToken: (state, action: PayloadAction<string>) => {
       state.token = action.payload;
     },
+    setSubscription: (state, action: PayloadAction<Subscription | null>) => {
+      state.subscription = action.payload;
+    },
   },
 });
 
@@ -105,7 +121,8 @@ export const {
   setTempEmail, 
   setTempApplicationData, 
   clearTempData,
-  updateToken
+  updateToken,
+  setSubscription
 } = communityAdminAuthSlice.actions;
 
 export default communityAdminAuthSlice.reducer;

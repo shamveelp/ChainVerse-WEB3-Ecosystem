@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Model, Types } from "mongoose";
 export interface ICommunity extends Document {
     _id: Types.ObjectId;
     communityName: string;
+    subscriptionId: Types.ObjectId;
     email: string;
     username: string;
     walletAddress: string;
@@ -28,6 +29,7 @@ export interface ICommunity extends Document {
 
 const CommunitySchema: Schema<ICommunity> = new Schema({
     communityName: { type: String, required: true },
+    subscriptionId: { type: Schema.Types.ObjectId, ref: "CommunitySubscription" },
     email: { type: String, required: true, unique: true },
     username: { type: String, required: true, unique: true },
     walletAddress: { type: String, required: true },

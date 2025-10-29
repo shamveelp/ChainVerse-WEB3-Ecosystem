@@ -45,6 +45,8 @@ import {
   ReviewModerationRequestDto,
   UpdateChainCastDto,
 } from "../dtos/chainCast/ChainCast.dto";
+import { ICommunityAdminSubscriptionController } from "../core/interfaces/controllers/communityAdmin/ICommunityAdminSubscription.controller";
+import { CreateSubscriptionDto } from "../dtos/communityAdmin/CommunityAdminSubscription.dto";
 
 // Configure Multer for profile picture uploads
 const storage = multer.memoryStorage();
@@ -95,6 +97,10 @@ const communityAdminCommunityController =
 const communityAdminChainCastController =
   container.get<CommunityAdminChainCastController>(
     TYPES.ICommunityAdminChainCastController
+  );
+const communityAdminSubscriptionController =
+  container.get<ICommunityAdminSubscriptionController>(
+    TYPES.ICommunityAdminSubscriptionController
   );
 
 // Live validation endpoints
@@ -595,6 +601,35 @@ router.get(
   validateQuery(GetReactionsQueryDto),
   communityAdminChainCastController.getReactions.bind(
     communityAdminChainCastController
+  )
+);
+
+// subscription
+
+// Subscription management
+router.post(
+  "/subscription/create-order",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(CreateSubscriptionDto),
+  communityAdminSubscriptionController.createOrder.bind(
+    communityAdminSubscriptionController
+  )
+);
+router.post(
+  "/subscription/verify-payment",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminSubscriptionController.verifyPayment.bind(
+    communityAdminSubscriptionController
+  )
+);
+router.get(
+  "/subscription",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminSubscriptionController.getSubscription.bind(
+    communityAdminSubscriptionController
   )
 );
 

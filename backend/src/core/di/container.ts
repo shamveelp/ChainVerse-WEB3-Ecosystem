@@ -183,6 +183,12 @@ import { UserChainCastController } from "../../controllers/chainCast/UserChainCa
 import { CommunityAdminChainCastController } from "../../controllers/chainCast/CommunityAdminChainCast.controller"
 import { IUserChainCastController } from "../interfaces/controllers/chainCast/IUserChainCast.controller"
 import { ICommunityAdminChainCastController } from "../interfaces/controllers/chainCast/ICommunityAdminChainCast.controller"
+import { ICommunitySubscriptionRepository } from "../interfaces/repositories/communityAdmin/ICommunityAdminSubscription.repository"
+import { CommunitySubscriptionRepository } from "../../repositories/communityAdmin/CommunityAdminSubscription.repository"
+import { ICommunityAdminSubscriptionService } from "../interfaces/services/communityAdmin/ICommunityAdminSubscriptionService"
+import { CommunityAdminSubscriptionService } from "../../services/communityAdmin/CommunityAdminSubscription.service"
+import { ICommunityAdminSubscriptionController } from "../interfaces/controllers/communityAdmin/ICommunityAdminSubscription.controller"
+import { CommunityAdminSubscriptionController } from "../../controllers/communityAdmin/CommunityAdminSubscription.controller"
 
 // Create Container
 const container = new Container()
@@ -319,6 +325,15 @@ container.bind<IChainCastRepository>(TYPES.IChainCastRepository).to(ChainCastRep
 
 container.bind<IUserChainCastController>(TYPES.IUserChainCastController).to(UserChainCastController);
 container.bind<ICommunityAdminChainCastController>(TYPES.ICommunityAdminChainCastController).to(CommunityAdminChainCastController);
+
+
+container.bind<ICommunitySubscriptionRepository>(TYPES.ICommunitySubscriptionRepository).to(CommunitySubscriptionRepository);
+
+// Bind Subscription Service
+container.bind<ICommunityAdminSubscriptionService>(TYPES.ICommunityAdminSubscriptionService).to(CommunityAdminSubscriptionService);
+
+// Bind Subscription Controller
+container.bind<ICommunityAdminSubscriptionController>(TYPES.ICommunityAdminSubscriptionController).to(CommunityAdminSubscriptionController);
 
 
 export default container

@@ -649,7 +649,7 @@ function ChatComponent({
       <CardHeader className="border-b border-blue-500/30">
         <CardTitle className="text-xl font-semibold text-white flex items-center gap-3">
           <MessageSquare className="h-5 w-5 text-blue-400" />
-          {communityName} Chat
+          {communityName} Activities
           <Badge className="ml-auto bg-green-500/20 text-green-300 border-green-500/30">
             {activeMembers} Active
           </Badge>
