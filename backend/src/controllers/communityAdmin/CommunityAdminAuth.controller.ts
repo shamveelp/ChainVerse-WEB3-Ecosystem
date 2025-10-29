@@ -6,6 +6,7 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import { ICommunityAdminAuthController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminAuth.controller";
 import { ICommunityAdminAuthService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminAuthService";
 import cloudinary from "../../config/cloudinary";
+import { Messages } from "../../enums/messages.enum";
 
 @injectable()
 export class CommunityAdminAuthController implements ICommunityAdminAuthController {
@@ -20,7 +21,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             if (!email || typeof email !== 'string') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Email is required"
+                    error: Messages.EMAIL_REQUIRED
                 });
                 return;
             }
@@ -31,7 +32,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             logger.error("Check email exists error:", error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: "Failed to check email availability"
+                error: Messages.FAILED_CHECK_EMAIL
             });
         }
     }
@@ -43,7 +44,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             if (!username || typeof username !== 'string') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Username is required"
+                    error: Messages.USERNAME_REQUIRED
                 });
                 return;
             }
@@ -54,7 +55,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             logger.error("Check username exists error:", error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: "Failed to check username availability"
+                error: Messages.FAILED_CHECK_USERNAME
             });
         }
     }
@@ -80,11 +81,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                             (error, result) => {
                                 if (error) {
                                     logger.error("Logo upload error:", error);
-                                    reject(new Error("Failed to upload logo"));
+                                    reject(new Error(Messages.FAILED_UPLOAD_LOGO));
                                 } else if (result) {
                                     resolve(result.secure_url);
                                 } else {
-                                    reject(new Error("No result from cloudinary"));
+                                    reject(new Error(Messages.NO_RESULT_FROM_CLOUDINARY));
                                 }
                             }
                         );

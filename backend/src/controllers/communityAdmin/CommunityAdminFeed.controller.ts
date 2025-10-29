@@ -6,11 +6,13 @@ import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 import { ICommunityAdminFeedController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminFeed.controller";
 import { ICommunityAdminFeedService } from "../../core/interfaces/services/communityAdmin/ICommnityAdminFeedService";
+import { SuccessMessages, ErrorMessages, ValidationMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class CommunityAdminFeedController implements ICommunityAdminFeedController {
     constructor(
-        @inject(TYPES.ICommunityAdminFeedService) private _feedService: ICommunityAdminFeedService
+        @inject(TYPES.ICommunityAdminFeedService)
+        private _feedService: ICommunityAdminFeedService
     ) {}
 
     async getCommunityFeed(req: Request, res: Response): Promise<void> {
@@ -18,7 +20,6 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const communityAdminId = (req as any).user.id;
             const { cursor, limit = '10', type = 'all' } = req.query;
 
-            // Validate limit
             let validLimit = 10;
             if (limit && typeof limit === 'string') {
                 const parsedLimit = parseInt(limit, 10);
@@ -36,17 +37,20 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: feed
+                message: SuccessMessages.COMMUNITY_FEED_FETCHED,
+                data: feed,
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch community feed";
-            logger.error("Get community feed error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_GET_COMMUNITY_FEED;
+            logger.error("Get community feed error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
             });
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -60,17 +64,20 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
-                message: result.message
+                message: result.message || SuccessMessages.POST_LIKE_TOGGLED,
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to toggle post like";
-            logger.error("Toggle post like error:", { message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_TOGGLE_POST_LIKE;
+            logger.error("Toggle post like error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
+                postId: req.params.postId,
             });
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -79,12 +86,10 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const communityAdminId = (req as any).user.id;
             const { postId, content, parentCommentId } = req.body;
 
-            
-
             if (!postId || !content) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post ID and content are required"
+                    error: ValidationMessages.MISSING_POST_OR_CONTENT,
                 });
                 return;
             }
@@ -92,7 +97,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             if (content.trim().length === 0) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Comment content cannot be empty"
+                    error: ValidationMessages.EMPTY_COMMENT_CONTENT,
                 });
                 return;
             }
@@ -100,23 +105,25 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const comment = await this._feedService.createComment(communityAdminId, {
                 postId,
                 content: content.trim(),
-                parentCommentId
+                parentCommentId,
             });
 
             res.status(StatusCode.CREATED).json({
                 success: true,
                 data: comment,
-                message: "Comment created successfully"
+                message: SuccessMessages.COMMENT_CREATED,
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to create comment";
-            logger.error("Create comment error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_CREATE_COMMENT;
+            logger.error("Create comment error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
             });
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -126,12 +133,10 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const { postId } = req.params;
             const { shareText } = req.body;
 
-            
-
             if (!postId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post ID is required"
+                    error: ValidationMessages.MISSING_POST_ID,
                 });
                 return;
             }
@@ -141,17 +146,20 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
-                message: result.message
+                message: result.message || SuccessMessages.POST_SHARED,
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to share post";
-            logger.error("Share post error:", { message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_SHARE_POST;
+            logger.error("Share post error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
+                postId: req.params.postId,
             });
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -160,23 +168,24 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const communityAdminId = (req as any).user.id;
             const { period = 'week' } = req.query;
 
-            
-
             const stats = await this._feedService.getEngagementStats(communityAdminId, period as string);
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: stats
+                message: SuccessMessages.ENGAGEMENT_STATS_FETCHED,
+                data: stats,
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch engagement stats";
-            logger.error("Get engagement stats error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_GET_ENGAGEMENT_STATS;
+            logger.error("Get engagement stats error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
             });
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -185,24 +194,25 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const communityAdminId = (req as any).user.id;
             const { postId } = req.params;
 
-            
-
             const result = await this._feedService.pinPost(communityAdminId, postId);
 
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
-                message: "Post pinned successfully"
+                message: SuccessMessages.POST_PINNED,
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to pin post";
-            logger.error("Pin post error:", { message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_PIN_POST;
+            logger.error("Pin post error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
+                postId: req.params.postId,
             });
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -212,24 +222,25 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             const { postId } = req.params;
             const { reason } = req.body;
 
-            
-
             const result = await this._feedService.deletePost(communityAdminId, postId, reason);
 
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
-                message: "Post deleted successfully"
+                message: SuccessMessages.POST_DELETED,
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to delete post";
-            logger.error("Delete post error:", { message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_DELETE_POST;
+            logger.error("Delete post error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
+                postId: req.params.postId,
             });
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 }

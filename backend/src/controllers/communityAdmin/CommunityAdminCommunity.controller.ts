@@ -7,12 +7,15 @@ import { IUserCommunityChatService } from "../../core/interfaces/services/commun
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
+import { SuccessMessages, ErrorMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class CommunityAdminCommunityController implements ICommunityAdminCommunityController {
     constructor(
-        @inject(TYPES.ICommunityAdminCommunityService) private _communityService: ICommunityAdminCommunityService,
-        @inject(TYPES.IUserCommunityChatService) private _chatService: IUserCommunityChatService
+        @inject(TYPES.ICommunityAdminCommunityService)
+        private _communityService: ICommunityAdminCommunityService,
+        @inject(TYPES.IUserCommunityChatService)
+        private _chatService: IUserCommunityChatService
     ) {}
 
     async sendMessage(req: Request, res: Response): Promise<void> {
@@ -23,108 +26,98 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             if (!content?.trim() && (!mediaFiles || mediaFiles.length === 0)) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Message content or media files are required"
+                    error: ErrorMessages.MESSAGE_CONTENT_REQUIRED
                 });
                 return;
             }
 
             const message = await this._communityService.sendMessage(adminId, {
-                content: content?.trim() || '',
+                content: content?.trim() || "",
                 mediaFiles: mediaFiles || [],
                 messageType
             });
 
             res.status(StatusCode.CREATED).json({
                 success: true,
-                data: message,
-                message: "Message sent successfully"
+                message: SuccessMessages.MESSAGE_SENT,
+                data: message
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to send message";
-            logger.error("Send community message error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_SEND_MESSAGE;
+
+            logger.error("Send community message error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id
             });
+
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
     async getMessages(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
-            const { cursor, limit = '20' } = req.query;
+            const { cursor, limit = "20" } = req.query;
 
-            let validLimit = 20;
-            if (limit && typeof limit === 'string') {
-                const parsedLimit = parseInt(limit, 10);
-                if (!isNaN(parsedLimit)) {
-                    validLimit = Math.min(Math.max(parsedLimit, 1), 50);
-                }
-            }
+            let validLimit = Math.min(Math.max(parseInt(limit as string, 10) || 20, 1), 50);
 
-            const messages = await this._communityService.getMessages(
-                adminId,
-                cursor as string,
-                validLimit
-            );
+            const messages = await this._communityService.getMessages(adminId, cursor as string, validLimit);
 
             res.status(StatusCode.OK).json({
                 success: true,
+                message: SuccessMessages.MESSAGE_REACTIONS_FETCHED,
                 data: messages
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get messages";
-            logger.error("Get community messages error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_GET_MESSAGES;
+
+            logger.error("Get community messages error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id
             });
+
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
-    // Get group messages (admin can view)
     async getGroupMessages(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
-            const { cursor, limit = '50' } = req.query;
+            const { cursor, limit = "50" } = req.query;
 
-            let validLimit = 50;
-            if (limit && typeof limit === 'string') {
-                const parsedLimit = parseInt(limit, 10);
-                if (!isNaN(parsedLimit)) {
-                    validLimit = Math.min(Math.max(parsedLimit, 1), 100);
-                }
-            }
+            let validLimit = Math.min(Math.max(parseInt(limit as string, 10) || 50, 1), 100);
 
-            // We'll need to get the community username from admin
-            // For now, we'll create a new method in the service
-            const messages = await this._communityService.getGroupMessages(
-                adminId,
-                cursor as string,
-                validLimit
-            );
+            const messages = await this._communityService.getGroupMessages(adminId, cursor as string, validLimit);
 
             res.status(StatusCode.OK).json({
                 success: true,
+                message: SuccessMessages.MESSAGE_REACTIONS_FETCHED,
                 data: messages
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get group messages";
-            logger.error("Get group messages error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_GET_GROUP_MESSAGES;
+
+            logger.error("Get group messages error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id
             });
+
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
-    // Admin delete group message
     async deleteGroupMessage(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -134,18 +127,22 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: result,
-                message: result.message
+                message: SuccessMessages.MESSAGE_DELETED,
+                data: result
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to delete group message";
-            logger.error("Admin delete group message error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_DELETE_GROUP_MESSAGE;
+
+            logger.error("Admin delete group message error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id
             });
+
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -155,10 +152,10 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             const { messageId } = req.params;
             const { content } = req.body;
 
-            if (!content || content.trim() === '') {
+            if (!content?.trim()) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Message content is required"
+                    error: ErrorMessages.MESSAGE_CONTENT_REQUIRED
                 });
                 return;
             }
@@ -169,18 +166,22 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: message,
-                message: "Message updated successfully"
+                message: SuccessMessages.MESSAGE_UPDATED,
+                data: message
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to update message";
-            logger.error("Update community message error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_UPDATE_MESSAGE;
+
+            logger.error("Update community message error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id
             });
+
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -193,18 +194,22 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: result,
-                message: result.message
+                message: SuccessMessages.MESSAGE_DELETED,
+                data: result
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to delete message";
-            logger.error("Delete community message error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_DELETE_MESSAGE;
+
+            logger.error("Delete community message error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id
             });
+
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -217,18 +222,22 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: result,
-                message: result.message
+                message: SuccessMessages.MESSAGE_PINNED,
+                data: result
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to pin message";
-            logger.error("Pin community message error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_PIN_MESSAGE;
+
+            logger.error("Pin community message error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id
             });
+
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -241,18 +250,22 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: result,
-                message: result.message
+                message: SuccessMessages.MESSAGE_UNPINNED,
+                data: result
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to unpin message";
-            logger.error("Unpin community message error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_UNPIN_MESSAGE;
+
+            logger.error("Unpin community message error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id
             });
+
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -265,17 +278,22 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
 
             res.status(StatusCode.OK).json({
                 success: true,
+                message: SuccessMessages.MESSAGE_REACTIONS_FETCHED,
                 data: reactions
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get message reactions";
-            logger.error("Get message reactions error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_GET_MESSAGE_REACTIONS;
+
+            logger.error("Get message reactions error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id
             });
+
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 
@@ -287,7 +305,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             if (!files || files.length === 0) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "No media files provided"
+                    error: ErrorMessages.NO_MEDIA_FILES
                 });
                 return;
             }
@@ -296,18 +314,22 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: result,
-                message: "Media uploaded successfully"
+                message: SuccessMessages.MEDIA_UPLOADED,
+                data: result
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to upload media";
-            logger.error("Upload media error:", { message, stack: err.stack, adminId: (req as any).user?.id });
-            res.status(statusCode).json({
-                success: false,
-                error: message
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_UPLOAD_MEDIA;
+
+            logger.error("Upload media error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id
             });
+
+            res.status(statusCode).json({ success: false, error: message });
         }
     }
 }

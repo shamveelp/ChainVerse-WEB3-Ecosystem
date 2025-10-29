@@ -6,11 +6,13 @@ import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 import { ICommunityAdminDashboardController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminDashboard.controller";
 import { ICommunityAdminDashboardService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminDashboard.service";
+import { SuccessMessages, ErrorMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class CommunityAdminDashboardController implements ICommunityAdminDashboardController {
     constructor(
-        @inject(TYPES.ICommunityAdminDashboardService) private _dashboardService: ICommunityAdminDashboardService
+        @inject(TYPES.ICommunityAdminDashboardService)
+        private _dashboardService: ICommunityAdminDashboardService
     ) {}
 
     async getDashboardData(req: Request, res: Response): Promise<void> {
@@ -18,20 +20,35 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             const communityAdminId = (req as any).user.id;
             const { period = 'week' } = req.query;
 
-            const dashboardData = await this._dashboardService.getDashboardData(communityAdminId, period as string);
+            const dashboardData = await this._dashboardService.getDashboardData(
+                communityAdminId,
+                period as string
+            );
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: dashboardData
+                message: SuccessMessages.SUBSCRIPTION_RETRIEVED,
+                data: dashboardData,
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch dashboard data";
-            logger.error("Get dashboard data error:", { message, stack: err.stack, adminId: (req as any).user?.id });
+            const statusCode =
+                error instanceof CustomError
+                    ? error.statusCode
+                    : StatusCode.INTERNAL_SERVER_ERROR;
+
+            const message =
+                err.message || ErrorMessages.FAILED_GET_DASHBOARD_DATA;
+
+            logger.error("Get dashboard data error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
+            });
+
             res.status(statusCode).json({
                 success: false,
-                error: message
+                error: message,
             });
         }
     }
@@ -40,21 +57,34 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
         try {
             const communityAdminId = (req as any).user.id;
 
-
-            const overview = await this._dashboardService.getCommunityOverview(communityAdminId);
+            const overview = await this._dashboardService.getCommunityOverview(
+                communityAdminId
+            );
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: overview
+                message: SuccessMessages.SUBSCRIPTION_RETRIEVED, 
+                data: overview,
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch community overview";
-            logger.error("Get community overview error:", { message, stack: err.stack, adminId: (req as any).user?.id });
+            const statusCode =
+                error instanceof CustomError
+                    ? error.statusCode
+                    : StatusCode.INTERNAL_SERVER_ERROR;
+
+            const message =
+                err.message || ErrorMessages.FAILED_GET_COMMUNITY_OVERVIEW;
+
+            logger.error("Get community overview error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
+            });
+
             res.status(statusCode).json({
                 success: false,
-                error: message
+                error: message,
             });
         }
     }
@@ -64,20 +94,35 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             const communityAdminId = (req as any).user.id;
             const { period = 'week' } = req.query;
 
-            const stats = await this._dashboardService.getCommunityStats(communityAdminId, period as string);
+            const stats = await this._dashboardService.getCommunityStats(
+                communityAdminId,
+                period as string
+            );
 
             res.status(StatusCode.OK).json({
                 success: true,
-                data: stats
+                message: SuccessMessages.SUBSCRIPTION_RETRIEVED, 
+                data: stats,
             });
         } catch (error) {
             const err = error as Error;
-            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch community stats";
-            logger.error("Get community stats error:", { message, stack: err.stack, adminId: (req as any).user?.id });
+            const statusCode =
+                error instanceof CustomError
+                    ? error.statusCode
+                    : StatusCode.INTERNAL_SERVER_ERROR;
+
+            const message =
+                err.message || ErrorMessages.FAILED_GET_COMMUNITY_STATS;
+
+            logger.error("Get community stats error:", {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
+            });
+
             res.status(statusCode).json({
                 success: false,
-                error: message
+                error: message,
             });
         }
     }
