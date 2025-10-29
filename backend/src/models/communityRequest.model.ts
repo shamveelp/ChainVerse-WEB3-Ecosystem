@@ -12,7 +12,7 @@ export interface ICommunityRequest extends Document {
     category: string;
     whyChooseUs: string;
     rules: [string];
-    socialLinks: [Object];
+    socialLinks: [object];
     logo: string;
     banner: string;
     status: string;

@@ -115,7 +115,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       // Transform rules and socialLinks to match ICommunityRequest
       const rules: [string] = [dto.rules.join("; ")]; // Join multiple rules into a single string
-      const socialLinks: [Object] | undefined = dto.socialLinks
+      const socialLinks: [object] | undefined = dto.socialLinks
         ? [dto.socialLinks]
         : undefined;
 
@@ -683,7 +683,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       // Transform rules and socialLinks to match ICommunityRequest
       const rules: [string] = [dto.rules.join("; ")]; // Join multiple rules into a single string
-      const socialLinks: [Object] | undefined = dto.socialLinks
+      const socialLinks: [object] | undefined = dto.socialLinks
         ? [dto.socialLinks]
         : undefined;
 

@@ -112,7 +112,7 @@ export class ChatRepository implements IChatRepository {
         query._id = { $lt: new Types.ObjectId(cursor) };
       }
 
-      let conversations = await ConversationModel.find(query)
+      const conversations = await ConversationModel.find(query)
         .populate([
           {
             path: 'participants',

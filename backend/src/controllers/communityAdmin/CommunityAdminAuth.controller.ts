@@ -190,7 +190,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         } catch (error: any) {
             logger.error("Community admin login error:", error);
             let statusCode = StatusCode.UNAUTHORIZED;
-            let errorMessage = error.message || "Login failed";
+            const errorMessage = error.message || "Login failed";
 
             if (error.message?.includes('under review')) {
                 statusCode = StatusCode.FORBIDDEN;
