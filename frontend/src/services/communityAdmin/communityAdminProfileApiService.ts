@@ -8,21 +8,21 @@ interface CommunityStats {
   totalQuests: number;
   premiumMembers: number;
   engagementRate: number;
-  myPostsCount: number; // Added to match the component's interface
-  myLikesCount: number; // Added to match the component's interface
-  myCommentsCount: number; // Added to match the component's interface
+  myPostsCount: number;
+  myLikesCount: number;
+  myCommentsCount: number;
 }
 
 interface CommunityAdminProfile {
   _id: string;
   name: string;
   email: string;
-  username: string; // Added to match the component's interface
+  username: string;
   bio?: string;
   location?: string;
   website?: string;
   profilePic?: string;
-  bannerImage?: string; // Added to match the component's interface
+  bannerImage?: string;
   communityId?: string;
   communityName?: string;
   communityLogo?: string;
@@ -62,9 +62,9 @@ class CommunityAdminProfileApiService {
       console.error("Get community admin profile error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
                "Failed to get profile",
       };
     }
@@ -73,7 +73,15 @@ class CommunityAdminProfileApiService {
   // Update profile
   async updateProfile(profileData: UpdateProfileData): Promise<ApiResponse<CommunityAdminProfile>> {
     try {
-      const response = await api.put(`${this.baseUrl}/profile`, profileData);
+      // Clean up data before sending
+      const cleanData = {
+        name: profileData.name?.trim(),
+        bio: profileData.bio?.trim() || "",
+        location: profileData.location?.trim() || "",
+        website: profileData.website?.trim() || ""
+      };
+
+      const response = await api.put(`${this.baseUrl}/profile`, cleanData);
       return {
         success: true,
         data: response.data.data,
@@ -83,9 +91,9 @@ class CommunityAdminProfileApiService {
       console.error("Update community admin profile error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
                "Failed to update profile",
       };
     }
@@ -101,7 +109,7 @@ class CommunityAdminProfileApiService {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 30000, // 30 seconds timeout
+        timeout: 60000, // 60 seconds timeout for image uploads
       });
 
       return {
@@ -113,9 +121,9 @@ class CommunityAdminProfileApiService {
       console.error("Upload profile picture error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
                "Failed to upload profile picture",
       };
     }
@@ -131,7 +139,7 @@ class CommunityAdminProfileApiService {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 30000, // 30 seconds timeout
+        timeout: 60000, // 60 seconds timeout for image uploads
       });
 
       return {
@@ -143,9 +151,9 @@ class CommunityAdminProfileApiService {
       console.error("Upload banner image error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
                "Failed to upload banner image",
       };
     }
@@ -163,9 +171,9 @@ class CommunityAdminProfileApiService {
       console.error("Get community stats error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
                "Failed to get community stats",
       };
     }
