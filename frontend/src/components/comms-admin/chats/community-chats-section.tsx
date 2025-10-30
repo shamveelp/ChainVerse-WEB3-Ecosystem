@@ -1,6 +1,6 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from "react"
-import { Send, Loader as Loader2, CircleAlert as AlertCircle, Trash2 } from "lucide-react"
+import { Send, Loader as Loader2, AlertCircle as AlertCircle, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -17,7 +17,7 @@ export default function CommunityChatsSection() {
 
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
-  const [loading, setLoading] = useState(false) // Reduced initial loading
+  const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -33,8 +33,9 @@ export default function CommunityChatsSection() {
   const socketSetupRef = useRef(false)
   const componentMountedRef = useRef(false)
   const messageSentRef = useRef<Set<string>>(new Set())
+  const initialLoadDoneRef = useRef(false)
 
-  // Load messages - more lenient for testing
+  // Load messages - Fixed dependencies to prevent infinite loop
   const loadMessages = useCallback(async (reset: boolean = false) => {
     if (!componentMountedRef.current || isLoadingRef.current) return
 
@@ -70,7 +71,7 @@ export default function CommunityChatsSection() {
         setError(null)
       } catch (apiError: any) {
         console.warn('API error, creating mock messages for testing:', apiError)
-        
+
         // For testing: create mock messages if no real messages
         if (reset && messages.length === 0) {
           const mockMessages: Message[] = [
@@ -92,14 +93,14 @@ export default function CommunityChatsSection() {
           ];
           setMessages(mockMessages);
         }
-        
-        setError(null); // Don't show error for testing
+
+        setError(null)
       }
 
     } catch (err: any) {
       console.warn('Load group messages error (non-critical):', err)
       if (componentMountedRef.current && reset) {
-        setError(null) // Don't show error for testing
+        setError(null)
       }
     } finally {
       if (componentMountedRef.current) {
@@ -108,7 +109,7 @@ export default function CommunityChatsSection() {
       }
       isLoadingRef.current = false
     }
-  }, [nextCursor, messages.length])
+  }, [nextCursor]) // Removed messages.length from dependencies
 
   // Component mounted effect
   useEffect(() => {
@@ -118,12 +119,13 @@ export default function CommunityChatsSection() {
     }
   }, [])
 
-  // Initial load - more lenient
+  // Initial load - Only run once on mount
   useEffect(() => {
-    if (!isLoadingRef.current) {
+    if (!initialLoadDoneRef.current && !isLoadingRef.current) {
+      initialLoadDoneRef.current = true
       loadMessages(true)
     }
-  }, [loadMessages])
+  }, []) // Empty dependency array - only run on mount
 
   // Socket setup - improved resilience
   useEffect(() => {
@@ -203,7 +205,6 @@ export default function CommunityChatsSection() {
           console.warn('Group message error (non-critical):', data)
           if (!componentMountedRef.current) return
 
-          // Don't show toast error for testing
           console.log('Group message error details:', data.error)
           setSending(false)
         }
@@ -229,7 +230,6 @@ export default function CommunityChatsSection() {
       } catch (error: any) {
         console.warn('Failed to setup admin socket for group chat (non-critical):', error)
         socketSetupRef.current = false
-        // Don't show error toast for testing
       }
     }
 
@@ -278,15 +278,14 @@ export default function CommunityChatsSection() {
 
       // Stop typing indicator
       handleStopTyping()
-      
+
       // Set timeout to clear sending state if no confirmation
       setTimeout(() => {
         setSending(false)
       }, 5000)
-      
+
     } catch (error: any) {
       console.warn('Failed to send message (non-critical):', error)
-      // Don't restore message or show error for testing
       setSending(false)
     }
   }

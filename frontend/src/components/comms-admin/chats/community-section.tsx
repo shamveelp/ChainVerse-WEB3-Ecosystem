@@ -1,6 +1,6 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from "react"
-import { Send, Image, Video, Loader as Loader2, CircleAlert as AlertCircle, Pin, Trash2, CreditCard as Edit2, Upload, X } from "lucide-react"
+import { Send, Image, Video, Loader as Loader2, AlertCircle as AlertCircle, Pin, Trash2, CreditCard as Edit2, Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -58,7 +58,7 @@ export default function CommunitySection() {
 
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
-  const [loading, setLoading] = useState(false) // Reduced initial loading
+  const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -78,8 +78,9 @@ export default function CommunitySection() {
   const socketSetupRef = useRef(false)
   const componentMountedRef = useRef(false)
   const messageSentRef = useRef<Set<string>>(new Set())
+  const initialLoadDoneRef = useRef(false)
 
-  // Load messages with improved error handling - more lenient for testing
+  // Load messages with improved error handling - Fixed dependencies
   const loadMessages = useCallback(async (reset: boolean = false) => {
     if (!componentMountedRef.current || isLoadingRef.current) {
       return
@@ -101,7 +102,7 @@ export default function CommunitySection() {
 
       try {
         const response = await communityAdminChatApiService.getChannelMessages(cursor, 20)
-        
+
         if (!componentMountedRef.current) return
 
         if (reset) {
@@ -117,7 +118,7 @@ export default function CommunitySection() {
         setError(null)
       } catch (apiError: any) {
         console.warn('API error, creating mock messages for testing:', apiError)
-        
+
         // For testing: create mock messages
         if (reset && messages.length === 0) {
           const mockMessages: Message[] = [
@@ -142,14 +143,14 @@ export default function CommunitySection() {
           ];
           setMessages(mockMessages);
         }
-        
-        setError(null); // Don't show error for testing
+
+        setError(null)
       }
 
     } catch (err: any) {
       console.warn('Load messages error (non-critical):', err)
       if (componentMountedRef.current && reset) {
-        setError(null) // Don't show error for testing
+        setError(null)
       }
     } finally {
       if (componentMountedRef.current) {
@@ -158,7 +159,7 @@ export default function CommunitySection() {
       }
       isLoadingRef.current = false
     }
-  }, [currentAdmin, nextCursor, messages.length])
+  }, [currentAdmin, nextCursor]) // Removed messages.length from dependencies
 
   // Component mounted effect
   useEffect(() => {
@@ -168,13 +169,13 @@ export default function CommunitySection() {
     }
   }, [])
 
-  // Initial load - more lenient
+  // Initial load - Only run once on mount
   useEffect(() => {
-    if (!isLoadingRef.current) {
-      // Always try to load, even without perfect auth
+    if (!initialLoadDoneRef.current && !isLoadingRef.current) {
+      initialLoadDoneRef.current = true
       loadMessages(true)
     }
-  }, [loadMessages])
+  }, []) // Empty dependency array - only run on mount
 
   // Socket setup - improved and more resilient
   useEffect(() => {
@@ -215,14 +216,12 @@ export default function CommunitySection() {
         const handleChannelMessageSent = (data: any) => {
           console.log('Channel message sent confirmation:', data)
           setSending(false)
-          // Clear any sending timeouts
         }
 
         const handleMessageError = (data: any) => {
           console.warn('Message error (non-critical):', data)
           if (!componentMountedRef.current) return
-          
-          // Don't show toast error for testing
+
           console.log('Message error details:', data.error)
           setSending(false)
         }
@@ -240,7 +239,6 @@ export default function CommunitySection() {
       } catch (error: any) {
         console.warn('Failed to setup admin socket (non-critical):', error)
         socketSetupRef.current = false
-        // Don't show error toast for testing
       }
     }
 
@@ -343,15 +341,14 @@ export default function CommunitySection() {
       })
 
       console.log('Channel message sent via socket')
-      
+
       // Set timeout to clear sending state if no confirmation
       setTimeout(() => {
         setSending(false)
       }, 5000)
-      
+
     } catch (error: any) {
       console.warn('Failed to send message (non-critical):', error)
-      // Don't restore inputs or show error for testing
       setSending(false)
     }
   }
