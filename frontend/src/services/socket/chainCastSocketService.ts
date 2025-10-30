@@ -1,5 +1,4 @@
 import { io, Socket } from "socket.io-client";
-import { store } from "@/redux/store";
 
 export interface ChainCastParticipant {
   userId: string;
@@ -18,17 +17,6 @@ interface ChainCastReaction {
   timestamp: Date;
 }
 
-interface ModerationRequest {
-  userId: string;
-  username: string;
-  requestedPermissions: {
-    video: boolean;
-    audio: boolean;
-  };
-  message?: string;
-  timestamp: Date;
-}
-
 interface ChatMessage {
   id: string;
   userId: string;
@@ -40,82 +28,100 @@ interface ChatMessage {
 class ChainCastSocketService {
   public socket: Socket | null = null;
   private isConnecting = false;
-  private currentToken: string | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 10;
   private currentChainCastId: string | null = null;
-  private eventListenersSetup = false;
 
-  async connect(token: string): Promise<void> {
-    // Prevent multiple simultaneous connections
-    if (this.isConnecting) {
-      return;
-    }
+  async connect(token?: string): Promise<void> {
+    if (this.isConnecting) return;
+    if (this.socket?.connected) return;
 
-    // If already connected with same token, return
-    if (this.socket?.connected && this.currentToken === token) {
-      return Promise.resolve();
-    }
-
-    if (!token?.trim()) {
-      throw new Error("No valid token provided");
-    }
-
-    this.currentToken = token;
     this.isConnecting = true;
+    this.reconnectAttempts = 0;
 
     return new Promise((resolve, reject) => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const socketUrl = `${apiUrl}/chaincast`;
 
-      console.log('Connecting to ChainCast socket:', socketUrl);
+      console.log('🔌 Connecting to ChainCast socket:', socketUrl);
 
-      // Clean up existing connection
       this.cleanup();
 
       this.socket = io(socketUrl, {
-        auth: { token: token.trim() },
+        auth: { token: token || 'liberal-token' },
         transports: ["websocket", "polling"],
-        timeout: 5000,
-        forceNew: true,
+        timeout: 10000,
+        forceNew: false,
         autoConnect: true,
         reconnection: true,
-        reconnectionAttempts: 3,
+        reconnectionAttempts: this.maxReconnectAttempts,
         reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        maxReconnectionAttempts: this.maxReconnectAttempts
       });
 
       const timeout = setTimeout(() => {
-        console.error("ChainCast socket connection timeout");
-        this.cleanup();
-        reject(new Error("Connection timeout"));
-      }, 6000);
+        console.log('⏰ Connection timeout, but continuing...');
+        this.isConnecting = false;
+        resolve(); // Resolve anyway for liberal connection
+      }, 8000);
 
       this.socket.on("connect", () => {
         clearTimeout(timeout);
-        console.log("✅ Connected to ChainCast socket", { socketId: this.socket?.id });
+        console.log("✅ ChainCast socket connected", { socketId: this.socket?.id });
         this.isConnecting = false;
-        this.setupEventListeners();
+        this.reconnectAttempts = 0;
+        this.setupEventHandlers();
         resolve();
       });
 
       this.socket.on("connect_error", (error) => {
-        clearTimeout(timeout);
-        console.error("❌ ChainCast socket connection error:", error.message);
-        this.cleanup();
-        reject(error);
+        console.warn("⚠️ ChainCast socket connection error:", error.message);
+        this.reconnectAttempts++;
+        
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+          clearTimeout(timeout);
+          this.cleanup();
+          reject(error);
+        }
+        // Don't reject immediately, let reconnection work
       });
 
-      this.socket.on("disconnect", () => {
-        console.log("ChainCast socket disconnected");
-        this.eventListenersSetup = false;
+      this.socket.on("disconnect", (reason) => {
+        console.log("❌ ChainCast socket disconnected:", reason);
+        this.isConnecting = false;
+        
+        // Auto-reconnect for liberal connection
+        if (reason === 'io server disconnect') {
+          setTimeout(() => this.connect(token), 1000);
+        }
+      });
+
+      this.socket.on("reconnect", (attemptNumber) => {
+        console.log("🔄 ChainCast socket reconnected after", attemptNumber, "attempts");
+        this.reconnectAttempts = 0;
+        this.setupEventHandlers();
+      });
+
+      this.socket.on("error", (error) => {
+        console.warn("🐛 ChainCast socket error:", error);
       });
     });
   }
 
-  private setupEventListeners(): void {
-    if (!this.socket || this.eventListenersSetup) return;
-    this.eventListenersSetup = true;
+  private setupEventHandlers(): void {
+    if (!this.socket) return;
+
+    // Remove existing listeners to prevent duplicates
+    this.socket.removeAllListeners();
+    
+    // Re-add connection event handlers
+    this.socket.on("disconnect", (reason) => {
+      console.log("❌ ChainCast socket disconnected:", reason);
+    });
 
     this.socket.on("error", (error) => {
-      console.error("ChainCast socket error:", error);
+      console.warn("🐛 ChainCast socket error:", error);
     });
   }
 
@@ -126,35 +132,42 @@ class ChainCastSocketService {
       this.socket = null;
     }
     this.isConnecting = false;
-    this.eventListenersSetup = false;
   }
 
   disconnect(): void {
-    console.log('Disconnecting ChainCast socket');
+    console.log('🔌 Disconnecting ChainCast socket');
     this.cleanup();
-    this.currentToken = null;
     this.currentChainCastId = null;
   }
 
-  // ChainCast room management
+  // ChainCast room management with liberal approach
   async joinChainCast(chainCastId: string): Promise<void> {
-    if (!this.socket?.connected) {
-      throw new Error("Socket not connected");
+    console.log('🚀 Joining ChainCast:', chainCastId);
+    
+    if (!this.socket) {
+      await this.connect();
     }
 
-    console.log('Joining ChainCast:', chainCastId);
     this.currentChainCastId = chainCastId;
-    this.socket.emit("join_chaincast", { chainCastId });
+    
+    if (this.socket?.connected) {
+      this.socket.emit("join_chaincast", { chainCastId });
+    } else {
+      // Liberal fallback - emit when connected
+      setTimeout(() => {
+        if (this.socket?.connected) {
+          this.socket.emit("join_chaincast", { chainCastId });
+        }
+      }, 1000);
+    }
   }
 
   leaveChainCast(chainCastId: string): void {
-    if (this.socket?.connected) {
-      console.log('Leaving ChainCast:', chainCastId);
+    if (this.socket?.connected && chainCastId) {
+      console.log('🚪 Leaving ChainCast:', chainCastId);
       this.socket.emit("leave_chaincast", { chainCastId });
-      if (this.currentChainCastId === chainCastId) {
-        this.currentChainCastId = null;
-      }
     }
+    this.currentChainCastId = null;
   }
 
   // Stream management
@@ -171,19 +184,39 @@ class ChainCastSocketService {
     }
   }
 
-  // Chat
+  // Chat with retry mechanism
   sendMessage(chainCastId: string, message: string): void {
-    if (this.socket?.connected && message.trim()) {
-      console.log('Sending message:', message);
-      this.socket.emit("send_message", { chainCastId, message: message.trim() });
+    if (!message.trim()) return;
+    
+    const messageData = { chainCastId, message: message.trim() };
+    console.log('💬 Sending message:', messageData);
+    
+    if (this.socket?.connected) {
+      this.socket.emit("send_message", messageData);
+    } else {
+      // Liberal retry
+      setTimeout(() => {
+        if (this.socket?.connected) {
+          this.socket.emit("send_message", messageData);
+        }
+      }, 500);
     }
   }
 
-  // Reactions
+  // Reactions with retry
   addReaction(chainCastId: string, emoji: string): void {
+    const reactionData = { chainCastId, emoji };
+    console.log('😀 Adding reaction:', reactionData);
+    
     if (this.socket?.connected) {
-      console.log('Adding reaction:', emoji);
-      this.socket.emit("add_reaction", { chainCastId, emoji });
+      this.socket.emit("add_reaction", reactionData);
+    } else {
+      // Liberal retry
+      setTimeout(() => {
+        if (this.socket?.connected) {
+          this.socket.emit("add_reaction", reactionData);
+        }
+      }, 500);
     }
   }
 
@@ -193,43 +226,72 @@ class ChainCastSocketService {
     requestedPermissions: { video: boolean; audio: boolean };
     message?: string;
   }): void {
+    console.log("🛡️ Requesting moderation:", data);
+    
     if (this.socket?.connected) {
-      console.log("🛡️ Requesting moderation:", data);
       this.socket.emit("request_moderation", data);
     }
   }
 
-  // Event listeners - only set up once per connection
+  // Liberal event listeners - no off/on pattern to prevent issues
   onJoinedChainCast(callback: (data: { chainCastId: string; participantCount: number; userRole: string }) => void): void {
-    this.socket?.off("joined_chaincast").on("joined_chaincast", callback);
+    if (this.socket) {
+      this.socket.on("joined_chaincast", callback);
+    }
   }
 
   onLeftChainCast(callback: (data: { chainCastId: string; participantCount: number }) => void): void {
-    this.socket?.off("left_chaincast").on("left_chaincast", callback);
+    if (this.socket) {
+      this.socket.on("left_chaincast", callback);
+    }
   }
 
   onParticipantJoined(callback: (participant: ChainCastParticipant) => void): void {
-    this.socket?.off("participant_joined").on("participant_joined", callback);
+    if (this.socket) {
+      this.socket.on("participant_joined", (data) => {
+        console.log('👤 Participant joined:', data);
+        callback(data);
+      });
+    }
   }
 
   onParticipantLeft(callback: (participant: ChainCastParticipant) => void): void {
-    this.socket?.off("participant_left").on("participant_left", callback);
+    if (this.socket) {
+      this.socket.on("participant_left", (data) => {
+        console.log('👤 Participant left:', data);
+        callback(data);
+      });
+    }
   }
 
   onParticipantStreamUpdate(callback: (data: ChainCastParticipant) => void): void {
-    this.socket?.off("participant_stream_update").on("participant_stream_update", callback);
+    if (this.socket) {
+      this.socket.on("participant_stream_update", callback);
+    }
   }
 
   onNewMessage(callback: (message: ChatMessage) => void): void {
-    this.socket?.off("new_message").on("new_message", callback);
+    if (this.socket) {
+      this.socket.on("new_message", (data) => {
+        console.log('💬 New message received:', data);
+        callback(data);
+      });
+    }
   }
 
   onNewReaction(callback: (reaction: ChainCastReaction) => void): void {
-    this.socket?.off("new_reaction").on("new_reaction", callback);
+    if (this.socket) {
+      this.socket.on("new_reaction", (data) => {
+        console.log('😀 New reaction received:', data);
+        callback(data);
+      });
+    }
   }
 
   onModerationRequested(callback: (data: { message: string }) => void): void {
-    this.socket?.off("moderation_requested").on("moderation_requested", callback);
+    if (this.socket) {
+      this.socket.on("moderation_requested", callback);
+    }
   }
 
   onModerationReviewed(callback: (data: {
@@ -238,28 +300,40 @@ class ChainCastSocketService {
     adminName: string;
     timestamp: Date;
   }) => void): void {
-    this.socket?.off("moderation_reviewed").on("moderation_reviewed", callback);
+    if (this.socket) {
+      this.socket.on("moderation_reviewed", callback);
+    }
   }
 
   onChainCastStarted(callback: (data: { adminId: string; adminName: string; timestamp: Date }) => void): void {
-    this.socket?.off("chaincast_started").on("chaincast_started", callback);
+    if (this.socket) {
+      this.socket.on("chaincast_started", callback);
+    }
   }
 
   onChainCastEnded(callback: (data: { adminId: string; adminName: string; timestamp: Date }) => void): void {
-    this.socket?.off("chaincast_ended").on("chaincast_ended", callback);
+    if (this.socket) {
+      this.socket.on("chaincast_ended", callback);
+    }
   }
 
   onRemovedFromChainCast(callback: (data: { adminName: string; reason?: string; timestamp: Date }) => void): void {
-    this.socket?.off("removed_from_chaincast").on("removed_from_chaincast", callback);
+    if (this.socket) {
+      this.socket.on("removed_from_chaincast", callback);
+    }
   }
 
   // Error handlers
   onJoinError(callback: (data: { error: string }) => void): void {
-    this.socket?.off("join_error").on("join_error", callback);
+    if (this.socket) {
+      this.socket.on("join_error", callback);
+    }
   }
 
   onError(callback: (data: { message: string }) => void): void {
-    this.socket?.off("error").on("error", callback);
+    if (this.socket) {
+      this.socket.on("error", callback);
+    }
   }
 
   // Utility methods
@@ -274,7 +348,15 @@ class ChainCastSocketService {
   getCurrentChainCastId(): string | null {
     return this.currentChainCastId;
   }
+
+  // Liberal connection check
+  ensureConnection(token?: string): Promise<void> {
+    if (this.socket?.connected) {
+      return Promise.resolve();
+    }
+    return this.connect(token);
+  }
 }
 
 export const chainCastSocketService = new ChainCastSocketService();
-export type { ChainCastReaction, ModerationRequest, ChatMessage };
+export type { ChainCastReaction, ChatMessage };

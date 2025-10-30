@@ -67,12 +67,14 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
   const userInfo = currentUser || currentAdmin
   const isAdmin = !!currentAdmin || chainCast.userRole === 'admin'
   const userRole = isAdmin ? 'admin' : 'viewer'
+  const userName = userInfo?.name || userInfo?.username || 'Unknown User'
 
-  console.log('ChainCast Room - User Info:', {
+  console.log('🎬 ChainCast Room Initialized:', {
     isAdmin,
     userRole,
-    userName: userInfo?.name || userInfo?.username,
-    chainCastId: chainCast._id
+    userName,
+    chainCastId: chainCast._id,
+    chainCastTitle: chainCast.title
   })
 
   // State
@@ -83,10 +85,12 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
   const [showModeratorRequest, setShowModeratorRequest] = useState(false)
   const [requestingSent, setRequestingSent] = useState(false)
   const [activeTab, setActiveTab] = useState<'participants' | 'chat' | 'reactions'>('participants')
-  const [participantCount, setParticipantCount] = useState(1)
+  const [participantCount, setParticipantCount] = useState(isAdmin ? 1 : 0)
   const [floatingReactions, setFloatingReactions] = useState<FloatingReaction[]>([])
+  const [connectionError, setConnectionError] = useState<string | null>(null)
 
   const chatScrollRef = useRef<HTMLDivElement>(null)
+  const messageId = useRef(0)
 
   // WebRTC hook
   const {
@@ -107,65 +111,88 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
   } = useWebRTC({
     maxParticipants: chainCast.maxParticipants,
     onParticipantJoined: (participant) => {
-      toast.success(`User joined the ChainCast`)
+      console.log('👤 Participant joined via WebRTC:', participant)
     },
     onParticipantLeft: (userId) => {
-      toast.info(`User left the ChainCast`)
+      console.log('👤 Participant left via WebRTC:', userId)
     }
   })
 
-  // Initialize ChainCast room
+  // Initialize ChainCast room with liberal approach
   useEffect(() => {
     let mounted = true
+    let initTimeout: NodeJS.Timeout
 
     const initializeRoom = async () => {
-      if (!token || !chainCast || !mounted) {
+      if (!chainCast || !mounted) {
         setLoading(false)
         return
       }
 
       try {
-        console.log('Initializing ChainCast room...', {
+        console.log('🚀 Initializing ChainCast room...', {
           chainCastId: chainCast._id,
           userRole,
-          isAdmin
+          isAdmin,
+          userName
         })
 
-        // Connect to socket
-        if (!chainCastSocketService.isConnected()) {
-          await chainCastSocketService.connect(token)
-        }
-
+        setConnectionError(null)
+        
+        // Liberal connection - don't wait for token validation
+        await chainCastSocketService.ensureConnection(token || 'liberal-token')
+        
         if (!mounted) return
 
-        // Setup socket listeners first
+        // Setup socket listeners before joining
         setupSocketListeners()
 
-        // Join ChainCast room
-        await chainCastSocketService.joinChainCast(chainCast._id)
+        // Join ChainCast room with retry
+        try {
+          await chainCastSocketService.joinChainCast(chainCast._id)
+        } catch (error) {
+          console.warn('⚠️ Initial join failed, retrying...', error)
+          setTimeout(() => {
+            if (mounted) {
+              chainCastSocketService.joinChainCast(chainCast._id)
+            }
+          }, 1000)
+        }
+
         if (mounted) {
           setIsJoined(true)
+          setParticipantCount(prev => isAdmin ? Math.max(prev, 1) : prev + 1)
         }
 
-        // Initialize media stream based on role
-        if (isAdmin && mounted) {
-          console.log('Admin: Initializing with video and audio')
-          await initializeLocalStream(true, true)
-        } else if (mounted) {
-          console.log('Viewer: Initializing without media')
-          await initializeLocalStream(false, false)
-        }
+        // Initialize media based on role with liberal timeout
+        initTimeout = setTimeout(async () => {
+          if (!mounted) return
+          
+          try {
+            if (isAdmin) {
+              console.log('👑 Admin: Initializing with video and audio')
+              await initializeLocalStream(true, true)
+            } else {
+              console.log('👤 Viewer: Initializing view-only mode')
+              await initializeLocalStream(false, false)
+            }
+          } catch (error) {
+            console.warn('⚠️ Media initialization failed:', error)
+            // Continue anyway for liberal approach
+          }
+          
+          if (mounted) {
+            setLoading(false)
+          }
+        }, isAdmin ? 1000 : 500) // Faster initialization for viewers
 
       } catch (error: any) {
-        console.error('Failed to initialize ChainCast room:', error)
+        console.error('❌ Failed to initialize ChainCast room:', error)
         if (mounted) {
-          toast.error('Failed to join ChainCast', {
-            description: error.message || 'Please try again'
-          })
-        }
-      } finally {
-        if (mounted) {
+          setConnectionError(error.message || 'Connection failed')
           setLoading(false)
+          // Still try to continue for liberal approach
+          setIsJoined(true)
         }
       }
     }
@@ -174,29 +201,35 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
 
     return () => {
       mounted = false
+      if (initTimeout) clearTimeout(initTimeout)
       cleanup()
       if (isJoined && chainCast) {
         chainCastSocketService.leaveChainCast(chainCast._id)
       }
     }
-  }, [chainCast._id, token, initializeLocalStream, cleanup, isAdmin])
+  }, [chainCast._id, isAdmin])
 
-  // Setup socket event listeners
+  // Setup socket event listeners with liberal handling
   const setupSocketListeners = useCallback(() => {
+    console.log('🔗 Setting up socket listeners')
+
     // Connection events
     chainCastSocketService.onJoinedChainCast((data) => {
-      console.log('Joined ChainCast:', data)
-      setParticipantCount(data.participantCount)
+      console.log('✅ Joined ChainCast successfully:', data)
+      setParticipantCount(data.participantCount || 1)
+      toast.success('Joined ChainCast successfully')
     })
 
     chainCastSocketService.onLeftChainCast((data) => {
-      console.log('Left ChainCast:', data)
-      setParticipantCount(data.participantCount)
+      console.log('🚪 Left ChainCast:', data)
+      setParticipantCount(data.participantCount || 0)
     })
 
     // Participant events
     chainCastSocketService.onParticipantJoined((participant) => {
-      console.log('Participant joined:', participant)
+      console.log('👤 New participant joined:', participant)
+      setParticipantCount(prev => prev + 1)
+      
       addParticipant({
         userId: participant.userId,
         username: participant.username,
@@ -206,15 +239,19 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
         isMuted: participant.isMuted || false,
         isVideoOff: participant.isVideoOff || true
       })
+      
+      toast.success(`${participant.username} joined the ChainCast`)
     })
 
     chainCastSocketService.onParticipantLeft((participant) => {
-      console.log('Participant left:', participant)
+      console.log('👤 Participant left:', participant)
+      setParticipantCount(prev => Math.max(0, prev - 1))
       removeParticipant(participant.userId)
+      toast.info(`${participant.username} left the ChainCast`)
     })
 
     chainCastSocketService.onParticipantStreamUpdate((participant) => {
-      console.log('Participant stream update:', participant)
+      console.log('📹 Participant stream updated:', participant)
       updateParticipant(participant.userId, {
         hasVideo: participant.hasVideo || false,
         hasAudio: participant.hasAudio || false,
@@ -223,83 +260,101 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
       })
     })
 
-    // Chat messages
+    // Chat messages with duplicate prevention
     chainCastSocketService.onNewMessage((message: ChatMessage) => {
+      console.log('💬 New chat message:', message)
       setChatMessages(prev => {
-        // Prevent duplicate messages
-        if (prev.some(m => m.id === message.id)) {
+        // Prevent duplicates by checking message ID and timestamp
+        const isDuplicate = prev.some(m => 
+          m.id === message.id || 
+          (m.userId === message.userId && 
+           m.message === message.message && 
+           Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 1000)
+        )
+        
+        if (isDuplicate) {
+          console.log('💬 Duplicate message detected, ignoring')
           return prev
         }
-        return [...prev, message]
+        
+        const newMessages = [...prev, message].slice(-100) // Keep last 100 messages
+        return newMessages
       })
     })
 
-    // Reaction events
+    // Reactions
     chainCastSocketService.onNewReaction((reaction) => {
+      console.log('😀 New reaction:', reaction)
       showFloatingReaction(reaction.emoji, reaction.username)
     })
 
     // Moderation events
     chainCastSocketService.onModerationRequested((data) => {
+      console.log('🛡️ Moderation requested:', data)
       toast.success('Moderation request sent to admin')
       setShowModeratorRequest(false)
       setRequestingSent(true)
     })
 
     chainCastSocketService.onModerationReviewed((data) => {
+      console.log('🛡️ Moderation reviewed:', data)
       if (data.status === 'approved') {
         toast.success(`Moderation approved by ${data.adminName}`)
-        setRequestingSent(false)
       } else {
         toast.error(`Moderation rejected by ${data.adminName}`)
-        setRequestingSent(false)
       }
+      setRequestingSent(false)
     })
 
     // ChainCast control events
     chainCastSocketService.onChainCastStarted((data) => {
+      console.log('🎬 ChainCast started:', data)
       toast.info(`ChainCast started by ${data.adminName}`)
     })
 
-    chainCastSocketService.onChainCastEnded(() => {
+    chainCastSocketService.onChainCastEnded((data) => {
+      console.log('🎬 ChainCast ended:', data)
       toast.info('ChainCast has ended')
       setTimeout(onLeave, 2000)
     })
 
     chainCastSocketService.onRemovedFromChainCast((data) => {
+      console.log('🚫 Removed from ChainCast:', data)
       toast.error(`Removed from ChainCast by ${data.adminName}`)
       setTimeout(onLeave, 1000)
     })
 
     // Error handlers
     chainCastSocketService.onError((data) => {
+      console.error('❌ Socket error:', data)
       toast.error(data.message)
     })
 
     chainCastSocketService.onJoinError((data) => {
-      toast.error('Failed to join ChainCast', {
-        description: data.error
-      })
+      console.error('❌ Join error:', data)
+      toast.error('Failed to join ChainCast: ' + data.error)
     })
   }, [addParticipant, removeParticipant, updateParticipant, onLeave])
 
-  // Auto-scroll chat
+  // Auto-scroll chat to bottom
   useEffect(() => {
     if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
+      const scrollElement = chatScrollRef.current
+      scrollElement.scrollTop = scrollElement.scrollHeight
     }
   }, [chatMessages])
 
-  // Handle video toggle (admin only)
+  // Handle video toggle with liberal error handling
   const handleVideoToggle = useCallback(() => {
     if (!isAdmin) {
       toast.error('Only admin can control video')
       return
     }
 
-    const enabled = toggleVideo()
-
-    if (chainCastSocketService.isConnected()) {
+    try {
+      const enabled = toggleVideo()
+      
+      // Broadcast stream update
       chainCastSocketService.updateStream({
         chainCastId: chainCast._id,
         hasVideo: enabled,
@@ -307,19 +362,25 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
         isMuted: !isAudioEnabled,
         isVideoOff: !enabled
       })
+      
+      toast.success(`Video ${enabled ? 'enabled' : 'disabled'}`)
+    } catch (error) {
+      console.error('❌ Video toggle failed:', error)
+      toast.error('Failed to toggle video')
     }
   }, [toggleVideo, isAudioEnabled, chainCast._id, isAdmin])
 
-  // Handle audio toggle (admin only)
+  // Handle audio toggle with liberal error handling
   const handleAudioToggle = useCallback(() => {
     if (!isAdmin) {
       toast.error('Only admin can control audio')
       return
     }
 
-    const enabled = toggleAudio()
-
-    if (chainCastSocketService.isConnected()) {
+    try {
+      const enabled = toggleAudio()
+      
+      // Broadcast stream update
       chainCastSocketService.updateStream({
         chainCastId: chainCast._id,
         hasVideo: isVideoEnabled,
@@ -327,17 +388,22 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
         isMuted: !enabled,
         isVideoOff: !isVideoEnabled
       })
+      
+      toast.success(`Audio ${enabled ? 'enabled' : 'disabled'}`)
+    } catch (error) {
+      console.error('❌ Audio toggle failed:', error)
+      toast.error('Failed to toggle audio')
     }
   }, [toggleAudio, isVideoEnabled, chainCast._id, isAdmin])
 
-  // Handle reaction
+  // Handle reaction with liberal approach
   const handleReaction = useCallback(async (emoji: string) => {
     try {
-      if (chainCastSocketService.isConnected()) {
-        chainCastSocketService.addReaction(chainCast._id, emoji)
-      }
+      chainCastSocketService.addReaction(chainCast._id, emoji)
+      console.log('😀 Reaction sent:', emoji)
     } catch (error: any) {
-      toast.error('Failed to send reaction')
+      console.error('❌ Failed to send reaction:', error)
+      // Don't show error toast for reactions - liberal approach
     }
   }, [chainCast._id])
 
@@ -345,33 +411,49 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
   const handleModerationRequest = useCallback(async () => {
     try {
       setRequestingSent(true)
-      
-      if (chainCastSocketService.isConnected()) {
-        chainCastSocketService.requestModeration({
-          chainCastId: chainCast._id,
-          requestedPermissions: { video: false, audio: true },
-          message: 'Requesting to speak'
-        })
-      }
-      
+      chainCastSocketService.requestModeration({
+        chainCastId: chainCast._id,
+        requestedPermissions: { video: false, audio: true },
+        message: 'Requesting to speak'
+      })
       setShowModeratorRequest(false)
     } catch (error: any) {
+      console.error('❌ Failed to send moderation request:', error)
       toast.error('Failed to send moderation request')
       setRequestingSent(false)
     }
   }, [chainCast._id])
 
-  // Send chat message
+  // Send chat message with liberal handling
   const handleSendMessage = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim()) return
 
-    // Send through socket for real-time chat
-    if (chainCastSocketService.isConnected()) {
+    try {
+      // Generate unique message ID
+      const msgId = `${Date.now()}-${userInfo?._id}-${++messageId.current}`
+      
+      // Add message locally first for immediate feedback
+      const localMessage: ChatMessage = {
+        id: msgId,
+        userId: userInfo?._id || 'unknown',
+        username: userName,
+        message: newMessage.trim(),
+        timestamp: new Date()
+      }
+      
+      setChatMessages(prev => [...prev, localMessage])
+      
+      // Send through socket
       chainCastSocketService.sendMessage(chainCast._id, newMessage.trim())
       setNewMessage('')
+      
+      console.log('💬 Message sent:', localMessage)
+    } catch (error) {
+      console.error('❌ Failed to send message:', error)
+      toast.error('Failed to send message')
     }
-  }, [newMessage, chainCast._id])
+  }, [newMessage, chainCast._id, userInfo, userName])
 
   // Show floating reaction
   const showFloatingReaction = useCallback((emoji: string, username: string) => {
@@ -391,17 +473,22 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
       setFloatingReactions(prev => prev.filter(r => r.id !== id))
     }, 3000)
 
-    // Show toast
-    toast.info(`${username} reacted with ${emoji}`, { duration: 2000 })
-  }, [])
+    // Show toast notification
+    if (username !== userName) {
+      toast.success(`${username} reacted with ${emoji}`, { duration: 2000 })
+    }
+  }, [userName])
 
-  // Show loading
+  // Show loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-red-500 mx-auto" />
           <p className="text-white text-lg">Joining ChainCast...</p>
+          {connectionError && (
+            <p className="text-yellow-400 text-sm">Connection issues detected, but continuing...</p>
+          )}
         </div>
       </div>
     )
@@ -410,18 +497,24 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
       {/* Floating Reactions */}
-      {floatingReactions.map((reaction) => (
-        <div
-          key={reaction.id}
-          className="fixed text-4xl pointer-events-none z-50 animate-bounce"
-          style={{ left: reaction.x, top: reaction.y }}
-        >
-          {reaction.emoji}
-        </div>
-      ))}
+      <div className="fixed inset-0 pointer-events-none z-50">
+        {floatingReactions.map((reaction) => (
+          <div
+            key={reaction.id}
+            className="absolute text-4xl animate-bounce"
+            style={{ 
+              left: reaction.x, 
+              top: reaction.y,
+              animation: 'float-up 3s ease-out forwards'
+            }}
+          >
+            {reaction.emoji}
+          </div>
+        ))}
+      </div>
 
       {/* Header */}
-      <div className="bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/50 p-4">
+      <div className="bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/50 p-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -438,6 +531,11 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
           </div>
 
           <div className="flex items-center gap-2">
+            {connectionError && (
+              <Badge variant="outline" className="text-yellow-400 border-yellow-400">
+                Connection Issues
+              </Badge>
+            )}
             <Button
               onClick={onLeave}
               variant="outline"
@@ -451,7 +549,7 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
         </div>
       </div>
 
-      <div className="flex-1 flex">
+      <div className="flex-1 flex min-h-0">
         {/* Main Video Area */}
         <div className="flex-1 relative">
           {/* Admin Video (Large) */}
@@ -488,7 +586,7 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                 <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-white text-lg font-medium bg-black/50 px-3 py-1 rounded">
-                      {isAdmin ? `${userInfo?.name} (You)` : chainCast.admin.name}
+                      {isAdmin ? `${userName} (You)` : chainCast.admin.name}
                     </span>
                     {isAdmin && <Crown className="h-5 w-5 text-yellow-400" />}
                   </div>
@@ -604,9 +702,9 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-80 bg-slate-900/50 backdrop-blur-xl border-l border-slate-700/50 flex flex-col">
+        <div className="w-80 bg-slate-900/50 backdrop-blur-xl border-l border-slate-700/50 flex flex-col min-h-0">
           {/* Tabs */}
-          <div className="border-b border-slate-700/50">
+          <div className="border-b border-slate-700/50 flex-shrink-0">
             <div className="flex">
               {[
                 { id: 'participants', label: 'Participants', icon: Users },
@@ -632,7 +730,7 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             {activeTab === 'participants' && (
               <ScrollArea className="h-full p-4">
                 <div className="space-y-3">
@@ -660,7 +758,7 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                             {isVideoEnabled && <span className="text-green-400">📹 Video On</span>}
                           </>
                         ) : (
-                          <span className="text-green-400">🎤 Admin</span>
+                          <span className="text-green-400">👑 Admin</span>
                         )}
                       </div>
                     </div>
@@ -681,18 +779,26 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                     </div>
                   ))}
 
+                  {/* Current User (if not admin) */}
                   {!isAdmin && (
                     <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-800/30">
                       <Avatar className="w-10 h-10">
                         <AvatarImage src={userInfo?.profileImage || userInfo?.profilePicture} />
-                        <AvatarFallback>{userInfo?.name?.[0] || 'U'}</AvatarFallback>
+                        <AvatarFallback>{userName?.[0] || 'U'}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <span className="text-white font-medium">{userInfo?.name} (You)</span>
+                        <span className="text-white font-medium">{userName} (You)</span>
                         <div className="flex items-center gap-2 text-xs text-slate-400">
                           <span className="text-blue-400">👤 Viewer</span>
                         </div>
                       </div>
+                    </div>
+                  )}
+                  
+                  {participants.length === 0 && !isAdmin && (
+                    <div className="text-center py-8 text-slate-400">
+                      <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>You're the first viewer!</p>
                     </div>
                   )}
                 </div>
@@ -700,8 +806,8 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
             )}
 
             {activeTab === 'chat' && (
-              <div className="h-full flex flex-col">
-                <ScrollArea className="flex-1 p-4" ref={chatScrollRef}>
+              <div className="h-full flex flex-col min-h-0">
+                <ScrollArea className="flex-1 p-4 min-h-0" ref={chatScrollRef}>
                   <div className="space-y-3">
                     {chatMessages.map((message, index) => (
                       <div key={`${message.id}-${index}`} className="space-y-1">
@@ -724,13 +830,14 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                 </ScrollArea>
 
                 {chainCast.settings.allowChat && (
-                  <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-700/50">
+                  <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-700/50 flex-shrink-0">
                     <div className="flex gap-2">
                       <Input
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type a message..."
                         className="bg-slate-800 border-slate-600"
+                        maxLength={500}
                       />
                       <Button type="submit" size="icon">
                         <Send className="h-4 w-4" />
@@ -756,11 +863,28 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                     </Button>
                   ))}
                 </div>
+                <div className="mt-4 text-center text-slate-400 text-sm">
+                  Click to react during the stream
+                </div>
               </ScrollArea>
             )}
           </div>
         </div>
       </div>
+
+      {/* Custom styles for floating reactions */}
+      <style jsx global>{`
+        @keyframes float-up {
+          0% {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(-200px) scale(0.5);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </div>
   )
 }
