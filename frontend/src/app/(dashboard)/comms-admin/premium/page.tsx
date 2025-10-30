@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Crown, Star, Zap, Users, BarChart3, Shield, Sparkles, Check, ArrowRight, TrendingUp, Award } from "lucide-react";
+import { Crown, Star, Zap, Users, ChartBar as BarChart3, Shield, Sparkles, Check, ArrowRight, TrendingUp, Award, Clock, CircleAlert as AlertCircle, RefreshCw } from "lucide-react";
 import { communityAdminProfileApiService } from "@/services/communityAdmin/communityAdminProfileApiService";
 import { communityAdminSubscriptionApiService } from "@/services/communityAdmin/communityAdminSubscriptionApiService";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
-import { setSubscription } from "@/redux/slices/communityAdminAuthSlice";
+import { setSubscription, setChainCastAccess } from "@/redux/slices/communityAdminAuthSlice";
 import { toast } from "@/components/ui/use-toast";
 
 const premiumFeatures = [
@@ -34,7 +34,7 @@ const premiumFeatures = [
   {
     icon: BarChart3,
     title: "Advanced Analytics",
-    description: "Deep insights into"
+    description: "Deep insights into community engagement and member behavior"
   },
   {
     icon: Users,
@@ -65,6 +65,8 @@ export default function PremiumPage() {
   const dispatch = useDispatch();
   const { communityAdmin, subscription } = useSelector((state: RootState) => state.communityAdminAuth);
   const [loading, setLoading] = useState(false);
+  const [retryLoading, setRetryLoading] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<{minutes: number, seconds: number} | null>(null);
 
   useEffect(() => {
     // Load Razorpay script
@@ -84,11 +86,40 @@ export default function PremiumPage() {
         const response = await communityAdminSubscriptionApiService.getSubscription();
         if (response.success && response.data) {
           dispatch(setSubscription(response.data));
+          dispatch(setChainCastAccess(response.data.status === 'active'));
         }
       }
     };
     fetchSubscription();
   }, [communityAdmin, dispatch]);
+
+  useEffect(() => {
+    // Timer for failed/pending subscriptions
+    let interval: NodeJS.Timeout;
+    
+    if (subscription && ['pending', 'failed'].includes(subscription.status)) {
+      const updateTimer = async () => {
+        const response = await communityAdminSubscriptionApiService.getTimeRemaining();
+        if (response.success && response.data) {
+          setTimeRemaining(response.data);
+          if (response.data.minutes === 0 && response.data.seconds === 0) {
+            // Time expired, refetch subscription
+            const subResponse = await communityAdminSubscriptionApiService.getSubscription();
+            if (subResponse.success && subResponse.data) {
+              dispatch(setSubscription(subResponse.data));
+            }
+          }
+        }
+      };
+
+      updateTimer();
+      interval = setInterval(updateTimer, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [subscription, dispatch]);
 
   const handleUpgrade = async () => {
     if (!communityAdmin?.communityId) {
@@ -125,12 +156,23 @@ export default function PremiumPage() {
           const verifyResponse = await communityAdminSubscriptionApiService.verifyPayment(paymentData);
           if (verifyResponse.success && verifyResponse.data) {
             dispatch(setSubscription(verifyResponse.data));
+            dispatch(setChainCastAccess(true));
             toast({
-              title: "Success",
-              description: "Premium subscription activated successfully!",
+              title: "Success!",
+              description: "Premium subscription activated successfully! ChainCast is now enabled.",
             });
           } else {
             throw new Error(verifyResponse.error || "Payment verification failed");
+          }
+        },
+        modal: {
+          ondismiss: async () => {
+            // Payment was cancelled or failed
+            // Refetch subscription to get updated status
+            const subResponse = await communityAdminSubscriptionApiService.getSubscription();
+            if (subResponse.success && subResponse.data) {
+              dispatch(setSubscription(subResponse.data));
+            }
           }
         },
         prefill: {
@@ -155,6 +197,72 @@ export default function PremiumPage() {
     }
   };
 
+  const handleRetryPayment = async () => {
+    setRetryLoading(true);
+    try {
+      const retryResponse = await communityAdminSubscriptionApiService.retryPayment();
+      if (!retryResponse.success || !retryResponse.data) {
+        throw new Error(retryResponse.error || "Failed to retry payment");
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_your_key_id",
+        amount: retryResponse.data.amount,
+        currency: retryResponse.data.currency,
+        name: "ChainVerse Premium",
+        description: "Lifetime Premium Subscription - Retry",
+        image: "/logo.png",
+        order_id: retryResponse.data.orderId,
+        handler: async (response: any) => {
+          const paymentData = {
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+          };
+
+          const verifyResponse = await communityAdminSubscriptionApiService.verifyPayment(paymentData);
+          if (verifyResponse.success && verifyResponse.data) {
+            dispatch(setSubscription(verifyResponse.data));
+            dispatch(setChainCastAccess(true));
+            toast({
+              title: "Success!",
+              description: "Premium subscription activated successfully! ChainCast is now enabled.",
+            });
+          } else {
+            throw new Error(verifyResponse.error || "Payment verification failed");
+          }
+        },
+        modal: {
+          ondismiss: async () => {
+            // Refetch subscription status
+            const subResponse = await communityAdminSubscriptionApiService.getSubscription();
+            if (subResponse.success && subResponse.data) {
+              dispatch(setSubscription(subResponse.data));
+            }
+          }
+        },
+        prefill: {
+          name: communityAdmin?.name,
+          email: communityAdmin?.email,
+        },
+        theme: {
+          color: "#F4D03F",
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to retry payment",
+      });
+    } finally {
+      setRetryLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 p-6 max-w-7xl mx-auto">
       {/* Page Header */}
@@ -168,11 +276,102 @@ export default function PremiumPage() {
           Unlock Premium Power
         </h1>
         <p className="text-gray-300 text-xl max-w-3xl mx-auto">
-          Elevate your community with a lifetime premium subscription for just ₹899. Get verified, access ChainCast, boost visibility, and more!
+          Elevate your community with a lifetime premium subscription for just ₹899. Get verified, access ChainCast, boost visibility, and more!       
         </p>
       </div>
 
-      
+      {/* Payment Status Alert */}
+      {subscription && ['pending', 'failed', 'expired'].includes(subscription.status) && (
+        <Card className={`${
+          subscription.status === 'failed' 
+            ? 'bg-gradient-to-r from-red-950/50 to-yellow-950/50 border-red-600/40' 
+            : subscription.status === 'expired'
+            ? 'bg-gradient-to-r from-gray-950/50 to-red-950/50 border-gray-600/40'
+            : 'bg-gradient-to-r from-blue-950/50 to-yellow-950/50 border-blue-600/40'
+        } backdrop-blur-xl`}>
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                subscription.status === 'failed' 
+                  ? 'bg-red-600/20' 
+                  : subscription.status === 'expired'
+                  ? 'bg-gray-600/20'
+                  : 'bg-blue-600/20'
+              }`}>
+                {subscription.status === 'failed' ? (
+                  <AlertCircle className="h-6 w-6 text-red-400" />
+                ) : subscription.status === 'expired' ? (
+                  <Clock className="h-6 w-6 text-gray-400" />
+                ) : (
+                  <Clock className="h-6 w-6 text-blue-400" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  {subscription.status === 'failed' && 'Payment Failed'}
+                  {subscription.status === 'pending' && 'Payment Pending'}
+                  {subscription.status === 'expired' && 'Payment Window Expired'}
+                </h3>
+                <p className="text-gray-300 mb-4">
+                  {subscription.status === 'failed' && 'Your payment failed, but you still have time to retry.'}
+                  {subscription.status === 'pending' && 'Complete your payment to unlock all premium features.'}
+                  {subscription.status === 'expired' && 'Your payment window has expired. You can create a new subscription.'}
+                </p>
+                
+                {timeRemaining && subscription.status !== 'expired' && (
+                  <div className="flex items-center gap-2 mb-4">
+                    <Clock className="h-4 w-4 text-yellow-400" />
+                    <span className="text-yellow-400 font-mono font-semibold">
+                      {timeRemaining.minutes.toString().padStart(2, '0')}:
+                      {timeRemaining.seconds.toString().padStart(2, '0')}
+                    </span>
+                    <span className="text-gray-400 text-sm">remaining</span>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  {subscription.status !== 'expired' && (
+                    <Button
+                      onClick={handleRetryPayment}
+                      disabled={retryLoading || (timeRemaining?.minutes === 0 && timeRemaining?.seconds === 0)}
+                      className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white"
+                    >
+                      {retryLoading ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Retry Payment
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  
+                  {(subscription.status === 'expired' || (timeRemaining?.minutes === 0 && timeRemaining?.seconds === 0)) && (
+                    <Button
+                      onClick={handleUpgrade}
+                      disabled={loading}
+                      className="bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
+                    >
+                      {loading ? (
+                        "Processing..."
+                      ) : (
+                        <>
+                          <Crown className="h-4 w-4 mr-2" />
+                          Create New Subscription
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Pricing Plan */}
       <div className="grid grid-cols-1 gap-6">
@@ -200,10 +399,12 @@ export default function PremiumPage() {
             </div>
             <Button
               onClick={handleUpgrade}
-              disabled={loading || subscription?.status === "active"}
+              disabled={loading || subscription?.status === "active" || (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)}
               className={`w-full py-3 text-lg font-semibold ${
                 subscription?.status === "active"
                   ? "bg-gray-600 cursor-not-allowed"
+                  : (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)
+                  ? "bg-blue-600 cursor-not-allowed"
                   : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
               }`}
             >
@@ -214,6 +415,8 @@ export default function PremiumPage() {
                   <Check className="h-5 w-5 mr-2" />
                   Already Subscribed
                 </>
+              ) : (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0) ? (
+                "Complete Pending Payment Above"
               ) : (
                 <>
                   <Crown className="h-5 w-5 mr-2" />
@@ -261,10 +464,12 @@ export default function PremiumPage() {
           <div className="flex gap-4 justify-center">
             <Button
               onClick={handleUpgrade}
-              disabled={loading || subscription?.status === "active"}
+              disabled={loading || subscription?.status === "active" || (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)}
               className={`py-3 px-6 text-lg font-semibold ${
                 subscription?.status === "active"
                   ? "bg-gray-600 cursor-not-allowed"
+                  : (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)
+                  ? "bg-blue-600 cursor-not-allowed"
                   : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
               }`}
             >
@@ -275,6 +480,8 @@ export default function PremiumPage() {
                   <Check className="h-5 w-5 mr-2" />
                   Already Subscribed
                 </>
+              ) : (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0) ? (
+                "Complete Pending Payment Above"
               ) : (
                 <>
                   <Crown className="h-5 w-5 mr-2" />

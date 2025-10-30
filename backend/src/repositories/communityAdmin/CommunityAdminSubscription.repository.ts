@@ -8,14 +8,21 @@ import { CustomError } from "../../utils/customError";
 @injectable()
 export class CommunitySubscriptionRepository implements ICommunitySubscriptionRepository {
   async createSubscription(communityId: string): Promise<ICommunitySubscription> {
-    const existingSubscription = await CommunitySubscriptionModel.findOne({ communityId });
-    if (existingSubscription) {
-      throw new CustomError("Subscription already exists for this community", StatusCode.BAD_REQUEST);
-    }
     const subscription = new CommunitySubscriptionModel({
       communityId,
       plan: "lifetime",
       status: "pending",
+    });
+    return await subscription.save();
+  }
+
+  async createSubscriptionWithExpiry(communityId: string, expiresAt: Date): Promise<ICommunitySubscription> {
+    const subscription = new CommunitySubscriptionModel({
+      communityId,
+      plan: "lifetime",
+      status: "pending",
+      expiresAt,
+      retryCount: 0
     });
     return await subscription.save();
   }
@@ -32,24 +39,41 @@ export class CommunitySubscriptionRepository implements ICommunitySubscriptionRe
     return await CommunitySubscriptionModel.findOne({ communityId }).lean();
   }
 
+  async deleteSubscription(subscriptionId: string): Promise<boolean> {
+    const result = await CommunitySubscriptionModel.findByIdAndDelete(subscriptionId);
+    return !!result;
+  }
+
   async activateSubscription(communityId: string, paymentId: string, orderId: string): Promise<ICommunitySubscription | null> {
     const subscription = await CommunitySubscriptionModel.findOneAndUpdate(
-      { communityId, status: "pending" },
-      { status: "active", paymentId, orderId, updatedAt: new Date() },
+      { communityId, orderId },
+      { 
+        status: "active", 
+        paymentId, 
+        updatedAt: new Date(),
+        expiresAt: undefined, // Remove expiration once activated
+        failedAt: undefined   // Clear failed timestamp
+      },
       { new: true }
     );
+
     if (subscription) {
+      // Enable ChainCast and other premium features
       await CommunityModel.findByIdAndUpdate(communityId, {
         isVerified: true,
         subscriptionId: subscription._id,
-        settings: {
-          allowChainCast: true,
-          allowGroupChat: true,
-          allowPosts: true,
-          allowQuests: true,
-        },
+        'settings.allowChainCast': true,
+        'settings.allowQuests': true,
       });
     }
     return subscription;
+  }
+
+  async cleanupExpiredSubscriptions(): Promise<number> {
+    const result = await CommunitySubscriptionModel.deleteMany({
+      status: { $in: ['pending', 'failed'] },
+      expiresAt: { $lt: new Date() }
+    });
+    return result.deletedCount || 0;
   }
 }

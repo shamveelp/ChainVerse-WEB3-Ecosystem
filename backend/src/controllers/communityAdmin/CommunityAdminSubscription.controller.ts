@@ -6,7 +6,7 @@ import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 import { ICommunityAdminSubscriptionController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminSubscription.controller";
 import { ICommunityAdminSubscriptionService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminSubscriptionService";
-import { CreateSubscriptionDto, SubscriptionResponseDto, RazorpayOrderResponseDto } from "../../dtos/communityAdmin/CommunityAdminSubscription.dto";
+import { CreateSubscriptionDto, SubscriptionResponseDto, RazorpayOrderResponseDto } from "../../dtos/communityAdmin/CommunityAdminSubscription.dto";     
 
 @injectable()
 export class CommunityAdminSubscriptionController implements ICommunityAdminSubscriptionController {
@@ -62,6 +62,15 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
     try {
       const communityAdminId = (req as any).user.id;
       const subscription = await this._subscriptionService.getSubscription(communityAdminId);
+      
+      if (!subscription) {
+        res.status(StatusCode.NOT_FOUND).json({
+          success: false,
+          error: "No subscription found",
+        });
+        return;
+      }
+
       res.status(StatusCode.OK).json({
         success: true,
         data: subscription,
@@ -75,6 +84,46 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
       res.status(statusCode).json({
         success: false,
         error: message,
+      });
+    }
+  }
+
+  async retryPayment(req: Request, res: Response): Promise<void> {
+    try {
+      const communityAdminId = (req as any).user.id;
+      const order = await this._subscriptionService.retryPayment(communityAdminId);
+      res.status(StatusCode.OK).json({
+        success: true,
+        data: order,
+        message: "Payment retry initiated successfully",
+      });
+    } catch (error) {
+      const err = error as Error;
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+      const message = err.message || "Failed to retry payment";
+      logger.error("Retry payment error:", { message, stack: err.stack, adminId: (req as any).user?.id });
+      res.status(statusCode).json({
+        success: false,
+        error: message,
+      });
+    }
+  }
+
+  async getTimeRemaining(req: Request, res: Response): Promise<void> {
+    try {
+      const communityAdminId = (req as any).user.id;
+      const timeRemaining = await this._subscriptionService.getTimeRemaining(communityAdminId);
+      res.status(StatusCode.OK).json({
+        success: true,
+        data: timeRemaining,
+        message: "Time remaining retrieved successfully",
+      });
+    } catch (error) {
+      const err = error as Error;
+      logger.error("Get time remaining error:", { message: err.message, adminId: (req as any).user?.id });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        error: "Failed to get time remaining",
       });
     }
   }

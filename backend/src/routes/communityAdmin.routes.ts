@@ -641,6 +641,42 @@ router.get(
   )
 );
 
+// New subscription routes for enhanced functionality
+router.post(
+  "/subscription/retry-payment",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminSubscriptionController.retryPayment.bind(
+    communityAdminSubscriptionController
+  )
+);
+router.get(
+  "/subscription/time-remaining",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminSubscriptionController.getTimeRemaining.bind(
+    communityAdminSubscriptionController
+  )
+);
+router.get(
+  "/subscription/chaincast-access",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  async (req, res) => {
+    try {
+      const subscription = await communityAdminSubscriptionController.getSubscription(req, res);
+      // This will be handled by the existing getSubscription method
+      // The frontend will check the subscription status to determine access
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        data: { hasAccess: false },
+        error: "Failed to check ChainCast access"
+      });
+    }
+  }
+);
+
 // Post management routes
 router.post(
   "/posts/create",

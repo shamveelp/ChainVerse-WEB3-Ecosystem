@@ -7,5 +7,7 @@ export interface ICommunityAdminSubscriptionService {
     razorpay_order_id: string;
     razorpay_signature: string;
   }): Promise<SubscriptionResponseDto>;
-  getSubscription(communityAdminId: string): Promise<SubscriptionResponseDto>;
+  getSubscription(communityAdminId: string): Promise<SubscriptionResponseDto | null>;
+  retryPayment(communityAdminId: string): Promise<RazorpayOrderResponseDto>;
+  getTimeRemaining(communityAdminId: string): Promise<{ minutes: number; seconds: number } | null>;
 }

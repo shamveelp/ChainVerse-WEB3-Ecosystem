@@ -42,15 +42,23 @@ interface CommunityAdminAuthState {
   applicationStatus: 'none' | 'pending' | 'approved' | 'rejected';
   tempEmail: string | null;
   tempApplicationData: SerializableApplicationData | null;
-  subscription: Subscription | null; // Add subscription
+  subscription: Subscription | null;
+  chainCastAccess: boolean; // New field for ChainCast access
 }
 
 interface Subscription {
   communityId: string;
   plan: "lifetime";
-  status: "active" | "inactive" | "pending";
+  status: "active" | "inactive" | "pending" | "failed" | "expired";
   paymentId?: string;
   orderId?: string;
+  expiresAt?: Date;
+  failedAt?: Date;
+  retryCount?: number;
+  timeRemaining?: {
+    minutes: number;
+    seconds: number;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -64,6 +72,7 @@ const initialState: CommunityAdminAuthState = {
   tempEmail: null,
   tempApplicationData: null,
   subscription: null,
+  chainCastAccess: false,
 };
 
 export const communityAdminAuthSlice = createSlice({
@@ -90,6 +99,7 @@ export const communityAdminAuthSlice = createSlice({
       state.isAuthenticated = false;
       state.applicationStatus = 'none';
       state.subscription = null;
+      state.chainCastAccess = false;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
@@ -113,6 +123,11 @@ export const communityAdminAuthSlice = createSlice({
     },
     setSubscription: (state, action: PayloadAction<Subscription | null>) => {
       state.subscription = action.payload;
+      // Update ChainCast access based on subscription status
+      state.chainCastAccess = action.payload?.status === 'active';
+    },
+    setChainCastAccess: (state, action: PayloadAction<boolean>) => {
+      state.chainCastAccess = action.payload;
     },
   },
 });
@@ -126,7 +141,8 @@ export const {
   setTempApplicationData, 
   clearTempData,
   updateToken,
-  setSubscription
+  setSubscription,
+  setChainCastAccess
 } = communityAdminAuthSlice.actions;
 
 export default communityAdminAuthSlice.reducer;

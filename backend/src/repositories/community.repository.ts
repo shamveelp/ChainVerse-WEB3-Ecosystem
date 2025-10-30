@@ -1174,4 +1174,15 @@ export class CommunityRepository implements ICommunityRepository {
   findById(communityId: string): Promise<ICommunity | null> {
     return this.findCommunityById(communityId);
   }
+
+  async updateCommunity(
+    communityId: string,
+    updateData: Partial<ICommunity> | Record<string, any>
+  ): Promise<ICommunity | null> {
+    return CommunityModel.findByIdAndUpdate(
+      new Types.ObjectId(communityId),
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+  }
 }

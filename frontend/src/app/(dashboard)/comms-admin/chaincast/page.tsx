@@ -1,5 +1,6 @@
 "use client"
 
+import { ChainCastAccessGuard } from "@/components/comms-admin/ChainCastAccessGuard";
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSelector } from 'react-redux'
@@ -9,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar, BarChart as BarChart3, Play, Plus, Clock, Users, Eye, TrendingUp, Settings, Loader2, AlertCircle, Pause, Trash2, CreditCard as Edit, Video, MessageCircle } from 'lucide-react'
+import { Calendar, ChartBar as BarChart3, Play, Plus, Clock, Users, Eye, TrendingUp, Settings, Loader as Loader2, CircleAlert as AlertCircle, Pause, Trash2, CreditCard as Edit, Video, MessageCircle } from 'lucide-react'
 import { RootState } from '@/redux/store'
 import { toast } from 'sonner'
 import {
@@ -43,7 +44,7 @@ const statusFilters = [
   { id: 'ended', label: 'Ended', icon: Eye }
 ]
 
-export default function ChainCastPage() {
+function ChainCastPageContent() {
   const router = useRouter()
   const currentAdmin = useSelector((state: RootState) => state.communityAdminAuth?.communityAdmin)
 
@@ -730,4 +731,12 @@ export default function ChainCastPage() {
       </Dialog>
     </div>
   )
+}
+
+export default function ChainCastPage() {
+  return (
+    <ChainCastAccessGuard>
+      <ChainCastPageContent />
+    </ChainCastAccessGuard>
+  );
 }

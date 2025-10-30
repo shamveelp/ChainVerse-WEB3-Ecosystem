@@ -9,9 +9,16 @@ export class CreateSubscriptionDto {
 export class SubscriptionResponseDto extends BaseResponseDto {
   communityId: string;
   plan: "lifetime";
-  status: "active" | "inactive" | "pending";
+  status: "active" | "inactive" | "pending" | "failed" | "expired";
   paymentId?: string;
   orderId?: string;
+  expiresAt?: Date;
+  failedAt?: Date;
+  retryCount?: number;
+  timeRemaining?: {
+    minutes: number;
+    seconds: number;
+  };
   createdAt: Date;
   updatedAt: Date;
 
@@ -22,6 +29,9 @@ export class SubscriptionResponseDto extends BaseResponseDto {
     this.status = subscription.status;
     this.paymentId = subscription.paymentId;
     this.orderId = subscription.orderId;
+    this.expiresAt = subscription.expiresAt;
+    this.failedAt = subscription.failedAt;
+    this.retryCount = subscription.retryCount;
     this.createdAt = subscription.createdAt;
     this.updatedAt = subscription.updatedAt;
   }
