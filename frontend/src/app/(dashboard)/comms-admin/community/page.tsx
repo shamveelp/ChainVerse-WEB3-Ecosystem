@@ -22,7 +22,6 @@ export default function Page() {
     const connectSocket = async () => {
       try {
         await communitySocketService.connect(token)
-        console.log('Admin connected to community socket')
       } catch (error: any) {
         console.error('Failed to connect to community socket:', error)
         toast.error('Connection Error', {
