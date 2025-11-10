@@ -67,6 +67,12 @@ const menuItems = [
     icon: ChartBar,
     badge: "1.2K",
   },
+  {
+    title: "Points",
+    url: "/admin/points-conversion",
+    icon: ChartBar,
+    badge: "1.2K",
+  },
   // {
   //   title: "NFTs",
   //   url: "/admin/nfts",

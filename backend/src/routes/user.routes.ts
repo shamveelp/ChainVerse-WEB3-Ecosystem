@@ -1,18 +1,22 @@
-import { Router } from 'express';
-import container from '../core/di/container';
-import { UserAuthController } from '../controllers/user/UserAuth.controller';
-import { TYPES } from '../core/types/types';
-import { authMiddleware, roleMiddleware } from '../middlewares/auth.middleware';
-import { UserProfileController } from '../controllers/user/UserProfile.controller';
-import { CommunityUserProfileController } from '../controllers/community/CommunityUserProfile.controller';
-import { FollowController } from '../controllers/community/Follow.controller';
-import { PostController } from '../controllers/posts/Post.controller';
-import { ChatController } from '../controllers/chat/Chat.controller';
-import { UserMyCommunitiesController } from '../controllers/community/UserMyCommunities.controller';
-import multer from 'multer';
-import { ReferralController } from '../controllers/user/Referral.controller';
-import { PointsController } from '../controllers/user/Points.controller';
-import { validateBody, validateQuery, validateParams } from '../middlewares/validation.middleware';
+import { Router } from "express";
+import container from "../core/di/container";
+import { UserAuthController } from "../controllers/user/UserAuth.controller";
+import { TYPES } from "../core/types/types";
+import { authMiddleware, roleMiddleware } from "../middlewares/auth.middleware";
+import { UserProfileController } from "../controllers/user/UserProfile.controller";
+import { CommunityUserProfileController } from "../controllers/community/CommunityUserProfile.controller";
+import { FollowController } from "../controllers/community/Follow.controller";
+import { PostController } from "../controllers/posts/Post.controller";
+import { ChatController } from "../controllers/chat/Chat.controller";
+import { UserMyCommunitiesController } from "../controllers/community/UserMyCommunities.controller";
+import multer from "multer";
+import { ReferralController } from "../controllers/user/Referral.controller";
+import { PointsController } from "../controllers/user/Points.controller";
+import {
+  validateBody,
+  validateQuery,
+  validateParams,
+} from "../middlewares/validation.middleware";
 import {
   UserRegisterDto,
   UserLoginDto,
@@ -21,15 +25,15 @@ import {
   ForgotPasswordDto,
   ResetPasswordDto,
   RequestOtpDto,
-  GoogleLoginDto
-} from '../dtos/users/UserAuth.dto';
+  GoogleLoginDto,
+} from "../dtos/users/UserAuth.dto";
 import {
   FollowUserDto,
   UnfollowUserDto,
   GetFollowersDto,
   GetFollowingDto,
-  FollowStatusDto
-} from '../dtos/community/Follow.dto';
+  FollowStatusDto,
+} from "../dtos/community/Follow.dto";
 import {
   CreatePostDto,
   UpdatePostDto,
@@ -37,26 +41,38 @@ import {
   UpdateCommentDto,
   GetPostsQueryDto,
   GetCommentsQueryDto,
-  SharePostDto
-} from '../dtos/posts/Post.dto';
+  SharePostDto,
+} from "../dtos/posts/Post.dto";
 import {
   SendMessageDto,
   EditMessageDto,
   GetMessagesDto,
   GetConversationsDto,
-  MarkMessagesReadDto
-} from '../dtos/chat/Chat.dto';
-import { UserDexController } from '../controllers/user/UserDex.controller';
-import { CommunityController } from '../controllers/community/Community.controller';
-import { JoinCommunityDto, LeaveCommunityDto, SearchCommunitiesDto } from '../dtos/community/Community.dto';
-import { GetCommunityMembersDto } from '../dtos/communityAdmin/CommunityAdminMembers.dto';
-import { GetMyCommunitiesDto } from '../dtos/community/MyCommunities.dto';
-import { UserCommunityChatController } from '../controllers/community/UserCommunityChat.controller';
+  MarkMessagesReadDto,
+} from "../dtos/chat/Chat.dto";
+import { UserDexController } from "../controllers/user/UserDex.controller";
+import { CommunityController } from "../controllers/community/Community.controller";
+import {
+  JoinCommunityDto,
+  LeaveCommunityDto,
+  SearchCommunitiesDto,
+} from "../dtos/community/Community.dto";
+import { GetCommunityMembersDto } from "../dtos/communityAdmin/CommunityAdminMembers.dto";
+import { GetMyCommunitiesDto } from "../dtos/community/MyCommunities.dto";
+import { UserCommunityChatController } from "../controllers/community/UserCommunityChat.controller";
 import { UserChainCastController } from "../controllers/chainCast/UserChainCast.controller";
-import { AddReactionDto, GetChainCastsQueryDto, GetReactionsQueryDto, JoinChainCastDto, RequestModerationDto, UpdateParticipantDto } from '../dtos/chainCast/ChainCast.dto';
+import {
+  AddReactionDto,
+  GetChainCastsQueryDto,
+  GetReactionsQueryDto,
+  JoinChainCastDto,
+  RequestModerationDto,
+  UpdateParticipantDto,
+} from "../dtos/chainCast/ChainCast.dto";
+import { ClaimCVCDto, CreateConversionDto, GetConversionsQueryDto, ValidateConversionDto } from "../dtos/points/PointsConversion.dto";
+import { PointsConversionController } from "../controllers/points/PointsConversion.controller";
 
 // Get controller instance
-
 
 // Configure Multer for file uploads
 const storage = multer.memoryStorage();
@@ -69,549 +85,687 @@ const upload = multer({
     if (mimetype) {
       return cb(null, true);
     }
-    cb(new Error("File type not supported. Only images (JPEG, PNG, GIF) and videos (MP4, MPEG, MOV) are allowed."));
+    cb(
+      new Error(
+        "File type not supported. Only images (JPEG, PNG, GIF) and videos (MP4, MPEG, MOV) are allowed."
+      )
+    );
   },
 });
 
 const router = Router();
 
-const userAuthController = container.get<UserAuthController>(TYPES.IUserAuthController);
-const userProfileController = container.get<UserProfileController>(TYPES.IUserProfileController);
-const communityUserProfileController = container.get<CommunityUserProfileController>(TYPES.ICommunityUserProfileController);
-const followController = container.get<FollowController>(TYPES.IFollowController);
+const userAuthController = container.get<UserAuthController>(
+  TYPES.IUserAuthController
+);
+const userProfileController = container.get<UserProfileController>(
+  TYPES.IUserProfileController
+);
+const communityUserProfileController =
+  container.get<CommunityUserProfileController>(
+    TYPES.ICommunityUserProfileController
+  );
+const followController = container.get<FollowController>(
+  TYPES.IFollowController
+);
 const postController = container.get<PostController>(TYPES.IPostController);
 const chatController = container.get<ChatController>(TYPES.IChatController);
-const referralController = container.get<ReferralController>(TYPES.IReferralController);
-const pointsController = container.get<PointsController>(TYPES.IPointsController);
-const userDexController = container.get<UserDexController>(TYPES.IUserDexController);
-const communityController = container.get<CommunityController>(TYPES.ICommunityController);
-const userMyCommunitiesController = container.get<UserMyCommunitiesController>(TYPES.IUserMyCommunitiesController);
-const userCommunityChatController = container.get<UserCommunityChatController>(TYPES.IUserCommunityChatController);
-const userChainCastController = container.get<UserChainCastController>(TYPES.IUserChainCastController);
-
-
+const referralController = container.get<ReferralController>(
+  TYPES.IReferralController
+);
+const pointsController = container.get<PointsController>(
+  TYPES.IPointsController
+);
+const userDexController = container.get<UserDexController>(
+  TYPES.IUserDexController
+);
+const communityController = container.get<CommunityController>(
+  TYPES.ICommunityController
+);
+const userMyCommunitiesController = container.get<UserMyCommunitiesController>(
+  TYPES.IUserMyCommunitiesController
+);
+const userCommunityChatController = container.get<UserCommunityChatController>(
+  TYPES.IUserCommunityChatController
+);
+const userChainCastController = container.get<UserChainCastController>(
+  TYPES.IUserChainCastController
+);
+const pointsConversionController = container.get<PointsConversionController>(
+  TYPES.IPointsConversionController
+)
 
 // Auth Routes with DTO validation
-router.post("/register",
+router.post(
+  "/register",
   validateBody(UserRegisterDto),
   userAuthController.register.bind(userAuthController)
 );
 
-router.post("/login",
+router.post(
+  "/login",
   validateBody(UserLoginDto),
   userAuthController.login.bind(userAuthController)
 );
 
-router.post("/verify-otp",
+router.post(
+  "/verify-otp",
   validateBody(VerifyOtpDto),
   userAuthController.verifyOtp.bind(userAuthController)
 );
 
-router.post("/check-username",
+router.post(
+  "/check-username",
   validateBody(CheckUsernameDto),
   userAuthController.checkUsername.bind(userAuthController)
 );
 
-router.post("/request-otp",
+router.post(
+  "/request-otp",
   validateBody(RequestOtpDto),
   userAuthController.requestOtp.bind(userAuthController)
 );
 
-router.post("/forgot-password",
+router.post(
+  "/forgot-password",
   validateBody(ForgotPasswordDto),
   userAuthController.forgotPassword.bind(userAuthController)
 );
 
-router.post("/reset-password",
+router.post(
+  "/reset-password",
   validateBody(ResetPasswordDto),
   userAuthController.resetPassword.bind(userAuthController)
 );
 
-router.post("/google-login",
+router.post(
+  "/google-login",
   validateBody(GoogleLoginDto),
   userAuthController.googleLogin.bind(userAuthController)
 );
 
 // Routes without DTO validation (simple requests)
-router.get("/generate-username", userAuthController.generateUsername.bind(userAuthController));
-router.post("/refresh-token", userAuthController.refreshAccessToken.bind(userAuthController));
+router.get(
+  "/generate-username",
+  userAuthController.generateUsername.bind(userAuthController)
+);
+router.post(
+  "/refresh-token",
+  userAuthController.refreshAccessToken.bind(userAuthController)
+);
 router.post("/logout", userAuthController.logout.bind(userAuthController));
-router.post("/resend-otp", userAuthController.resendOtp.bind(userAuthController));
-router.post("/verify-forgot-password-otp", userAuthController.verifyForgotPasswordOtp.bind(userAuthController));
+router.post(
+  "/resend-otp",
+  userAuthController.resendOtp.bind(userAuthController)
+);
+router.post(
+  "/verify-forgot-password-otp",
+  userAuthController.verifyForgotPasswordOtp.bind(userAuthController)
+);
 
 // Profile Routes (protected)
-router.get('/get-profile',
+router.get(
+  "/get-profile",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userProfileController.getProfile.bind(userProfileController)
 );
 
-router.put('/profile',
+router.put(
+  "/profile",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userProfileController.updateProfile.bind(userProfileController)
 );
 
-router.post('/upload-profile-image',
+router.post(
+  "/upload-profile-image",
   authMiddleware,
-  roleMiddleware(['user']),
-  upload.single('profileImage'),
+  roleMiddleware(["user"]),
+  upload.single("profileImage"),
   userProfileController.uploadProfileImage.bind(userProfileController)
 );
 
 // Community Profile Routes
-router.get('/community/profile',
+router.get(
+  "/community/profile",
   authMiddleware,
-  roleMiddleware(['user']),
-  communityUserProfileController.getCommunityProfile.bind(communityUserProfileController)
+  roleMiddleware(["user"]),
+  communityUserProfileController.getCommunityProfile.bind(
+    communityUserProfileController
+  )
 );
 
-router.get('/community/profile/username/:username',
-  communityUserProfileController.getCommunityProfileByUsername.bind(communityUserProfileController)
+router.get(
+  "/community/profile/username/:username",
+  communityUserProfileController.getCommunityProfileByUsername.bind(
+    communityUserProfileController
+  )
 );
 
-router.put('/community/profile',
+router.put(
+  "/community/profile",
   authMiddleware,
-  roleMiddleware(['user']),
-  communityUserProfileController.updateCommunityProfile.bind(communityUserProfileController)
+  roleMiddleware(["user"]),
+  communityUserProfileController.updateCommunityProfile.bind(
+    communityUserProfileController
+  )
 );
 
-router.post('/community/upload-banner-image',
+router.post(
+  "/community/upload-banner-image",
   authMiddleware,
-  roleMiddleware(['user']),
-  upload.single('bannerImage'),
-  communityUserProfileController.uploadBannerImage.bind(communityUserProfileController)
+  roleMiddleware(["user"]),
+  upload.single("bannerImage"),
+  communityUserProfileController.uploadBannerImage.bind(
+    communityUserProfileController
+  )
 );
 
 // Follow Routes (protected)
-router.post('/community/follow',
+router.post(
+  "/community/follow",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(FollowUserDto),
   followController.followUser.bind(followController)
 );
 
-router.post('/community/unfollow',
+router.post(
+  "/community/unfollow",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(UnfollowUserDto),
   followController.unfollowUser.bind(followController)
 );
 
-router.get('/community/followers',
+router.get(
+  "/community/followers",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateQuery(GetFollowersDto),
   followController.getFollowers.bind(followController)
 );
 
-router.get('/community/following',
+router.get(
+  "/community/following",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateQuery(GetFollowingDto),
   followController.getFollowing.bind(followController)
 );
 
-router.get('/community/follow-status/:username',
+router.get(
+  "/community/follow-status/:username",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   followController.getFollowStatus.bind(followController)
 );
 
-router.get('/community/follow-stats',
+router.get(
+  "/community/follow-stats",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   followController.getFollowStats.bind(followController)
 );
 
-router.get('/community/user/:username/followers',
+router.get(
+  "/community/user/:username/followers",
   validateQuery(GetFollowersDto),
   followController.getUserFollowers.bind(followController)
 );
 
-router.get('/community/user/:username/following',
+router.get(
+  "/community/user/:username/following",
   validateQuery(GetFollowingDto),
   followController.getUserFollowing.bind(followController)
 );
 
 // Posts Routes (protected)
-router.post('/posts/create',
+router.post(
+  "/posts/create",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(CreatePostDto),
   postController.createPost.bind(postController)
 );
 
-router.get('/posts/:postId',
-  postController.getPostById.bind(postController)
-);
+router.get("/posts/:postId", postController.getPostById.bind(postController));
 
-router.put('/posts/:postId',
+router.put(
+  "/posts/:postId",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(UpdatePostDto),
   postController.updatePost.bind(postController)
 );
 
-router.delete('/posts/:postId',
+router.delete(
+  "/posts/:postId",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   postController.deletePost.bind(postController)
 );
 
-router.get('/posts/feed/all',
+router.get(
+  "/posts/feed/all",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateQuery(GetPostsQueryDto),
   postController.getFeedPosts.bind(postController)
 );
 
-router.get('/posts/user/:userId/all',
+router.get(
+  "/posts/user/:userId/all",
   validateQuery(GetPostsQueryDto),
   postController.getUserPosts.bind(postController)
 );
 
-router.get('/posts/user/:userId/liked',
+router.get(
+  "/posts/user/:userId/liked",
   validateQuery(GetPostsQueryDto),
   postController.getLikedPosts.bind(postController)
 );
 
-router.get('/posts/trending/all',
+router.get(
+  "/posts/trending/all",
   validateQuery(GetPostsQueryDto),
   postController.getTrendingPosts.bind(postController)
 );
 
-router.get('/posts/hashtag/:hashtag',
+router.get(
+  "/posts/hashtag/:hashtag",
   validateQuery(GetPostsQueryDto),
   postController.getPostsByHashtag.bind(postController)
 );
 
-router.get('/posts/search/all',
+router.get(
+  "/posts/search/all",
   validateQuery(GetPostsQueryDto),
   postController.searchPosts.bind(postController)
 );
 
-router.post('/posts/:postId/like',
+router.post(
+  "/posts/:postId/like",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   postController.togglePostLike.bind(postController)
 );
 
-router.get('/posts/:postId/likers',
+router.get(
+  "/posts/:postId/likers",
   validateQuery(GetPostsQueryDto),
   postController.getPostLikers.bind(postController)
 );
 
 // Comment Routes (protected)
-router.post('/posts/comments/create',
+router.post(
+  "/posts/comments/create",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(CreateCommentDto),
   postController.createComment.bind(postController)
 );
 
-router.put('/posts/comments/:commentId',
+router.put(
+  "/posts/comments/:commentId",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(UpdateCommentDto),
   postController.updateComment.bind(postController)
 );
 
-router.delete('/posts/comments/:commentId',
+router.delete(
+  "/posts/comments/:commentId",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   postController.deleteComment.bind(postController)
 );
 
-router.get('/posts/:postId/comments',
+router.get(
+  "/posts/:postId/comments",
   validateQuery(GetCommentsQueryDto),
   postController.getPostComments.bind(postController)
 );
 
-router.get('/posts/comments/:commentId/replies',
+router.get(
+  "/posts/comments/:commentId/replies",
   validateQuery(GetCommentsQueryDto),
   postController.getCommentReplies.bind(postController)
 );
 
-router.post('/posts/comments/:commentId/like',
+router.post(
+  "/posts/comments/:commentId/like",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   postController.toggleCommentLike.bind(postController)
 );
 
 // Media Upload Routes
-router.post('/posts/upload-media',
+router.post(
+  "/posts/upload-media",
   authMiddleware,
-  roleMiddleware(['user']),
-  upload.single('media'),
+  roleMiddleware(["user"]),
+  upload.single("media"),
   postController.uploadPostMedia.bind(postController)
 );
 
 // Share Routes
-router.post('/posts/share',
+router.post(
+  "/posts/share",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(SharePostDto),
   postController.sharePost.bind(postController)
 );
 
 // Analytics Routes
-router.get('/posts/stats/analytics',
+router.get(
+  "/posts/stats/analytics",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   postController.getPostStats.bind(postController)
 );
 
-router.get('/posts/hashtags/popular',
+router.get(
+  "/posts/hashtags/popular",
   postController.getPopularHashtags.bind(postController)
 );
 
 // Chat Routes (protected)
-router.post('/chat/send',
+router.post(
+  "/chat/send",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(SendMessageDto),
   chatController.sendMessage.bind(chatController)
 );
 
-router.get('/chat/conversations',
+router.get(
+  "/chat/conversations",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateQuery(GetConversationsDto),
   chatController.getUserConversations.bind(chatController)
 );
 
-router.get('/chat/conversations/:conversationId/messages',
+router.get(
+  "/chat/conversations/:conversationId/messages",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateQuery(GetMessagesDto),
   chatController.getConversationMessages.bind(chatController)
 );
 
-router.get('/chat/conversation/:username',
+router.get(
+  "/chat/conversation/:username",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   chatController.getOrCreateConversation.bind(chatController)
 );
 
-router.put('/chat/messages/:messageId',
+router.put(
+  "/chat/messages/:messageId",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(EditMessageDto),
   chatController.editMessage.bind(chatController)
 );
 
-router.delete('/chat/messages/:messageId',
+router.delete(
+  "/chat/messages/:messageId",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   chatController.deleteMessage.bind(chatController)
 );
 
-router.post('/chat/messages/read',
+router.post(
+  "/chat/messages/read",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(MarkMessagesReadDto),
   chatController.markMessagesAsRead.bind(chatController)
 );
 
 // Referral Routes (protected)
-router.get('/referrals/history',
+router.get(
+  "/referrals/history",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   referralController.getReferralHistory.bind(referralController)
 );
 
-router.get('/referrals/stats',
+router.get(
+  "/referrals/stats",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   referralController.getReferralStats.bind(referralController)
 );
 
 // Points Routes (protected)
-router.post('/points/daily-checkin',
+router.post(
+  "/points/daily-checkin",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   pointsController.performDailyCheckIn.bind(pointsController)
 );
 
-router.get('/points/checkin-status',
+router.get(
+  "/points/checkin-status",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   pointsController.getCheckInStatus.bind(pointsController)
 );
 
-router.get('/points/checkin-calendar',
+router.get(
+  "/points/checkin-calendar",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   pointsController.getCheckInCalendar.bind(pointsController)
 );
 
-router.get('/points/history',
+router.get(
+  "/points/history",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   pointsController.getPointsHistory.bind(pointsController)
 );
 
 // Buy crypto - DEX Routes (protected)
-router.get('/dex/eth-price',
+router.get(
+  "/dex/eth-price",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userDexController.getEthPrice.bind(userDexController)
 );
 
-router.post('/dex/calculate-estimate',
+router.post(
+  "/dex/calculate-estimate",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userDexController.calculateEstimate.bind(userDexController)
 );
 
-router.post('/dex/create-order',
+router.post(
+  "/dex/create-order",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userDexController.createPaymentOrder.bind(userDexController)
 );
 
-router.post('/dex/verify-payment',
+router.post(
+  "/dex/verify-payment",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userDexController.verifyPayment.bind(userDexController)
 );
 
-router.get('/dex/payments',
+router.get(
+  "/dex/payments",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userDexController.getUserPayments.bind(userDexController)
 );
 
 // Community Explore Routes
-router.get('/communities/search',
+router.get(
+  "/communities/search",
   validateQuery(SearchCommunitiesDto),
   communityController.searchCommunities.bind(communityController)
 );
 
-router.get('/communities/popular',
+router.get(
+  "/communities/popular",
   communityController.getPopularCommunities.bind(communityController)
 );
 
-router.get('/communities/:communityId',
+router.get(
+  "/communities/:communityId",
   communityController.getCommunityById.bind(communityController)
 );
 
-router.get('/communities/username/:username',
+router.get(
+  "/communities/username/:username",
   communityController.getCommunityByUsername.bind(communityController)
 );
 
-router.post('/communities/join',
+router.post(
+  "/communities/join",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(JoinCommunityDto),
   communityController.joinCommunity.bind(communityController)
 );
 
-router.post('/communities/leave',
+router.post(
+  "/communities/leave",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateBody(LeaveCommunityDto),
   communityController.leaveCommunity.bind(communityController)
 );
 
-router.get('/communities/:username/members',
+router.get(
+  "/communities/:username/members",
   validateQuery(GetCommunityMembersDto),
   communityController.getCommunityMembers.bind(communityController)
 );
 
-router.get('/communities/:username/member-status',
+router.get(
+  "/communities/:username/member-status",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   communityController.getCommunityMemberStatus.bind(communityController)
 );
 
 // My Communities Routes (protected)
-router.get('/my-communities',
+router.get(
+  "/my-communities",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   validateQuery(GetMyCommunitiesDto),
   userMyCommunitiesController.getMyCommunities.bind(userMyCommunitiesController)
 );
 
-router.get('/my-communities/stats',
+router.get(
+  "/my-communities/stats",
   authMiddleware,
-  roleMiddleware(['user']),
-  userMyCommunitiesController.getMyCommunitiesStats.bind(userMyCommunitiesController)
+  roleMiddleware(["user"]),
+  userMyCommunitiesController.getMyCommunitiesStats.bind(
+    userMyCommunitiesController
+  )
 );
 
-router.get('/my-communities/activity',
+router.get(
+  "/my-communities/activity",
   authMiddleware,
-  roleMiddleware(['user']),
-  userMyCommunitiesController.getMyCommunitiesActivity.bind(userMyCommunitiesController)
+  roleMiddleware(["user"]),
+  userMyCommunitiesController.getMyCommunitiesActivity.bind(
+    userMyCommunitiesController
+  )
 );
 
-router.put('/my-communities/:communityId/notifications',
+router.put(
+  "/my-communities/:communityId/notifications",
   authMiddleware,
-  roleMiddleware(['user']),
-  userMyCommunitiesController.updateCommunityNotifications.bind(userMyCommunitiesController)
+  roleMiddleware(["user"]),
+  userMyCommunitiesController.updateCommunityNotifications.bind(
+    userMyCommunitiesController
+  )
 );
 
-router.delete('/my-communities/:communityId/leave',
+router.delete(
+  "/my-communities/:communityId/leave",
   authMiddleware,
-  roleMiddleware(['user']),
-  userMyCommunitiesController.leaveCommunityFromMy.bind(userMyCommunitiesController)
+  roleMiddleware(["user"]),
+  userMyCommunitiesController.leaveCommunityFromMy.bind(
+    userMyCommunitiesController
+  )
 );
-
-
 
 // Community Channel Routes
-router.get('/community/:username/channel/messages',
+router.get(
+  "/community/:username/channel/messages",
   authMiddleware,
-  roleMiddleware(['user']),
-  userCommunityChatController.getChannelMessages.bind(userCommunityChatController)
+  roleMiddleware(["user"]),
+  userCommunityChatController.getChannelMessages.bind(
+    userCommunityChatController
+  )
 );
 
-router.post('/community/channel/messages/:messageId/react',
+router.post(
+  "/community/channel/messages/:messageId/react",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userCommunityChatController.reactToMessage.bind(userCommunityChatController)
 );
 
-router.delete('/community/channel/messages/:messageId/react',
+router.delete(
+  "/community/channel/messages/:messageId/react",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userCommunityChatController.removeReaction.bind(userCommunityChatController)
 );
 
 // Community Group Chat Routes
-router.post('/community/group-chat/send',
+router.post(
+  "/community/group-chat/send",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userCommunityChatController.sendGroupMessage.bind(userCommunityChatController)
 );
 
-router.get('/community/:username/group-chat/messages',
+router.get(
+  "/community/:username/group-chat/messages",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userCommunityChatController.getGroupMessages.bind(userCommunityChatController)
 );
 
-router.put('/community/group-chat/messages/:messageId',
+router.put(
+  "/community/group-chat/messages/:messageId",
   authMiddleware,
-  roleMiddleware(['user']),
+  roleMiddleware(["user"]),
   userCommunityChatController.editGroupMessage.bind(userCommunityChatController)
 );
 
-router.delete('/community/group-chat/messages/:messageId',
+router.delete(
+  "/community/group-chat/messages/:messageId",
   authMiddleware,
-  roleMiddleware(['user']),
-  userCommunityChatController.deleteGroupMessage.bind(userCommunityChatController)
+  roleMiddleware(["user"]),
+  userCommunityChatController.deleteGroupMessage.bind(
+    userCommunityChatController
+  )
 );
 
-router.post('/community/:username/group-chat/read',
+router.post(
+  "/community/:username/group-chat/read",
   authMiddleware,
-  roleMiddleware(['user']),
-  userCommunityChatController.markGroupMessagesAsRead.bind(userCommunityChatController)
+  roleMiddleware(["user"]),
+  userCommunityChatController.markGroupMessagesAsRead.bind(
+    userCommunityChatController
+  )
 );
-
-
-
 
 router.get(
   "/community/:communityId/chaincasts",
@@ -685,5 +839,38 @@ router.get(
   userChainCastController.getReactions.bind(userChainCastController)
 );
 
+// Points Conversion Routes
+router.post(
+  "/points-conversion/create",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateBody(CreateConversionDto),
+  pointsConversionController.createConversion.bind(pointsConversionController)
+);
+router.get(
+  "/points-conversion/history",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateQuery(GetConversionsQueryDto),
+  pointsConversionController.getUserConversions.bind(pointsConversionController)
+);
+router.post(
+  "/points-conversion/claim",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateBody(ClaimCVCDto),
+  pointsConversionController.claimCVC.bind(pointsConversionController)
+);
+router.get(
+  "/points-conversion/rate",
+  pointsConversionController.getCurrentRate.bind(pointsConversionController)
+);
+router.get(
+  "/points-conversion/validate",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateQuery(ValidateConversionDto),
+  pointsConversionController.validateConversion.bind(pointsConversionController)
+);
 
 export default router;

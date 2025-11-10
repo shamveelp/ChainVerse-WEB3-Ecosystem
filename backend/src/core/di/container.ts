@@ -195,6 +195,18 @@ import { ICommunityAdminPostService } from "../interfaces/services/communityAdmi
 import { CommunityAdminPostController } from "../../controllers/communityAdmin/CommunityAdminPost.controller"
 import { ICommunityAdminPostController } from "../interfaces/controllers/communityAdmin/ICommunityAdminPost.controller"
 import { CommunityAdminPostService } from "../../services/communityAdmin/CommunityAdminPost.service"
+import { IPointsConversionRepository } from "../interfaces/repositories/points/IPointsConversionRepository"
+import { IConversionRateRepository } from "../interfaces/repositories/points/IConversionRateRepository"
+import { PointsConversionRepository } from "../../repositories/points/pointsConversion.repository"
+import { ConversionRateRepository } from "../../repositories/points/conversionRate.repository"
+import { IPointsConversionService } from "../interfaces/services/points/IPointsConversionService"
+import { IAdminPointsConversionService } from "../interfaces/services/points/IAdminPointsConversionService"
+import { PointsConversionService } from "../../services/points/pointsConversionService"
+import { AdminPointsConversionService } from "../../services/points/adminPointsConversionService"
+import { IPointsConversionController } from "../interfaces/controllers/points/IPointsConversionController"
+import { IAdminPointsConversionController } from "../interfaces/controllers/points/IAdminPointsConversionController"
+import { PointsConversionController } from "../../controllers/points/PointsConversion.controller"
+import { AdminPointsConversionController } from "../../controllers/points/AdminPointsConversion.controller"
 
 // Create Container
 const container = new Container()
@@ -346,6 +358,18 @@ container.bind<ICommunityAdminSubscriptionController>(TYPES.ICommunityAdminSubsc
 container.bind<ICommunityAdminPostRepository>(TYPES.ICommunityAdminPostRepository).to(CommunityAdminPostRepository);
 container.bind<ICommunityAdminPostService>(TYPES.ICommunityAdminPostService).to(CommunityAdminPostService);
 container.bind<ICommunityAdminPostController>(TYPES.ICommunityAdminPostController).to(CommunityAdminPostController);
+
+// Repositories
+container.bind<IPointsConversionRepository>(TYPES.IPointsConversionRepository).to(PointsConversionRepository);
+container.bind<IConversionRateRepository>(TYPES.IConversionRateRepository).to(ConversionRateRepository);
+
+// Services
+container.bind<IPointsConversionService>(TYPES.IPointsConversionService).to(PointsConversionService);
+container.bind<IAdminPointsConversionService>(TYPES.IAdminPointsConversionService).to(AdminPointsConversionService);
+
+// Controllers
+container.bind<IPointsConversionController>(TYPES.IPointsConversionController).to(PointsConversionController);
+container.bind<IAdminPointsConversionController>(TYPES.IAdminPointsConversionController).to(AdminPointsConversionController);
 
 
 
