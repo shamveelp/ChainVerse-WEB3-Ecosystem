@@ -8,21 +8,24 @@ import { Calendar } from "@/components/ui/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { 
-  Coins, 
-  Calendar as CalendarIcon, 
-  Gift, 
+import {
+  Coins,
+  Calendar as CalendarIcon,
+  Gift,
   Trophy,
   Flame,
   TrendingUp,
   Clock,
   CheckCircle,
-  Target
+  Target,
+  ArrowRightLeft,
+  Wallet,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { userApiService } from "@/services/userApiServices";
 import { format, isSameDay } from "date-fns";
+import { useRouter } from "next/navigation";
 
 interface CheckInStatus {
   hasCheckedInToday: boolean;
@@ -46,8 +49,13 @@ interface PointsHistoryItem {
 
 export default function PointsPage() {
   const { profile } = useSelector((state: RootState) => state.userProfile);
-  const [checkInStatus, setCheckInStatus] = useState<CheckInStatus | null>(null);
-  const [checkInCalendar, setCheckInCalendar] = useState<CheckInCalendarData[]>([]);
+  const router = useRouter();
+  const [checkInStatus, setCheckInStatus] = useState<CheckInStatus | null>(
+    null
+  );
+  const [checkInCalendar, setCheckInCalendar] = useState<CheckInCalendarData[]>(
+    []
+  );
   const [pointsHistory, setPointsHistory] = useState<PointsHistoryItem[]>([]);
   const [pointsSummary, setPointsSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -95,7 +103,7 @@ export default function PointsPage() {
         if (page === 1) {
           setPointsHistory(result.data.history);
         } else {
-          setPointsHistory(prev => [...prev, ...result.data.history]);
+          setPointsHistory((prev) => [...prev, ...result.data.history]);
         }
         setPointsSummary(result.data.summary);
         setHistoryTotal(result.data.total);
@@ -115,7 +123,10 @@ export default function PointsPage() {
         });
         // Refresh data
         await fetchCheckInStatus();
-        await fetchCheckInCalendar(new Date().getMonth() + 1, new Date().getFullYear());
+        await fetchCheckInCalendar(
+          new Date().getMonth() + 1,
+          new Date().getFullYear()
+        );
         await fetchPointsHistory(1);
       } else {
         toast.error("Check-in Failed", { description: result.error });
@@ -129,13 +140,13 @@ export default function PointsPage() {
 
   const getPointTypeIcon = (type: string) => {
     switch (type) {
-      case 'daily_checkin':
+      case "daily_checkin":
         return <CalendarIcon className="h-4 w-4 text-blue-400" />;
-      case 'referral_bonus':
+      case "referral_bonus":
         return <Gift className="h-4 w-4 text-green-400" />;
-      case 'quest_reward':
+      case "quest_reward":
         return <Target className="h-4 w-4 text-purple-400" />;
-      case 'bonus':
+      case "bonus":
         return <Trophy className="h-4 w-4 text-yellow-400" />;
       default:
         return <Coins className="h-4 w-4 text-gray-400" />;
@@ -144,23 +155,25 @@ export default function PointsPage() {
 
   const getPointTypeColor = (type: string) => {
     switch (type) {
-      case 'daily_checkin':
-        return 'bg-blue-900/50 text-blue-300';
-      case 'referral_bonus':
-        return 'bg-green-900/50 text-green-300';
-      case 'quest_reward':
-        return 'bg-purple-900/50 text-purple-300';
-      case 'bonus':
-        return 'bg-yellow-900/50 text-yellow-300';
-      case 'deduction':
-        return 'bg-red-900/50 text-red-300';
+      case "daily_checkin":
+        return "bg-blue-900/50 text-blue-300";
+      case "referral_bonus":
+        return "bg-green-900/50 text-green-300";
+      case "quest_reward":
+        return "bg-purple-900/50 text-purple-300";
+      case "bonus":
+        return "bg-yellow-900/50 text-yellow-300";
+      case "deduction":
+        return "bg-red-900/50 text-red-300";
       default:
-        return 'bg-gray-900/50 text-gray-300';
+        return "bg-gray-900/50 text-gray-300";
     }
   };
 
   const isCheckInDay = (date: Date) => {
-    return checkInCalendar.some(checkIn => isSameDay(new Date(checkIn.date), date));
+    return checkInCalendar.some((checkIn) =>
+      isSameDay(new Date(checkIn.date), date)
+    );
   };
 
   if (loading) {
@@ -178,6 +191,25 @@ export default function PointsPage() {
           {profile?.totalPoints || 0}
         </div>
         <p className="text-slate-400">Total Points Earned</p>
+
+        {/* Convert Points Button */}
+        <div className="flex justify-center gap-4 mt-6">
+          <Button
+            onClick={() => router.push("/my-profile/points-conversion")}
+            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-lg shadow-lg"
+          >
+            <ArrowRightLeft className="h-5 w-5 mr-2" />
+            Convert to CVC
+          </Button>
+          <Button
+            onClick={() => router.push("/dex/trade")}
+            variant="outline"
+            className="border-blue-800/30 text-blue-300 hover:bg-blue-700/20 px-6 py-3"
+          >
+            <Wallet className="h-5 w-5 mr-2" />
+            Buy Crypto
+          </Button>
+        </div>
       </div>
 
       {/* Daily Check-in Card */}
@@ -197,11 +229,19 @@ export default function PointsPage() {
               <div className="space-y-4">
                 <CheckCircle className="h-16 w-16 text-green-400 mx-auto" />
                 <div>
-                  <h3 className="text-xl font-bold text-white">Already Checked In!</h3>
-                  <p className="text-slate-400">Come back tomorrow for your next 10 points</p>
+                  <h3 className="text-xl font-bold text-white">
+                    Already Checked In!
+                  </h3>
+                  <p className="text-slate-400">
+                    Come back tomorrow for your next 10 points
+                  </p>
                   {checkInStatus.nextCheckInAvailable && (
                     <p className="text-sm text-blue-400 mt-2">
-                      Next check-in available: {format(new Date(checkInStatus.nextCheckInAvailable), "MMM dd, yyyy")}
+                      Next check-in available:{" "}
+                      {format(
+                        new Date(checkInStatus.nextCheckInAvailable),
+                        "MMM dd, yyyy"
+                      )}
                     </p>
                   )}
                 </div>
@@ -210,8 +250,12 @@ export default function PointsPage() {
               <div className="space-y-4">
                 <Clock className="h-16 w-16 text-blue-400 mx-auto" />
                 <div>
-                  <h3 className="text-xl font-bold text-white">Ready to Check In!</h3>
-                  <p className="text-slate-400 mb-4">Claim your daily 10 points</p>
+                  <h3 className="text-xl font-bold text-white">
+                    Ready to Check In!
+                  </h3>
+                  <p className="text-slate-400 mb-4">
+                    Claim your daily 10 points
+                  </p>
                   <Button
                     onClick={performDailyCheckIn}
                     disabled={checkingIn}
@@ -228,10 +272,16 @@ export default function PointsPage() {
 
       <Tabs defaultValue="calendar" className="space-y-6">
         <TabsList className="grid grid-cols-2 w-full bg-slate-800/50">
-          <TabsTrigger value="calendar" className="text-slate-300 data-[state=active]:text-white">
+          <TabsTrigger
+            value="calendar"
+            className="text-slate-300 data-[state=active]:text-white"
+          >
             Check-in Calendar
           </TabsTrigger>
-          <TabsTrigger value="history" className="text-slate-300 data-[state=active]:text-white">
+          <TabsTrigger
+            value="history"
+            className="text-slate-300 data-[state=active]:text-white"
+          >
             Points History
           </TabsTrigger>
         </TabsList>
@@ -246,16 +296,17 @@ export default function PointsPage() {
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={setSelectedDate}
+                  onSelect={setSelectedDate as any}
                   className="rounded-md border-slate-700"
+                  required={false} // Add this line
                   modifiers={{
                     checkedIn: (date: any) => isCheckInDay(date),
                   }}
                   modifiersStyles={{
-                    checkedIn: { 
-                      backgroundColor: 'rgb(34 197 94)', 
-                      color: 'white',
-                      fontWeight: 'bold'
+                    checkedIn: {
+                      backgroundColor: "rgb(34 197 94)",
+                      color: "white",
+                      fontWeight: "bold",
                     },
                   }}
                 />
@@ -285,8 +336,12 @@ export default function PointsPage() {
               {pointsHistory.length === 0 ? (
                 <div className="text-center py-12">
                   <Coins className="h-16 w-16 text-slate-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-medium text-slate-300 mb-2">No Points History</h3>
-                  <p className="text-slate-400">Start checking in daily to earn points!</p>
+                  <h3 className="text-xl font-medium text-slate-300 mb-2">
+                    No Points History
+                  </h3>
+                  <p className="text-slate-400">
+                    Start checking in daily to earn points!
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -294,24 +349,36 @@ export default function PointsPage() {
                   {pointsSummary && (
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                       <div className="bg-blue-900/30 rounded-lg p-3 text-center">
-                        <div className="text-sm text-blue-300">Daily Check-in</div>
-                        <div className="font-bold text-white">{pointsSummary.pointsByType.daily_checkin}</div>
+                        <div className="text-sm text-blue-300">
+                          Daily Check-in
+                        </div>
+                        <div className="font-bold text-white">
+                          {pointsSummary.pointsByType.daily_checkin}
+                        </div>
                       </div>
                       <div className="bg-green-900/30 rounded-lg p-3 text-center">
                         <div className="text-sm text-green-300">Referrals</div>
-                        <div className="font-bold text-white">{pointsSummary.pointsByType.referral_bonus}</div>
+                        <div className="font-bold text-white">
+                          {pointsSummary.pointsByType.referral_bonus}
+                        </div>
                       </div>
                       <div className="bg-purple-900/30 rounded-lg p-3 text-center">
                         <div className="text-sm text-purple-300">Quests</div>
-                        <div className="font-bold text-white">{pointsSummary.pointsByType.quest_reward}</div>
+                        <div className="font-bold text-white">
+                          {pointsSummary.pointsByType.quest_reward}
+                        </div>
                       </div>
                       <div className="bg-yellow-900/30 rounded-lg p-3 text-center">
                         <div className="text-sm text-yellow-300">Bonus</div>
-                        <div className="font-bold text-white">{pointsSummary.pointsByType.bonus}</div>
+                        <div className="font-bold text-white">
+                          {pointsSummary.pointsByType.bonus}
+                        </div>
                       </div>
                       <div className="bg-red-900/30 rounded-lg p-3 text-center">
                         <div className="text-sm text-red-300">Deductions</div>
-                        <div className="font-bold text-white">-{pointsSummary.pointsByType.deduction}</div>
+                        <div className="font-bold text-white">
+                          -{pointsSummary.pointsByType.deduction}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -328,15 +395,25 @@ export default function PointsPage() {
                             {getPointTypeIcon(item.type)}
                           </div>
                           <div>
-                            <h4 className="text-white font-medium">{item.description}</h4>
+                            <h4 className="text-white font-medium">
+                              {item.description}
+                            </h4>
                             <p className="text-slate-400 text-sm">
-                              {format(new Date(item.createdAt), "MMM dd, yyyy 'at' HH:mm")}
+                              {format(
+                                new Date(item.createdAt),
+                                "MMM dd, yyyy 'at' HH:mm"
+                              )}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <Badge className={`${getPointTypeColor(item.type)} font-mono`}>
-                            {item.points > 0 ? '+' : ''}{item.points}
+                          <Badge
+                            className={`${getPointTypeColor(
+                              item.type
+                            )} font-mono`}
+                          >
+                            {item.points > 0 ? "+" : ""}
+                            {item.points}
                           </Badge>
                         </div>
                       </div>
@@ -349,7 +426,7 @@ export default function PointsPage() {
                       <Button
                         onClick={() => {
                           fetchPointsHistory(historyPage + 1);
-                          setHistoryPage(prev => prev + 1);
+                          setHistoryPage((prev) => prev + 1);
                         }}
                         variant="outline"
                         className="border-blue-800/30 text-blue-300 hover:bg-blue-700/20"
@@ -387,37 +464,4 @@ function PointsSkeleton() {
       </Card>
     </div>
   );
-}
-
-// Helper functions (keeping them outside component for performance)
-function getPointTypeIcon(type: string) {
-  switch (type) {
-    case 'daily_checkin':
-      return <CalendarIcon className="h-4 w-4 text-blue-400" />;
-    case 'referral_bonus':
-      return <Gift className="h-4 w-4 text-green-400" />;
-    case 'quest_reward':
-      return <Target className="h-4 w-4 text-purple-400" />;
-    case 'bonus':
-      return <Trophy className="h-4 w-4 text-yellow-400" />;
-    default:
-      return <Coins className="h-4 w-4 text-gray-400" />;
-  }
-}
-
-function getPointTypeColor(type: string) {
-  switch (type) {
-    case 'daily_checkin':
-      return 'bg-blue-900/50 text-blue-300';
-    case 'referral_bonus':
-      return 'bg-green-900/50 text-green-300';
-    case 'quest_reward':
-      return 'bg-purple-900/50 text-purple-300';
-    case 'bonus':
-      return 'bg-yellow-900/50 text-yellow-300';
-    case 'deduction':
-      return 'bg-red-900/50 text-red-300';
-    default:
-      return 'bg-gray-900/50 text-gray-300';
-  }
 }
