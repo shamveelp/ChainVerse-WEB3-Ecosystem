@@ -59,7 +59,7 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Create post controller error:", error);
+            
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to create post";
             logger.error("Create post error:", { message, stack: err.stack, userId: req.user });
