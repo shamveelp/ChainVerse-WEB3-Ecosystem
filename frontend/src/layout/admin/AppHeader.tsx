@@ -5,7 +5,7 @@ import UserDropdown from "@/components/admin/header/UserDropdown";
 import { useSidebar } from "@/context/admin/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState ,useEffect,useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -50,6 +50,7 @@ const AppHeader: React.FC = () => {
             aria-label="Toggle Sidebar"
           >
             {isMobileOpen ? (
+              
               <svg
                 width="24"
                 height="24"
@@ -84,20 +85,14 @@ const AppHeader: React.FC = () => {
           </button>
 
           <Link href="/" className="lg:hidden">
-            <Image
-              width={154}
-              height={32}
-              className="dark:hidden"
-              src="./images/logo/logo.svg"
-              alt="Logo"
-            />
-            <Image
-              width={154}
-              height={32}
-              className="hidden dark:block"
-              src="./images/logo/logo-dark.svg"
-              alt="Logo"
-            />
+            <span
+              className={`
+      text-2xl font-semibold tracking-wide
+      text-gray-900 dark:text-white
+    `}
+            >
+              ChainVerse
+            </span>
           </Link>
 
           <button
@@ -165,12 +160,11 @@ const AppHeader: React.FC = () => {
             <ThemeToggleButton />
             {/* <!-- Dark Mode Toggler --> */}
 
-           <NotificationDropdown /> 
+            <NotificationDropdown />
             {/* <!-- Notification Menu Area --> */}
           </div>
           {/* <!-- User Area --> */}
-          <UserDropdown /> 
-    
+          <UserDropdown />
         </div>
       </div>
     </header>

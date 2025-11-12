@@ -1,37 +1,67 @@
+// src/components/admin/header/UserDropdown.tsx
 "use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "@/redux/store";
+import { logout as reduxLogout } from "@/redux/slices/adminAuthSlice";
+import api from "@/lib/api-client";
+
 import { Dropdown } from "@/components/ui/dropdown/Dropdown";
 import { DropdownItem } from "@/components/ui/dropdown/DropdownItem";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+  const dispatch = useDispatch();
 
-function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-  e.stopPropagation();
-  setIsOpen((prev) => !prev);
-}
+  // ---- 1. Admin data from Redux (same as old sidebar) ----
+  const { admin } = useSelector((state: RootState) => state.adminAuth);
 
-  function closeDropdown() {
-    setIsOpen(false);
-  }
+  const toggleDropdown = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setIsOpen((prev) => !prev);
+  };
+
+  const closeDropdown = () => setIsOpen(false);
+
+  // ---- 2. Logout (exact same logic as old sidebar) ----
+  const handleLogout = async () => {
+    try {
+      await api.post("/api/admin/logout");
+    } catch (err) {
+      console.error("Logout API error:", err);
+    }
+    dispatch(reduxLogout());
+    router.push("/admin/login");
+    closeDropdown();
+  };
+
   return (
     <div className="relative">
+      {/* ---- Trigger button – UI unchanged ---- */}
       <button
-        onClick={toggleDropdown} 
+        onClick={toggleDropdown}
         className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
           <Image
             width={44}
             height={44}
-            src="/images/user/owner.jpg"
-            alt="User"
+            src={
+              // admin?.avatar 
+              // ||
+               "/images/user/owner.jpg"}
+            alt="Admin"
           />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Musharof</span>
+        <span className="block mr-1 font-medium text-theme-sm">
+          {admin?.name || "Admin User"}
+        </span>
 
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
@@ -53,26 +83,29 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         </svg>
       </button>
 
+      {/* ---- Dropdown – UI unchanged ---- */}
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
         className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
       >
+        {/* Header – dynamic admin name & email */}
         <div>
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            Musharof Chowdhury
+            {admin?.name || "Admin User"}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            randomuser@pimjo.com
+            {admin?.email || "admin@chainverse.com"}
           </span>
         </div>
 
+        {/* Menu items */}
         <ul className="flex flex-col gap-1 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800">
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/profile"
+              href="/admin/profile"
               className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
@@ -83,6 +116,7 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
+                {/* profile icon – unchanged */}
                 <path
                   fillRule="evenodd"
                   clipRule="evenodd"
@@ -93,11 +127,12 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
               Edit profile
             </DropdownItem>
           </li>
+
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/profile"
+              href="/admin/profile"
               className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
@@ -108,6 +143,7 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
+                {/* settings icon – unchanged */}
                 <path
                   fillRule="evenodd"
                   clipRule="evenodd"
@@ -118,11 +154,12 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
               Account settings
             </DropdownItem>
           </li>
+
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/profile"
+              href="/admin/support"
               className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
@@ -133,6 +170,7 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
+                {/* support icon – unchanged */}
                 <path
                   fillRule="evenodd"
                   clipRule="evenodd"
@@ -144,12 +182,14 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
             </DropdownItem>
           </li>
         </ul>
-        <Link
-          href="/signin"
+
+        {/* ---- Logout – now a button (same behaviour as old sidebar) ---- */}
+        <button
+          onClick={handleLogout}
           className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
         >
           <svg
-            className="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"
+            className="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
             width="24"
             height="24"
             viewBox="0 0 24 24"
@@ -164,7 +204,7 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
             />
           </svg>
           Sign out
-        </Link>
+        </button>
       </Dropdown>
     </div>
   );

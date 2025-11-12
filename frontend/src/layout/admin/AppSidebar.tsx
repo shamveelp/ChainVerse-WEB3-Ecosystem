@@ -1,7 +1,7 @@
 "use client";
-import React, { useEffect, useRef, useState,useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/context/admin/SidebarContext";
 import {
@@ -18,8 +18,23 @@ import {
   UserCircleIcon,
 } from "@/icons/index";
 import SidebarWidget from "./SidebarWidget";
-import { ChartBar, GitGraph, Globe, Home, LineChart, Palette, Repeat, Users, WindArrowDown } from 'lucide-react';
+import {
+  ChartBar,
+  GitGraph,
+  Globe,
+  Home,
+  LineChart,
+  Palette,
+  Repeat,
+  Users,
+  WindArrowDown,
+  ChevronDown,
+  MoreHorizontal,
+} from "lucide-react";
 
+const imageIcon = (src: StaticImageData, alt: string) => (
+  <Image src={src} alt={alt} width={20} height={20} priority />
+);
 
 type NavItem = {
   name: string;
@@ -32,29 +47,33 @@ const navItems: NavItem[] = [
   {
     icon: <Home />,
     name: "Dashboard",
-    path: "/",
+    path: "/admin",
   },
   {
     icon: <Users />,
     name: "Customers",
     subItems: [
-      { name: "Users", path: "/users", pro: false },
-      { name: "Wallets", path: "/wallets", pro: false },
-      { name: "Points", path: "/points", pro: false },
+      { name: "Users", path: "/admin/user-management", pro: false },
+      { name: "Wallets", path: "/admin/wallet-management", pro: false },
+      { name: "Points", path: "/admin/points-conversion", pro: false },
       { name: "CVC Management", path: "/management", pro: false },
     ],
   },
   {
     icon: <LineChart />,
     name: "Market",
-    path: "/market",
+    path: "/admin/market-management",
   },
   {
     icon: <Repeat />,
     name: "Decentralised Exchange",
     subItems: [
-      { name: "Dex Management", path: "/dex-management", pro: false },
-      { name: "Buy Crypto Requests", path: "/buy-crypto-management", pro: false },
+      { name: "Dex Management", path: "/admin/dex-management", pro: false },
+      {
+        name: "Buy Crypto Requests",
+        path: "/admin/buy-crypto-management",
+        pro: false,
+      },
     ],
   },
   {
@@ -66,7 +85,7 @@ const navItems: NavItem[] = [
     icon: <Globe />,
     name: "Community",
     subItems: [
-      { name: "Community Requests", path: "/community-requests", pro: false },
+      { name: "Community Requests", path: "/admin/community-requests", pro: false },
     ],
   },
   // {
@@ -81,11 +100,11 @@ const navItems: NavItem[] = [
   //   path: "/calendar",
   // },
 
-  {
-    icon: <UserCircleIcon />,
-    name: "User Profile",
-    path: "/profile",
-  },
+  // {
+  //   icon: <UserCircleIcon />,
+  //   name: "User Profile",
+  //   path: "/profile",
+  // },
 
   // {
   //   name: "Forms",
@@ -108,34 +127,34 @@ const navItems: NavItem[] = [
 ];
 
 const othersItems: NavItem[] = [
-  {
-    icon: <PieChartIcon />,
-    name: "Charts",
-    subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
-    ],
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "UI Elements",
-    subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
-      { name: "Avatar", path: "/avatars", pro: false },
-      { name: "Badge", path: "/badge", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
-      { name: "Images", path: "/images", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
-    ],
-  },
-  {
-    icon: <PlugInIcon />,
-    name: "Authentication",
-    subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
-    ],
-  },
+  // {
+  //   icon: <PieChartIcon />,
+  //   name: "Charts",
+  //   subItems: [
+  //     { name: "Line Chart", path: "/line-chart", pro: false },
+  //     { name: "Bar Chart", path: "/bar-chart", pro: false },
+  //   ],
+  // },
+  // {
+  //   icon: <BoxCubeIcon />,
+  //   name: "UI Elements",
+  //   subItems: [
+  //     { name: "Alerts", path: "/alerts", pro: false },
+  //     { name: "Avatar", path: "/avatars", pro: false },
+  //     { name: "Badge", path: "/badge", pro: false },
+  //     { name: "Buttons", path: "/buttons", pro: false },
+  //     { name: "Images", path: "/images", pro: false },
+  //     { name: "Videos", path: "/videos", pro: false },
+  //   ],
+  // },
+  // {
+  //   icon: <PlugInIcon />,
+  //   name: "Authentication",
+  //   subItems: [
+  //     { name: "Sign In", path: "/signin", pro: false },
+  //     { name: "Sign Up", path: "/signup", pro: false },
+  //   ],
+  // },
 ];
 
 const AppSidebar: React.FC = () => {
@@ -175,7 +194,7 @@ const AppSidebar: React.FC = () => {
                 <span className={`menu-item-text`}>{nav.name}</span>
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
-                <ChevronDownIcon
+                <ChevronDown
                   className={`ml-auto w-5 h-5 transition-transform duration-200  ${
                     openSubmenu?.type === menuType &&
                     openSubmenu?.index === index
@@ -278,7 +297,7 @@ const AppSidebar: React.FC = () => {
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // const isActive = (path: string) => path === pathname;
-   const isActive = useCallback((path: string) => path === pathname, [pathname]);
+  const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
   useEffect(() => {
     // Check if the current path matches any submenu item
@@ -304,7 +323,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [pathname,isActive]);
+  }, [pathname, isActive]);
 
   useEffect(() => {
     // Set the height of the submenu items when the submenu is opened
@@ -352,32 +371,20 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link href="/">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <Image
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <Image
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
-          ) : (
-            <Image
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
-          )}
+        <Link href="/admin">
+          <span
+            className={`
+      font-semibold tracking-wide
+      text-2xl transition-all duration-300 ease-in-out
+      ${isExpanded || isHovered || isMobileOpen ? "opacity-100" : "opacity-100"}
+    `}
+          >
+            {isExpanded || isHovered || isMobileOpen ? (
+              <span className="text-white dark:text-slate-100">ChainVerse</span>
+            ) : (
+              <span className="text-white dark:text-slate-100">CV</span>
+            )}
+          </span>
         </Link>
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
@@ -394,7 +401,9 @@ const AppSidebar: React.FC = () => {
                 {isExpanded || isHovered || isMobileOpen ? (
                   "Menu"
                 ) : (
-                  <HorizontaLDots />
+                  <MoreHorizontal
+  className="w-4 h-4 text-gray-500 dark:text-gray-300"
+/>
                 )}
               </h2>
               {renderMenuItems(navItems, "main")}
@@ -411,7 +420,9 @@ const AppSidebar: React.FC = () => {
                 {isExpanded || isHovered || isMobileOpen ? (
                   "Others"
                 ) : (
-                  <HorizontaLDots />
+                  <MoreHorizontal
+  className="w-4 h-4 text-gray-500 dark:text-gray-300"
+/>
                 )}
               </h2>
               {renderMenuItems(othersItems, "others")}
