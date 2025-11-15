@@ -4,29 +4,20 @@ export interface IQuestSubmission extends Document {
   _id: Types.ObjectId;
   questId: Types.ObjectId;
   taskId: Types.ObjectId;
-  participantId: Types.ObjectId;
   userId: Types.ObjectId;
-  
-  // Submission Data
-  submissionType: 'screenshot' | 'text' | 'link' | 'wallet' | 'auto';
   submissionData: {
     text?: string;
     imageUrl?: string;
-    link?: string;
+    linkUrl?: string;
+    twitterUrl?: string;
     walletAddress?: string;
     transactionHash?: string;
-    metadata?: any;
   };
-  
-  // Verification
   status: 'pending' | 'approved' | 'rejected' | 'auto_verified';
-  verifiedBy?: Types.ObjectId; // Community admin who verified
-  verificationNote?: string;
-  verifiedAt?: Date;
-  
-  // Points
-  pointsAwarded: number;
-  
+  reviewedBy?: Types.ObjectId; // Community admin who reviewed
+  reviewComment?: string;
+  submittedAt: Date;
+  reviewedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,33 +25,32 @@ export interface IQuestSubmission extends Document {
 const QuestSubmissionSchema: Schema<IQuestSubmission> = new Schema({
   questId: { type: Schema.Types.ObjectId, ref: 'Quest', required: true },
   taskId: { type: Schema.Types.ObjectId, ref: 'QuestTask', required: true },
-  participantId: { type: Schema.Types.ObjectId, ref: 'QuestParticipant', required: true },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  
-  submissionType: { type: String, enum: ['screenshot', 'text', 'link', 'wallet', 'auto'], required: true },
   submissionData: {
-    text: { type: String, maxlength: 1000 },
-    imageUrl: { type: String, maxlength: 500 },
-    link: { type: String, maxlength: 500 },
-    walletAddress: { type: String, maxlength: 42 },
-    transactionHash: { type: String, maxlength: 66 },
-    metadata: { type: Schema.Types.Mixed }
+    text: { type: String },
+    imageUrl: { type: String },
+    linkUrl: { type: String },
+    twitterUrl: { type: String },
+    walletAddress: { type: String },
+    transactionHash: { type: String }
   },
-  
-  status: { type: String, enum: ['pending', 'approved', 'rejected', 'auto_verified'], default: 'pending' },
-  verifiedBy: { type: Schema.Types.ObjectId, ref: 'CommunityAdmin' },
-  verificationNote: { type: String, maxlength: 500 },
-  verifiedAt: { type: Date },
-  
-  pointsAwarded: { type: Number, default: 0, min: 0 }
+  status: { 
+    type: String, 
+    enum: ['pending', 'approved', 'rejected', 'auto_verified'], 
+    default: 'pending' 
+  },
+  reviewedBy: { type: Schema.Types.ObjectId, ref: 'CommunityAdmin' },
+  reviewComment: { type: String },
+  submittedAt: { type: Date, default: Date.now },
+  reviewedAt: { type: Date }
 }, {
   timestamps: true
 });
 
-// Indexes
+// Compound indexes
+QuestSubmissionSchema.index({ questId: 1, taskId: 1, userId: 1 }, { unique: true });
 QuestSubmissionSchema.index({ questId: 1, status: 1 });
-QuestSubmissionSchema.index({ participantId: 1, taskId: 1 });
-QuestSubmissionSchema.index({ createdAt: -1 });
+QuestSubmissionSchema.index({ userId: 1, status: 1 });
 
 export const QuestSubmissionModel: Model<IQuestSubmission> = mongoose.model<IQuestSubmission>('QuestSubmission', QuestSubmissionSchema);
 export default QuestSubmissionModel;

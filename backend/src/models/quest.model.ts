@@ -3,93 +3,61 @@ import mongoose, { Schema, Document, Model, Types } from "mongoose";
 export interface IQuest extends Document {
   _id: Types.ObjectId;
   communityId: Types.ObjectId;
-  createdBy: Types.ObjectId; // Community admin who created this quest
-  
-  // Basic Quest Info
+  communityAdminId: Types.ObjectId;
   title: string;
   description: string;
   bannerImage: string;
-  category: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  
-  // Timing
   startDate: Date;
   endDate: Date;
-  
-  // Participation
-  selectionMethod: 'fcfs' | 'random'; // First Come First Serve or Random Pick
+  selectionMethod: 'fcfs' | 'random';
   participantLimit: number; // Number of winners
-  maxParticipants?: number; // Optional max participants
-  
-  // Rewards
   rewardPool: {
-    type: 'token' | 'nft' | 'points' | 'custom';
     amount: number;
-    tokenSymbol?: string;
-    nftCollection?: string;
-    customDescription?: string;
+    currency: string; // 'USD', 'ETH', 'POINTS', etc.
+    rewardType: 'token' | 'nft' | 'points' | 'custom';
+    customReward?: string;
   };
-  
-  // Status
   status: 'draft' | 'active' | 'ended' | 'cancelled';
-  
-  // Tasks
-  tasks: Types.ObjectId[]; // References to QuestTask
-  
-  // Participants tracking
-  totalParticipants: number;
-  totalWinners: number;
-  
-  // AI Generation metadata
-  aiGenerated: boolean;
+  isAIGenerated: boolean;
   aiPrompt?: string;
-  
+  totalParticipants: number;
+  totalSubmissions: number;
+  winnersSelected: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const QuestSchema: Schema<IQuest> = new Schema({
   communityId: { type: Schema.Types.ObjectId, ref: 'Community', required: true },
-  createdBy: { type: Schema.Types.ObjectId, ref: 'CommunityAdmin', required: true },
-  
-  title: { type: String, required: true, maxlength: 100 },
-  description: { type: String, required: true, maxlength: 1000 },
-  bannerImage: { type: String, required: true },
-  category: { type: String, required: true, maxlength: 50 },
-  difficulty: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced'], required: true },
-  
+  communityAdminId: { type: Schema.Types.ObjectId, ref: 'CommunityAdmin', required: true },
+  title: { type: String, required: true, maxlength: 200 },
+  description: { type: String, required: true, maxlength: 2000 },
+  bannerImage: { type: String, default: '' },
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
-  
   selectionMethod: { type: String, enum: ['fcfs', 'random'], required: true },
   participantLimit: { type: Number, required: true, min: 1 },
-  maxParticipants: { type: Number, min: 1 },
-  
   rewardPool: {
-    type: { type: String, enum: ['token', 'nft', 'points', 'custom'], required: true },
     amount: { type: Number, required: true, min: 0 },
-    tokenSymbol: { type: String, maxlength: 20 },
-    nftCollection: { type: String, maxlength: 100 },
-    customDescription: { type: String, maxlength: 200 }
+    currency: { type: String, required: true },
+    rewardType: { type: String, enum: ['token', 'nft', 'points', 'custom'], required: true },
+    customReward: { type: String }
   },
-  
   status: { type: String, enum: ['draft', 'active', 'ended', 'cancelled'], default: 'draft' },
-  
-  tasks: [{ type: Schema.Types.ObjectId, ref: 'QuestTask' }],
-  
+  isAIGenerated: { type: Boolean, default: false },
+  aiPrompt: { type: String },
   totalParticipants: { type: Number, default: 0 },
-  totalWinners: { type: Number, default: 0 },
-  
-  aiGenerated: { type: Boolean, default: false },
-  aiPrompt: { type: String, maxlength: 1000 }
+  totalSubmissions: { type: Number, default: 0 },
+  winnersSelected: { type: Boolean, default: false }
 }, {
   timestamps: true
 });
 
 // Indexes
 QuestSchema.index({ communityId: 1, status: 1 });
+QuestSchema.index({ communityAdminId: 1 });
 QuestSchema.index({ startDate: 1, endDate: 1 });
-QuestSchema.index({ createdAt: -1 });
+QuestSchema.index({ status: 1, endDate: 1 });
 
 export const QuestModel: Model<IQuest> = mongoose.model<IQuest>('Quest', QuestSchema);
 export default QuestModel;

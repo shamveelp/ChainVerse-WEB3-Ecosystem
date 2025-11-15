@@ -3,74 +3,63 @@ import mongoose, { Schema, Document, Model, Types } from "mongoose";
 export interface IQuestTask extends Document {
   _id: Types.ObjectId;
   questId: Types.ObjectId;
-  
-  // Task Info
   title: string;
   description: string;
-  type: 'join_community' | 'follow_admin' | 'follow_user' | 'social_post' | 'nft_hold' | 'token_hold' | 'wallet_connect' | 'custom';
-  order: number; // Display order
-  
-  // Task Requirements
-  requirements: {
-    // For follow tasks
+  taskType: 'join_community' | 'follow_user' | 'twitter_post' | 'upload_screenshot' | 'nft_mint' | 'token_hold' | 'wallet_connect' | 'custom';
+  isRequired: boolean;
+  order: number;
+  config: {
+    // For follow_user tasks
     targetUserId?: Types.ObjectId;
     targetUsername?: string;
     
-    // For social tasks
-    platform?: 'twitter' | 'instagram' | 'telegram' | 'discord';
-    postContent?: string;
-    hashtags?: string[];
-    requireScreenshot?: boolean;
+    // For twitter_post tasks
+    twitterText?: string;
+    twitterHashtags?: string[];
     
-    // For NFT/Token tasks
+    // For nft_mint tasks
     contractAddress?: string;
-    tokenSymbol?: string;
-    minAmount?: number;
+    tokenId?: string;
+    
+    // For token_hold tasks
+    tokenAddress?: string;
+    minimumAmount?: number;
     
     // For custom tasks
     customInstructions?: string;
-    requiresManualVerification?: boolean;
+    requiresProof?: boolean;
+    proofType?: 'text' | 'image' | 'link';
   };
-  
-  // Verification
-  autoVerify: boolean; // Can be auto-verified or needs manual check
-  points: number; // Points awarded for completing this task
-  
+  completedBy: number; // Count of users who completed this task
   createdAt: Date;
   updatedAt: Date;
 }
 
 const QuestTaskSchema: Schema<IQuestTask> = new Schema({
   questId: { type: Schema.Types.ObjectId, ref: 'Quest', required: true },
-  
-  title: { type: String, required: true, maxlength: 100 },
-  description: { type: String, required: true, maxlength: 500 },
-  type: { 
+  title: { type: String, required: true, maxlength: 200 },
+  description: { type: String, required: true, maxlength: 1000 },
+  taskType: { 
     type: String, 
-    enum: ['join_community', 'follow_admin', 'follow_user', 'social_post', 'nft_hold', 'token_hold', 'wallet_connect', 'custom'], 
+    enum: ['join_community', 'follow_user', 'twitter_post', 'upload_screenshot', 'nft_mint', 'token_hold', 'wallet_connect', 'custom'], 
     required: true 
   },
-  order: { type: Number, required: true, min: 0 },
-  
-  requirements: {
+  isRequired: { type: Boolean, default: true },
+  order: { type: Number, required: true },
+  config: {
     targetUserId: { type: Schema.Types.ObjectId, ref: 'User' },
-    targetUsername: { type: String, maxlength: 50 },
-    
-    platform: { type: String, enum: ['twitter', 'instagram', 'telegram', 'discord'] },
-    postContent: { type: String, maxlength: 500 },
-    hashtags: [{ type: String, maxlength: 50 }],
-    requireScreenshot: { type: Boolean, default: false },
-    
-    contractAddress: { type: String, maxlength: 42 },
-    tokenSymbol: { type: String, maxlength: 20 },
-    minAmount: { type: Number, min: 0 },
-    
-    customInstructions: { type: String, maxlength: 1000 },
-    requiresManualVerification: { type: Boolean, default: false }
+    targetUsername: { type: String },
+    twitterText: { type: String },
+    twitterHashtags: [{ type: String }],
+    contractAddress: { type: String },
+    tokenId: { type: String },
+    tokenAddress: { type: String },
+    minimumAmount: { type: Number },
+    customInstructions: { type: String },
+    requiresProof: { type: Boolean, default: false },
+    proofType: { type: String, enum: ['text', 'image', 'link'] }
   },
-  
-  autoVerify: { type: Boolean, default: false },
-  points: { type: Number, default: 10, min: 0 }
+  completedBy: { type: Number, default: 0 }
 }, {
   timestamps: true
 });
