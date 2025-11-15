@@ -14,6 +14,14 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         @inject(TYPES.ICommunityAdminAuthService) private _commAdminAuthService: ICommunityAdminAuthService
     ) {}
 
+
+    /**
+     * 
+     * @param req 
+     * @param res 
+     * @returns 
+     */
+
     async checkEmailExists(req: Request, res: Response): Promise<void> {
         try {
             const { email } = req.query;

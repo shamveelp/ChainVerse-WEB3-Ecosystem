@@ -77,169 +77,6 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-@keyframes marquee {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
-}
-
-.animate-marquee {
-  animation: marquee 20s linear infinite;
-}
-
-/* Custom animations for crypto-themed effects */
-@keyframes pulse {
-  0% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.8;
-  }
-  100% {
-    opacity: 0.4;
-  }
-}
-
-@keyframes spin-slow {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes text-glow {
-  0% {
-    text-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
-  }
-  50% {
-    text-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
-  }
-  100% {
-    text-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
-  }
-}
-
-.animate-pulse {
-  animation: pulse 8s infinite ease-in-out;
-}
-
-.animate-spin-slow {
-  animation: spin-slow 20s linear infinite;
-}
-
-.animate-text-glow {
-  animation: text-glow 3s ease-in-out infinite;
-}
-
-/* Hide scrollbar for Chrome, Safari, and Edge */
-.scrollbar-hidden::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for Firefox */
-.scrollbar-hidden {
-  scrollbar-width: none;
-}
-
-/* Ensure scrolling still works */
-.scrollbar-hidden {
-  -ms-overflow-style: none; /* IE and Edge */
-}
-
-/* Smooth scroll by lenis */
-
-html {
-  scroll-behavior: auto;
-}
-/* Parallax effect for specific elements */
-[data-lenis-speed] {
-  transform: translateY(0);
-  transition: transform 0.1s linear;
-}
-
-
-/* Premium Components */
-@layer components {
-  .premium-card {
-    @apply bg-[var(--background-elevated)] border border-[var(--border-primary)] rounded-xl backdrop-blur-sm;
-  }
-  
-  .premium-gradient {
-    background: linear-gradient(135deg, var(--primary-500) 0%, var(--accent-500) 100%);
-  }
-  
-  .premium-button {
-    @apply bg-gradient-to-r from-purple-500 to-amber-500 hover:from-purple-600 hover:to-amber-600 text-white font-medium transition-all duration-200;
-  }
-  
-  .premium-border {
-    @apply border border-[var(--border-accent)]/30 hover:border-[var(--border-accent)]/60 transition-colors duration-200;
-  }
-  
-  .glass-effect {
-    @apply bg-black/20 backdrop-blur-xl border border-white/10;
-  }
-  
-  .premium-shadow {
-    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.15);
-  }
-}
-
-
-
 
 
 @theme {
@@ -415,6 +252,9 @@ html {
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
+
+
+
 @layer base {
   *,
   ::after,
@@ -978,3 +818,169 @@ span.flatpickr-weekday,
   opacity: 0.8;
   cursor: grabbing; /* Changes the cursor to indicate dragging */
 }
+
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+/* Custom animations for crypto-themed effects */
+@keyframes pulse {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes spin-slow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes text-glow {
+  0% {
+    text-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+  }
+  100% {
+    text-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 8s infinite ease-in-out;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-text-glow {
+  animation: text-glow 3s ease-in-out infinite;
+}
+
+/* Hide scrollbar for Chrome, Safari, and Edge */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for Firefox */
+.scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+/* Ensure scrolling still works */
+.scrollbar-hidden {
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Smooth scroll by lenis */
+
+html {
+  scroll-behavior: auto;
+}
+/* Parallax effect for specific elements */
+[data-lenis-speed] {
+  transform: translateY(0);
+  transition: transform 0.1s linear;
+}
+
+
+/* Premium Components */
+@layer components {
+  .premium-card {
+    @apply bg-[var(--background-elevated)] border border-[var(--border-primary)] rounded-xl backdrop-blur-sm;
+  }
+  
+  .premium-gradient {
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--accent-500) 100%);
+  }
+  
+  .premium-button {
+    @apply bg-gradient-to-r from-purple-500 to-amber-500 hover:from-purple-600 hover:to-amber-600 text-white font-medium transition-all duration-200;
+  }
+  
+  .premium-border {
+    @apply border border-[var(--border-accent)]/30 hover:border-[var(--border-accent)]/60 transition-colors duration-200;
+  }
+  
+  .glass-effect {
+    @apply bg-black/20 backdrop-blur-xl border border-white/10;
+  }
+  
+  .premium-shadow {
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.15);
+  }
+}
+
+
+
+
