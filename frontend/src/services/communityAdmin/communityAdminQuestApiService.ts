@@ -1,0 +1,471 @@
+import api from "@/lib/api-client";
+
+// Types
+interface Quest {
+  _id: string;
+  communityId: string;
+  title: string;
+  description: string;
+  bannerImage?: string;
+  startDate: Date;
+  endDate: Date;
+  selectionMethod: 'fcfs' | 'random';
+  participantLimit: number;
+  rewardPool: {
+    amount: number;
+    currency: string;
+    rewardType: 'token' | 'nft' | 'points' | 'custom';
+    customReward?: string;
+  };
+  status: 'draft' | 'active' | 'ended' | 'cancelled';
+  totalParticipants: number;
+  totalSubmissions: number;
+  winnersSelected: boolean;
+  isAIGenerated?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  tasks?: QuestTask[];
+}
+
+interface QuestTask {
+  _id: string;
+  questId: string;
+  title: string;
+  description: string;
+  taskType: string;
+  isRequired: boolean;
+  order: number;
+  config: any;
+  completedBy: number;
+}
+
+interface QuestStats {
+  totalQuests: number;
+  activeQuests: number;
+  endedQuests: number;
+  totalParticipants: number;
+}
+
+interface Participant {
+  _id: string;
+  questId: string;
+  userId: any;
+  walletAddress?: string;
+  status: string;
+  joinedAt: Date;
+  completedAt?: Date;
+  totalTasksCompleted: number;
+  isWinner: boolean;
+  rewardClaimed: boolean;
+}
+
+interface CreateQuestData {
+  title: string;
+  description: string;
+  bannerImage?: string;
+  startDate: Date;
+  endDate: Date;
+  selectionMethod: 'fcfs' | 'random';
+  participantLimit: number;
+  rewardPool: {
+    amount: number;
+    currency: string;
+    rewardType: 'token' | 'nft' | 'points' | 'custom';
+    customReward?: string;
+  };
+  tasks: Array<{
+    title: string;
+    description: string;
+    taskType: string;
+    isRequired: boolean;
+    order: number;
+    config?: any;
+  }>;
+  isAIGenerated?: boolean;
+  aiPrompt?: string;
+}
+
+interface AIQuestGenerationData {
+  prompt: string;
+  communityTheme?: string;
+  targetAudience?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  expectedWinners?: number;
+}
+
+interface ApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  error?: string;
+  data?: T;
+}
+
+interface PaginationResponse<T> {
+  success: boolean;
+  message?: string;
+  error?: string;
+  data?: {
+    items?: T[];
+    quests?: Quest[];
+    participants?: Participant[];
+    pagination:  {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  };
+}
+
+class CommunityAdminQuestApiService {
+  private readonly baseUrl = '/api/community-admin';
+
+  // Quest CRUD operations
+  async createQuest(questData: CreateQuestData): Promise<ApiResponse<Quest>> {
+    try {
+      const response = await api.post(`${this.baseUrl}/quests/create`, questData);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Create quest error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to create quest",
+      };
+    }
+  }
+
+  async getQuest(questId: string): Promise<ApiResponse<Quest>> {
+    try {
+      const response = await api.get(`${this.baseUrl}/quests/${questId}`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Get quest error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to get quest",
+      };
+    }
+  }
+
+  async getQuests(params?: {
+    page?: number;
+    limit?: number;
+    status?: 'draft' | 'active' | 'ended' | 'cancelled';
+    search?: string;
+  }): Promise<PaginationResponse<Quest>> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.search) queryParams.append('search', params.search);
+
+      const response = await api.get(`${this.baseUrl}/quests?${queryParams.toString()}`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Get quests error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to get quests",
+      };
+    }
+  }
+
+  async updateQuest(questId: string, questData: Partial<CreateQuestData>): Promise<ApiResponse<Quest>> {
+    try {
+      const response = await api.put(`${this.baseUrl}/quests/${questId}`, questData);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Update quest error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to update quest",
+      };
+    }
+  }
+
+  async deleteQuest(questId: string): Promise<ApiResponse<{ deleted: boolean }>> {
+    try {
+      const response = await api.delete(`${this.baseUrl}/quests/${questId}`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Delete quest error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to delete quest",
+      };
+    }
+  }
+
+  // AI Quest Generation
+  async generateQuestWithAI(aiData: AIQuestGenerationData): Promise<ApiResponse<CreateQuestData>> {
+    try {
+      const response = await api.post(`${this.baseUrl}/quests/generate-ai`, aiData);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Generate AI quest error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to generate quest with AI",
+      };
+    }
+  }
+
+  // Quest Status Management
+  async startQuest(questId: string): Promise<ApiResponse<Quest>> {
+    try {
+      const response = await api.post(`${this.baseUrl}/quests/${questId}/start`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Start quest error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to start quest",
+      };
+    }
+  }
+
+  async endQuest(questId: string): Promise<ApiResponse<Quest>> {
+    try {
+      const response = await api.post(`${this.baseUrl}/quests/${questId}/end`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("End quest error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to end quest",
+      };
+    }
+  }
+
+  // Participants Management
+  async getQuestParticipants(
+    questId: string,
+    params?: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    }
+  ): Promise<PaginationResponse<Participant>> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+
+      const response = await api.get(`${this.baseUrl}/quests/${questId}/participants?${queryParams.toString()}`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Get participants error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to get participants",
+      };
+    }
+  }
+
+  async getParticipantDetails(questId: string, participantId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.get(`${this.baseUrl}/quests/${questId}/participants/${participantId}`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Get participant details error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to get participant details",
+      };
+    }
+  }
+
+  async selectWinners(questId: string, method?: 'fcfs' | 'random'): Promise<ApiResponse<{ winners: any[]; message: string }>> {
+    try {
+      const response = await api.post(`${this.baseUrl}/quests/select-winners`, {
+        questId,
+        method
+      });
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Select winners error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to select winners",
+      };
+    }
+  }
+
+  async disqualifyParticipant(questId: string, participantId: string, reason: string): Promise<ApiResponse<{ disqualified: boolean }>> {
+    try {
+      const response = await api.post(`${this.baseUrl}/quests/${questId}/participants/${participantId}/disqualify`, {
+        reason
+      });
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Disqualify participant error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to disqualify participant",
+      };
+    }
+  }
+
+  // Analytics and Stats
+  async getQuestStats(questId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.get(`${this.baseUrl}/quests/${questId}/stats`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Get quest stats error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to get quest stats",
+      };
+    }
+  }
+
+  async getCommunityQuestStats(): Promise<ApiResponse<QuestStats>> {
+    try {
+      const response = await api.get(`${this.baseUrl}/quests/stats`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Get community quest stats error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to get community quest stats",
+      };
+    }
+  }
+
+  // File Upload
+  async uploadQuestBanner(questId: string, file: File): Promise<ApiResponse<{ bannerUrl: string }>> {
+    try {
+      const formData = new FormData();
+      formData.append('banner', file);
+
+      const response = await api.post(`${this.baseUrl}/quests/${questId}/upload-banner`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Upload quest banner error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to upload quest banner",
+      };
+    }
+  }
+}
+
+export const communityAdminQuestApiService = new CommunityAdminQuestApiService();
+export default communityAdminQuestApiService;
