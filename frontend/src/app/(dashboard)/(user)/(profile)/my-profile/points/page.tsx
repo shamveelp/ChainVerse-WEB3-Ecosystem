@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { updateTotalPoints, updateProfile } from "@/redux/slices/userProfileSlice";
 import { userApiService } from "@/services/userApiServices";
 import { format, isSameDay } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -48,6 +49,7 @@ interface PointsHistoryItem {
 }
 
 export default function PointsPage() {
+  const dispatch = useDispatch();
   const { profile } = useSelector((state: RootState) => state.userProfile);
   const router = useRouter();
   const [checkInStatus, setCheckInStatus] = useState<CheckInStatus | null>(
@@ -117,9 +119,24 @@ export default function PointsPage() {
     try {
       setCheckingIn(true);
       const result = await userApiService.performDailyCheckIn();
-      if (result.success) {
+      if (result.success && result.data) {
+        // Update Redux store with new points, streak, and lastCheckIn
+        const currentPoints = profile?.totalPoints || 0;
+        const newTotalPoints = currentPoints + result.data.pointsAwarded;
+        dispatch(updateTotalPoints(newTotalPoints));
+        // Update dailyCheckin with new streak and lastCheckIn date
+        // Merge with existing dailyCheckin to preserve any other properties
+        const updatedDailyCheckin = {
+          ...profile?.dailyCheckin,
+          lastCheckIn: new Date().toISOString(),
+          streak: result.data.streakCount,
+        };
+        dispatch(updateProfile({
+          dailyCheckin: updatedDailyCheckin
+        }));
+        
         toast.success("Daily Check-in Complete!", {
-          description: result.data?.message,
+          description: result.data.message,
         });
         // Refresh data
         await fetchCheckInStatus();
