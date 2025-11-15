@@ -49,6 +49,8 @@ import { ICommunityAdminSubscriptionController } from "../core/interfaces/contro
 import { CreateSubscriptionDto } from "../dtos/communityAdmin/CommunityAdminSubscription.dto";
 import { ICommunityAdminPostController } from "../core/interfaces/controllers/communityAdmin/ICommunityAdminPost.controller";
 import { CommunityAdminCommentDto, CreateCommunityAdminPostDto, GetCommunityAdminPostsQueryDto, UpdateCommunityAdminPostDto } from "../dtos/communityAdmin/CommunityAdminPost.dto";
+import { ICommunityAdminQuestController } from "../core/interfaces/controllers/quest/ICommunityAdminQuest.controller";
+import { AIQuestGenerationDto, CreateQuestDto, GetQuestsQueryDto, SelectWinnersDto, UpdateQuestDto } from "../dtos/quest/CommunityAdminQuest.dto";
 
 // Configure Multer for profile picture uploads
 const storage = multer.memoryStorage();
@@ -107,6 +109,10 @@ const communityAdminSubscriptionController =
 const communityAdminPostController =
   container.get<ICommunityAdminPostController>(
     TYPES.ICommunityAdminPostController
+  );
+const communityAdminQuestController =
+  container.get<ICommunityAdminQuestController>(
+    TYPES.ICommunityAdminQuestController
   );
 
 
@@ -776,5 +782,122 @@ router.get(
     communityAdminPostController
   )
 );
+
+
+
+// Quest Management Routes
+router.get(
+  "/quests/stats",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.getCommunityQuestStats.bind(communityAdminQuestController)
+);
+
+router.get(
+  "/quests",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateQuery(GetQuestsQueryDto),
+  communityAdminQuestController.getQuests.bind(communityAdminQuestController)
+);
+
+router.post(
+  "/quests/create",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(CreateQuestDto),
+  communityAdminQuestController.createQuest.bind(communityAdminQuestController)
+);
+
+router.post(
+  "/quests/generate-ai",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(AIQuestGenerationDto),
+  communityAdminQuestController.generateQuestWithAI.bind(communityAdminQuestController)
+);
+
+router.get(
+  "/quests/:questId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.getQuest.bind(communityAdminQuestController)
+);
+
+router.put(
+  "/quests/:questId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(UpdateQuestDto),
+  communityAdminQuestController.updateQuest.bind(communityAdminQuestController)
+);
+
+router.delete(
+  "/quests/:questId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.deleteQuest.bind(communityAdminQuestController)
+);
+
+router.post(
+  "/quests/:questId/start",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.startQuest.bind(communityAdminQuestController)
+);
+
+router.post(
+  "/quests/:questId/end",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.endQuest.bind(communityAdminQuestController)
+);
+
+router.get(
+  "/quests/:questId/stats",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.getQuestStats.bind(communityAdminQuestController)
+);
+
+router.post(
+  "/quests/:questId/upload-banner",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  upload.single("banner"),
+  communityAdminQuestController.uploadQuestBanner.bind(communityAdminQuestController)
+);
+
+// Quest Participant Management Routes
+router.get(
+  "/quests/:questId/participants",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateQuery(GetParticipantsQueryDto),
+  communityAdminQuestController.getQuestParticipants.bind(communityAdminQuestController)
+);
+
+router.get(
+  "/quests/:questId/participants/:participantId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.getParticipantDetails.bind(communityAdminQuestController)
+);
+
+router.post(
+  "/quests/select-winners",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(SelectWinnersDto),
+  communityAdminQuestController.selectWinners.bind(communityAdminQuestController)
+);
+
+router.post(
+  "/quests/:questId/participants/:participantId/disqualify",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.disqualifyParticipant.bind(communityAdminQuestController)
+);
+
 
 export default router;
