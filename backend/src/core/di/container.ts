@@ -207,6 +207,12 @@ import { IPointsConversionController } from "../interfaces/controllers/points/IP
 import { IAdminPointsConversionController } from "../interfaces/controllers/points/IAdminPointsConversionController"
 import { PointsConversionController } from "../../controllers/points/PointsConversion.controller"
 import { AdminPointsConversionController } from "../../controllers/points/AdminPointsConversion.controller"
+import { ICommunityAdminQuestRepository } from "../interfaces/repositories/quest/ICommunityAdminQuestRepository"
+import { CommunityAdminQuestRepository } from "../../repositories/quest/communityAdminQuest.repository"
+import { ICommunityAdminQuestService } from "../interfaces/services/quest/ICommunityAdminQuestService"
+import { CommunityAdminQuestService } from "../../services/quest/communityAdminQuest.service"
+import { ICommunityAdminQuestController } from "../interfaces/controllers/quest/ICommunityAdminQuest.controller"
+import { CommunityAdminQuestController } from "../../controllers/quest/communityAdminQuest.controller"
 
 // Create Container
 const container = new Container()
@@ -372,5 +378,8 @@ container.bind<IPointsConversionController>(TYPES.IPointsConversionController).t
 container.bind<IAdminPointsConversionController>(TYPES.IAdminPointsConversionController).to(AdminPointsConversionController);
 
 
+container.bind<ICommunityAdminQuestRepository>(TYPES.ICommunityAdminQuestRepository).to(CommunityAdminQuestRepository);
+container.bind<ICommunityAdminQuestService>(TYPES.ICommunityAdminQuestService).to(CommunityAdminQuestService);
+container.bind<ICommunityAdminQuestController>(TYPES.ICommunityAdminQuestController).to(CommunityAdminQuestController);
 
 export default container
