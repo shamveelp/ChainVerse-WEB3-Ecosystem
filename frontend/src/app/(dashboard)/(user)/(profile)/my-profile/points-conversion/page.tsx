@@ -22,16 +22,44 @@ import {
   Calculator,
   Zap
 } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
+import { updateTotalPoints } from "@/redux/slices/userProfileSlice";
 import { pointsConversionApiService, ConversionRate, PointsConversion, ConversionStats } from "@/services/points/pointsConversionApiService";
 import { format } from "date-fns";
-import { useActiveAccount } from "thirdweb/react";
+import { useActiveAccount, useSendTransaction } from "thirdweb/react";
+import { getContract, prepareContractCall, readContract } from "thirdweb";
+import { client } from "@/lib/thirdweb-client";
+import { sepolia } from "thirdweb/chains";
 import { ethers } from "ethers";
+import TradeNavbar from "@/components/shared/TradeNavbar";
+
+// CVC Contract ABI (minimal for claimTokens function)
+const CVC_CONTRACT_ABI = [
+  {
+    inputs: [
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" }
+    ],
+    name: "claimTokens",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "claimFee",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  }
+] as const;
 
 export default function PointsConversionPage() {
+  const dispatch = useDispatch();
   const { profile } = useSelector((state: RootState) => state.userProfile);
   const account = useActiveAccount();
+  const { mutateAsync: sendTransaction } = useSendTransaction();
   
   const [conversionRate, setConversionRate] = useState<ConversionRate | null>(null);
   const [conversions, setConversions] = useState<PointsConversion[]>([]);
@@ -79,10 +107,15 @@ export default function PointsConversionPage() {
       if (result.success && result.data) {
         setConversionRate(result.data);
       } else {
-        toast.error("Failed to load conversion rate");
+        toast.error("Failed to Load Rate", {
+          description: result.error || "Could not fetch conversion rate. Please refresh.",
+        });
       }
-    } catch (error) {
-      toast.error("Error loading conversion data");
+    } catch (error: any) {
+      console.error("Fetch rate error:", error);
+      toast.error("Error Loading Data", {
+        description: "Failed to load conversion rate. Please try again.",
+      });
     }
   };
 
@@ -98,9 +131,16 @@ export default function PointsConversionPage() {
         setStats(result.data.stats);
         setTotal(result.data.total);
         setTotalPages(result.data.totalPages);
+      } else {
+        toast.error("Failed to Load Conversions", {
+          description: result.error || "Could not fetch your conversion history.",
+        });
       }
-    } catch (error) {
-      toast.error("Error loading conversions");
+    } catch (error: any) {
+      console.error("Fetch conversions error:", error);
+      toast.error("Error Loading History", {
+        description: "Failed to load conversion history. Please try again.",
+      });
     }
   };
 
@@ -117,39 +157,59 @@ export default function PointsConversionPage() {
 
   const handleConvertPoints = async () => {
     if (!pointsToConvert || !conversionRate) {
-      toast.error("Please enter a valid amount");
+      toast.error("Invalid Input", {
+        description: "Please enter a valid amount of points to convert.",
+      });
       return;
     }
 
     const points = parseFloat(pointsToConvert);
     
     if (points < conversionRate.minimumPoints) {
-      toast.error(`Minimum ${conversionRate.minimumPoints} points required`);
+      toast.error("Minimum Points Required", {
+        description: `You need at least ${conversionRate.minimumPoints} points to convert.`,
+      });
       return;
     }
 
     if (!profile || profile.totalPoints < points) {
-      toast.error("Insufficient points");
+      toast.error("Insufficient Points", {
+        description: `You only have ${profile?.totalPoints || 0} points available.`,
+      });
       return;
     }
 
     try {
       setConverting(true);
+      toast.loading("Processing Conversion...", {
+        description: "Submitting your conversion request. Please wait.",
+      });
+      
       const result = await pointsConversionApiService.createConversion(points);
       
       if (result.success && result.data) {
+        // Update Redux with new points balance
+        dispatch(updateTotalPoints(result.data.remainingPoints));
+        
         toast.success("Conversion Request Submitted!", {
           description: result.data.message,
+          duration: 5000,
         });
+        
         setPointsToConvert("");
         setCalculatedCVC(0);
         await fetchConversions(1);
         setPage(1);
       } else {
-        toast.error("Conversion Failed", { description: result.error });
+        toast.error("Conversion Failed", { 
+          description: result.error || "Failed to create conversion request.",
+        });
       }
-    } catch (error) {
-      toast.error("Error creating conversion");
+    } catch (error: any) {
+      console.error("Conversion error:", error);
+      toast.error("Conversion Error", {
+        description: error.message || "An unexpected error occurred. Please try again.",
+      });
     } finally {
       setConverting(false);
     }
@@ -157,7 +217,15 @@ export default function PointsConversionPage() {
 
   const handleClaimCVC = async (conversion: PointsConversion) => {
     if (!account?.address) {
-      toast.error("Please connect your wallet first");
+      toast.error("Wallet Not Connected", {
+        description: "Please connect your wallet first to claim CVC tokens.",
+        action: {
+          label: "Connect",
+          onClick: () => {
+            // Wallet connection is handled by TradeNavbar
+          }
+        }
+      });
       return;
     }
 
@@ -166,43 +234,118 @@ export default function PointsConversionPage() {
   };
 
   const executeClaimCVC = async () => {
-    if (!selectedConversion || !account?.address || !window.ethereum) return;
+    if (!selectedConversion || !account?.address || !conversionRate) {
+      toast.error("Missing Information", {
+        description: "Please ensure all required information is available.",
+      });
+      return;
+    }
 
     try {
       setClaiming(true);
-
-      // Create a dummy transaction hash for demo (in real implementation, this would come from smart contract interaction)
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      
-      // This is a placeholder - you would interact with your CVC contract here
-      const tx = await signer.sendTransaction({
-        to: account.address,
-        value: ethers.parseEther("0"), // No ETH transfer, just for getting tx hash
-        data: "0x" // Empty data
+      toast.loading("Preparing Claim Transaction...", {
+        description: "Please confirm the transaction in your wallet.",
       });
 
-      await tx.wait();
+      // Initialize contract
+      const contract = getContract({
+        client,
+        address: conversionRate.cvcContractAddress as `0x${string}`,
+        chain: sepolia,
+        abi: CVC_CONTRACT_ABI,
+      });
 
-      const result = await pointsConversionApiService.claimCVC(
+      // Read current claim fee from contract
+      let claimFee: bigint;
+      try {
+        const fee = await readContract({
+          contract,
+          method: "claimFee",
+          params: [],
+        });
+        claimFee = fee as bigint;
+      } catch (error) {
+        // Fallback to rate config if contract read fails
+        claimFee = ethers.parseEther(conversionRate.claimFeeETH);
+      }
+
+      // Convert CVC amount to wei (18 decimals)
+      const cvcAmountInWei = ethers.parseUnits(selectedConversion.cvcAmount.toString(), 18);
+
+      // Prepare contract call
+      const transaction = prepareContractCall({
+        contract,
+        method: "claimTokens",
+        params: [account.address as `0x${string}`, cvcAmountInWei],
+        value: claimFee,
+      });
+
+      // Send transaction
+      toast.loading("Transaction Pending...", {
+        description: "Waiting for blockchain confirmation. This may take a moment.",
+      });
+
+      const result = await sendTransaction(transaction);
+      const txHash = result.transactionHash;
+
+      toast.success("Transaction Submitted!", {
+        description: "Your claim transaction has been submitted. Waiting for confirmation...",
+        duration: 3000,
+      });
+
+      // Wait for transaction confirmation
+      toast.loading("Confirming Transaction...", {
+        description: "Waiting for blockchain confirmation.",
+      });
+
+      // Wait a bit for confirmation (in production, you might want to poll)
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // Update backend with transaction hash
+      const apiResult = await pointsConversionApiService.claimCVC(
         selectedConversion.id,
         account.address,
-        tx.hash
+        txHash
       );
 
-      if (result.success) {
-        toast.success("CVC Claimed Successfully!", {
-          description: result.data?.message,
+      if (apiResult.success) {
+        toast.success("CVC Claimed Successfully! 🎉", {
+          description: `${selectedConversion.cvcAmount} CVC tokens have been sent to your wallet.`,
+          duration: 6000,
+          action: {
+            label: "View TX",
+            onClick: () => {
+              window.open(`https://sepolia.etherscan.io/tx/${txHash}`, '_blank');
+            }
+          }
         });
+        
         setShowClaimModal(false);
+        setSelectedConversion(null);
         await fetchConversions(1);
         setPage(1);
       } else {
-        toast.error("Claim Failed", { description: result.error });
+        toast.error("Backend Update Failed", {
+          description: apiResult.error || "Transaction succeeded but failed to update records.",
+        });
       }
     } catch (error: any) {
       console.error("Claim error:", error);
-      toast.error("Error claiming CVC");
+      
+      // Handle user rejection
+      if (error.message?.includes("rejected") || error.message?.includes("denied")) {
+        toast.error("Transaction Rejected", {
+          description: "You rejected the transaction. Please try again when ready.",
+        });
+      } else if (error.message?.includes("insufficient funds") || error.message?.includes("Insufficient fee")) {
+        toast.error("Insufficient Funds", {
+          description: `You need at least ${conversionRate.claimFeeETH} ETH to pay the claim fee.`,
+        });
+      } else {
+        toast.error("Claim Failed", {
+          description: error.message || "An error occurred while claiming CVC. Please try again.",
+        });
+      }
     } finally {
       setClaiming(false);
     }
@@ -243,7 +386,10 @@ export default function PointsConversionPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8 relative">
+      {/* Wallet Connection Component */}
+      <TradeNavbar topOffset="top-4" />
+      
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
@@ -573,36 +719,72 @@ export default function PointsConversionPage() {
       <Dialog open={showClaimModal} onOpenChange={setShowClaimModal}>
         <DialogContent className="bg-slate-900 border-slate-700">
           <DialogHeader>
-            <DialogTitle className="text-white">Claim CVC Tokens</DialogTitle>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-green-400" />
+              Claim CVC Tokens
+            </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Connect your wallet to claim {selectedConversion?.cvcAmount} CVC tokens
+              Claim your approved {selectedConversion?.cvcAmount} CVC tokens to your connected wallet
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {!account?.address && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-yellow-300 font-medium">Wallet Not Connected</p>
+                  <p className="text-yellow-200/70 text-sm mt-1">
+                    Please connect your wallet using the button in the top right corner to proceed with claiming.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {selectedConversion && (
-              <div className="bg-slate-800/50 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between">
+              <div className="bg-slate-800/50 rounded-lg p-4 space-y-3">
+                <div className="flex justify-between items-center">
                   <span className="text-slate-400">CVC Amount:</span>
-                  <span className="text-white font-bold">{selectedConversion.cvcAmount} CVC</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Claim Fee:</span>
-                  <span className="text-white">{selectedConversion.claimFee} ETH</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Wallet:</span>
-                  <span className="text-white font-mono text-sm">
-                    {account?.address ? `${account.address.slice(0, 6)}...${account.address.slice(-4)}` : 'Not Connected'}
+                  <span className="text-white font-bold text-lg flex items-center gap-2">
+                    <Coins className="h-5 w-5 text-cyan-400" />
+                    {selectedConversion.cvcAmount} CVC
                   </span>
                 </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Claim Fee:</span>
+                  <span className="text-white font-semibold">
+                    {conversionRate?.claimFeeETH || selectedConversion.claimFee} ETH
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Wallet Address:</span>
+                  <span className="text-white font-mono text-sm">
+                    {account?.address ? (
+                      <span className="text-green-400">
+                        {account.address.slice(0, 6)}...{account.address.slice(-4)}
+                      </span>
+                    ) : (
+                      <span className="text-red-400">Not Connected</span>
+                    )}
+                  </span>
+                </div>
+                {conversionRate && (
+                  <div className="pt-3 border-t border-slate-700/50">
+                    <p className="text-xs text-slate-400">
+                      The claim fee will be deducted from your wallet balance. Make sure you have sufficient ETH.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => setShowClaimModal(false)}
-                className="flex-1 border-slate-600 text-slate-300"
+                onClick={() => {
+                  setShowClaimModal(false);
+                  setSelectedConversion(null);
+                }}
+                className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
                 disabled={claiming}
               >
                 Cancel
@@ -610,12 +792,12 @@ export default function PointsConversionPage() {
               <Button
                 onClick={executeClaimCVC}
                 disabled={claiming || !account?.address}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
               >
                 {claiming ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white mr-2"></div>
-                    Claiming...
+                    Processing...
                   </>
                 ) : (
                   <>
