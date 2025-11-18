@@ -6,7 +6,7 @@ import { IUserRepository } from "../../core/interfaces/repositories/IUserReposit
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { calculateCVCFromPoints, validateConversion } from "../../config/pointsConversion";
+import { calculateCVCFromPoints, validateConversion, POINTS_CONVERSION_CONFIG } from "../../config/pointsConversion";
 import logger from "../../utils/logger";
 
 @injectable()
@@ -144,8 +144,20 @@ export class PointsConversionService implements IPointsConversionService {
         throw new CustomError("Conversion not found", StatusCode.NOT_FOUND);
       }
 
-      if (conversion.userId.toString() !== userId) {
-        throw new CustomError("Unauthorized", StatusCode.UNAUTHORIZED);
+      // Handle both populated and non-populated userId
+      // When populated by mongoose, userId is an object, when not populated it's an ObjectId
+      // Use mongoose's way to get the ObjectId regardless of population
+      const conversionUserId = (conversion.userId as any)?._id 
+        ? (conversion.userId as any)._id.toString() 
+        : (conversion.userId as any).toString();
+
+      // Normalize both IDs to strings for comparison
+      const normalizedUserId = userId.toString();
+      const normalizedConversionUserId = conversionUserId.toString();
+
+      if (normalizedConversionUserId !== normalizedUserId) {
+        logger.error(`User ID mismatch - Conversion userId: ${normalizedConversionUserId}, Request userId: ${normalizedUserId}, Conversion ID: ${conversionId}`);
+        throw new CustomError("Unauthorized - This conversion does not belong to you", StatusCode.UNAUTHORIZED);
       }
 
       if (conversion.status !== 'approved') {
@@ -178,6 +190,9 @@ export class PointsConversionService implements IPointsConversionService {
     minimumCVC: number;
     claimFeeETH: string;
     isActive: boolean;
+    companyWallet: string;
+    cvcContractAddress: string;
+    network: string;
   }> {
     try {
       const rate = await this._rateRepository.getCurrentRate();
@@ -190,7 +205,10 @@ export class PointsConversionService implements IPointsConversionService {
         minimumPoints: rate.minimumPoints,
         minimumCVC: rate.minimumCVC,
         claimFeeETH: rate.claimFeeETH,
-        isActive: rate.isActive
+        isActive: rate.isActive,
+        companyWallet: POINTS_CONVERSION_CONFIG.companyWallet,
+        cvcContractAddress: POINTS_CONVERSION_CONFIG.cvcContractAddress,
+        network: POINTS_CONVERSION_CONFIG.network
       };
     } catch (error) {
       logger.error("PointsConversionService: Get current rate error:", error);

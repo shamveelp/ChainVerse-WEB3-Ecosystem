@@ -33,6 +33,9 @@ export interface IPointsConversionService {
     minimumCVC: number;
     claimFeeETH: string;
     isActive: boolean;
+    companyWallet: string;
+    cvcContractAddress: string;
+    network: string;
   }>;
 
   validateConversion(userId: string, pointsToConvert: number): Promise<{

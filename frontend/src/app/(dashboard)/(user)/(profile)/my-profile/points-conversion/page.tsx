@@ -241,6 +241,16 @@ export default function PointsConversionPage() {
       return;
     }
 
+    // Get contract address from rate or use fallback from config
+    const contractAddress = conversionRate.cvcContractAddress || "0xF7BAdb1aE47768910edDF72cB39bF4C8B30173a8";
+    
+    if (!contractAddress || contractAddress === "undefined" || !contractAddress.startsWith("0x")) {
+      toast.error("Invalid Contract Address", {
+        description: "CVC contract address is not configured. Please contact support.",
+      });
+      return;
+    }
+
     try {
       setClaiming(true);
       toast.loading("Preparing Claim Transaction...", {
@@ -250,7 +260,7 @@ export default function PointsConversionPage() {
       // Initialize contract
       const contract = getContract({
         client,
-        address: conversionRate.cvcContractAddress as `0x${string}`,
+        address: contractAddress as `0x${string}`,
         chain: sepolia,
         abi: CVC_CONTRACT_ABI,
       });

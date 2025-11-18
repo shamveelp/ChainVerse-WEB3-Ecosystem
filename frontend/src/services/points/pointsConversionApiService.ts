@@ -6,6 +6,9 @@ export interface ConversionRate {
   minimumCVC: number;
   claimFeeETH: string;
   isActive: boolean;
+  companyWallet?: string;
+  cvcContractAddress?: string;
+  network?: string;
 }
 
 export interface PointsConversion {
