@@ -221,6 +221,12 @@ import { ICommunityAdminQuestService } from "../interfaces/services/quest/ICommu
 import { CommunityAdminQuestService } from "../../services/quest/communityAdminQuest.service"
 import { ICommunityAdminQuestController } from "../interfaces/controllers/quest/ICommunityAdminQuest.controller"
 import { CommunityAdminQuestController } from "../../controllers/quest/communityAdminQuest.controller"
+import { IUserQuestController } from "../interfaces/controllers/quest/IUserQuest.controller"
+import { UserQuestController } from "../../controllers/quest/userQuest.controller"
+import { UserQuestRepository } from "../../repositories/quest/userQuest.repository"
+import { UserQuestService } from "../../services/quest/userQuest.service"
+import { IUserQuestService } from "../interfaces/services/quest/IUserQuestService"
+import { IUserQuestRepository } from "../interfaces/repositories/quest/IUserQuest.repository"
 
 // Create Container
 const container = new Container()
@@ -393,5 +399,9 @@ container.bind<IAdminPointsConversionController>(TYPES.IAdminPointsConversionCon
 container.bind<ICommunityAdminQuestRepository>(TYPES.ICommunityAdminQuestRepository).to(CommunityAdminQuestRepository);
 container.bind<ICommunityAdminQuestService>(TYPES.ICommunityAdminQuestService).to(CommunityAdminQuestService);
 container.bind<ICommunityAdminQuestController>(TYPES.ICommunityAdminQuestController).to(CommunityAdminQuestController);
+
+container.bind<IUserQuestController>(TYPES.IUserQuestController).to(UserQuestController)
+container.bind<IUserQuestService>(TYPES.IUserQuestService).to(UserQuestService)
+container.bind<IUserQuestRepository>(TYPES.IUserQuestRepository).to(UserQuestRepository)
 
 export default container

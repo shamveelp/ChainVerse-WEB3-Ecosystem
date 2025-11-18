@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
-import { communityAdminQuestApiService } from '@/services/communityAdmin/communityAdminQuestApiService';
+import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 
 interface QuestTask {
   title: string;

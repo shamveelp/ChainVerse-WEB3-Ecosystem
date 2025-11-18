@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Trophy, Plus, Users, Clock, Target, BookOpen, TrendingUp, Eye, CreditCard as Edit, Trash2, Play, Square, Search, Filter, Calendar, Coins, Award, MoreVertical } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
-import { communityAdminQuestApiService } from '@/services/communityAdmin/communityAdminQuestApiService';
+import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 import { QuestAccessGuard } from '@/components/comms-admin/QuestAccessGuard';
 import { 
   DropdownMenu,

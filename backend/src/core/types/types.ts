@@ -147,6 +147,9 @@ const TYPES = {
   ICommunityAdminQuestRepository  : Symbol.for("ICommunityAdminQuestRepository"),
   ICommunityAdminQuestService: Symbol.for("ICommunityAdminQuestService"),
   ICommunityAdminQuestController: Symbol.for("ICommunityAdminQuestController"),
+  IUserQuestService: Symbol.for("IUserQuestService"),
+  IUserQuestController: Symbol.for("IUserQuestController"),
+  IUserQuestRepository: Symbol.for("IUserQuestRepository"),
 };
 
 export { TYPES };

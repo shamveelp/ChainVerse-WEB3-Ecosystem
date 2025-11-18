@@ -22,7 +22,7 @@ import {
   Download
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { communityAdminQuestApiService } from '@/services/communityAdmin/communityAdminQuestApiService';
+import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 import {
   Select,
   SelectContent,

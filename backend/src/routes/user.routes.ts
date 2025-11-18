@@ -72,6 +72,13 @@ import {
 import { ClaimCVCDto, CreateConversionDto, GetConversionsQueryDto, ValidateConversionDto } from "../dtos/points/PointsConversion.dto";
 import { PointsConversionController } from "../controllers/points/PointsConversion.controller";
 import { UserMarketController } from "../controllers/user/UserMarket.controller";
+import { UserQuestController } from "../controllers/quest/userQuest.controller";
+import {
+  GetAvailableQuestsDto,
+  JoinQuestDto,
+  SubmitTaskDto,
+  GetMyQuestsDto
+} from "../dtos/quest/UserQuest.dto";
 
 // Get controller instance
 
@@ -138,6 +145,9 @@ const pointsConversionController = container.get<PointsConversionController>(
 const userMarketController = container.get<UserMarketController>(
   TYPES.IUserMarketController
 )
+const userQuestController = container.get<UserQuestController>(
+  TYPES.IUserQuestController
+);
 
 // Auth Routes with DTO validation
 router.post(
@@ -888,6 +898,88 @@ router.get(
   roleMiddleware(["user"]),
   validateQuery(ValidateConversionDto),
   pointsConversionController.validateConversion.bind(pointsConversionController)
+);
+
+// Quest Routes (User)
+router.get(
+  "/quests",
+  validateQuery(GetAvailableQuestsDto),
+  userQuestController.getAvailableQuests.bind(userQuestController)
+);
+
+router.get(
+  "/quests/top",
+  userQuestController.getTopQuests.bind(userQuestController)
+);
+
+router.get(
+  "/quests/my",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateQuery(GetMyQuestsDto),
+  userQuestController.getMyQuests.bind(userQuestController)
+);
+
+router.get(
+  "/quests/:questId",
+  userQuestController.getQuest.bind(userQuestController)
+);
+
+router.get(
+  "/quests/:questId/stats",
+  userQuestController.getQuestStats.bind(userQuestController)
+);
+
+router.get(
+  "/quests/:questId/leaderboard",
+  userQuestController.getQuestLeaderboard.bind(userQuestController)
+);
+
+router.get(
+  "/quests/:questId/participation-status",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  userQuestController.checkParticipationStatus.bind(userQuestController)
+);
+
+// Quest Participation Routes (Protected)
+router.post(
+  "/quests/join",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateBody(JoinQuestDto),
+  userQuestController.joinQuest.bind(userQuestController)
+);
+
+router.get(
+  "/quests/:questId/tasks",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  userQuestController.getQuestTasks.bind(userQuestController)
+);
+
+router.post(
+  "/quests/submit-task",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateBody(SubmitTaskDto),
+  userQuestController.submitTask.bind(userQuestController)
+);
+
+router.get(
+  "/quests/:questId/submissions",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  userQuestController.getMySubmissions.bind(userQuestController)
+);
+
+// Quest Media Upload Route
+router.post(
+  "/quests/upload-media",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  upload.single("media"),
+  userQuestController.uploadTaskMedia.bind(userQuestController)
 );
 
 export default router;

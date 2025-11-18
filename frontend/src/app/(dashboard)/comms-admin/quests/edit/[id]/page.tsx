@@ -27,7 +27,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { communityAdminQuestApiService } from '@/services/communityAdmin/communityAdminQuestApiService';
+import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 
 interface QuestTask {
   _id?: string;

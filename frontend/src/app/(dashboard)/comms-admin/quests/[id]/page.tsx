@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Users, Trophy, Calendar, Target, Coins, Award, Play, Square, CreditCard as Edit, Trash2, Crown, Clock, CheckCircle, AlertCircle, MoreVertical, Eye, UserX } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { communityAdminQuestApiService } from '@/services/communityAdmin/communityAdminQuestApiService';
+import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 import {
   DropdownMenu,
   DropdownMenuContent,
