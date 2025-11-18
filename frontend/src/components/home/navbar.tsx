@@ -93,7 +93,7 @@ export default function Navbar() {
                   NFTs
                 </Link>
                 <Link
-                  href="/quests"
+                  href="/user/quests"
                   className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
                 >
                   Quests
