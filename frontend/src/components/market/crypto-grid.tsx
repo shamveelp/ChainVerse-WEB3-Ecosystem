@@ -9,7 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { LiveStatusIndicator } from "@/components/market/live-status-indicator"
 import { RefreshCw, Play, Pause } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { getUserListedCoins } from "@/services/marketApiService"
 
 interface CryptoGridProps {
   searchTerm: string
@@ -17,6 +18,8 @@ interface CryptoGridProps {
 
 export function CryptoGrid({ searchTerm }: CryptoGridProps) {
   const { data, loading, error, isLive, lastUpdate, refetch, startUpdates, stopUpdates } = useCryptoData()
+  const [listedSymbols, setListedSymbols] = useState<string[] | null>(null)
+  const [listingError, setListingError] = useState<string | null>(null)
 
   const {
     sortBy,
@@ -28,7 +31,24 @@ export function CryptoGrid({ searchTerm }: CryptoGridProps) {
     resultCount,
     totalCount,
     setSearchTerm,
-  } = useCryptoSearch(data)
+  } = useCryptoSearch(
+    listedSymbols
+      ? data.filter((crypto) => listedSymbols.includes(crypto.symbol))
+      : data
+  )
+
+  useEffect(() => {
+    const loadListedCoins = async () => {
+      try {
+        const coins = await getUserListedCoins()
+        setListedSymbols(coins.map((c) => c.symbol))
+      } catch (err: any) {
+        setListingError(err?.response?.data?.message || "Failed to load listed coins")
+      }
+    }
+
+    loadListedCoins()
+  }, [])
 
   useEffect(() => {
     setSearchTerm(searchTerm)
@@ -40,6 +60,11 @@ export function CryptoGrid({ searchTerm }: CryptoGridProps) {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Top Cryptocurrencies</h2>
         </div>
+        {listingError && (
+          <Alert>
+            <AlertDescription>{listingError}</AlertDescription>
+          </Alert>
+        )}
         <Alert>
           <AlertDescription className="flex items-center justify-between">
             <span>Failed to load cryptocurrency data: {error}</span>

@@ -11,6 +11,8 @@ import type { IPointsController } from "../interfaces/controllers/user/IPoints.c
 import { PointsController } from "../../controllers/user/Points.controller"
 import { IUserProfileController } from "../interfaces/controllers/user/IUserProfile.controller"
 import { UserProfileController } from "../../controllers/user/UserProfile.controller"
+import { IUserMarketController } from "../interfaces/controllers/user/IUserMarket.controller"
+import { UserMarketController } from "../../controllers/user/UserMarket.controller"
 
 // Admin Controllers
 import { IAdminAuthController } from "../interfaces/controllers/admin/IAuthAdmin.controllers"
@@ -55,6 +57,8 @@ import type { IPointsService } from "../interfaces/services/user/IPointsService"
 import { PointsService } from "../../services/user/Points.service"
 import { IUserService } from "../interfaces/services/user/IUserService"
 import { UserService } from "../../services/user/User.service"
+import { IUserMarketService } from "../interfaces/services/user/IUserMarketService"
+import { UserMarketService } from "../../services/user/UserMarket.service"
 
 // Admin Services
 import { IAdminAuthService } from "../interfaces/services/admin/IAdminAuthService"
@@ -134,6 +138,8 @@ import { IDailyCheckInService } from "../interfaces/services/IDailyCheckInServic
 import { DailyCheckInService } from "../../services/DailyCheckInService"
 import { IAdminDexController } from "../interfaces/controllers/admin/IAdminDexController"
 import { AdminDexController } from "../../controllers/admin/adminDex.controller"
+import { IAdminMarketController } from "../interfaces/controllers/admin/IAdminMarketController"
+import { AdminMarketController } from "../../controllers/admin/AdminMarket.controller"
 import { IAdminWalletController } from "../interfaces/controllers/admin/IAdminWalletController"
 import { AdminWalletController } from "../../controllers/admin/AdminWallet.controller"
 import { DexController } from "../../controllers/dex/dex.controller"
@@ -146,6 +152,8 @@ import { IWalletService } from "../interfaces/services/dex/IWalletService"
 import { WalletService } from "../../services/dex/wallet.service"
 import { IAdminDexService } from "../interfaces/services/admin/IAdminDexService"
 import { AdminDexService } from "../../services/admin/adminDex.service"
+import { IAdminMarketService } from "../interfaces/services/admin/IAdminMarketService"
+import { AdminMarketService } from "../../services/admin/AdminMarket.service"
 import { IAdminWalletService } from "../interfaces/services/admin/IAdminWalletService"
 import { AdminWalletService } from "../../services/admin/AdminWallet.service"
 import { IDexRepository } from "../interfaces/repositories/IDexRepository"
@@ -220,6 +228,7 @@ const container = new Container()
 // Bind Controllers
 container.bind<IUserAuthController>(TYPES.IUserAuthController).to(UserAuthController)
 container.bind<IUserProfileController>(TYPES.IUserProfileController).to(UserProfileController)
+container.bind<IUserMarketController>(TYPES.IUserMarketController).to(UserMarketController)
 container.bind<IReferralController>(TYPES.IReferralController).to(ReferralController)
 container.bind<IPointsController>(TYPES.IPointsController).to(PointsController)
 
@@ -248,6 +257,7 @@ container.bind<IChatController>(TYPES.IChatController).to(ChatController)
 // Bind Services
 container.bind<IUserAuthService>(TYPES.IUserAuthService).to(UserAuthService)
 container.bind<IUserService>(TYPES.IUserService).to(UserService)
+container.bind<IUserMarketService>(TYPES.IUserMarketService).to(UserMarketService)
 container.bind<IReferralService>(TYPES.IReferralService).to(ReferralService)
 container.bind<IPointsService>(TYPES.IPointsService).to(PointsService)
 
@@ -317,9 +327,11 @@ container.bind<EtherscanService>(TYPES.EtherscanService).to(EtherscanService)
 // Bind OAuth Client
 container.bind<OAuthClient>(TYPES.OAuthClient).to(OAuthClient)
 
-// admin dex
+// admin dex + market
 container.bind<IAdminDexController>(TYPES.IAdminDexController).to(AdminDexController)
 container.bind<IAdminDexService>(TYPES.IAdminDexService).to(AdminDexService)
+container.bind<IAdminMarketController>(TYPES.IAdminMarketController).to(AdminMarketController)
+container.bind<IAdminMarketService>(TYPES.IAdminMarketService).to(AdminMarketService)
 
 container.bind<IPaymentRepository>(TYPES.IPaymentRepository).to(PaymentRepository)
 

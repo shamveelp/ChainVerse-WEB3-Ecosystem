@@ -33,6 +33,12 @@ export interface IDexRepository {
   findCoinByAddress(contractAddress: string): Promise<ICoin | null>;
   findCoinBySymbol(symbol: string): Promise<ICoin | null>;
   updateCoin(contractAddress: string, updateData: Partial<ICoin>): Promise<ICoin | null>;
+  getCoins(
+    page: number,
+    limit: number,
+    search?: string,
+    includeUnlisted?: boolean
+  ): Promise<{ coins: ICoin[]; total: number }>;
   getAllCoins(includeUnlisted?: boolean): Promise<ICoin[]>;
   getListedCoins(): Promise<ICoin[]>;
   toggleCoinListing(contractAddress: string, isListed: boolean): Promise<ICoin | null>;

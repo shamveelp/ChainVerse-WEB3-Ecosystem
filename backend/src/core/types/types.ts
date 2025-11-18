@@ -87,6 +87,10 @@ const TYPES = {
   IAdminWalletService: Symbol.for("IAdminWalletService"),
   IUserDexService: Symbol.for("IUserDexService"),
   IUserDexController: Symbol.for("IUserDexController"),
+  IAdminMarketService: Symbol.for("IAdminMarketService"),
+  IAdminMarketController: Symbol.for("IAdminMarketController"),
+  IUserMarketService: Symbol.for("IUserMarketService"),
+  IUserMarketController: Symbol.for("IUserMarketController"),
   
   // DEX Repositories
   IDexRepository: Symbol.for("IDexRepository"),

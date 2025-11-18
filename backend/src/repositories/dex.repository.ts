@@ -144,6 +144,33 @@ export class DexRepository implements IDexRepository {
     return await Coin.findOne({ symbol: symbol.toUpperCase() });
   }
 
+  async getCoins(
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+    includeUnlisted: boolean = true
+  ): Promise<{ coins: ICoin[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const filter: any = {};
+
+    if (!includeUnlisted) {
+      filter.isListed = true;
+    }
+
+    if (search) {
+      const regex = new RegExp(search, "i");
+      filter.$or = [{ name: regex }, { symbol: regex }, { ticker: regex }];
+    }
+
+    const [coins, total] = await Promise.all([
+      Coin.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Coin.countDocuments(filter)
+    ]);
+
+    return { coins, total };
+  }
+
   async updateCoin(contractAddress: string, updateData: Partial<ICoin>): Promise<ICoin | null> {
     return await Coin.findOneAndUpdate(
       { contractAddress },

@@ -71,6 +71,7 @@ import {
 } from "../dtos/chainCast/ChainCast.dto";
 import { ClaimCVCDto, CreateConversionDto, GetConversionsQueryDto, ValidateConversionDto } from "../dtos/points/PointsConversion.dto";
 import { PointsConversionController } from "../controllers/points/PointsConversion.controller";
+import { UserMarketController } from "../controllers/user/UserMarket.controller";
 
 // Get controller instance
 
@@ -134,6 +135,9 @@ const userChainCastController = container.get<UserChainCastController>(
 const pointsConversionController = container.get<PointsConversionController>(
   TYPES.IPointsConversionController
 )
+const userMarketController = container.get<UserMarketController>(
+  TYPES.IUserMarketController
+)
 
 // Auth Routes with DTO validation
 router.post(
@@ -182,6 +186,14 @@ router.post(
   "/google-login",
   validateBody(GoogleLoginDto),
   userAuthController.googleLogin.bind(userAuthController)
+);
+
+// Market Routes
+router.get(
+  "/market/coins",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  userMarketController.getListedCoins.bind(userMarketController)
 );
 
 // Routes without DTO validation (simple requests)

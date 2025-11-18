@@ -28,9 +28,11 @@ import {
 } from "../dtos/admin/AdminCommunity.dto";
 import { AdminWalletController } from "../controllers/admin/AdminWallet.controller";
 import { AdminDexController } from "../controllers/admin/adminDex.controller";
+import { AdminMarketController } from "../controllers/admin/AdminMarket.controller";
 import { ApproveConversionDto, GetConversionsAdminQueryDto, GetConversionsQueryDto, RejectConversionDto, UpdateConversionRateDto } from "../dtos/points/PointsConversion.dto";
 import { Admin } from "mongodb";
 import { AdminPointsConversionController } from "../controllers/points/AdminPointsConversion.controller";
+import { GetCoinsQueryDto } from "../dtos/admin/AdminMarket.dto";
 
 const router = Router();
 
@@ -48,6 +50,9 @@ const adminWalletController = container.get<AdminWalletController>(
 );
 const adminDexController = container.get<AdminDexController>(
   TYPES.IAdminDexController
+);
+const adminMarketController = container.get<AdminMarketController>(
+  TYPES.IAdminMarketController
 );
 const adminPointsConversionController = container.get<AdminPointsConversionController>(
   TYPES.IAdminPointsConversionController
@@ -298,6 +303,29 @@ router.get(
   authMiddleware,
   roleMiddleware(["admin"]),
   adminDexController.getPendingPayments.bind(adminDexController)
+);
+
+// Market Management Routes
+router.get(
+  "/market/coins",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  validateQuery(GetCoinsQueryDto),
+  adminMarketController.getCoins.bind(adminMarketController)
+);
+
+router.patch(
+  "/market/coins/:contractAddress/listing",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminMarketController.toggleCoinListing.bind(adminMarketController)
+);
+
+router.post(
+  "/market/coins",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminMarketController.createCoinFromExternal.bind(adminMarketController)
 );
 
 // Admin Points Conversion Routes
