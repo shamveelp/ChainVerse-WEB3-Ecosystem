@@ -23,6 +23,13 @@ export class UpdateCommunityAdminProfileDto {
   location?: string;
 
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed.length === 0 ? undefined : trimmed;
+    }
+    return value;
+  })
   @IsUrl({}, { message: 'Website must be a valid URL' })
   website?: string;
 

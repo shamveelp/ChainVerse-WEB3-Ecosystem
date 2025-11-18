@@ -27,6 +27,40 @@ interface ApiResponse<T = any> {
   data?: T
 }
 
+export interface CommunitySettings {
+  allowChainCast: boolean
+  allowGroupChat: boolean
+  allowPosts: boolean
+  allowQuests: boolean
+}
+
+export interface CommunitySocialLinks {
+  twitter?: string
+  discord?: string
+  telegram?: string
+  website?: string
+}
+
+export interface CommunityDetails {
+  id: string
+  communityName: string
+  email: string
+  username: string
+  walletAddress: string
+  description: string
+  category: string
+  rules: string[]
+  socialLinks: CommunitySocialLinks
+  logo?: string
+  banner?: string
+  settings: CommunitySettings
+  status: string
+  isVerified: boolean
+  memberCount: number
+  createdAt?: string
+  updatedAt?: string
+}
+
 interface CheckExistenceResponse {
   exists: boolean
   success: boolean
@@ -435,7 +469,7 @@ class CommunityAdminApiService {
   }
 
   // Community Management
-  async getCommunityDetails(): Promise<ApiResponse> {
+  async getCommunityDetails(): Promise<ApiResponse<{ community: CommunityDetails }>> {
     try {
       const response = await api.get(`${this.baseUrl}/community`)
       return {
@@ -454,9 +488,13 @@ class CommunityAdminApiService {
     }
   }
 
-  async updateCommunity(communityData: Partial<CommunityApplicationData>): Promise<ApiResponse> {
+  async updateCommunity(formData: FormData): Promise<ApiResponse> {
     try {
-      const response = await api.put(`${this.baseUrl}/community`, communityData)
+      const response = await api.put(`${this.baseUrl}/community`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
       return {
         success: true,
         data: response.data,

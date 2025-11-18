@@ -17,6 +17,7 @@ const sidebarItems = [
   { title: "Community", href: COMMUNITY_ADMIN_ROUTES.COMMUNITY, icon: MessageSquare },
   { title: "Feed", href: COMMUNITY_ADMIN_ROUTES.FEED, icon: HousePlug },
   { title: "Profile", href: COMMUNITY_ADMIN_ROUTES.PROFILE, icon: User },
+  { title: "Settings", href: COMMUNITY_ADMIN_ROUTES.SETTINGS, icon: Settings },
   { title: "Members", href: COMMUNITY_ADMIN_ROUTES.MEMBERS, icon: Users },
   { title: "ChainCast", href: COMMUNITY_ADMIN_ROUTES.CHAINCAST, icon: BarChart3, requiresPremium: true },
   { title: "Quests", href: COMMUNITY_ADMIN_ROUTES.QUESTS, icon: Trophy },

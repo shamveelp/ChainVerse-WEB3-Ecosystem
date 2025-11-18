@@ -1,402 +1,514 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Settings, Save, Upload, Bell, Shield, Users, Palette, Globe, Lock, Trash2, TriangleAlert as AlertTriangle } from 'lucide-react'
+import { Loader2, UploadCloud, RefreshCw } from "lucide-react"
+import { toast } from "sonner"
+import {
+  communityAdminApiService,
+  type CommunityDetails,
+  type CommunitySocialLinks,
+  type CommunitySettings,
+} from "@/services/communityAdminApiService"
 
-export default function SettingsPage() {
-  const [communitySettings, setCommunitySettings] = useState({
-    name: "ChainVerse Community",
-    description: "A vibrant Web3 community focused on DeFi, NFTs, and blockchain innovation",
-    website: "https://chainverse-community.com",
-    twitter: "@chainverse_community",
-    discord: "discord.gg/chainverse",
-    telegram: "@chainverse_group",
-    isPublic: true,
-    allowInvites: true,
-    moderationEnabled: true,
-    autoApprove: false,
-    requireEmailVerification: true,
+interface FormState {
+  communityName: string
+  username: string
+  email: string
+  walletAddress: string
+  description: string
+  category: string
+  rules: string[]
+  socialLinks: CommunitySocialLinks
+  settings: CommunitySettings
+  logo?: string
+  banner?: string
+}
+
+const defaultSettings: CommunitySettings = {
+  allowChainCast: false,
+  allowGroupChat: true,
+  allowPosts: true,
+  allowQuests: false,
+}
+
+const defaultSocialLinks: CommunitySocialLinks = {
+  twitter: "",
+  discord: "",
+  telegram: "",
+  website: "",
+}
+
+export default function CommunitySettingsPage() {
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [formState, setFormState] = useState<FormState>({
+    communityName: "",
+    username: "",
+    email: "",
+    walletAddress: "",
+    description: "",
+    category: "",
+    rules: [""],
+    socialLinks: defaultSocialLinks,
+    settings: defaultSettings,
   })
+  const [logoPreview, setLogoPreview] = useState<string | undefined>()
+  const [bannerPreview, setBannerPreview] = useState<string | undefined>()
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [bannerFile, setBannerFile] = useState<File | null>(null)
 
-  const [notificationSettings, setNotificationSettings] = useState({
-    newMember: true,
-    questCompletion: true,
-    newPost: true,
-    directMessage: true,
-    weeklyReport: true,
-    systemUpdates: true,
-  })
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        setLoading(true)
+        const response = await communityAdminApiService.getCommunityDetails()
 
-  const handleSaveSettings = () => {
-    // Handle save API call
-    
+        if (!response.success || !response.data?.community) {
+          throw new Error(response.error || "Failed to fetch community details")
+        }
+
+        const data: CommunityDetails = response.data.community as CommunityDetails
+
+        setFormState({
+          communityName: data.communityName || "",
+          username: data.username || "",
+          email: data.email || "",
+          walletAddress: data.walletAddress || "",
+          description: data.description || "",
+          category: data.category || "",
+          rules: data.rules?.length ? data.rules : [""],
+          socialLinks: {
+            ...defaultSocialLinks,
+            ...data.socialLinks,
+          },
+          settings: {
+            ...defaultSettings,
+            ...data.settings,
+          },
+          logo: data.logo,
+          banner: data.banner,
+        })
+        setLogoPreview(data.logo)
+        setBannerPreview(data.banner)
+      } catch (error: any) {
+        console.error("Failed to load community details:", error)
+        toast.error("Unable to load community settings", {
+          description: error.message || "Please try again later",
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDetails()
+  }, [])
+
+  const handleInputChange = (field: keyof FormState, value: string) => {
+    setFormState((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handleSocialLinkChange = (field: keyof CommunitySocialLinks, value: string) => {
+    setFormState((prev) => ({
+      ...prev,
+      socialLinks: {
+        ...prev.socialLinks,
+        [field]: value,
+      },
+    }))
+  }
+
+  const handleSettingToggle = (field: keyof CommunitySettings, value: boolean) => {
+    setFormState((prev) => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        [field]: value,
+      },
+    }))
+  }
+
+  const handleRuleChange = (index: number, value: string) => {
+    setFormState((prev) => {
+      const rules = [...prev.rules]
+      rules[index] = value
+      return { ...prev, rules }
+    })
+  }
+
+  const addRule = () => {
+    setFormState((prev) => ({
+      ...prev,
+      rules: [...prev.rules, ""],
+    }))
+  }
+
+  const removeRule = (index: number) => {
+    setFormState((prev) => {
+      const rules = prev.rules.filter((_, i) => i !== index)
+      return {
+        ...prev,
+        rules: rules.length ? rules : [""],
+      }
+    })
+  }
+
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Logo must be an image")
+      return
+    }
+
+    setLogoFile(file)
+    setLogoPreview(URL.createObjectURL(file))
+  }
+
+  const handleBannerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Banner must be an image")
+      return
+    }
+
+    setBannerFile(file)
+    setBannerPreview(URL.createObjectURL(file))
+  }
+
+  const validateForm = () => {
+    if (!formState.communityName.trim()) {
+      toast.error("Community name is required")
+      return false
+    }
+    if (!formState.username.trim()) {
+      toast.error("Username is required")
+      return false
+    }
+    if (!/^0x[a-fA-F0-9]{40}$/.test(formState.walletAddress.trim())) {
+      toast.error("Please provide a valid wallet address")
+      return false
+    }
+    if (formState.description.trim().length < 50) {
+      toast.error("Description should be at least 50 characters")
+      return false
+    }
+    return true
+  }
+
+  const handleSave = async () => {
+    if (!validateForm()) return
+
+    try {
+      setSaving(true)
+      const formData = new FormData()
+
+      formData.append("communityName", formState.communityName.trim())
+      formData.append("username", formState.username.trim())
+      formData.append("walletAddress", formState.walletAddress.trim())
+      formData.append("description", formState.description.trim())
+      formData.append("category", formState.category.trim())
+      formData.append(
+        "rules",
+        JSON.stringify(formState.rules.filter((rule) => rule.trim().length > 0))
+      )
+      formData.append("socialLinks", JSON.stringify(formState.socialLinks))
+      formData.append("settings", JSON.stringify(formState.settings))
+
+      if (logoFile) {
+        formData.append("logo", logoFile)
+      }
+      if (bannerFile) {
+        formData.append("banner", bannerFile)
+      }
+
+      const response = await communityAdminApiService.updateCommunity(formData)
+
+      if (!response.success || !response.data?.community) {
+        throw new Error(response.error || "Failed to update community settings")
+      }
+
+      const updatedCommunity: CommunityDetails = response.data.community as CommunityDetails
+
+      setFormState((prev) => ({
+        ...prev,
+        communityName: updatedCommunity.communityName,
+        username: updatedCommunity.username,
+        walletAddress: updatedCommunity.walletAddress,
+        description: updatedCommunity.description,
+        category: updatedCommunity.category,
+        rules: updatedCommunity.rules?.length ? updatedCommunity.rules : [""],
+        socialLinks: {
+          ...defaultSocialLinks,
+          ...updatedCommunity.socialLinks,
+        },
+        settings: {
+          ...defaultSettings,
+          ...updatedCommunity.settings,
+        },
+        logo: updatedCommunity.logo,
+        banner: updatedCommunity.banner,
+      }))
+      setLogoPreview(updatedCommunity.logo)
+      setBannerPreview(updatedCommunity.banner)
+      setLogoFile(null)
+      setBannerFile(null)
+
+      toast.success("Community settings updated successfully")
+    } catch (error: any) {
+      console.error("Failed to update community:", error)
+      toast.error("Update failed", {
+        description: error.message || "Please try again later",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[70vh]">
+        <div className="text-center space-y-3">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-400 mx-auto" />
+          <p className="text-gray-300">Loading community settings...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
-            Community Settings
-          </h1>
-          <p className="text-gray-400 mt-2">Manage your community configuration and preferences</p>
+          <h1 className="text-3xl font-bold text-white">Community Settings</h1>
+          <p className="text-gray-400 mt-1">Manage how your community looks and behaves.</p>
         </div>
-        <Button onClick={handleSaveSettings} className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white">
-          <Save className="h-4 w-4 mr-2" />
-          Save Changes
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            className="border-gray-600 text-gray-200 hover:bg-gray-800"
+            onClick={() => window.location.reload()}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Reset
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90"
+          >
+            {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+            {saving ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 bg-black/60 backdrop-blur-xl border border-red-800/30">
-          <TabsTrigger 
-            value="general" 
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-red-700 data-[state=active]:text-white"
-          >
-            General
-          </TabsTrigger>
-          <TabsTrigger 
-            value="appearance"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-red-700 data-[state=active]:text-white"
-          >
-            Appearance
-          </TabsTrigger>
-          <TabsTrigger 
-            value="privacy"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-red-700 data-[state=active]:text-white"
-          >
-            Privacy
-          </TabsTrigger>
-          <TabsTrigger 
-            value="notifications"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-red-700 data-[state=active]:text-white"
-          >
-            Notifications
-          </TabsTrigger>
-          <TabsTrigger 
-            value="danger"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-red-700 data-[state=active]:text-white"
-          >
-            Advanced
-          </TabsTrigger>
-        </TabsList>
-
-        {/* General Settings */}
-        <TabsContent value="general" className="space-y-6">
-          <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                <Settings className="h-5 w-5 text-red-400" />
-                Basic Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="communityName" className="text-red-400 font-medium">Community Name</Label>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <Card className="xl:col-span-2 bg-black/40 border-gray-800">
+          <CardHeader>
+            <CardTitle className="text-white">Community Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-gray-300">Community Name</Label>
                 <Input
-                  id="communityName"
-                  value={communitySettings.name}
-                  onChange={(e) => setCommunitySettings({...communitySettings, name: e.target.value})}
-                  className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
+                  value={formState.communityName}
+                  onChange={(e) => handleInputChange("communityName", e.target.value)}
+                  placeholder="Enter community name"
+                  className="bg-gray-900 border-gray-700 text-white"
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description" className="text-red-400 font-medium">Description</Label>
-                <Textarea
-                  id="description"
-                  value={communitySettings.description}
-                  onChange={(e) => setCommunitySettings({...communitySettings, description: e.target.value})}
-                  className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20 min-h-[100px] resize-none"
-                  placeholder="Describe your community..."
+              <div>
+                <Label className="text-gray-300">Username</Label>
+                <Input
+                  value={formState.username}
+                  onChange={(e) => handleInputChange("username", e.target.value)}
+                  placeholder="@username"
+                  className="bg-gray-900 border-gray-700 text-white"
                 />
-                <div className="text-right">
-                  <span className="text-xs text-gray-400">{communitySettings.description.length}/500</span>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                <Globe className="h-5 w-5 text-red-400" />
-                Social Links
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="website" className="text-red-400 font-medium">Website</Label>
-                  <Input
-                    id="website"
-                    value={communitySettings.website}
-                    onChange={(e) => setCommunitySettings({...communitySettings, website: e.target.value})}
-                    className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
-                    placeholder="https://your-community.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="twitter" className="text-red-400 font-medium">Twitter/X</Label>
-                  <Input
-                    id="twitter"
-                    value={communitySettings.twitter}
-                    onChange={(e) => setCommunitySettings({...communitySettings, twitter: e.target.value})}
-                    className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
-                    placeholder="@username"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="discord" className="text-red-400 font-medium">Discord</Label>
-                  <Input
-                    id="discord"
-                    value={communitySettings.discord}
-                    onChange={(e) => setCommunitySettings({...communitySettings, discord: e.target.value})}
-                    className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
-                    placeholder="discord.gg/invite"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telegram" className="text-red-400 font-medium">Telegram</Label>
-                  <Input
-                    id="telegram"
-                    value={communitySettings.telegram}
-                    onChange={(e) => setCommunitySettings({...communitySettings, telegram: e.target.value})}
-                    className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-red-600 focus:ring-red-600/20"
-                    placeholder="@group_name"
-                  />
-                </div>
+              <div>
+                <Label className="text-gray-300">Contact Email</Label>
+                <Input value={formState.email} disabled className="bg-gray-900 border-gray-700 text-gray-400" />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Appearance Settings */}
-        <TabsContent value="appearance" className="space-y-6">
-          <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                <Palette className="h-5 w-5 text-red-400" />
-                Branding
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <Label className="text-red-400 font-medium">Community Logo</Label>
-                  <div className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-red-600/50 transition-colors">
-                    <Upload className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-400 font-medium">Upload Logo</p>
-                    <p className="text-sm text-gray-500 mt-1">PNG, JPG or GIF (max 2MB)</p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <Label className="text-red-400 font-medium">Banner Image</Label>
-                  <div className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-red-600/50 transition-colors">
-                    <Upload className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-400 font-medium">Upload Banner</p>
-                    <p className="text-sm text-gray-500 mt-1">PNG, JPG or GIF (max 5MB)</p>
-                  </div>
-                </div>
+              <div>
+                <Label className="text-gray-300">Wallet Address</Label>
+                <Input
+                  value={formState.walletAddress}
+                  onChange={(e) => handleInputChange("walletAddress", e.target.value)}
+                  placeholder="0x..."
+                  className="bg-gray-900 border-gray-700 text-white font-mono"
+                />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
 
-        {/* Privacy Settings */}
-        <TabsContent value="privacy" className="space-y-6">
-          <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                <Shield className="h-5 w-5 text-red-400" />
-                Privacy & Security
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h4 className="font-medium text-white">Public Community</h4>
-                    <p className="text-sm text-gray-400">Allow anyone to discover and join your community</p>
-                  </div>
-                  <Switch 
-                    checked={communitySettings.isPublic} 
-                    onCheckedChange={(checked) => setCommunitySettings({...communitySettings, isPublic: checked})}
-                  />
+            <div>
+              <Label className="text-gray-300">Category</Label>
+              <Input
+                value={formState.category}
+                onChange={(e) => handleInputChange("category", e.target.value)}
+                placeholder="e.g. Gaming, DeFi, NFT"
+                className="bg-gray-900 border-gray-700 text-white"
+              />
+            </div>
+
+            <div>
+              <Label className="text-gray-300">Description</Label>
+              <Textarea
+                value={formState.description}
+                onChange={(e) => handleInputChange("description", e.target.value)}
+                rows={5}
+                placeholder="Describe your community..."
+                className="bg-gray-900 border-gray-700 text-white"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-black/40 border-gray-800">
+          <CardHeader>
+            <CardTitle className="text-white">Branding</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="text-gray-300">Logo</Label>
+              <div className="mt-2 flex items-center gap-4">
+                <div className="h-20 w-20 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center overflow-hidden">
+                  {logoPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={logoPreview} alt="Community logo" className="h-full w-full object-cover" />
+                  ) : (
+                    <Badge className="bg-blue-500/20 text-blue-300">No Logo</Badge>
+                  )}
                 </div>
-
-                <Separator className="bg-red-800/20" />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h4 className="font-medium text-white">Member Invites</h4>
-                    <p className="text-sm text-gray-400">Allow members to invite others</p>
-                  </div>
-                  <Switch 
-                    checked={communitySettings.allowInvites} 
-                    onCheckedChange={(checked) => setCommunitySettings({...communitySettings, allowInvites: checked})}
-                  />
-                </div>
-
-                <Separator className="bg-red-800/20" />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h4 className="font-medium text-white">Content Moderation</h4>
-                    <p className="text-sm text-gray-400">Enable automatic content filtering</p>
-                  </div>
-                  <Switch 
-                    checked={communitySettings.moderationEnabled} 
-                    onCheckedChange={(checked) => setCommunitySettings({...communitySettings, moderationEnabled: checked})}
-                  />
-                </div>
-
-                <Separator className="bg-red-800/20" />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h4 className="font-medium text-white">Auto-approve Members</h4>
-                    <p className="text-sm text-gray-400">Automatically approve new member requests</p>
-                  </div>
-                  <Switch 
-                    checked={communitySettings.autoApprove} 
-                    onCheckedChange={(checked) => setCommunitySettings({...communitySettings, autoApprove: checked})}
-                  />
-                </div>
-
-                <Separator className="bg-red-800/20" />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h4 className="font-medium text-white">Email Verification</h4>
-                    <p className="text-sm text-gray-400">Require email verification for new members</p>
-                  </div>
-                  <Switch 
-                    checked={communitySettings.requireEmailVerification} 
-                    onCheckedChange={(checked) => setCommunitySettings({...communitySettings, requireEmailVerification: checked})}
-                  />
-                </div>
+                <Button variant="outline" className="border-gray-600 text-gray-200" asChild>
+                  <label className="cursor-pointer flex items-center gap-2">
+                    <UploadCloud className="h-4 w-4" />
+                    Upload Logo
+                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
+                  </label>
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
 
-        {/* Notification Settings */}
-        <TabsContent value="notifications" className="space-y-6">
-          <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                <Bell className="h-5 w-5 text-red-400" />
-                Email Notifications
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                {[
-                  { key: 'newMember', title: 'New Member Joined', desc: 'Get notified when someone joins your community' },
-                  { key: 'questCompletion', title: 'Quest Completions', desc: 'Get notified when members complete quests' },
-                  { key: 'newPost', title: 'New Posts', desc: 'Get notified about new community posts' },
-                  { key: 'directMessage', title: 'Direct Messages', desc: 'Get notified when you receive direct messages' },
-                  { key: 'weeklyReport', title: 'Weekly Report', desc: 'Receive weekly community activity summaries' },
-                  { key: 'systemUpdates', title: 'System Updates', desc: 'Get notified about platform updates and maintenance' },
-                ].map((notification) => (
-                  <div key={notification.key}>
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <h4 className="font-medium text-white">{notification.title}</h4>
-                        <p className="text-sm text-gray-400">{notification.desc}</p>
-                      </div>
-                      <Switch 
-                        checked={notificationSettings[notification.key as keyof typeof notificationSettings]} 
-                        onCheckedChange={(checked) => setNotificationSettings({
-                          ...notificationSettings, 
-                          [notification.key]: checked
-                        })}
-                      />
+            <div>
+              <Label className="text-gray-300">Banner</Label>
+              <div className="mt-2 space-y-3">
+                <div className="h-28 rounded-lg bg-gray-900 border border-gray-700 overflow-hidden">
+                  {bannerPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={bannerPreview} alt="Community banner" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <Badge className="bg-purple-500/20 text-purple-300">No Banner</Badge>
                     </div>
-                    {notification.key !== 'systemUpdates' && <Separator className="bg-red-800/20 mt-4" />}
-                  </div>
-                ))}
+                  )}
+                </div>
+                <Button variant="outline" className="border-gray-600 text-gray-200 w-full" asChild>
+                  <label className="cursor-pointer flex items-center justify-center gap-2">
+                    <UploadCloud className="h-4 w-4" />
+                    Upload Banner
+                    <input type="file" accept="image/*" className="hidden" onChange={handleBannerChange} />
+                  </label>
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Advanced/Danger Settings */}
-        <TabsContent value="danger" className="space-y-6">
-          <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                <Lock className="h-5 w-5 text-red-400" />
-                Security
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-blue-950/20 rounded-lg border border-blue-800/30">
-                  <div>
-                    <h4 className="font-medium text-white">Two-Factor Authentication</h4>
-                    <p className="text-sm text-gray-400">Add an extra layer of security to your admin account</p>
-                  </div>
-                  <Badge className="bg-green-600 text-white">Enabled</Badge>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-gray-950/20 rounded-lg border border-gray-800/30">
-                  <div>
-                    <h4 className="font-medium text-white">Login History</h4>
-                    <p className="text-sm text-gray-400">View recent login activity and manage active sessions</p>
-                  </div>
-                  <Button variant="outline" size="sm" className="border-gray-600/50 text-gray-400 hover:bg-gray-800">
-                    View History
-                  </Button>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-black/40 border-gray-800">
+          <CardHeader>
+            <CardTitle className="text-white">Community Rules</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {formState.rules.map((rule, index) => (
+              <div key={`rule-${index}`} className="flex items-center gap-3">
+                <Input
+                  value={rule}
+                  onChange={(e) => handleRuleChange(index, e.target.value)}
+                  placeholder={`Rule ${index + 1}`}
+                  className="bg-gray-900 border-gray-700 text-white"
+                />
+                <Button
+                  variant="ghost"
+                  className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                  onClick={() => removeRule(index)}
+                  disabled={formState.rules.length === 1}
+                >
+                  Remove
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+            <Button onClick={addRule} variant="outline" className="border-gray-600 text-gray-200">
+              Add Rule
+            </Button>
+          </CardContent>
+        </Card>
 
-          <Card className="bg-black/60 backdrop-blur-xl border-red-800/30">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-red-400 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5" />
-                Danger Zone
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="p-4 bg-red-950/20 rounded-lg border border-red-800/30">
-                  <h4 className="font-medium text-white mb-2">Transfer Community Ownership</h4>
-                  <p className="text-sm text-gray-400 mb-4">
-                    Transfer ownership of this community to another admin. This action cannot be undone.
-                  </p>
-                  <Button variant="outline" className="border-red-600/50 text-red-400 hover:bg-red-950/30">
-                    Transfer Ownership
-                  </Button>
-                </div>
-
-                <div className="p-4 bg-red-950/20 rounded-lg border border-red-800/30">
-                  <h4 className="font-medium text-white mb-2">Delete Community</h4>
-                  <p className="text-sm text-gray-400 mb-4">
-                    Permanently delete your community and all associated data. This action cannot be undone.
-                  </p>
-                  <Button variant="destructive" className="bg-red-600 hover:bg-red-700 text-white">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Community
-                  </Button>
-                </div>
+        <Card className="bg-black/40 border-gray-800">
+          <CardHeader>
+            <CardTitle className="text-white">Social Links</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {(["twitter", "discord", "telegram", "website"] as (keyof CommunitySocialLinks)[]).map((platform) => (
+              <div key={platform}>
+                <Label className="text-gray-300 capitalize">{platform}</Label>
+                <Input
+                  value={formState.socialLinks[platform] || ""}
+                  onChange={(e) => handleSocialLinkChange(platform, e.target.value)}
+                  placeholder={`Enter ${platform} link`}
+                  className="bg-gray-900 border-gray-700 text-white"
+                />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="bg-black/40 border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-white">Community Features</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {(
+            [
+              { label: "ChainCast Events", field: "allowChainCast", description: "Enable live audio/video events" },
+              { label: "Group Chat", field: "allowGroupChat", description: "Allow members to chat together" },
+              { label: "Community Posts", field: "allowPosts", description: "Allow members to publish posts" },
+              { label: "Quests & Tasks", field: "allowQuests", description: "Run quests for your members" },
+            ] as { label: string; field: keyof CommunitySettings; description: string }[]
+          ).map((setting) => (
+            <div
+              key={setting.field}
+              className="flex items-center justify-between p-4 rounded-lg border border-gray-800 bg-gray-900/40"
+            >
+              <div>
+                <p className="text-white font-medium">{setting.label}</p>
+                <p className="text-gray-400 text-sm">{setting.description}</p>
+              </div>
+              <Switch
+                checked={formState.settings[setting.field]}
+                onCheckedChange={(checked) => handleSettingToggle(setting.field, checked)}
+              />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   )
 }

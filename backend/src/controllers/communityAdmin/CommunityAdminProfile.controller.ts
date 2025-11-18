@@ -117,6 +117,59 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
         }
     }
 
+    async uploadBannerImage(req: Request, res: Response): Promise<void> {
+        try {
+            const communityAdminId = (req as any).user.id;
+
+            if (!req.file) {
+                res.status(StatusCode.BAD_REQUEST).json({
+                    success: false,
+                    error: "No file uploaded"
+                });
+                return;
+            }
+
+            const result = await new Promise<any>((resolve, reject) => {
+                cloudinary.uploader.upload_stream(
+                    {
+                        folder: "chainverse/community-admin-banners",
+                        transformation: [
+                            { width: 1600, height: 600, crop: "fill" },
+                            { quality: "auto", format: "auto" },
+                        ],
+                    },
+                    (error, uploadResult) => {
+                        if (error) {
+                            logger.error("Banner image upload error:", error);
+                            reject(new CustomError("Failed to upload banner image", StatusCode.INTERNAL_SERVER_ERROR));
+                        } else {
+                            resolve(uploadResult);
+                        }
+                    }
+                ).end(req.file!.buffer);
+            });
+
+            const updatedProfile = await this._profileService.updateProfile(communityAdminId, {
+                bannerImage: result.secure_url
+            });
+
+            res.status(StatusCode.OK).json({
+                success: true,
+                data: updatedProfile,
+                message: "Banner image updated successfully"
+            });
+        } catch (error) {
+            const err = error as Error;
+            const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || "Failed to upload banner image";
+            logger.error("Upload banner image error:", { message, stack: err.stack, adminId: (req as any).user?.id });
+            res.status(statusCode).json({
+                success: false,
+                error: message
+            });
+        }
+    }
+
     async getCommunityStats(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;

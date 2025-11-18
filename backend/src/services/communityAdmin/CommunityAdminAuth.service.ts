@@ -10,6 +10,7 @@ import { IOTPService } from "../../core/interfaces/services/IOtpService";
 import { IMailService } from "../ITempMail";
 import { ICommunityAdmin } from "../../models/communityAdmin.model";
 import CommunityModel from "../../models/community.model";
+import CommunityMemberModel from "../../models/communityMember.model";
 import logger from "../../utils/logger";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -577,27 +578,17 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       const community = await CommunityModel.findById(
         communityAdmin.communityId
-      );
+      ).lean();
 
       if (!community) {
         throw new CustomError("Community not found", StatusCode.NOT_FOUND);
       }
 
+      const communityPayload = await this._buildCommunityResponse(community);
+
       return {
         success: true,
-        community: {
-          id: community._id,
-          name: community.communityName,
-          username: community.username,
-          description: community.description,
-          category: community.category,
-          logo: community.logo,
-          banner: community.banner,
-          // memberCount: community.members.length,
-          isVerified: community.isVerified,
-          status: community.status,
-          settings: community.settings,
-        },
+        community: communityPayload,
       };
     } catch (error: any) {
       logger.error("Error getting community details:", error);
@@ -635,13 +626,19 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       const community = await CommunityModel.findByIdAndUpdate(
         communityAdmin.communityId,
         updateData,
-        { new: true }
+        { new: true, lean: true }
       );
+
+      if (!community) {
+        throw new CustomError("Community not found", StatusCode.NOT_FOUND);
+      }
+
+      const communityPayload = await this._buildCommunityResponse(community);
 
       return {
         success: true,
         message: "Community updated successfully",
-        community: updateData,
+        community: communityPayload,
       };
     } catch (error: any) {
       logger.error("Error updating community:", error);
@@ -837,6 +834,62 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       logger.error("Failed to send application email:", error);
       // Don't throw error to not break the main flow
     }
+  }
+
+  private _normalizeRules(rules?: any): string[] {
+    if (!Array.isArray(rules)) {
+      return [];
+    }
+
+    const normalized: string[] = [];
+
+    rules.forEach((rule: any) => {
+      if (typeof rule === "string") {
+        const parts = rule.split(";").map((part) => part.trim()).filter(Boolean);
+        normalized.push(...parts);
+      }
+    });
+
+    return normalized;
+  }
+
+  private _normalizeSocialLinks(socialLinks?: any): Record<string, string> {
+    if (Array.isArray(socialLinks) && socialLinks.length > 0) {
+      return socialLinks[0];
+    }
+
+    if (typeof socialLinks === "object" && socialLinks !== null) {
+      return socialLinks;
+    }
+
+    return {};
+  }
+
+  private async _buildCommunityResponse(community: any) {
+    const memberCount = await CommunityMemberModel.countDocuments({
+      communityId: community._id,
+      isActive: true,
+    });
+
+    return {
+      id: community._id?.toString(),
+      communityName: community.communityName,
+      email: community.email,
+      username: community.username,
+      walletAddress: community.walletAddress,
+      description: community.description,
+      category: community.category,
+      rules: this._normalizeRules(community.rules),
+      socialLinks: this._normalizeSocialLinks(community.socialLinks),
+      logo: community.logo,
+      banner: community.banner,
+      settings: community.settings,
+      status: community.status,
+      isVerified: community.isVerified,
+      memberCount,
+      createdAt: community.createdAt,
+      updatedAt: community.updatedAt,
+    };
   }
 
   async createCommunityFromRequest(requestId: string): Promise<void> {

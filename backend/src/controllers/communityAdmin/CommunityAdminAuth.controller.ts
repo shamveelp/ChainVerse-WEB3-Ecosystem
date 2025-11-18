@@ -322,7 +322,86 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
     async updateCommunity(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
-            const result = await this._commAdminAuthService.updateCommunity(communityAdminId, req.body);
+            const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+            const updatePayload: Record<string, any> = { ...req.body };
+
+            const parseJsonField = (value: any, fallback: any) => {
+                if (typeof value === 'string' && value.trim() !== '') {
+                    try {
+                        return JSON.parse(value);
+                    } catch {
+                        return fallback;
+                    }
+                }
+                return value ?? fallback;
+            };
+
+            if ('rules' in updatePayload) {
+                const parsedRules = parseJsonField(updatePayload.rules, []);
+                updatePayload.rules = Array.isArray(parsedRules)
+                    ? parsedRules.filter((rule: string) => typeof rule === 'string' && rule.trim() !== '')
+                    : [];
+            }
+
+            if ('socialLinks' in updatePayload) {
+                const parsedLinks = parseJsonField(updatePayload.socialLinks, {});
+                updatePayload.socialLinks = parsedLinks ? [parsedLinks] : [];
+            }
+
+            if ('settings' in updatePayload) {
+                updatePayload.settings = parseJsonField(updatePayload.settings, undefined);
+            }
+
+            const uploadImage = async (
+                file: Express.Multer.File,
+                folder: string,
+                transformation: Record<string, unknown>[]
+            ): Promise<string | undefined> => {
+                try {
+                    const result = await new Promise<any>((resolve, reject) => {
+                        cloudinary.uploader.upload_stream(
+                            {
+                                folder,
+                                transformation,
+                            },
+                            (error, uploadResult) => {
+                                if (error) {
+                                    logger.error("Community media upload error:", error);
+                                    reject(error);
+                                } else {
+                                    resolve(uploadResult);
+                                }
+                            }
+                        ).end(file.buffer);
+                    });
+                    return result?.secure_url;
+                } catch (error) {
+                    logger.error("Failed to upload community media:", error);
+                    return undefined;
+                }
+            };
+
+            if (files?.logo?.[0]) {
+                const logoUrl = await uploadImage(files.logo[0], "chainverse/community-logos", [
+                    { width: 400, height: 400, crop: "fill" },
+                    { quality: "auto", format: "auto" },
+                ]);
+                if (logoUrl) {
+                    updatePayload.logo = logoUrl;
+                }
+            }
+
+            if (files?.banner?.[0]) {
+                const bannerUrl = await uploadImage(files.banner[0], "chainverse/community-banners", [
+                    { width: 1600, height: 600, crop: "fill" },
+                    { quality: "auto", format: "auto" },
+                ]);
+                if (bannerUrl) {
+                    updatePayload.banner = bannerUrl;
+                }
+            }
+
+            const result = await this._commAdminAuthService.updateCommunity(communityAdminId, updatePayload);
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;

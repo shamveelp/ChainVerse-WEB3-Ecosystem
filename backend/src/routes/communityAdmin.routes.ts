@@ -237,6 +237,15 @@ router.post(
     communityAdminProfileController
   )
 );
+router.post(
+  "/profile/upload-banner",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  upload.single("bannerImage"),
+  communityAdminProfileController.uploadBannerImage.bind(
+    communityAdminProfileController
+  )
+);
 router.get(
   "/community-stats",
   authMiddleware,
