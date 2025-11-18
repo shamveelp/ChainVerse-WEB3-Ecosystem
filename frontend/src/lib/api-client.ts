@@ -51,37 +51,47 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
     async (error) => {
       const originalRequest = error.config;
 
-      // Handle refresh on 401
+      const url: string = originalRequest?.url || "";
+
+      // Do NOT trigger refresh / auto-logout for auth endpoints (e.g. login)
+      const isAuthEndpoint =
+        url.includes("/api/admin/login") ||
+        url.includes("/api/user/login") ||
+        url.includes("/api/community-admin/login");
+
+      // Handle refresh on 401 (skip auth endpoints)
       if (
         error.response?.status === 401 &&
         !originalRequest._retry &&
-        !originalRequest.url.includes('/refresh-token')
+        !url.includes("/refresh-token") &&
+        !isAuthEndpoint
       ) {
         originalRequest._retry = true;
 
         try {
           let refreshEndpoint: string;
-          let role: 'admin' | 'user' | 'communityAdmin';
+          let role: "admin" | "user" | "communityAdmin";
 
-          if (originalRequest.url.includes('/community-admin')) {
-            refreshEndpoint = '/api/community-admin/refresh-token';
-            role = 'communityAdmin';
-          } else if (originalRequest.url.includes('/admin')) {
-            refreshEndpoint = '/api/admin/refresh-token';
-            role = 'admin';
+          if (url.includes("/community-admin")) {
+            refreshEndpoint = "/api/community-admin/refresh-token";
+            role = "communityAdmin";
+          } else if (url.includes("/admin")) {
+            refreshEndpoint = "/api/admin/refresh-token";
+            role = "admin";
           } else {
-            refreshEndpoint = '/api/user/refresh-token';
-            role = 'user';
+            refreshEndpoint = "/api/user/refresh-token";
+            role = "user";
           }
 
           const response = await api.post(refreshEndpoint, {}, { withCredentials: true });
 
           if (response.data.success) {
-            const actionType = role === 'admin' 
-              ? 'adminAuth/updateToken' 
-              : role === 'communityAdmin'
-              ? 'communityAdminAuth/updateToken'
-              : 'userAuth/updateToken';
+            const actionType =
+              role === "admin"
+                ? "adminAuth/updateToken"
+                : role === "communityAdmin"
+                ? "communityAdminAuth/updateToken"
+                : "userAuth/updateToken";
 
             store.dispatch({
               type: actionType,
@@ -91,24 +101,26 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
             return api(originalRequest);
           }
         } catch (refreshError) {
-          // If refresh fails → logout
-          const role = originalRequest.url.includes('/community-admin') 
-            ? 'communityAdmin'
-            : originalRequest.url.includes('/admin') 
-            ? 'admin' 
-            : 'user';
-          handleLogout(role);
+          // If refresh fails → logout (skip auth endpoints)
+          if (!isAuthEndpoint) {
+            const role = url.includes("/community-admin")
+              ? "communityAdmin"
+              : url.includes("/admin")
+              ? "admin"
+              : "user";
+            handleLogout(role);
+          }
           return Promise.reject(refreshError);
         }
       }
 
-      // Auto logout on 401 (failed refresh) or 403
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        const role = originalRequest.url.includes('/community-admin') 
-          ? 'communityAdmin'
-          : originalRequest.url.includes('/admin') 
-          ? 'admin' 
-          : 'user';
+      // Auto logout on 401 (failed refresh) or 403 (skip auth endpoints)
+      if ((error.response?.status === 401 || error.response?.status === 403) && !isAuthEndpoint) {
+        const role = url.includes("/community-admin")
+          ? "communityAdmin"
+          : url.includes("/admin")
+          ? "admin"
+          : "user";
         handleLogout(role);
       }
 
