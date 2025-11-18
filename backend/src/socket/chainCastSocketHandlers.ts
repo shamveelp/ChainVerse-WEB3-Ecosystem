@@ -133,14 +133,16 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
         const participantCount = chainCastSocketMap.get(data.chainCastId)?.size || 0;
 
         // Notify others about new participant
+        // Only communityAdmin can have video/audio enabled
+        // Regular users can only listen (receive audio), not send
         socket.to(chainCastRoom).emit('participant_joined', {
           userId: socket.userId,
           username: socket.username,
           userType: socket.userType,
           hasVideo: socket.userType === 'communityAdmin',
-          hasAudio: true,
-          isMuted: false,
-          isVideoOff: socket.userType !== 'communityAdmin'
+          hasAudio: socket.userType === 'communityAdmin', // Only admin can send audio
+          isMuted: socket.userType !== 'communityAdmin', // Regular users are muted
+          isVideoOff: socket.userType !== 'communityAdmin' // Regular users have video off
         });
 
         // Confirm join to the user
@@ -178,7 +180,7 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
       }
     });
 
-    // Handle stream updates - Liberal approach
+    // Handle stream updates - Only allow communityAdmin to control streaming
     socket.on('stream_update', (data: {
       chainCastId: string;
       hasVideo: boolean;
@@ -192,9 +194,22 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
           return;
         }
 
+        // Only allow communityAdmin to send stream updates
+        if (socket.userType !== 'communityAdmin') {
+          logger.warn('Stream update: Unauthorized - only communityAdmin can control streaming', {
+            socketId: socket.id,
+            userId: socket.userId,
+            userType: socket.userType
+          });
+          socket.emit('stream_update_error', {
+            error: 'Only community admin can control video and audio streaming'
+          });
+          return;
+        }
+
         const chainCastRoom = `chaincast:${data.chainCastId}`;
 
-        // Broadcast stream update to all participants in room
+        // Broadcast stream update to all participants in room (excluding sender)
         socket.to(chainCastRoom).emit('participant_stream_update', {
           userId: socket.userId,
           username: socket.username,
@@ -308,7 +323,7 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
       }
     });
 
-    // Handle chat messages - Liberal approach with enhanced broadcasting
+    // Handle chat messages - Broadcast to all except sender to prevent duplicates
     socket.on('send_message', (data: { chainCastId: string; message: string }) => {
       try {
         if (!data.chainCastId || !data.message?.trim()) {
@@ -331,8 +346,12 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
           timestamp: new Date()
         };
 
-        // Broadcast to all participants in the room (including sender)
-        chainCastNamespace.to(chainCastRoom).emit('new_message', messageData);
+        // Broadcast to all participants EXCEPT the sender to prevent duplicate messages
+        // The sender already added the message locally in the frontend
+        socket.to(chainCastRoom).emit('new_message', messageData);
+
+        // Send confirmation to sender with the message data so they can update their local message with the server ID
+        socket.emit('message_sent', messageData);
 
         logger.info('Chat message broadcast', {
           socketId: socket.id,
@@ -429,6 +448,98 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
           error: error.message 
         });
         socket.emit('admin_error', { error: 'Failed to perform admin action' });
+      }
+    });
+
+    // Handle WebRTC signaling - Offer
+    socket.on('webrtc_offer', (data: {
+      chainCastId: string;
+      toUserId: string;
+      offer: RTCSessionDescriptionInit;
+    }) => {
+      try {
+        if (!data.chainCastId || !data.toUserId || !data.offer) {
+          logger.warn('WebRTC offer: Missing data', { socketId: socket.id });
+          return;
+        }
+
+        const targetSocketId = participantSocketMap.get(data.toUserId);
+        if (targetSocketId) {
+          chainCastNamespace.to(targetSocketId).emit('webrtc_offer', {
+            fromUserId: socket.userId,
+            offer: data.offer
+          });
+          logger.info('WebRTC offer forwarded', {
+            from: socket.userId,
+            to: data.toUserId,
+            chainCastId: data.chainCastId
+          });
+        } else {
+          logger.warn('WebRTC offer: Target user not found', { toUserId: data.toUserId });
+        }
+      } catch (error: any) {
+        logger.error('WebRTC offer error', { error: error.message });
+      }
+    });
+
+    // Handle WebRTC signaling - Answer
+    socket.on('webrtc_answer', (data: {
+      chainCastId: string;
+      toUserId: string;
+      answer: RTCSessionDescriptionInit;
+    }) => {
+      try {
+        if (!data.chainCastId || !data.toUserId || !data.answer) {
+          logger.warn('WebRTC answer: Missing data', { socketId: socket.id });
+          return;
+        }
+
+        const targetSocketId = participantSocketMap.get(data.toUserId);
+        if (targetSocketId) {
+          chainCastNamespace.to(targetSocketId).emit('webrtc_answer', {
+            fromUserId: socket.userId,
+            answer: data.answer
+          });
+          logger.info('WebRTC answer forwarded', {
+            from: socket.userId,
+            to: data.toUserId,
+            chainCastId: data.chainCastId
+          });
+        } else {
+          logger.warn('WebRTC answer: Target user not found', { toUserId: data.toUserId });
+        }
+      } catch (error: any) {
+        logger.error('WebRTC answer error', { error: error.message });
+      }
+    });
+
+    // Handle WebRTC signaling - ICE Candidate
+    socket.on('webrtc_ice_candidate', (data: {
+      chainCastId: string;
+      toUserId: string;
+      candidate: RTCIceCandidateInit;
+    }) => {
+      try {
+        if (!data.chainCastId || !data.toUserId || !data.candidate) {
+          logger.warn('WebRTC ICE candidate: Missing data', { socketId: socket.id });
+          return;
+        }
+
+        const targetSocketId = participantSocketMap.get(data.toUserId);
+        if (targetSocketId) {
+          chainCastNamespace.to(targetSocketId).emit('webrtc_ice_candidate', {
+            fromUserId: socket.userId,
+            candidate: data.candidate
+          });
+          logger.debug('WebRTC ICE candidate forwarded', {
+            from: socket.userId,
+            to: data.toUserId
+          });
+        } else {
+          logger.warn('WebRTC ICE candidate: Target user not found', { toUserId: data.toUserId });
+        }
+      } catch (error: any) {
+        logger.error('WebRTC ICE candidate error', { error: error.message });
       }
     });
 

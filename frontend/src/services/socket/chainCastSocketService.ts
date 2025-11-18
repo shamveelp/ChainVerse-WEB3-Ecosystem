@@ -279,6 +279,70 @@ class ChainCastSocketService {
     }
   }
 
+  onMessageSent(callback: (message: ChatMessage) => void): void {
+    if (this.socket) {
+      this.socket.on("message_sent", (data) => {
+        console.log('✅ Message sent confirmation:', data);
+        callback(data);
+      });
+    }
+  }
+
+  onStreamUpdateError(callback: (data: { error: string }) => void): void {
+    if (this.socket) {
+      this.socket.on("stream_update_error", (data) => {
+        console.log('❌ Stream update error:', data);
+        callback(data);
+      });
+    }
+  }
+
+  // WebRTC signaling methods
+  sendWebRTCOffer(chainCastId: string, toUserId: string, offer: RTCSessionDescriptionInit): void {
+    if (this.socket?.connected) {
+      this.socket.emit("webrtc_offer", { chainCastId, toUserId, offer });
+    }
+  }
+
+  sendWebRTCAnswer(chainCastId: string, toUserId: string, answer: RTCSessionDescriptionInit): void {
+    if (this.socket?.connected) {
+      this.socket.emit("webrtc_answer", { chainCastId, toUserId, answer });
+    }
+  }
+
+  sendWebRTCIceCandidate(chainCastId: string, toUserId: string, candidate: RTCIceCandidateInit): void {
+    if (this.socket?.connected) {
+      this.socket.emit("webrtc_ice_candidate", { chainCastId, toUserId, candidate });
+    }
+  }
+
+  onWebRTCOffer(callback: (data: { fromUserId: string; offer: RTCSessionDescriptionInit }) => void): void {
+    if (this.socket) {
+      this.socket.on("webrtc_offer", (data) => {
+        console.log('📥 WebRTC offer received:', data);
+        callback(data);
+      });
+    }
+  }
+
+  onWebRTCAnswer(callback: (data: { fromUserId: string; answer: RTCSessionDescriptionInit }) => void): void {
+    if (this.socket) {
+      this.socket.on("webrtc_answer", (data) => {
+        console.log('📥 WebRTC answer received:', data);
+        callback(data);
+      });
+    }
+  }
+
+  onWebRTCIceCandidate(callback: (data: { fromUserId: string; candidate: RTCIceCandidateInit }) => void): void {
+    if (this.socket) {
+      this.socket.on("webrtc_ice_candidate", (data) => {
+        console.log('🧊 WebRTC ICE candidate received:', data);
+        callback(data);
+      });
+    }
+  }
+
   onNewReaction(callback: (reaction: ChainCastReaction) => void): void {
     if (this.socket) {
       this.socket.on("new_reaction", (data) => {

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { RootState } from '@/redux/store'
 import { useWebRTC } from '@/hooks/useWebRTC'
+import { useChainCastWebRTC } from '@/hooks/useChainCastWebRTC'
 import { chainCastSocketService } from '@/services/socket/chainCastSocketService'
 import { toast } from 'sonner'
 import type { ChainCast } from '@/services/chainCast/userChainCastApiService'
@@ -91,8 +92,9 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
 
   const chatScrollRef = useRef<HTMLDivElement>(null)
   const messageId = useRef(0)
+  const adminVideoRef = useRef<HTMLVideoElement>(null)
 
-  // WebRTC hook
+  // WebRTC hook for local stream
   const {
     localStream,
     participants,
@@ -117,6 +119,25 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
       console.log('👤 Participant left via WebRTC:', userId)
     }
   })
+
+  // WebRTC hook for peer connections (sharing streams)
+  const { remoteStreams, registerRemoteVideoRef } = useChainCastWebRTC({
+    chainCastId: chainCast._id,
+    isAdmin,
+    localStream,
+    userId: userInfo?._id || ''
+  })
+
+  // Register admin video ref for remote stream
+  useEffect(() => {
+    if (!isAdmin && adminVideoRef.current) {
+      // Find admin user ID from participants or chainCast
+      const adminUserId = chainCast.admin?._id || participants.find(p => p.userType === 'communityAdmin')?.userId
+      if (adminUserId) {
+        registerRemoteVideoRef(adminUserId, adminVideoRef.current)
+      }
+    }
+  }, [isAdmin, registerRemoteVideoRef, participants, chainCast.admin])
 
   // Initialize ChainCast room with liberal approach
   useEffect(() => {
@@ -260,17 +281,12 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
       })
     })
 
-    // Chat messages with duplicate prevention
+    // Chat messages - only receive messages from other users (not our own)
     chainCastSocketService.onNewMessage((message: ChatMessage) => {
-      console.log('💬 New chat message:', message)
+      console.log('💬 New chat message from other user:', message)
       setChatMessages(prev => {
-        // Prevent duplicates by checking message ID and timestamp
-        const isDuplicate = prev.some(m => 
-          m.id === message.id || 
-          (m.userId === message.userId && 
-           m.message === message.message && 
-           Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 1000)
-        )
+        // Prevent duplicates by checking message ID
+        const isDuplicate = prev.some(m => m.id === message.id)
         
         if (isDuplicate) {
           console.log('💬 Duplicate message detected, ignoring')
@@ -279,6 +295,29 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
         
         const newMessages = [...prev, message].slice(-100) // Keep last 100 messages
         return newMessages
+      })
+    })
+
+    // Message sent confirmation - update local message with server ID
+    chainCastSocketService.onMessageSent((message: ChatMessage) => {
+      console.log('✅ Message sent confirmation:', message)
+      setChatMessages(prev => {
+        // Find and replace the local message with the server-confirmed one
+        const messageIndex = prev.findIndex(m => 
+          m.userId === message.userId && 
+          m.message === message.message &&
+          Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 2000
+        )
+        
+        if (messageIndex !== -1) {
+          // Replace local message with server-confirmed message
+          const updated = [...prev]
+          updated[messageIndex] = message
+          return updated
+        }
+        
+        // If not found, add it (shouldn't happen, but just in case)
+        return [...prev, message].slice(-100)
       })
     })
 
@@ -333,6 +372,12 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
     chainCastSocketService.onJoinError((data) => {
       console.error('❌ Join error:', data)
       toast.error('Failed to join ChainCast: ' + data.error)
+    })
+
+    // Stream update error handler
+    chainCastSocketService.onStreamUpdateError((data) => {
+      console.error('❌ Stream update error:', data)
+      toast.error(data.error || 'Only community admin can control streaming')
     })
   }, [addParticipant, removeParticipant, updateParticipant, onLeave])
 
@@ -564,6 +609,13 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                     playsInline
                     className="w-full h-full object-cover"
                   />
+                ) : !isAdmin && adminVideoRef.current?.srcObject ? (
+                  <video
+                    ref={adminVideoRef}
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <div className="h-full bg-slate-800 flex items-center justify-center">
                     <div className="text-center">
@@ -577,7 +629,9 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                         <Crown className="h-6 w-6 text-yellow-400" />
                         <span className="text-white text-xl font-medium">{chainCast.admin.name}</span>
                       </div>
-                      <p className="text-slate-400">Community Admin</p>
+                      <p className="text-slate-400">
+                        {isAdmin ? 'Community Admin' : 'Waiting for stream...'}
+                      </p>
                     </div>
                   </div>
                 )}
