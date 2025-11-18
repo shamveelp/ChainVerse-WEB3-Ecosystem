@@ -82,7 +82,10 @@ export class PointsConversionRepository implements IPointsConversionRepository {
     try {
       const skip = (page - 1) * limit;
       
-      const conversions = await PointsConversionModel.find({ status })
+      // If status is 'all', don't filter by status
+      const query = status === 'all' ? {} : { status };
+      
+      const conversions = await PointsConversionModel.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -90,7 +93,7 @@ export class PointsConversionRepository implements IPointsConversionRepository {
         .populate('approvedBy', 'username')
         .exec();
 
-      const total = await PointsConversionModel.countDocuments({ status });
+      const total = await PointsConversionModel.countDocuments(query);
 
       return {
         conversions,

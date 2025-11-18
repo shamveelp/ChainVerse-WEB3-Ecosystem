@@ -30,13 +30,9 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
     totalPages: number;
   }> {
     try {
-      let result;
-
-      if (status) {
-        result = await this._conversionRepository.findByStatus(status, page, limit);
-      } else {
-        result = await this._conversionRepository.findByStatus('pending', page, limit);
-      }
+      // Normalize status: empty string or 'all' means show all conversions
+      const normalizedStatus = status && status.trim().length > 0 && status !== 'all' ? status : 'all';
+      const result = await this._conversionRepository.findByStatus(normalizedStatus, page, limit);
 
       return {
         conversions: result.conversions.map(conversion => {

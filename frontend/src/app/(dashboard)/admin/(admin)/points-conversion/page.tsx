@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { adminPointsConversionApiService } from "@/services/points/pointsConversionApiService";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation";
 
 interface ConversionStats {
   totalConversions: number;
@@ -59,6 +60,7 @@ interface Conversion {
 }
 
 export default function AdminPointsConversionPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<ConversionStats | null>(null);
   const [conversions, setConversions] = useState<Conversion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +68,7 @@ export default function AdminPointsConversionPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<string>('pending');
+  const [statusFilter, setStatusFilter] = useState<string>('');
   const [selectedConversion, setSelectedConversion] = useState<Conversion | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
@@ -460,6 +462,7 @@ export default function AdminPointsConversionPage() {
                 onChange={(e) => {
                   setStatusFilter(e.target.value);
                   setPage(1);
+                  // Fetch will be triggered by useEffect
                 }}
                 className="bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-1 text-white text-sm"
               >
@@ -492,9 +495,12 @@ export default function AdminPointsConversionPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-3 mb-1">
-                        <span className="text-white font-medium">
+                        <button
+                          onClick={() => router.push(`/admin/user-management/${conversion.user.id}`)}
+                          className="text-white font-medium hover:text-blue-400 hover:underline transition-colors"
+                        >
                           {conversion.user.username}
-                        </span>
+                        </button>
                         <Badge className={`${getStatusColor(conversion.status)} text-xs`}>
                           {conversion.status}
                         </Badge>
@@ -505,6 +511,11 @@ export default function AdminPointsConversionPage() {
                       <p className="text-slate-500 text-xs">
                         {format(new Date(conversion.createdAt), "MMM dd, yyyy 'at' HH:mm")}
                       </p>
+                      {conversion.user.email && (
+                        <p className="text-slate-500 text-xs mt-1">
+                          {conversion.user.email}
+                        </p>
+                      )}
                     </div>
                   </div>
                   
@@ -541,14 +552,28 @@ export default function AdminPointsConversionPage() {
               ))}
 
               {/* Pagination */}
-              {totalPages > 1 && (
+              {total > 0 && (
                 <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
                   <p className="text-slate-400 text-sm">
-                    Showing {((page - 1) * 10) + 1} to {Math.min(page * 10, total)} of {total} results
+                    Showing {((page - 1) * 10) + 1} to {Math.min(page * 10, total)} of {total} {statusFilter ? `${statusFilter} ` : ''}conversions
                   </p>
                   <div className="flex items-center gap-2">
                     <Button
-                      onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                      onClick={() => {
+                        setPage(1);
+                        fetchConversions();
+                      }}
+                      disabled={page === 1}
+                      variant="outline"
+                      size="sm"
+                      className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
+                    >
+                      First
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setPage(prev => Math.max(1, prev - 1));
+                      }}
                       disabled={page === 1}
                       variant="outline"
                       size="sm"
@@ -556,17 +581,31 @@ export default function AdminPointsConversionPage() {
                     >
                       Previous
                     </Button>
-                    <span className="text-slate-400 text-sm">
+                    <span className="text-slate-400 text-sm px-3">
                       Page {page} of {totalPages}
                     </span>
                     <Button
-                      onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                      onClick={() => {
+                        setPage(prev => Math.min(totalPages, prev + 1));
+                      }}
                       disabled={page === totalPages}
                       variant="outline"
                       size="sm"
                       className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
                     >
                       Next
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setPage(totalPages);
+                        fetchConversions();
+                      }}
+                      disabled={page === totalPages}
+                      variant="outline"
+                      size="sm"
+                      className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
+                    >
+                      Last
                     </Button>
                   </div>
                 </div>
@@ -607,9 +646,12 @@ export default function AdminPointsConversionPage() {
                           </div>
                           <div>
                             <div className="flex items-center gap-3 mb-1">
-                              <span className="text-white font-medium">
+                              <button
+                                onClick={() => router.push(`/admin/user-management/${conversion.user.id}`)}
+                                className="text-white font-medium hover:text-green-400 hover:underline transition-colors"
+                              >
                                 {conversion.user.username}
-                              </span>
+                              </button>
                               <Badge className="bg-green-900/50 text-green-300 text-xs">
                                 Claimed
                               </Badge>
@@ -617,6 +659,11 @@ export default function AdminPointsConversionPage() {
                             <p className="text-slate-400 text-sm">
                               {conversion.pointsConverted} Points → {conversion.cvcAmount} CVC
                             </p>
+                            {conversion.user.email && (
+                              <p className="text-slate-500 text-xs">
+                                {conversion.user.email}
+                              </p>
+                            )}
                             {conversion.claimedAt && (
                               <p className="text-slate-500 text-xs">
                                 Claimed: {format(new Date(conversion.claimedAt), "MMM dd, yyyy 'at' HH:mm")}
@@ -699,7 +746,12 @@ export default function AdminPointsConversionPage() {
                           )}
                           <div>
                             <div className="flex items-center gap-3 mb-1">
-                              <span className="text-white font-medium">{user.username}</span>
+                              <button
+                                onClick={() => router.push(`/admin/user-management/${user.id}`)}
+                                className="text-white font-medium hover:text-purple-400 hover:underline transition-colors"
+                              >
+                                {user.username}
+                              </button>
                               <Badge className="bg-purple-900/50 text-purple-300 text-xs">
                                 {userConversions.length} {userConversions.length === 1 ? 'Conversion' : 'Conversions'}
                               </Badge>
@@ -719,18 +771,13 @@ export default function AdminPointsConversionPage() {
                           </div>
                         </div>
                         <Button
-                          onClick={() => {
-                            setStatusFilter('');
-                            setPage(1);
-                            // Filter to show only this user's conversions
-                            // You might want to add a user filter functionality
-                          }}
+                          onClick={() => router.push(`/admin/user-management/${user.id}`)}
                           size="sm"
                           variant="outline"
                           className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
                         >
                           <Eye className="h-4 w-4 mr-2" />
-                          View Details
+                          View User
                         </Button>
                       </div>
                     );
@@ -847,13 +894,35 @@ export default function AdminPointsConversionPage() {
                   <div>
                     <h4 className="text-sm font-medium text-slate-400 mb-1">User Information</h4>
                     <div className="bg-slate-800/50 rounded-lg p-3 space-y-2">
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="text-slate-400">Username:</span>
-                        <span className="text-white">{selectedConversion.user.username}</span>
+                        <button
+                          onClick={() => {
+                            setShowDetailsModal(false);
+                            router.push(`/admin/user-management/${selectedConversion.user.id}`);
+                          }}
+                          className="text-white hover:text-blue-400 hover:underline transition-colors"
+                        >
+                          {selectedConversion.user.username}
+                        </button>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-400">Email:</span>
                         <span className="text-white text-sm">{selectedConversion.user.email}</span>
+                      </div>
+                      <div className="flex justify-end pt-2">
+                        <Button
+                          onClick={() => {
+                            setShowDetailsModal(false);
+                            router.push(`/admin/user-management/${selectedConversion.user.id}`);
+                          }}
+                          size="sm"
+                          variant="outline"
+                          className="border-blue-600/50 text-blue-300 hover:bg-blue-700/20"
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View User Profile
+                        </Button>
                       </div>
                     </div>
                   </div>
