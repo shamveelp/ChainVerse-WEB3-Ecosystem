@@ -328,6 +328,13 @@ router.post(
   adminMarketController.createCoinFromExternal.bind(adminMarketController)
 );
 
+router.delete(
+  "/market/coins/:contractAddress",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminMarketController.deleteCoin.bind(adminMarketController)
+);
+
 // Admin Points Conversion Routes
 router.get(
   "/points-conversion/all",

@@ -68,9 +68,15 @@ const CRYPTO_SYMBOLS = {
   UNIUSDT: "Uniswap",
 }
 
-export async function fetchBinanceData(): Promise<CryptoData[]> {
+export interface FetchBinanceOptions {
+  symbols?: string[] | null
+  limit?: number
+}
+
+export async function fetchBinanceData(options: FetchBinanceOptions = {}): Promise<CryptoData[]> {
   try {
-    const symbols = Object.keys(CRYPTO_SYMBOLS)
+    const symbols = options.symbols === undefined ? Object.keys(CRYPTO_SYMBOLS) : options.symbols
+    const limit = options.limit ?? (symbols && symbols.length ? symbols.length : 10)
     const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr`, {
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; CryptoApp/1.0)",
@@ -81,25 +87,30 @@ export async function fetchBinanceData(): Promise<CryptoData[]> {
 
     if (!response.ok) {
       console.error(`Binance API error: ${response.status} ${response.statusText}`)
-      return getFallbackData()
+      return getFallbackData(limit, symbols)
     }
 
     const data: BinanceTickerData[] = await response.json()
 
-    // Filter for our selected symbols and transform data
-    const filteredData = data
-      .filter((item) => symbols.includes(item.symbol))
+    let filteredData = symbols
+      ? data.filter((item) => symbols.includes(item.symbol))
+      : data
+
+    filteredData = filteredData
       .map(transformBinanceData)
       .sort(
         (a, b) =>
           Number.parseFloat(b.marketCap.replace(/[^0-9.-]+/g, "")) -
           Number.parseFloat(a.marketCap.replace(/[^0-9.-]+/g, "")),
       )
+      .slice(0, limit)
 
     return filteredData
   } catch (error) {
     console.error("Error fetching Binance data:", error)
-    return getFallbackData()
+    const symbols = options.symbols === undefined ? Object.keys(CRYPTO_SYMBOLS) : options.symbols
+    const limit = options.limit ?? (symbols && symbols.length ? symbols.length : 10)
+    return getFallbackData(limit, symbols)
   }
 }
 
@@ -135,7 +146,7 @@ export async function fetchHistoricalData(symbol: string, interval = "1h", limit
   }
 }
 
-function getFallbackData(): CryptoData[] {
+function getFallbackData(limit: number, symbols?: string[] | null): CryptoData[] {
   const baseData = [
     { symbol: "BTCUSDT", name: "Bitcoin", basePrice: 43000 },
     { symbol: "ETHUSDT", name: "Ethereum", basePrice: 2600 },
@@ -149,7 +160,11 @@ function getFallbackData(): CryptoData[] {
     { symbol: "UNIUSDT", name: "Uniswap", basePrice: 6.8 },
   ]
 
-  return baseData.map((crypto) => {
+  const filteredBase = symbols
+    ? baseData.filter((crypto) => symbols.includes(crypto.symbol)).slice(0, limit)
+    : baseData.slice(0, limit)
+
+  return filteredBase.map((crypto) => {
     const changePercent = (Math.random() - 0.5) * 10 // Random change between -5% and +5%
     const price = crypto.basePrice * (1 + changePercent / 100)
     const change = price - crypto.basePrice
@@ -158,7 +173,7 @@ function getFallbackData(): CryptoData[] {
 
     return {
       symbol: crypto.symbol,
-      name: CRYPTO_SYMBOLS[crypto.symbol as keyof typeof CRYPTO_SYMBOLS] || crypto.symbol,
+      name: CRYPTO_SYMBOLS[crypto.symbol as keyof typeof CRYPTO_SYMBOLS] || crypto.name,
       price: formatPrice(price),
       change: change >= 0 ? `+${change.toFixed(2)}` : change.toFixed(2),
       changePercent: changePercent >= 0 ? `+${changePercent.toFixed(2)}%` : `${changePercent.toFixed(2)}%`,

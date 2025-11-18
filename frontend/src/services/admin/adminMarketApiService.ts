@@ -51,4 +51,8 @@ export const addCoinFromTopList = async (payload: {
   return response.data.coin as MarketCoin;
 };
 
+export const deleteAdminCoin = async (contractAddress: string): Promise<void> => {
+  await api.delete(`/api/admin/market/coins/${contractAddress}`);
+};
+
 

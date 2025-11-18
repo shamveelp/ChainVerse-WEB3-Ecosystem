@@ -32,6 +32,8 @@ export interface IAdminMarketService {
     },
     adminId: string
   ): Promise<ICoin>;
+
+  deleteCoin(contractAddress: string): Promise<void>;
 }
 
 

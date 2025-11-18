@@ -18,7 +18,7 @@ export interface MarketCoin {
 }
 
 export const getUserListedCoins = async (): Promise<MarketCoin[]> => {
-  const response = await api.get("/api/user/market/coins");
+  const response = await api.get("/api/user/market/coins/public");
   return response.data.coins || [];
 };
 

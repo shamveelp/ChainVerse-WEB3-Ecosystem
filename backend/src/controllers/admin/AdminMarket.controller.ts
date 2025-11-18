@@ -134,6 +134,30 @@ export class AdminMarketController implements IAdminMarketController {
       });
     }
   }
+
+  async deleteCoin(req: Request, res: Response): Promise<void> {
+    try {
+      const { contractAddress } = req.params;
+      await this._adminMarketService.deleteCoin(contractAddress);
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Coin deleted successfully",
+      });
+    } catch (error) {
+      logger.error("Error deleting coin:", error);
+      const err = error as any;
+      const statusCode =
+        err instanceof CustomError ? err.statusCode : StatusCode.BAD_REQUEST;
+      const message =
+        err instanceof CustomError ? err.message : "Failed to delete coin";
+
+      res.status(statusCode).json({
+        success: false,
+        message,
+      });
+    }
+  }
 }
 
 

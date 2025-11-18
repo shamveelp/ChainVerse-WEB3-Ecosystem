@@ -1,7 +1,7 @@
 "use client"
 
 import { CryptoCard } from "@/components/market/crypto-card"
-import { useCryptoData } from "@/hooks/market/use-crypto-data"
+import { useCryptoData, type CryptoDataWithChanges } from "@/hooks/market/use-crypto-data"
 import { useCryptoSearch } from "@/hooks/market/use-crypto-search"
 import { CryptoFilters } from "@/components/market/crypto-filters"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -9,8 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { LiveStatusIndicator } from "@/components/market/live-status-indicator"
 import { RefreshCw, Play, Pause } from "lucide-react"
-import { useEffect, useState } from "react"
-import { getUserListedCoins } from "@/services/marketApiService"
+import { useEffect, useMemo, useState } from "react"
+import { getUserListedCoins, type MarketCoin } from "@/services/marketApiService"
 
 interface CryptoGridProps {
   searchTerm: string
@@ -18,8 +18,38 @@ interface CryptoGridProps {
 
 export function CryptoGrid({ searchTerm }: CryptoGridProps) {
   const { data, loading, error, isLive, lastUpdate, refetch, startUpdates, stopUpdates } = useCryptoData()
-  const [listedSymbols, setListedSymbols] = useState<string[] | null>(null)
+  const [listedCoins, setListedCoins] = useState<MarketCoin[] | null>(null)
   const [listingError, setListingError] = useState<string | null>(null)
+  const [listedLoading, setListedLoading] = useState(true)
+
+  const mergedData = useMemo<CryptoDataWithChanges[]>(() => {
+    if (!listedCoins) return []
+
+    const formatPrice = (price?: number) =>
+      price != null
+        ? price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })
+        : "0.00"
+
+    return listedCoins.map((coin) => {
+      const live = data.find((c) => c.symbol === coin.symbol)
+      if (live) {
+        return live
+      }
+
+      return {
+        symbol: coin.symbol,
+        name: coin.name || coin.symbol,
+        price: formatPrice(coin.priceUSD),
+        change: "+0.00",
+        changePercent: "+0.00%",
+        volume: coin.volume24h || "—",
+        marketCap: coin.marketCap || "—",
+        isPositive: false,
+        priceDirection: "neutral",
+        isUpdating: false,
+      }
+    })
+  }, [data, listedCoins])
 
   const {
     sortBy,
@@ -31,19 +61,18 @@ export function CryptoGrid({ searchTerm }: CryptoGridProps) {
     resultCount,
     totalCount,
     setSearchTerm,
-  } = useCryptoSearch(
-    listedSymbols
-      ? data.filter((crypto) => listedSymbols.includes(crypto.symbol))
-      : data
-  )
+  } = useCryptoSearch(mergedData)
 
   useEffect(() => {
     const loadListedCoins = async () => {
       try {
+        setListedLoading(true)
         const coins = await getUserListedCoins()
-        setListedSymbols(coins.map((c) => c.symbol))
+        setListedCoins(coins)
       } catch (err: any) {
         setListingError(err?.response?.data?.message || "Failed to load listed coins")
+      } finally {
+        setListedLoading(false)
       }
     }
 
@@ -105,7 +134,7 @@ export function CryptoGrid({ searchTerm }: CryptoGridProps) {
         </div>
       </div>
 
-      {!loading && (
+      {!loading && !listedLoading && (
         <CryptoFilters
           sortBy={sortBy}
           sortDirection={sortDirection}
@@ -118,7 +147,7 @@ export function CryptoGrid({ searchTerm }: CryptoGridProps) {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {loading ? (
+        {loading || listedLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="space-y-3">
               <Skeleton className="h-[180px] w-full rounded-lg" />

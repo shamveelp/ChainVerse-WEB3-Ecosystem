@@ -134,6 +134,24 @@ export class AdminMarketService implements IAdminMarketService {
       );
     }
   }
+
+  async deleteCoin(contractAddress: string): Promise<void> {
+    try {
+      const deleted = await this._dexRepository.deleteCoin(contractAddress);
+      if (!deleted) {
+        throw new CustomError("Coin not found", StatusCode.NOT_FOUND);
+      }
+    } catch (error) {
+      logger.error("Error deleting coin:", error);
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError(
+        "Failed to delete coin",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
 }
 
 

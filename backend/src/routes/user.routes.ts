@@ -196,6 +196,11 @@ router.get(
   userMarketController.getListedCoins.bind(userMarketController)
 );
 
+router.get(
+  "/market/coins/public",
+  userMarketController.getListedCoins.bind(userMarketController)
+);
+
 // Routes without DTO validation (simple requests)
 router.get(
   "/generate-username",

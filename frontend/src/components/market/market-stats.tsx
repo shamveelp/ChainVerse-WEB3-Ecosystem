@@ -5,9 +5,25 @@ import { TrendingUp, DollarSign, BarChart3 } from "lucide-react"
 import { useCryptoData } from "@/hooks/market/use-crypto-data"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
+import { useEffect, useState } from "react"
+import { getUserListedCoins } from "@/services/marketApiService"
 
 export function MarketStats() {
   const { data, loading } = useCryptoData()
+  const [trackedCoinsCount, setTrackedCoinsCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    const loadTrackedCoins = async () => {
+      try {
+        const coins = await getUserListedCoins()
+        setTrackedCoinsCount(coins.length)
+      } catch {
+        // ignore, fall back to live data length
+      }
+    }
+
+    loadTrackedCoins()
+  }, [])
 
   const formatVolume = (volume: number): string => {
     if (volume >= 1e9) return `$${(volume / 1e9).toFixed(1)}B`
@@ -31,7 +47,7 @@ export function MarketStats() {
     return {
       totalVolume: formatVolume(totalVolume),
       marketSentiment: marketSentiment.toFixed(1),
-      activeCoins: data.length,
+      activeCoins: trackedCoinsCount ?? data.length,
       btcPrice: data.find((crypto) => crypto.symbol === "BTCUSDT")?.price || "N/A",
       btcDirection: data.find((crypto) => crypto.symbol === "BTCUSDT")?.priceDirection || "neutral",
     }

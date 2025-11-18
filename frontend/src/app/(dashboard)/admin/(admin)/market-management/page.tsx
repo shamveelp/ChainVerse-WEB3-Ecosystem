@@ -1,7 +1,12 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { getAdminMarketCoins, toggleAdminCoinListing, addCoinFromTopList } from "@/services/admin/adminMarketApiService"
+import {
+  getAdminMarketCoins,
+  toggleAdminCoinListing,
+  addCoinFromTopList,
+  deleteAdminCoin,
+} from "@/services/admin/adminMarketApiService"
 import type { MarketCoin } from "@/services/marketApiService"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,10 +14,27 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/admin/ui/table"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Search, PlusCircle } from "lucide-react"
+import { Loader2, Search, PlusCircle, Trash2, ArrowUpDown } from "lucide-react"
 import { useDebounce } from "@/hooks/useDebounce"
 import { fetchBinanceData } from "@/services/market/binance-api"
 import type { CryptoData } from "@/services/market/binance-api"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+type SortField = "createdAt" | "price" | "marketCap" | "name"
+type SortDirection = "asc" | "desc"
+
+const sortFieldOptions: { label: string; value: SortField }[] = [
+  { label: "Newest", value: "createdAt" },
+  { label: "Name", value: "name" },
+  { label: "Price", value: "price" },
+  { label: "Market Cap", value: "marketCap" },
+]
 
 const MarketManagePage = () => {
   const [coins, setCoins] = useState<MarketCoin[]>([])
@@ -24,9 +46,13 @@ const MarketManagePage = () => {
   const [showOnlyListed, setShowOnlyListed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [toggling, setToggling] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [topCoins, setTopCoins] = useState<CryptoData[]>([])
   const [addingSymbol, setAddingSymbol] = useState<string | null>(null)
+  const [topSearch, setTopSearch] = useState("")
+  const [sortField, setSortField] = useState<SortField>("createdAt")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
 
   const fetchCoins = async () => {
     try {
@@ -52,10 +78,10 @@ const MarketManagePage = () => {
   useEffect(() => {
     const loadTopCoins = async () => {
       try {
-        const data = await fetchBinanceData()
-        setTopCoins(data.slice(0, 10))
-      } catch (err) {
-        // Fail silently – admin table still works
+        const data = await fetchBinanceData({ symbols: null, limit: 100 })
+        setTopCoins(data)
+      } catch {
+        // ignore
       }
     }
 
@@ -69,13 +95,68 @@ const MarketManagePage = () => {
     return { total, listed, unlisted }
   }, [coins])
 
+  const sortedCoins = useMemo(() => {
+    const parseNumber = (value: string | number | undefined) => {
+      if (value == null) return 0
+      if (typeof value === "number") return value
+      const cleaned = value.replace(/[^0-9.-]+/g, "")
+      const num = Number.parseFloat(cleaned)
+      return Number.isNaN(num) ? 0 : num
+    }
+
+    return [...coins].sort((a, b) => {
+      if (sortField === "name") {
+        return sortDirection === "asc"
+          ? (a.name || "").localeCompare(b.name || "")
+          : (b.name || "").localeCompare(a.name || "")
+      }
+
+      let aValue = 0
+      let bValue = 0
+      switch (sortField) {
+        case "price":
+          aValue = a.priceUSD ?? parseNumber(a.marketCap)
+          bValue = b.priceUSD ?? parseNumber(b.marketCap)
+          break
+        case "marketCap":
+          aValue = parseNumber(a.marketCap)
+          bValue = parseNumber(b.marketCap)
+          break
+        case "createdAt":
+        default:
+          aValue = new Date(a.createdAt).getTime()
+          bValue = new Date(b.createdAt).getTime()
+          break
+      }
+
+      return sortDirection === "asc" ? aValue - bValue : bValue - aValue
+    })
+  }, [coins, sortField, sortDirection])
+
+  const existingSymbols = useMemo(
+    () => new Set(coins.map((c) => c.symbol?.toUpperCase())),
+    [coins],
+  )
+
+  const filteredTopCoins = useMemo(() => {
+    const term = topSearch.trim().toLowerCase()
+    let list = topCoins
+    if (term) {
+      list = list.filter(
+        (coin) =>
+          coin.name.toLowerCase().includes(term) ||
+          coin.symbol.toLowerCase().includes(term),
+      )
+    }
+    return list.slice(0, 25)
+  }, [topCoins, topSearch])
+
   const handleToggle = async (coin: MarketCoin) => {
     try {
       setToggling(coin.contractAddress)
       const updated = await toggleAdminCoinListing(coin.contractAddress, !coin.isListed)
-
       setCoins((prev) =>
-        prev.map((c) => (c.contractAddress === updated.contractAddress ? updated : c))
+        prev.map((c) => (c.contractAddress === updated.contractAddress ? updated : c)),
       )
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to update listing status")
@@ -104,6 +185,21 @@ const MarketManagePage = () => {
     }
   }
 
+  const handleDelete = async (coin: MarketCoin) => {
+    const confirmed = window.confirm(`Delete ${coin.name} from market?`)
+    if (!confirmed) return
+    try {
+      setDeleting(coin.contractAddress)
+      setError(null)
+      await deleteAdminCoin(coin.contractAddress)
+      await fetchCoins()
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to delete coin")
+    } finally {
+      setDeleting(null)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -114,7 +210,7 @@ const MarketManagePage = () => {
               Curate exactly which coins appear on the user market — with instant search and listing control.
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
               <Badge variant="outline">Total: {stats.total}</Badge>
               <Badge variant="outline">Listed: {stats.listed}</Badge>
@@ -137,14 +233,32 @@ const MarketManagePage = () => {
             >
               {showOnlyListed ? "Showing listed only" : "Show listed only"}
             </Button>
+            <div className="flex items-center gap-2">
+              <Select value={sortField} onValueChange={(value: SortField) => setSortField(value)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortFieldOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))}
+              >
+                <ArrowUpDown className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          {error && (
-            <div className="mb-4 text-sm text-red-500">
-              {error}
-            </div>
-          )}
+          {error && <div className="mb-4 text-sm text-red-500">{error}</div>}
 
           <div className="rounded-md border">
             <Table>
@@ -159,28 +273,26 @@ const MarketManagePage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading && coins.length === 0 ? (
+                {loading && sortedCoins.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      <Loader2 className="h-5 w-5 animate-spin inline-block mr-2" />
+                    <TableCell colSpan={6} className="py-8 text-center">
+                      <Loader2 className="mr-2 inline-block h-5 w-5 animate-spin" />
                       Loading coins...
                     </TableCell>
                   </TableRow>
-                ) : coins.length === 0 ? (
+                ) : sortedCoins.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                       No coins found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  coins.map((coin) => (
+                  sortedCoins.map((coin) => (
                     <TableRow key={coin._id}>
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-medium">{coin.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {coin.ticker}
-                          </span>
+                          <span className="text-xs text-muted-foreground">{coin.ticker}</span>
                         </div>
                       </TableCell>
                       <TableCell>{coin.symbol}</TableCell>
@@ -197,14 +309,26 @@ const MarketManagePage = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-3">
-                          <span className="text-xs text-muted-foreground">
-                            {coin.isListed ? "Visible in market" : "Hidden from market"}
-                          </span>
                           <Switch
                             checked={coin.isListed}
                             disabled={toggling === coin.contractAddress}
                             onCheckedChange={() => handleToggle(coin)}
                           />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            disabled={deleting === coin.contractAddress}
+                            onClick={() => handleDelete(coin)}
+                          >
+                            {deleting === coin.contractAddress ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Trash2 className="mr-1 h-4 w-4" />
+                                Delete
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -214,7 +338,7 @@ const MarketManagePage = () => {
             </Table>
           </div>
 
-          <div className="flex items-center justify-between mt-4">
+          <div className="mt-4 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
               Page {page} of {totalPages}
             </span>
@@ -242,12 +366,21 @@ const MarketManagePage = () => {
 
       {topCoins.length > 0 && (
         <Card>
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-lg font-semibold">Top Global Coins</CardTitle>
               <p className="text-xs text-muted-foreground">
-                Pick from live Binance top coins and add them to your market in one click.
+                Search the live Binance feed and add coins to your market instantly.
               </p>
+            </div>
+            <div className="relative w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search global coins..."
+                className="pl-8"
+                value={topSearch}
+                onChange={(e) => setTopSearch(e.target.value)}
+              />
             </div>
           </CardHeader>
           <CardContent>
@@ -263,40 +396,47 @@ const MarketManagePage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {topCoins.map((c) => (
-                    <TableRow key={c.symbol}>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{c.name}</span>
-                          <span className="text-xs text-muted-foreground">{c.symbol}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>${c.price}</TableCell>
-                      <TableCell>
-                        <Badge variant={c.isPositive ? "default" : "destructive"}>
-                          {c.changePercent}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{c.volume}</TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={addingSymbol === c.symbol}
-                          onClick={() => handleAddFromTop(c)}
-                        >
-                          {addingSymbol === c.symbol ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                  {filteredTopCoins.map((c) => {
+                    const alreadyAdded = existingSymbols.has(c.symbol.toUpperCase())
+                    return (
+                      <TableRow key={c.symbol}>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{c.name}</span>
+                            <span className="text-xs text-muted-foreground">{c.symbol}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>${c.price}</TableCell>
+                        <TableCell>
+                          <Badge variant={c.isPositive ? "default" : "destructive"}>
+                            {c.changePercent}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{c.volume}</TableCell>
+                        <TableCell className="text-right">
+                          {alreadyAdded ? (
+                            <Badge variant="outline">Added</Badge>
                           ) : (
-                            <>
-                              <PlusCircle className="h-4 w-4 mr-1" />
-                              Add
-                            </>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={addingSymbol === c.symbol}
+                              onClick={() => handleAddFromTop(c)}
+                            >
+                              {addingSymbol === c.symbol ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <PlusCircle className="mr-1 h-4 w-4" />
+                                  Add
+                                </>
+                              )}
+                            </Button>
                           )}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
               </Table>
             </div>
