@@ -2,15 +2,18 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Sidebar } from "@/components/comms-admin/sidebar";
 import { Navbar } from "@/components/comms-admin/navbar";
 import type { RootState } from "@/redux/store";
 import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
+import { setSubscription } from "@/redux/slices/communityAdminAuthSlice";
+import { communityAdminSubscriptionApiService } from "@/services/communityAdmin/communityAdminSubscriptionApiService";
 
 export default function CommunityAdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { isAuthenticated, applicationStatus } = useSelector((state: RootState) => state.communityAdminAuth);
+  const dispatch = useDispatch();
+  const { isAuthenticated, applicationStatus, communityAdmin, subscription } = useSelector((state: RootState) => state.communityAdminAuth);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -23,6 +26,26 @@ export default function CommunityAdminLayout({ children }: { children: React.Rea
       }
     }
   }, [isAuthenticated, applicationStatus, router]);
+
+  // Fetch subscription on mount if authenticated and subscription not loaded
+  useEffect(() => {
+    if (isAuthenticated && communityAdmin && !subscription) {
+      const fetchSubscription = async () => {
+        try {
+          const response = await communityAdminSubscriptionApiService.getSubscription();
+          if (response.success && response.data) {
+            dispatch(setSubscription(response.data));
+          } else {
+            dispatch(setSubscription(null));
+          }
+        } catch (error) {
+          console.error('Failed to fetch subscription in layout:', error);
+          dispatch(setSubscription(null));
+        }
+      };
+      fetchSubscription();
+    }
+  }, [isAuthenticated, communityAdmin, subscription, dispatch]);
 
   if (!isAuthenticated) return null;
 

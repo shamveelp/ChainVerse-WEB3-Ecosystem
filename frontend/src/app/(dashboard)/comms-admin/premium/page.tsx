@@ -9,7 +9,7 @@ import { communityAdminProfileApiService } from "@/services/communityAdmin/commu
 import { communityAdminSubscriptionApiService } from "@/services/communityAdmin/communityAdminSubscriptionApiService";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
-import { setSubscription, setChainCastAccess } from "@/redux/slices/communityAdminAuthSlice";
+import { setSubscription } from "@/redux/slices/communityAdminAuthSlice";
 import { toast } from "@/components/ui/use-toast";
 
 const premiumFeatures = [
@@ -85,8 +85,10 @@ export default function PremiumPage() {
       if (communityAdmin) {
         const response = await communityAdminSubscriptionApiService.getSubscription();
         if (response.success && response.data) {
+          // setSubscription will automatically set both chainCastAccess and questAccess
           dispatch(setSubscription(response.data));
-          dispatch(setChainCastAccess(response.data.status === 'active'));
+        } else {
+          dispatch(setSubscription(null));
         }
       }
     };
@@ -155,11 +157,11 @@ export default function PremiumPage() {
 
           const verifyResponse = await communityAdminSubscriptionApiService.verifyPayment(paymentData);
           if (verifyResponse.success && verifyResponse.data) {
+            // setSubscription will automatically set both chainCastAccess and questAccess
             dispatch(setSubscription(verifyResponse.data));
-            dispatch(setChainCastAccess(true));
             toast({
               title: "Success!",
-              description: "Premium subscription activated successfully! ChainCast is now enabled.",
+              description: "Premium subscription activated successfully! ChainCast and Quests are now enabled.",
             });
           } else {
             throw new Error(verifyResponse.error || "Payment verification failed");
@@ -222,11 +224,11 @@ export default function PremiumPage() {
 
           const verifyResponse = await communityAdminSubscriptionApiService.verifyPayment(paymentData);
           if (verifyResponse.success && verifyResponse.data) {
+            // setSubscription will automatically set both chainCastAccess and questAccess
             dispatch(setSubscription(verifyResponse.data));
-            dispatch(setChainCastAccess(true));
             toast({
               title: "Success!",
-              description: "Premium subscription activated successfully! ChainCast is now enabled.",
+              description: "Premium subscription activated successfully! ChainCast and Quests are now enabled.",
             });
           } else {
             throw new Error(verifyResponse.error || "Payment verification failed");

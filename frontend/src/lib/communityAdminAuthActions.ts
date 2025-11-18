@@ -1,7 +1,8 @@
 import { useDispatch } from 'react-redux'
 import { useRouter } from 'next/navigation'
-import { login, logout, setLoading, setApplicationStatus } from '@/redux/slices/communityAdminAuthSlice'
+import { login, logout, setLoading, setApplicationStatus, setSubscription } from '@/redux/slices/communityAdminAuthSlice'
 import { communityAdminApiService } from '@/services/communityAdminApiService'
+import { communityAdminSubscriptionApiService } from '@/services/communityAdmin/communityAdminSubscriptionApiService'
 import { toast } from '@/hooks/use-toast'
 import { COMMUNITY_ADMIN_ROUTES } from '@/routes'
 
@@ -20,6 +21,21 @@ export const useCommunityAdminAuthActions = () => {
           ...result.data.communityAdmin,
           token: result.data.token
         }))
+        
+        // Fetch subscription immediately after login to set premium access
+        try {
+          const subscriptionResult = await communityAdminSubscriptionApiService.getSubscription()
+          if (subscriptionResult.success && subscriptionResult.data) {
+            dispatch(setSubscription(subscriptionResult.data))
+          } else {
+            // No subscription found, set to null (access will be false)
+            dispatch(setSubscription(null))
+          }
+        } catch (subError) {
+          // If subscription fetch fails, set to null (access will be false)
+          console.error('Failed to fetch subscription after login:', subError)
+          dispatch(setSubscription(null))
+        }
         
         toast({
           title: "Success",
@@ -80,6 +96,20 @@ export const useCommunityAdminAuthActions = () => {
           ...result.data.communityAdmin,
           token: 'existing' // Token is in cookies
         }))
+        
+        // Fetch subscription when checking auth status
+        try {
+          const subscriptionResult = await communityAdminSubscriptionApiService.getSubscription()
+          if (subscriptionResult.success && subscriptionResult.data) {
+            dispatch(setSubscription(subscriptionResult.data))
+          } else {
+            dispatch(setSubscription(null))
+          }
+        } catch (subError) {
+          console.error('Failed to fetch subscription during auth check:', subError)
+          dispatch(setSubscription(null))
+        }
+        
         return true
       } else {
         dispatch(logout())

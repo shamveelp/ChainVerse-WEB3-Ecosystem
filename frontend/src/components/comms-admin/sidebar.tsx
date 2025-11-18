@@ -20,7 +20,7 @@ const sidebarItems = [
   { title: "Settings", href: COMMUNITY_ADMIN_ROUTES.SETTINGS, icon: Settings },
   { title: "Members", href: COMMUNITY_ADMIN_ROUTES.MEMBERS, icon: Users },
   { title: "ChainCast", href: COMMUNITY_ADMIN_ROUTES.CHAINCAST, icon: BarChart3, requiresPremium: true },
-  { title: "Quests", href: COMMUNITY_ADMIN_ROUTES.QUESTS, icon: Trophy },
+  { title: "Quests", href: COMMUNITY_ADMIN_ROUTES.QUESTS, icon: Trophy, requiresPremium: true },
   { title: "Premium", href: COMMUNITY_ADMIN_ROUTES.PREMIUM, icon: Crown },
 ];
 
@@ -32,7 +32,7 @@ export function Sidebar({ className }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const { chainCastAccess, subscription } = useSelector((state: RootState) => state.communityAdminAuth);
+  const { chainCastAccess, questAccess, subscription } = useSelector((state: RootState) => state.communityAdminAuth);
 
   return (
     <TooltipProvider>
@@ -76,7 +76,11 @@ export function Sidebar({ className }: SidebarProps) {
             {sidebarItems.map((item) => {
               const isActive = pathname === item.href;
               const IconComponent = item.icon;
-              const isLocked = item.requiresPremium && !chainCastAccess;
+              // Check if item requires premium and user doesn't have access
+              const isLocked = item.requiresPremium && (
+                (item.title === "ChainCast" && !chainCastAccess) ||
+                (item.title === "Quests" && !questAccess)
+              );
 
               if (isLocked) {
                 return (

@@ -43,7 +43,8 @@ interface CommunityAdminAuthState {
   tempEmail: string | null;
   tempApplicationData: SerializableApplicationData | null;
   subscription: Subscription | null;
-  chainCastAccess: boolean; // New field for ChainCast access
+  chainCastAccess: boolean; // ChainCast access based on premium subscription
+  questAccess: boolean; // Quest access based on premium subscription
 }
 
 interface Subscription {
@@ -73,6 +74,7 @@ const initialState: CommunityAdminAuthState = {
   tempApplicationData: null,
   subscription: null,
   chainCastAccess: false,
+  questAccess: false,
 };
 
 export const communityAdminAuthSlice = createSlice({
@@ -100,6 +102,7 @@ export const communityAdminAuthSlice = createSlice({
       state.applicationStatus = 'none';
       state.subscription = null;
       state.chainCastAccess = false;
+      state.questAccess = false;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
@@ -123,11 +126,16 @@ export const communityAdminAuthSlice = createSlice({
     },
     setSubscription: (state, action: PayloadAction<Subscription | null>) => {
       state.subscription = action.payload;
-      // Update ChainCast access based on subscription status
-      state.chainCastAccess = action.payload?.status === 'active';
+      // Update both ChainCast and Quest access based on subscription status
+      const hasPremiumAccess = action.payload?.status === 'active';
+      state.chainCastAccess = hasPremiumAccess;
+      state.questAccess = hasPremiumAccess;
     },
     setChainCastAccess: (state, action: PayloadAction<boolean>) => {
       state.chainCastAccess = action.payload;
+    },
+    setQuestAccess: (state, action: PayloadAction<boolean>) => {
+      state.questAccess = action.payload;
     },
   },
 });
@@ -142,7 +150,8 @@ export const {
   clearTempData,
   updateToken,
   setSubscription,
-  setChainCastAccess
+  setChainCastAccess,
+  setQuestAccess
 } = communityAdminAuthSlice.actions;
 
 export default communityAdminAuthSlice.reducer;

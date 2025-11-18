@@ -11,6 +11,7 @@ import { Trophy, Plus, Users, Clock, Target, BookOpen, TrendingUp, Eye, CreditCa
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
 import { communityAdminQuestApiService } from '@/services/communityAdmin/communityAdminQuestApiService';
+import { QuestAccessGuard } from '@/components/comms-admin/QuestAccessGuard';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -207,7 +208,8 @@ export default function QuestsPage() {
   };
 
   return (
-    <div className="space-y-6 p-6 max-w-7xl mx-auto">
+    <QuestAccessGuard>
+      <div className="space-y-6 p-6 max-w-7xl mx-auto">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -586,6 +588,7 @@ export default function QuestsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </QuestAccessGuard>
   );
 }
