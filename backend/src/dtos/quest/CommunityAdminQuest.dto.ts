@@ -22,6 +22,18 @@ export class RewardPoolDto {
 export class TaskConfigDto {
   @IsString()
   @IsOptional()
+  communityId?: string;
+
+  @IsString()
+  @IsOptional()
+  communityName?: string;
+
+  @IsString()
+  @IsOptional()
+  communityUsername?: string;
+
+  @IsString()
+  @IsOptional()
   targetUserId?: string;
 
   @IsString()

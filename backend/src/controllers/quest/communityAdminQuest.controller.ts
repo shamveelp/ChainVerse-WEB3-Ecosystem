@@ -5,15 +5,16 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 import { ICommunityAdminQuestService } from "../../core/interfaces/services/quest/ICommunityAdminQuestService";
-import { 
-  CreateQuestDto, 
-  UpdateQuestDto, 
-  GetQuestsQueryDto, 
+import {
+  CreateQuestDto,
+  UpdateQuestDto,
+  GetQuestsQueryDto,
   GetParticipantsQueryDto,
   AIQuestGenerationDto,
   SelectWinnersDto
 } from "../../dtos/quest/CommunityAdminQuest.dto";
 import { ICommunityAdminQuestController } from "../../core/interfaces/controllers/quest/ICommunityAdminQuest.controller";
+import { validateManualQuestPayload } from "../../validations/questValidation";
 
 
 
@@ -27,9 +28,8 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     try {
       const communityAdminId = (req as any).user.id;
       const createDto: CreateQuestDto = req.body;
-      console.log("Ivde und")
-      const quest = await this._questService.createQuest(communityAdminId, createDto);
-      console.log("Ivde illa")
+      const validatedQuest = validateManualQuestPayload(createDto) as CreateQuestDto;
+      const quest = await this._questService.createQuest(communityAdminId, validatedQuest);
       
       res.status(StatusCode.CREATED).json({
         success: true,

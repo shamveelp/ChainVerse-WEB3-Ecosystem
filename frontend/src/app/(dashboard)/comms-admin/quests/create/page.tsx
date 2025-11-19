@@ -8,43 +8,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { 
-  Bot, 
-  Plus, 
-  Trash2, 
-  Upload, 
-  Calendar, 
-  Users, 
-  Trophy, 
-  Target,
-  ArrowLeft,
-  Sparkles,
-  MessageSquare,
-  Send,
-  Loader2,
-  Image as ImageIcon,
-  Check,
-  X
+import {
+  Bot, Plus, Trash2, Calendar, Users, Trophy, Target, ArrowLeft, Sparkles,
+  MessageSquare, Send, Loader2, Check, X, Wand2, Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
 import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 
+type TaskType = 'join_community' | 'follow_user' | 'twitter_post' | 'upload_screenshot' | 'nft_mint' | 'token_hold' | 'wallet_connect' | 'custom';
+
+interface TaskConfig {
+  communityId?: string;
+  communityName?: string;
+  communityUsername?: string;
+  targetUserId?: string;
+  targetUsername?: string;
+  twitterText?: string;
+  twitterHashtags?: string[];
+  contractAddress?: string;
+  tokenId?: string;
+  tokenAddress?: string;
+  minimumAmount?: number;
+  customInstructions?: string;
+  requiresProof?: boolean;
+  proofType?: 'text' | 'image' | 'link';
+}
+
 interface QuestTask {
   title: string;
   description: string;
-  taskType: string;
+  taskType: TaskType;
   isRequired: boolean;
   order: number;
-  config?: any;
+  config: TaskConfig;
 }
 
 interface CreateQuestData {
@@ -66,15 +65,15 @@ interface CreateQuestData {
   aiPrompt?: string;
 }
 
-const taskTypes = [
-  { value: 'join_community', label: 'Join Community', description: 'User must join the community' },
-  { value: 'follow_user', label: 'Follow User', description: 'Follow a specific user or admin' },
-  { value: 'twitter_post', label: 'Twitter Post', description: 'Post on Twitter with specific content' },
-  { value: 'upload_screenshot', label: 'Upload Screenshot', description: 'Upload proof screenshot' },
-  { value: 'nft_mint', label: 'NFT Mint', description: 'Mint a specific NFT' },
-  { value: 'token_hold', label: 'Token Hold', description: 'Hold minimum amount of tokens' },
-  { value: 'wallet_connect', label: 'Wallet Connect', description: 'Connect their wallet' },
-  { value: 'custom', label: 'Custom Task', description: 'Custom task with instructions' }
+const taskTypes: Array<{ value: TaskType; label: string; description: string }> = [
+  { value: 'join_community', label: 'Join Community', description: 'Members must join a specific community' },
+  { value: 'follow_user', label: 'Follow User', description: 'Follow a creator/admin profile' },
+  { value: 'twitter_post', label: 'Twitter Post', description: 'Publish a post on X/Twitter' },
+  { value: 'upload_screenshot', label: 'Upload Screenshot', description: 'Upload visual proof or artifacts' },
+  { value: 'nft_mint', label: 'NFT Mint', description: 'Mint an NFT from a contract' },
+  { value: 'token_hold', label: 'Token Hold', description: 'Hold or stake a token balance' },
+  { value: 'wallet_connect', label: 'Wallet Connect', description: 'Connect wallet to a dApp or ChainVerse' },
+  { value: 'custom', label: 'Custom Task', description: 'Anything else with manual instructions' }
 ];
 
 const rewardTypes = [
@@ -84,25 +83,48 @@ const rewardTypes = [
   { value: 'custom', label: 'Custom Reward' }
 ];
 
+const questTemplates = [
+  {
+    name: "Community Growth",
+    description: "Grow your community with social engagement tasks",
+    prompt: "Create a community growth quest with Twitter engagement and community joining tasks"
+  },
+  {
+    name: "DeFi Learning",
+    description: "Educational quest about DeFi protocols and yield farming",
+    prompt: "Design a DeFi learning quest that teaches users about yield farming and liquidity provision"
+  },
+  {
+    name: "NFT Collection",
+    description: "Quest focused on NFT minting and collection activities",
+    prompt: "Create an NFT-focused quest with minting tasks and community engagement"
+  },
+  {
+    name: "Trading Challenge",
+    description: "Token trading and portfolio management challenge",
+    prompt: "Design a trading challenge quest with token holding and swap requirements"
+  }
+];
+
 export default function CreateQuestPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("manual");
+  const [activeTab, setActiveTab] = useState("ai");
   const [loading, setLoading] = useState(false);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string>("");
-  
+
   // AI Chat State
   const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
   const [currentMessage, setCurrentMessage] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiGeneratedQuest, setAiGeneratedQuest] = useState<CreateQuestData | null>(null);
+  const [conversationStep, setConversationStep] = useState<'template' | 'chat' | 'generated'>('template');
 
-  // Manual Form State
-  const [questData, setQuestData] = useState<CreateQuestData>({
+  const initialQuestState: CreateQuestData = {
     title: '',
     description: '',
-    startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
-    endDate: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000), // 9 days from now
+    startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+    endDate: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000),
     selectionMethod: 'random',
     participantLimit: 10,
     rewardPool: {
@@ -111,15 +133,92 @@ export default function CreateQuestPage() {
       rewardType: 'points'
     },
     tasks: []
-  });
+  };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setBannerFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setBannerPreview(e.target?.result as string);
-      reader.readAsDataURL(file);
+  const [questData, setQuestData] = useState<CreateQuestData>(initialQuestState);
+
+  const getDefaultTaskConfig = (taskType: TaskType): TaskConfig => {
+    return {
+      requiresProof: true,
+      proofType: 'image'
+    };
+  };
+
+  const handleTemplateSelect = (template: typeof questTemplates[0]) => {
+    setCurrentMessage(template.prompt);
+    setConversationStep('chat');
+    setChatMessages([
+      { 
+        role: 'assistant', 
+        content: `Great choice! I'll help you create a ${template.name.toLowerCase()}. ${template.description}. Let me know if you'd like me to customize anything specific!` 
+      }
+    ]);
+    handleAIMessage(template.prompt);
+  };
+
+  const handleAIMessage = async (message?: string) => {
+    const userMessage = message || currentMessage;
+    if (!userMessage.trim() || aiLoading) return;
+
+    setCurrentMessage("");
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setAiLoading(true);
+
+    try {
+      const response = await communityAdminQuestApiService.generateQuestWithAI({
+        prompt: userMessage,
+        difficulty: 'medium',
+        expectedWinners: 10
+      });
+
+      if (response.success && response.data) {
+        const normalized: CreateQuestData = {
+          ...response.data,
+          startDate: new Date(response.data.startDate),
+          endDate: new Date(response.data.endDate),
+          tasks: response.data.tasks.map((task: any, index: number) => ({
+            ...task,
+            order: index + 1,
+            config: { ...getDefaultTaskConfig(task.taskType), ...(task.config || {}) }
+          }))
+        };
+        
+        setAiGeneratedQuest(normalized);
+        setConversationStep('generated');
+        setChatMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `🎉 Perfect! I've created "${normalized.title}" for you! This quest includes ${normalized.tasks.length} engaging tasks and offers ${normalized.rewardPool.amount} ${normalized.rewardPool.currency} in rewards. Check out the preview and let me know if you'd like any adjustments!`
+        }]);
+      } else {
+        setChatMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `I'd be happy to help create that quest! Could you provide more details about what type of engagement you're looking for? For example:
+
+• What's your community's main focus?
+• What rewards would motivate your members?
+• Any specific tasks you have in mind?
+
+The more details you share, the better I can customize the quest for your community! 🚀`
+        }]);
+      }
+    } catch (error) {
+      setChatMessages(prev => [...prev, {
+        role: 'assistant',
+        content: "I'm having trouble generating a quest right now. Please try the manual creation or try again with more specific details about your quest goals! 🔧"
+      }]);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const useAIQuest = () => {
+    if (aiGeneratedQuest) {
+      setQuestData(aiGeneratedQuest);
+      setActiveTab("manual");
+      toast({
+        title: "Quest Loaded! ✨",
+        description: "AI-generated quest has been loaded for editing",
+      });
     }
   };
 
@@ -129,7 +228,8 @@ export default function CreateQuestPage() {
       description: '',
       taskType: 'join_community',
       isRequired: true,
-      order: questData.tasks.length + 1
+      order: questData.tasks.length + 1,
+      config: getDefaultTaskConfig('join_community')
     };
     setQuestData(prev => ({
       ...prev,
@@ -140,8 +240,25 @@ export default function CreateQuestPage() {
   const updateTask = (index: number, field: string, value: any) => {
     setQuestData(prev => ({
       ...prev,
-      tasks: prev.tasks.map((task, i) => 
-        i === index ? { ...task, [field]: value } : task
+      tasks: prev.tasks.map((task, i) => {
+        if (i !== index) return task;
+        if (field === 'taskType') {
+          return {
+            ...task,
+            taskType: value,
+            config: getDefaultTaskConfig(value)
+          };
+        }
+        return { ...task, [field]: value };
+      })
+    }));
+  };
+
+  const updateTaskConfig = (index: number, config: Partial<TaskConfig>) => {
+    setQuestData(prev => ({
+      ...prev,
+      tasks: prev.tasks.map((task, i) =>
+        i === index ? { ...task, config: { ...task.config, ...config } } : task
       )
     }));
   };
@@ -156,87 +273,67 @@ export default function CreateQuestPage() {
     }));
   };
 
-  const handleAIMessage = async () => {
-    if (!currentMessage.trim() || aiLoading) return;
-
-    const userMessage = currentMessage;
-    setCurrentMessage("");
-    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-    setAiLoading(true);
-
-    try {
-      const response = await communityAdminQuestApiService.generateQuestWithAI({
-        prompt: userMessage,
-        difficulty: 'medium',
-        expectedWinners: 10
-      });
-
-      if (response.success && response.data) {
-        setAiGeneratedQuest(response.data);
-        setChatMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: `I've generated a quest for you! "${response.data!.title}" - Check out the preview on the right and let me know if you'd like any changes.`
-        }]);
-      } else {
-        setChatMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: `Sorry, I couldn't generate a quest. ${response.error || 'Please try again with more details about what kind of quest you want.'}`
-        }]);
-      }
-    } catch (error) {
-      setChatMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: "I'm having trouble generating a quest right now. Please try the manual creation or try again later."
-      }]);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const useAIQuest = () => {
-    if (aiGeneratedQuest) {
-      setQuestData(aiGeneratedQuest);
-      setActiveTab("manual");
-      toast({
-        title: "Quest Loaded",
-        description: "AI-generated quest has been loaded for editing",
-      });
-    }
-  };
-
   const handleCreateQuest = async () => {
+    // Basic validation
+    if (!questData.title.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Missing Title",
+        description: "Please enter a quest title",
+      });
+      return;
+    }
+
+    if (!questData.description.trim()) {
+      toast({
+        variant: "destructive", 
+        title: "Missing Description",
+        description: "Please enter a quest description",
+      });
+      return;
+    }
+
+    if (questData.tasks.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No Tasks",
+        description: "Please add at least one task to your quest",
+      });
+      return;
+    }
+
+    // Validate tasks
+    for (let i = 0; i < questData.tasks.length; i++) {
+      const task = questData.tasks[i];
+      if (!task.title.trim()) {
+        toast({
+          variant: "destructive",
+          title: "Missing Task Title",
+          description: `Task ${i + 1} needs a title`,
+        });
+        return;
+      }
+      if (!task.description.trim()) {
+        toast({
+          variant: "destructive",
+          title: "Missing Task Description", 
+          description: `Task ${i + 1} needs a description`,
+        });
+        return;
+      }
+    }
+
     setLoading(true);
     try {
-      // Validate required fields
-      if (!questData.title.trim() || !questData.description.trim()) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Title and description are required",
-        });
-        return;
-      }
-
-      if (questData.tasks.length === 0) {
-        toast({
-          variant: "destructive",
-          title: "Error", 
-          description: "At least one task is required",
-        });
-        return;
-      }
-
-      // Create quest
       const response = await communityAdminQuestApiService.createQuest(questData);
-      
+
       if (response.success && response.data) {
-        // Upload banner if provided
         if (bannerFile) {
           await communityAdminQuestApiService.uploadQuestBanner(response.data._id, bannerFile);
         }
 
         toast({
-          title: "Success",
+          title: "Success! 🎉",
           description: "Quest created successfully",
         });
         router.push('/comms-admin/quests');
@@ -280,20 +377,13 @@ export default function CreateQuestPage() {
         </div>
       </div>
 
-      {/* Creation Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 bg-black/60 backdrop-blur-xl border border-purple-800/30">
-          <TabsTrigger
-            value="ai"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white"
-          >
-            <Bot className="h-4 w-4 mr-2" />
+          <TabsTrigger value="ai" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white">
+            <Sparkles className="h-4 w-4 mr-2" />
             AI Assistant
           </TabsTrigger>
-          <TabsTrigger
-            value="manual"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white"
-          >
+          <TabsTrigger value="manual" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white">
             <Trophy className="h-4 w-4 mr-2" />
             Manual Creation
           </TabsTrigger>
@@ -302,37 +392,60 @@ export default function CreateQuestPage() {
         {/* AI Assistant Tab */}
         <TabsContent value="ai">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Chat Interface */}
+            {/* AI Chat Interface */}
             <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-purple-400" />
+                  <Bot className="h-5 w-5 text-purple-400" />
                   AI Quest Assistant
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Chat Messages */}
-                <div className="h-96 overflow-y-auto space-y-4 bg-gray-900/50 rounded-lg p-4">
-                  {chatMessages.length === 0 ? (
-                    <div className="text-center text-gray-400 mt-16">
-                      <Bot className="h-12 w-12 mx-auto mb-4 text-purple-400" />
-                      <p className="text-lg font-semibold mb-2">Hi! I'm your Quest Assistant</p>
-                      <p className="text-sm">Tell me what kind of quest you want to create and I'll help you design it!</p>
-                      <div className="mt-4 space-y-2 text-xs text-left">
-                        <p><strong>Try asking:</strong></p>
-                        <p>• "Create a DeFi learning quest"</p>
-                        <p>• "Design a Twitter engagement quest"</p>
-                        <p>• "Make a NFT community quest"</p>
+                {conversationStep === 'template' && (
+                  <div className="space-y-4">
+                    <div className="text-center py-6">
+                      <Wand2 className="h-16 w-16 mx-auto mb-4 text-purple-400" />
+                      <h3 className="text-xl font-semibold text-white mb-2">Choose Your Quest Type</h3>
+                      <p className="text-gray-400 mb-6">Select a template to get started, or describe your custom quest below</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      {questTemplates.map((template, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          className="p-4 h-auto text-left border-purple-600/30 hover:border-purple-500/50 hover:bg-purple-950/30"
+                          onClick={() => handleTemplateSelect(template)}
+                        >
+                          <div>
+                            <div className="font-medium text-white mb-1">{template.name}</div>
+                            <div className="text-sm text-gray-400">{template.description}</div>
+                          </div>
+                          <Zap className="h-5 w-5 text-purple-400 ml-auto" />
+                        </Button>
+                      ))}
+                    </div>
+
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-gray-600" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-gray-900 px-2 text-gray-400">Or describe your custom quest</span>
                       </div>
                     </div>
-                  ) : (
-                    chatMessages.map((message, index) => (
+                  </div>
+                )}
+
+                {conversationStep !== 'template' && (
+                  <div className="h-96 overflow-y-auto space-y-4 bg-gray-900/50 rounded-lg p-4">
+                    {chatMessages.map((message, index) => (
                       <div
                         key={index}
                         className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
+                          className={`max-w-[80%] p-3 rounded-lg whitespace-pre-wrap ${
                             message.role === 'user'
                               ? 'bg-purple-600 text-white'
                               : 'bg-gray-700 text-gray-100'
@@ -341,30 +454,29 @@ export default function CreateQuestPage() {
                           {message.content}
                         </div>
                       </div>
-                    ))
-                  )}
-                  {aiLoading && (
-                    <div className="flex justify-start">
-                      <div className="bg-gray-700 text-gray-100 p-3 rounded-lg flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Generating quest...
+                    ))}
+                    {aiLoading && (
+                      <div className="flex justify-start">
+                        <div className="bg-gray-700 text-gray-100 p-3 rounded-lg flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Creating your perfect quest...
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
 
-                {/* Chat Input */}
                 <div className="flex gap-2">
                   <Input
                     value={currentMessage}
                     onChange={(e) => setCurrentMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAIMessage()}
-                    placeholder="Describe your quest idea..."
+                    placeholder={conversationStep === 'template' ? "Describe your custom quest idea..." : "Ask for modifications or clarifications..."}
                     className="bg-gray-800 border-gray-600 text-white"
                     disabled={aiLoading}
                   />
                   <Button
-                    onClick={handleAIMessage}
+                    onClick={() => handleAIMessage()}
                     disabled={!currentMessage.trim() || aiLoading}
                     className="bg-purple-600 hover:bg-purple-700"
                   >
@@ -374,7 +486,7 @@ export default function CreateQuestPage() {
               </CardContent>
             </Card>
 
-            {/* AI Generated Preview */}
+            {/* Quest Preview */}
             <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -401,7 +513,7 @@ export default function CreateQuestPage() {
                       <h3 className="text-lg font-semibold text-white mb-2">{aiGeneratedQuest.title}</h3>
                       <p className="text-gray-300 text-sm">{aiGeneratedQuest.description}</p>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-gray-400">Winners: </span>
@@ -444,7 +556,12 @@ export default function CreateQuestPage() {
                 ) : (
                   <div className="text-center text-gray-400 py-16">
                     <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Start chatting with the AI to generate a quest preview</p>
+                    <p>
+                      {conversationStep === 'template' 
+                        ? 'Choose a template or describe your quest to see a preview'
+                        : 'Continue chatting to generate your perfect quest'
+                      }
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -534,24 +651,6 @@ export default function CreateQuestPage() {
                       <SelectItem value="random">Random Selection</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                {/* Banner Image Upload */}
-                <div className="space-y-2">
-                  <Label>Quest Banner (Optional)</Label>
-                  <div className="flex items-center gap-4">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="bg-gray-800 border-gray-600 text-white"
-                    />
-                    {bannerPreview && (
-                      <div className="relative w-20 h-20 rounded-lg overflow-hidden">
-                        <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -706,7 +805,7 @@ export default function CreateQuestPage() {
                             value={task.description}
                             onChange={(e) => updateTask(index, 'description', e.target.value)}
                             placeholder="Describe what the user needs to do..."
-                            rows={2}
+                            rows={3}
                             className="bg-gray-700 border-gray-600 text-white"
                           />
                         </div>
@@ -717,7 +816,7 @@ export default function CreateQuestPage() {
                             checked={task.isRequired}
                             onCheckedChange={(checked) => updateTask(index, 'isRequired', checked)}
                           />
-                          <Label htmlFor={`required-${index}`}>Required Task</Label>
+                          <Label htmlFor={`required-${index}`}>Required task</Label>
                         </div>
                       </CardContent>
                     </Card>
