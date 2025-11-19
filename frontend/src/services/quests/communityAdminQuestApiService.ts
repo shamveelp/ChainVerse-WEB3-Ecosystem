@@ -108,7 +108,7 @@ interface PaginationResponse<T> {
     items?: T[];
     quests?: Quest[];
     participants?: Participant[];
-    pagination:  {
+    pagination: {
       page: number;
       limit: number;
       total: number;
@@ -462,6 +462,81 @@ class CommunityAdminQuestApiService {
                error.response?.data?.message ||
                error.message ||
                "Failed to upload quest banner",
+      };
+    }
+  }
+
+  // Search Communities
+  async searchCommunities(query: string): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await api.get(`/api/communities/search?q=${encodeURIComponent(query)}`);
+      return {
+        success: true,
+        data: response.data.data || response.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Search communities error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to search communities",
+      };
+    }
+  }
+
+  // Search Users
+  async searchUsers(query: string): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await api.get(`/api/users/search?q=${encodeURIComponent(query)}`);
+      return {
+        success: true,
+        data: response.data.data || response.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Search users error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to search users",
+      };
+    }
+  }
+
+  // Chat with AI
+  async chatWithAI(message: string, conversationHistory?: any[]): Promise<ApiResponse<{ 
+    response: string; 
+    questGenerated?: boolean; 
+    questData?: CreateQuestData;
+    needsInput?: {
+      type: 'community' | 'user' | 'token' | 'nft';
+      field: string;
+      prompt: string;
+    }[];
+  }>> {
+    try {
+      const response = await api.post(`${this.baseUrl}/quests/ai-chat`, {
+        message,
+        history: conversationHistory || []
+      });
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("AI chat error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+               error.response?.data?.message ||
+               error.message ||
+               "Failed to chat with AI",
       };
     }
   }

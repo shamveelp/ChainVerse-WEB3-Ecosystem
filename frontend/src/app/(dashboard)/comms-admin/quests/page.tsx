@@ -12,6 +12,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
 import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 import { QuestAccessGuard } from '@/components/comms-admin/QuestAccessGuard';
+import { ConfirmationDialog } from '@/components/comms-admin/ConfirmationDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,16 +20,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface Quest {
   _id: string;
@@ -73,7 +64,24 @@ export default function QuestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [deleteQuestId, setDeleteQuestId] = useState<string | null>(null);
+  
+  // Confirmation dialogs
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; questId: string; questTitle: string }>({
+    open: false,
+    questId: '',
+    questTitle: ''
+  });
+  const [startDialog, setStartDialog] = useState<{ open: boolean; questId: string; questTitle: string }>({
+    open: false,
+    questId: '',
+    questTitle: ''
+  });
+  const [endDialog, setEndDialog] = useState<{ open: boolean; questId: string; questTitle: string }>({
+    open: false,
+    questId: '',
+    questTitle: ''
+  });
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -131,6 +139,7 @@ export default function QuestsPage() {
   };
 
   const handleDeleteQuest = async (questId: string) => {
+    setActionLoading(true);
     try {
       const response = await communityAdminQuestApiService.deleteQuest(questId);
       if (response.success) {
@@ -149,11 +158,14 @@ export default function QuestsPage() {
         title: "Error",
         description: error.message || "Failed to delete quest",
       });
+    } finally {
+      setActionLoading(false);
+      setDeleteDialog({ open: false, questId: '', questTitle: '' });
     }
-    setDeleteQuestId(null);
   };
 
   const handleStartQuest = async (questId: string) => {
+    setActionLoading(true);
     try {
       const response = await communityAdminQuestApiService.startQuest(questId);
       if (response.success) {
@@ -172,10 +184,14 @@ export default function QuestsPage() {
         title: "Error",
         description: error.message || "Failed to start quest",
       });
+    } finally {
+      setActionLoading(false);
+      setStartDialog({ open: false, questId: '', questTitle: '' });
     }
   };
 
   const handleEndQuest = async (questId: string) => {
+    setActionLoading(true);
     try {
       const response = await communityAdminQuestApiService.endQuest(questId);
       if (response.success) {
@@ -194,6 +210,9 @@ export default function QuestsPage() {
         title: "Error",
         description: error.message || "Failed to end quest",
       });
+    } finally {
+      setActionLoading(false);
+      setEndDialog({ open: false, questId: '', questTitle: '' });
     }
   };
 
@@ -449,7 +468,11 @@ export default function QuestsPage() {
                                 )}
                                 {quest.status === 'draft' && (
                                   <DropdownMenuItem
-                                    onClick={() => handleStartQuest(quest._id)}
+                                    onClick={() => setStartDialog({
+                                      open: true,
+                                      questId: quest._id,
+                                      questTitle: quest.title
+                                    })}
                                     className="text-green-400 hover:bg-gray-700"
                                   >
                                     <Play className="h-4 w-4 mr-2" />
@@ -458,7 +481,11 @@ export default function QuestsPage() {
                                 )}
                                 {quest.status === 'active' && (
                                   <DropdownMenuItem
-                                    onClick={() => handleEndQuest(quest._id)}
+                                    onClick={() => setEndDialog({
+                                      open: true,
+                                      questId: quest._id,
+                                      questTitle: quest.title
+                                    })}
                                     className="text-orange-400 hover:bg-gray-700"
                                   >
                                     <Square className="h-4 w-4 mr-2" />
@@ -467,7 +494,11 @@ export default function QuestsPage() {
                                 )}
                                 <DropdownMenuSeparator className="bg-gray-600" />
                                 <DropdownMenuItem
-                                  onClick={() => setDeleteQuestId(quest._id)}
+                                  onClick={() => setDeleteDialog({
+                                    open: true,
+                                    questId: quest._id,
+                                    questTitle: quest.title
+                                  })}
                                   className="text-red-400 hover:bg-gray-700"
                                   disabled={quest.status === 'active'}
                                 >
@@ -531,7 +562,11 @@ export default function QuestsPage() {
                               variant="outline"
                               size="sm"
                               className="flex-1 border-green-600/50 text-green-400 hover:bg-green-950/30"
-                              onClick={() => handleStartQuest(quest._id)}
+                              onClick={() => setStartDialog({
+                                open: true,
+                                questId: quest._id,
+                                questTitle: quest.title
+                              })}
                             >
                               <Play className="h-4 w-4 mr-2" />
                               Start
@@ -583,28 +618,42 @@ export default function QuestsPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!deleteQuestId} onOpenChange={() => setDeleteQuestId(null)}>
-          <AlertDialogContent className="bg-gray-900 border-gray-700">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-white">Delete Quest</AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-300">
-                Are you sure you want to delete this quest? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="bg-gray-800 text-white border-gray-600 hover:bg-gray-700">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deleteQuestId && handleDeleteQuest(deleteQuestId)}
-                className="bg-red-600 text-white hover:bg-red-700"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {/* Confirmation Dialogs */}
+        <ConfirmationDialog
+          isOpen={deleteDialog.open}
+          onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
+          title="Delete Quest"
+          description={`Are you sure you want to delete "${deleteDialog.questTitle}"? This action cannot be undone.`}
+          confirmText="Delete Quest"
+          cancelText="Cancel"
+          onConfirm={() => handleDeleteQuest(deleteDialog.questId)}
+          variant="destructive"
+          loading={actionLoading}
+        />
+
+        <ConfirmationDialog
+          isOpen={startDialog.open}
+          onOpenChange={(open) => setStartDialog({ ...startDialog, open })}
+          title="Start Quest"
+          description={`Are you sure you want to start "${startDialog.questTitle}"? Once started, participants can begin joining and completing tasks.`}
+          confirmText="Start Quest"
+          cancelText="Cancel"
+          onConfirm={() => handleStartQuest(startDialog.questId)}
+          variant="default"
+          loading={actionLoading}
+        />
+
+        <ConfirmationDialog
+          isOpen={endDialog.open}
+          onOpenChange={(open) => setEndDialog({ ...endDialog, open })}
+          title="End Quest"
+          description={`Are you sure you want to end "${endDialog.questTitle}"? This will stop new participants from joining and allow you to select winners.`}
+          confirmText="End Quest"
+          cancelText="Cancel"
+          onConfirm={() => handleEndQuest(endDialog.questId)}
+          variant="default"
+          loading={actionLoading}
+        />
       </div>
     </QuestAccessGuard>
   );

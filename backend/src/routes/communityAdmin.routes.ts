@@ -50,7 +50,7 @@ import { CreateSubscriptionDto } from "../dtos/communityAdmin/CommunityAdminSubs
 import { ICommunityAdminPostController } from "../core/interfaces/controllers/communityAdmin/ICommunityAdminPost.controller";
 import { CommunityAdminCommentDto, CreateCommunityAdminPostDto, GetCommunityAdminPostsQueryDto, UpdateCommunityAdminPostDto } from "../dtos/communityAdmin/CommunityAdminPost.dto";
 import { ICommunityAdminQuestController } from "../core/interfaces/controllers/quest/ICommunityAdminQuest.controller";
-import { AIQuestGenerationDto, CreateQuestDto, GetQuestsQueryDto, SelectWinnersDto, UpdateQuestDto } from "../dtos/quest/CommunityAdminQuest.dto";
+import { AIQuestGenerationDto, CreateQuestDto, GetQuestsQueryDto, SelectWinnersDto, UpdateQuestDto, GetParticipantsQueryDto as QuestParticipantsDto } from "../dtos/quest/CommunityAdminQuest.dto";
 
 // Configure Multer for profile picture uploads
 const storage = multer.memoryStorage();
@@ -826,6 +826,36 @@ router.post(
   communityAdminQuestController.generateQuestWithAI.bind(communityAdminQuestController)
 );
 
+// AI Chat endpoint
+router.post(
+  "/quests/ai-chat",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  async (req, res) => {
+    try {
+      const communityAdminId = (req as any).user.id;
+      const { message, history } = req.body;
+
+      // Get the service instance
+      const questService:any = container.get(TYPES.ICommunityAdminQuestService);
+      
+      // Call the chat method
+      const result = await questService.chatWithAI(communityAdminId, message, history);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+        message: "AI response generated successfully"
+      });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({
+        success: false,
+        error: error.message || "Failed to process AI chat"
+      });
+    }
+  }
+);
+
 router.get(
   "/quests/:questId",
   authMiddleware,
@@ -882,7 +912,7 @@ router.get(
   "/quests/:questId/participants",
   authMiddleware,
   roleMiddleware(["communityAdmin"]),
-  validateQuery(GetParticipantsQueryDto),
+  validateQuery(QuestParticipantsDto),
   communityAdminQuestController.getQuestParticipants.bind(communityAdminQuestController)
 );
 

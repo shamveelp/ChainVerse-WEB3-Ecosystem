@@ -4,10 +4,10 @@ import { ICommunityAdminQuestService } from "../../core/interfaces/services/ques
 import { ICommunityAdminQuestRepository } from "../../core/interfaces/repositories/quest/ICommunityAdminQuestRepository";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
-import { 
-  CreateQuestDto, 
-  UpdateQuestDto, 
-  GetQuestsQueryDto, 
+import {
+  CreateQuestDto,
+  UpdateQuestDto,
+  GetQuestsQueryDto,
   GetParticipantsQueryDto,
   AIQuestGenerationDto,
   SelectWinnersDto,
@@ -37,14 +37,8 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
         throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
       }
 
-      // Validate dates
-      if (new Date(createDto.startDate) <= new Date()) {
-        throw new CustomError("Start date must be in the future", StatusCode.BAD_REQUEST);
-      }
-
-      if (new Date(createDto.endDate) <= new Date(createDto.startDate)) {
-        throw new CustomError("End date must be after start date", StatusCode.BAD_REQUEST);
-      }
+      // Enhanced validation
+      this.validateQuestData(createDto);
 
       // Create quest with tasks
       const questData = {
@@ -59,9 +53,11 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
 
       const quest = await this._questRepository.createQuest(questData);
 
-      // Create quest tasks
+      // Create quest tasks with enhanced validation
       if (createDto.tasks && createDto.tasks.length > 0) {
         for (const taskDto of createDto.tasks) {
+          this.validateTaskData(taskDto);
+          
           const taskData = {
             ...taskDto,
             questId: quest._id,
@@ -73,12 +69,105 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
 
       // Get quest with tasks for response
       const questWithTasks = await this.getQuestById(quest._id.toString(), communityAdminId);
-      
+
       logger.info(`Quest created successfully`, { questId: quest._id, adminId: communityAdminId });
       return questWithTasks;
     } catch (error) {
       logger.error("Create quest error:", error);
       throw error instanceof CustomError ? error : new CustomError("Failed to create quest", StatusCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  private validateQuestData(createDto: CreateQuestDto): void {
+    // Title validation
+    if (!createDto.title || createDto.title.trim().length === 0) {
+      throw new CustomError("Quest title is required", StatusCode.BAD_REQUEST);
+    }
+    if (createDto.title.length > 200) {
+      throw new CustomError("Quest title must be less than 200 characters", StatusCode.BAD_REQUEST);
+    }
+
+    // Description validation
+    if (!createDto.description || createDto.description.trim().length === 0) {
+      throw new CustomError("Quest description is required", StatusCode.BAD_REQUEST);
+    }
+    if (createDto.description.length > 2000) {
+      throw new CustomError("Quest description must be less than 2000 characters", StatusCode.BAD_REQUEST);
+    }
+
+    // Date validation
+    const now = new Date();
+    const startDate = new Date(createDto.startDate);
+    const endDate = new Date(createDto.endDate);
+
+    if (startDate <= now) {
+      throw new CustomError("Start date must be in the future", StatusCode.BAD_REQUEST);
+    }
+
+    if (endDate <= startDate) {
+      throw new CustomError("End date must be after start date", StatusCode.BAD_REQUEST);
+    }
+
+    // Participant limit validation
+    if (!createDto.participantLimit || createDto.participantLimit < 1) {
+      throw new CustomError("Winner limit must be at least 1", StatusCode.BAD_REQUEST);
+    }
+    if (createDto.participantLimit > 1000) {
+      throw new CustomError("Winner limit cannot exceed 1000", StatusCode.BAD_REQUEST);
+    }
+
+    // Reward validation
+    if (!createDto.rewardPool || createDto.rewardPool.amount <= 0) {
+      throw new CustomError("Reward amount must be greater than 0", StatusCode.BAD_REQUEST);
+    }
+    if (!createDto.rewardPool.currency || createDto.rewardPool.currency.trim().length === 0) {
+      throw new CustomError("Reward currency is required", StatusCode.BAD_REQUEST);
+    }
+
+    // Tasks validation
+    if (!createDto.tasks || createDto.tasks.length === 0) {
+      throw new CustomError("At least one task is required", StatusCode.BAD_REQUEST);
+    }
+  }
+
+  private validateTaskData(taskDto: any): void {
+    if (!taskDto.title || taskDto.title.trim().length === 0) {
+      throw new CustomError("Task title is required", StatusCode.BAD_REQUEST);
+    }
+    if (!taskDto.description || taskDto.description.trim().length === 0) {
+      throw new CustomError("Task description is required", StatusCode.BAD_REQUEST);
+    }
+
+    // Task-specific validation
+    switch (taskDto.taskType) {
+      case 'join_community':
+        if (!taskDto.config?.communityId) {
+          throw new CustomError("Community selection is required for join community task", StatusCode.BAD_REQUEST);
+        }
+        break;
+      case 'follow_user':
+        if (!taskDto.config?.targetUserId) {
+          throw new CustomError("User selection is required for follow user task", StatusCode.BAD_REQUEST);
+        }
+        break;
+      case 'nft_mint':
+        if (!taskDto.config?.contractAddress) {
+          throw new CustomError("Contract address is required for NFT mint task", StatusCode.BAD_REQUEST);
+        }
+        break;
+      case 'token_hold':
+        if (!taskDto.config?.tokenAddress) {
+          throw new CustomError("Token address is required for token hold task", StatusCode.BAD_REQUEST);
+        }
+        if (!taskDto.config?.minimumAmount || taskDto.config.minimumAmount <= 0) {
+          throw new CustomError("Minimum amount is required for token hold task", StatusCode.BAD_REQUEST);
+        }
+        break;
+      case 'custom':
+        if (!taskDto.config?.customInstructions || taskDto.config.customInstructions.trim().length === 0) {
+          throw new CustomError("Custom instructions are required for custom task", StatusCode.BAD_REQUEST);
+        }
+        break;
     }
   }
 
@@ -95,25 +184,22 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       }
 
       // Ensure admin can only access their community's quests
-      // Handle both populated and unpopulated communityId
       let questCommunityId: string;
       if (quest.communityId && typeof quest.communityId === 'object' && '_id' in quest.communityId) {
-        // communityId is populated (object with _id)
         questCommunityId = (quest.communityId as any)._id.toString();
       } else {
-        // communityId is an ObjectId
         questCommunityId = (quest.communityId as mongoose.Types.ObjectId).toString();
       }
-      
+
       const adminCommunityId = admin.communityId?.toString();
-      
+
       if (!adminCommunityId || questCommunityId !== adminCommunityId) {
         throw new CustomError("Access denied", StatusCode.FORBIDDEN);
       }
 
       // Get quest tasks
       const tasks = await this._questRepository.findTasksByQuest(questId);
-      
+
       const questResponse = new QuestResponseDto(quest);
       questResponse.tasks = tasks;
 
@@ -152,10 +238,29 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
   async updateQuest(questId: string, communityAdminId: string, updateDto: UpdateQuestDto): Promise<QuestResponseDto> {
     try {
       const quest = await this.getQuestById(questId, communityAdminId);
-      
+
       // Don't allow editing active or ended quests
       if (['active', 'ended'].includes(quest.status)) {
         throw new CustomError("Cannot edit active or ended quests", StatusCode.BAD_REQUEST);
+      }
+
+      // Validate update data
+      if (updateDto.title !== undefined) {
+        if (!updateDto.title.trim()) {
+          throw new CustomError("Quest title cannot be empty", StatusCode.BAD_REQUEST);
+        }
+        if (updateDto.title.length > 200) {
+          throw new CustomError("Quest title must be less than 200 characters", StatusCode.BAD_REQUEST);
+        }
+      }
+
+      if (updateDto.description !== undefined) {
+        if (!updateDto.description.trim()) {
+          throw new CustomError("Quest description cannot be empty", StatusCode.BAD_REQUEST);
+        }
+        if (updateDto.description.length > 2000) {
+          throw new CustomError("Quest description must be less than 2000 characters", StatusCode.BAD_REQUEST);
+        }
       }
 
       // Validate dates if provided
@@ -176,9 +281,14 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
 
       // Update tasks if provided
       if (updateDto.tasks) {
+        // Validate tasks
+        for (const taskDto of updateDto.tasks) {
+          this.validateTaskData(taskDto);
+        }
+
         // Delete existing tasks
         await this._questRepository.deleteTasksByQuest(questId);
-        
+
         // Create new tasks
         for (const taskDto of updateDto.tasks) {
           const taskData = {
@@ -201,7 +311,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
   async deleteQuest(questId: string, communityAdminId: string): Promise<boolean> {
     try {
       const quest = await this.getQuestById(questId, communityAdminId);
-      
+
       // Don't allow deleting active quests
       if (quest.status === 'active') {
         throw new CustomError("Cannot delete active quests", StatusCode.BAD_REQUEST);
@@ -233,27 +343,35 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
 
       const prompt = `
         Create a detailed quest for a Web3 community with the following specifications:
-        
+
         Community Name: ${community.communityName}
         Community Description: ${community.description}
         Community Theme: ${aiDto.communityTheme || 'General Web3'}
         Target Audience: ${aiDto.targetAudience || 'Crypto enthusiasts'}
         Difficulty: ${aiDto.difficulty || 'medium'}
         Expected Winners: ${aiDto.expectedWinners || 10}
-        
+
         User Request: ${aiDto.prompt}
-        
+
         Please generate a quest with:
         1. A compelling title (max 200 characters)
         2. An engaging description (max 2000 characters)
         3. Appropriate start and end dates (start: 2 days from now, duration: 7 days)
         4. Selection method (fcfs or random)
         5. Participant limit (winners)
-        6. Reward pool with appropriate currency and type
+        6. Reward pool with appropriate currency and type (only use 'points' for rewardType)
         7. 3-5 relevant tasks with proper task types and configurations
-        
-        Available task types: join_community, follow_user, twitter_post, upload_screenshot, nft_mint, token_hold, wallet_connect, custom
-        
+
+        Available task types: join_community, follow_user, twitter_post, upload_screenshot, wallet_connect, custom
+
+        For task configurations:
+        - join_community: requires communityId, communityName, communityUsername
+        - follow_user: requires targetUserId, targetUsername
+        - twitter_post: can have twitterText, twitterHashtags array
+        - upload_screenshot: can have customInstructions, websiteUrl
+        - wallet_connect: can have customInstructions
+        - custom: requires customInstructions
+
         Return ONLY a valid JSON object matching this structure:
         {
           "title": "string",
@@ -264,8 +382,8 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
           "participantLimit": 10,
           "rewardPool": {
             "amount": 100,
-            "currency": "USDT",
-            "rewardType": "token"
+            "currency": "POINTS",
+            "rewardType": "points"
           },
           "tasks": [
             {
@@ -274,7 +392,10 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
               "taskType": "join_community",
               "isRequired": true,
               "order": 1,
-              "config": {}
+              "config": {
+                "requiresProof": true,
+                "proofType": "image"
+              }
             }
           ],
           "isAIGenerated": true,
@@ -294,7 +415,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
         }
 
         const questData = JSON.parse(jsonMatch[0]);
-        
+
         // Validate and set default values
         const now = new Date();
         const startDate = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
@@ -309,14 +430,17 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
           participantLimit: questData.participantLimit || aiDto.expectedWinners || 10,
           rewardPool: {
             amount: questData.rewardPool?.amount || 100,
-            currency: questData.rewardPool?.currency || 'POINTS',
-            rewardType: questData.rewardPool?.rewardType || 'points',
+            currency: 'POINTS',
+            rewardType: 'points',
             customReward: questData.rewardPool?.customReward
           },
           tasks: questData.tasks || [],
           isAIGenerated: true,
           aiPrompt: aiDto.prompt
         };
+
+        // Validate the generated quest
+        this.validateQuestData(aiQuest);
 
         logger.info(`AI quest generated successfully`, { adminId: communityAdminId, prompt: aiDto.prompt });
         return aiQuest;
@@ -330,13 +454,103 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     }
   }
 
+  // Chat with AI for interactive quest creation
+  async chatWithAI(communityAdminId: string, message: string, history: any[] = []): Promise<{
+    response: string;
+    questGenerated?: boolean;
+    questData?: CreateQuestDto;
+    needsInput?: any[];
+  }> {
+    try {
+      const admin = await this._adminRepository.findById(communityAdminId);
+      if (!admin || !admin.communityId) {
+        throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+      }
+
+      const community = await this._communityRepository.findById(admin.communityId.toString());
+      if (!community) {
+        throw new CustomError("Community not found", StatusCode.NOT_FOUND);
+      }
+
+      const systemPrompt = `
+        You are an expert quest designer for Web3 communities. You help community admins create engaging quests.
+        
+        Current Community: ${community.communityName}
+        Community Description: ${community.description}
+        
+        Available task types: join_community, follow_user, twitter_post, upload_screenshot, wallet_connect, custom
+        
+        Your role:
+        1. Ask relevant questions to understand their quest goals
+        2. Suggest appropriate task types and configurations
+        3. When you have enough information, generate a complete quest
+        4. Be friendly, helpful, and guide them through the process
+        
+        Guidelines:
+        - Only use 'points' for reward type (others are coming soon)
+        - Keep titles under 200 characters
+        - Keep descriptions under 2000 characters
+        - Suggest 3-5 tasks per quest
+        - Always ask about target audience, goals, and rewards
+      `;
+
+      const conversationHistory = [
+        { role: 'system', content: systemPrompt },
+        ...history,
+        { role: 'user', content: message }
+      ];
+
+      const result = await geminiModel.generateContent(
+        conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n\n')
+      );
+      
+      const response = await result.response;
+      const aiResponse = response.text();
+
+      // Check if AI wants to generate a quest
+      const questGenerated = aiResponse.includes('[GENERATE_QUEST]');
+      
+      if (questGenerated) {
+        try {
+          // Extract quest data from AI response
+          const questPrompt = conversationHistory.map(msg => msg.content).join(' ');
+          const questData = await this.generateQuestWithAI(communityAdminId, {
+            prompt: questPrompt,
+            difficulty: 'medium',
+            expectedWinners: 10
+          });
+
+          return {
+            response: aiResponse.replace('[GENERATE_QUEST]', ''),
+            questGenerated: true,
+            questData
+          };
+        } catch (error) {
+          return {
+            response: "I had trouble generating the quest data. Let me ask you a few more specific questions to get it right!",
+            questGenerated: false
+          };
+        }
+      }
+
+      return {
+        response: aiResponse,
+        questGenerated: false
+      };
+
+    } catch (error) {
+      logger.error("AI chat error:", error);
+      throw error instanceof CustomError ? error : new CustomError("Failed to process AI chat", StatusCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   async getQuestParticipants(questId: string, communityAdminId: string, query: GetParticipantsQueryDto): Promise<{ participants: any[]; total: number; pages: number }> {
     try {
       await this.getQuestById(questId, communityAdminId); // Verify access
-      
+
       const { page = 1, limit = 10, status } = query;
       const { participants, total } = await this._questRepository.findParticipantsByQuest(questId, page, limit, status);
-      
+
       const pages = Math.ceil(total / limit);
       return { participants, total, pages };
     } catch (error) {
@@ -348,7 +562,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
   async getParticipantDetails(questId: string, participantId: string, communityAdminId: string): Promise<any> {
     try {
       await this.getQuestById(questId, communityAdminId); // Verify access
-      
+
       const participant = await this._questRepository.findParticipant(questId, participantId);
       if (!participant) {
         throw new CustomError("Participant not found", StatusCode.NOT_FOUND);
@@ -371,7 +585,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
   async selectWinners(communityAdminId: string, selectDto: SelectWinnersDto): Promise<{ winners: any[]; message: string }> {
     try {
       const quest = await this.getQuestById(selectDto.questId, communityAdminId);
-      
+
       if (quest.status !== 'ended') {
         throw new CustomError("Quest must be ended to select winners", StatusCode.BAD_REQUEST);
       }
@@ -382,8 +596,8 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
 
       // Get completed participants
       const { participants } = await this._questRepository.findParticipantsByQuest(
-        selectDto.questId, 
-        1, 
+        selectDto.questId,
+        1,
         1000, // Get all completed participants
         'completed'
       );
@@ -428,7 +642,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
   async disqualifyParticipant(questId: string, participantId: string, reason: string, communityAdminId: string): Promise<boolean> {
     try {
       await this.getQuestById(questId, communityAdminId); // Verify access
-      
+
       const updated = await this._questRepository.updateParticipant(participantId, {
         status: 'disqualified',
         disqualificationReason: reason,
@@ -445,7 +659,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
   async getQuestStats(questId: string, communityAdminId: string): Promise<any> {
     try {
       await this.getQuestById(questId, communityAdminId); // Verify access
-      
+
       const stats = await this._questRepository.getQuestStats(questId);
       return stats;
     } catch (error) {
@@ -472,7 +686,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
   async startQuest(questId: string, communityAdminId: string): Promise<QuestResponseDto> {
     try {
       const quest = await this.getQuestById(questId, communityAdminId);
-      
+
       if (quest.status !== 'draft') {
         throw new CustomError("Only draft quests can be started", StatusCode.BAD_REQUEST);
       }
@@ -492,7 +706,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
   async endQuest(questId: string, communityAdminId: string): Promise<QuestResponseDto> {
     try {
       const quest = await this.getQuestById(questId, communityAdminId);
-      
+
       if (quest.status !== 'active') {
         throw new CustomError("Only active quests can be ended", StatusCode.BAD_REQUEST);
       }
