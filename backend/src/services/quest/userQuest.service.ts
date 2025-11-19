@@ -23,12 +23,12 @@ export class UserQuestService implements IUserQuestService {
   constructor(
     @inject(TYPES.IUserQuestRepository) private _questRepository: IUserQuestRepository,
     @inject(TYPES.IUserRepository) private _userRepository: IUserRepository
-  ) {}
+  ) { }
 
   async getAvailableQuests(userId: string, query: GetAvailableQuestsDto): Promise<{ quests: QuestResponseDto[]; total: number; pages: number }> {
     try {
       const { page = 1, limit = 12, status = 'active', search, communityId, sortBy = 'createdAt', sortOrder = 'desc', rewardType } = query;
-      
+
       const filters: any = { status };
       if (search) {
         filters.$or = [
@@ -200,7 +200,7 @@ export class UserQuestService implements IUserQuestService {
       const updatedTasksCompleted = participation.totalTasksCompleted + 1;
       const quest = await this._questRepository.findQuestById(submitDto.questId);
       const totalTasks = await this._questRepository.findTasksByQuest(submitDto.questId);
-      
+
       const updateData: any = {
         status: updatedTasksCompleted >= totalTasks.length ? 'completed' : 'in_progress',
         totalTasksCompleted: updatedTasksCompleted,
@@ -229,9 +229,12 @@ export class UserQuestService implements IUserQuestService {
 
       // Mark tasks as completed if user has submitted them
       const tasksWithStatus = tasks.map(task => {
-        const submission = submissions.find(sub => sub.taskId.toString() === task._id.toString());
+        const submission = submissions.find(sub => {
+          const subTaskId = (sub.taskId as any)._id || sub.taskId;
+          return subTaskId.toString() === task._id.toString();
+        });
         return {
-          ...task.toObject(),
+          ...task,
           isCompleted: !!submission,
           submission: submission || null
         };
