@@ -211,9 +211,8 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                             </div>
                           </div>
                           <Check
-                            className={`ml-auto h-4 w-4 ${
-                              config.communityId === community._id ? "opacity-100" : "opacity-0"
-                            }`}
+                            className={`ml-auto h-4 w-4 ${config.communityId === community._id ? "opacity-100" : "opacity-0"
+                              }`}
                           />
                         </CommandItem>
                       ))}
@@ -277,9 +276,8 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                             </div>
                           </div>
                           <Check
-                            className={`ml-auto h-4 w-4 ${
-                              config.targetUserId === user._id ? "opacity-100" : "opacity-0"
-                            }`}
+                            className={`ml-auto h-4 w-4 ${config.targetUserId === user._id ? "opacity-100" : "opacity-0"
+                              }`}
                           />
                         </CommandItem>
                       ))}
@@ -477,7 +475,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
   return (
     <div className="space-y-4">
       {renderTaskSpecificConfig()}
-      
+
       {/* Common Settings */}
       <div className="border-t border-gray-600 pt-4 space-y-4">
         <div className="flex items-center space-x-2">

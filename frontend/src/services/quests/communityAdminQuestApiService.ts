@@ -134,9 +134,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to create quest",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to create quest",
       };
     }
   }
@@ -154,9 +154,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get quest",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get quest",
       };
     }
   }
@@ -185,9 +185,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get quests",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get quests",
       };
     }
   }
@@ -205,9 +205,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to update quest",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to update quest",
       };
     }
   }
@@ -225,9 +225,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to delete quest",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to delete quest",
       };
     }
   }
@@ -246,9 +246,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to generate quest with AI",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to generate quest with AI",
       };
     }
   }
@@ -267,9 +267,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to start quest",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to start quest",
       };
     }
   }
@@ -287,9 +287,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to end quest",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to end quest",
       };
     }
   }
@@ -324,9 +324,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get participants",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get participants",
       };
     }
   }
@@ -344,9 +344,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get participant details",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get participant details",
       };
     }
   }
@@ -367,9 +367,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to select winners",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to select winners",
       };
     }
   }
@@ -389,9 +389,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to disqualify participant",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to disqualify participant",
       };
     }
   }
@@ -410,9 +410,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get quest stats",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get quest stats",
       };
     }
   }
@@ -430,9 +430,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get community quest stats",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get community quest stats",
       };
     }
   }
@@ -459,9 +459,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to upload quest banner",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to upload quest banner",
       };
     }
   }
@@ -469,10 +469,10 @@ class CommunityAdminQuestApiService {
   // Search Communities
   async searchCommunities(query: string): Promise<ApiResponse<any[]>> {
     try {
-      const response = await api.get(`/api/communities/search?q=${encodeURIComponent(query)}`);
+      const response = await api.get(`/api/user/communities/search?query=${encodeURIComponent(query)}&type=communities`);
       return {
         success: true,
-        data: response.data.data || response.data,
+        data: response.data.data?.communities || [],
         message: response.data.message,
       };
     } catch (error: any) {
@@ -480,9 +480,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to search communities",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to search communities",
       };
     }
   }
@@ -490,10 +490,10 @@ class CommunityAdminQuestApiService {
   // Search Users
   async searchUsers(query: string): Promise<ApiResponse<any[]>> {
     try {
-      const response = await api.get(`/api/users/search?q=${encodeURIComponent(query)}`);
+      const response = await api.get(`/api/user/communities/search?query=${encodeURIComponent(query)}&type=users`);
       return {
         success: true,
-        data: response.data.data || response.data,
+        data: response.data.data?.users || [],
         message: response.data.message,
       };
     } catch (error: any) {
@@ -501,17 +501,17 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to search users",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to search users",
       };
     }
   }
 
   // Chat with AI
-  async chatWithAI(message: string, conversationHistory?: any[]): Promise<ApiResponse<{ 
-    response: string; 
-    questGenerated?: boolean; 
+  async chatWithAI(message: string, conversationHistory?: any[]): Promise<ApiResponse<{
+    response: string;
+    questGenerated?: boolean;
     questData?: CreateQuestData;
     needsInput?: {
       type: 'community' | 'user' | 'token' | 'nft';
@@ -534,9 +534,9 @@ class CommunityAdminQuestApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to chat with AI",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to chat with AI",
       };
     }
   }
