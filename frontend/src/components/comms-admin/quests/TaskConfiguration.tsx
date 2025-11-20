@@ -20,6 +20,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -183,40 +184,43 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                       onValueChange={setCommunitySearch}
                       className="text-white"
                     />
-                    <CommandEmpty className="text-gray-400">
-                      {searchingCommunities ? "Searching..." : "No communities found."}
-                    </CommandEmpty>
-                    <CommandGroup className="max-h-64 overflow-y-auto">
-                      {communities.map((community) => (
-                        <CommandItem
-                          key={community._id}
-                          value={community.communityName}
-                          onSelect={() => {
-                            updateConfig({
-                              communityId: community._id,
-                              communityName: community.communityName,
-                              communityUsername: community.username,
-                            });
-                            setCommunityOpen(false);
-                          }}
-                          className="text-white hover:bg-gray-700"
-                        >
-                          <div className="flex items-center gap-2">
-                            {community.logo && (
-                              <img src={community.logo} alt="" className="w-6 h-6 rounded-full" />
-                            )}
-                            <div>
-                              <p className="font-medium">{community.communityName}</p>
-                              <p className="text-xs text-gray-400">@{community.username}</p>
+                    <CommandList>
+                      <CommandEmpty className="text-gray-400">
+                        {searchingCommunities ? "Searching..." : "No communities found."}
+                      </CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-y-auto">
+                        {communities.map((community) => (
+                          <CommandItem
+                            key={community._id}
+                            value={community.communityName}
+                            onSelect={() => {
+                              updateConfig({
+                                communityId: community._id,
+                                communityName: community.communityName,
+                                communityUsername: community.username,
+                              });
+                              setCommunityOpen(false);
+                              setCommunitySearch('');
+                            }}
+                            className="text-white hover:bg-gray-700 cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2">
+                              {community.logo && (
+                                <img src={community.logo} alt="" className="w-6 h-6 rounded-full" />
+                              )}
+                              <div>
+                                <p className="font-medium">{community.communityName}</p>
+                                <p className="text-xs text-gray-400">@{community.username}</p>
+                              </div>
                             </div>
-                          </div>
-                          <Check
-                            className={`ml-auto h-4 w-4 ${config.communityId === community._id ? "opacity-100" : "opacity-0"
-                              }`}
-                          />
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
+                            <Check
+                              className={`ml-auto h-4 w-4 ${config.communityId === community._id ? "opacity-100" : "opacity-0"
+                                }`}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>
@@ -249,39 +253,42 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                       onValueChange={setUserSearch}
                       className="text-white"
                     />
-                    <CommandEmpty className="text-gray-400">
-                      {searchingUsers ? "Searching..." : "No users found."}
-                    </CommandEmpty>
-                    <CommandGroup className="max-h-64 overflow-y-auto">
-                      {users.map((user) => (
-                        <CommandItem
-                          key={user._id}
-                          value={user.username}
-                          onSelect={() => {
-                            updateConfig({
-                              targetUserId: user._id,
-                              targetUsername: user.username,
-                            });
-                            setUserOpen(false);
-                          }}
-                          className="text-white hover:bg-gray-700"
-                        >
-                          <div className="flex items-center gap-2">
-                            {user.profilePic && (
-                              <img src={user.profilePic} alt="" className="w-6 h-6 rounded-full" />
-                            )}
-                            <div>
-                              <p className="font-medium">{user.name || user.username}</p>
-                              <p className="text-xs text-gray-400">@{user.username}</p>
+                    <CommandList>
+                      <CommandEmpty className="text-gray-400">
+                        {searchingUsers ? "Searching..." : "No users found."}
+                      </CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-y-auto">
+                        {users.map((user) => (
+                          <CommandItem
+                            key={user._id}
+                            value={user.username}
+                            onSelect={() => {
+                              updateConfig({
+                                targetUserId: user._id,
+                                targetUsername: user.username,
+                              });
+                              setUserOpen(false);
+                              setUserSearch('');
+                            }}
+                            className="text-white hover:bg-gray-700 cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2">
+                              {user.profilePic && (
+                                <img src={user.profilePic} alt="" className="w-6 h-6 rounded-full" />
+                              )}
+                              <div>
+                                <p className="font-medium">{user.name || user.username}</p>
+                                <p className="text-xs text-gray-400">@{user.username}</p>
+                              </div>
                             </div>
-                          </div>
-                          <Check
-                            className={`ml-auto h-4 w-4 ${config.targetUserId === user._id ? "opacity-100" : "opacity-0"
-                              }`}
-                          />
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
+                            <Check
+                              className={`ml-auto h-4 w-4 ${config.targetUserId === user._id ? "opacity-100" : "opacity-0"
+                                }`}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>
