@@ -10,12 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { 
-  ArrowLeft, 
-  Users, 
-  Trophy, 
-  Calendar, 
-  Target, 
+import {
+  ArrowLeft,
+  Users,
+  Trophy,
+  Calendar,
+  Target,
   Clock,
   Coins,
   Award,
@@ -152,13 +152,13 @@ export default function QuestDetailPage() {
 
       if (questResponse.success && questResponse.data) {
         setQuest(questResponse.data);
-        
+
         if (user) {
           // Check participation status
           const statusResponse = await userQuestApiService.checkParticipationStatus(questId);
           if (statusResponse.success && statusResponse.data) {
             setParticipationStatus(statusResponse.data);
-            
+
             // If participating, get tasks
             if (statusResponse.data.isParticipating) {
               const tasksResponse = await userQuestApiService.getQuestTasks(questId);
@@ -237,7 +237,7 @@ export default function QuestDetailPage() {
 
       // Prepare submission data based on task type
       const submissionData: any = {};
-      
+
       switch (selectedTask.taskType) {
         case 'upload_screenshot':
           submissionData.imageUrl = imageUrl;
@@ -385,14 +385,14 @@ export default function QuestDetailPage() {
     );
   }
 
-  const progress = participationStatus?.totalTasksCompleted && tasks.length > 0 
-    ? (participationStatus.totalTasksCompleted / tasks.length) * 100 
+  const progress = participationStatus?.totalTasksCompleted && tasks.length > 0
+    ? (participationStatus.totalTasksCompleted / tasks.length) * 100
     : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         <div className="flex items-center gap-4">
@@ -416,7 +416,7 @@ export default function QuestDetailPage() {
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-              
+
               {/* Quest Info Overlay */}
               <div className="absolute bottom-0 left-0 right-0 p-8">
                 <div className="flex items-end justify-between">
@@ -436,10 +436,10 @@ export default function QuestDetailPage() {
                         </Badge>
                       )}
                     </div>
-                    
+
                     <h1 className="text-4xl font-bold text-white">{quest.title}</h1>
                     <p className="text-gray-200 text-lg">{quest.description}</p>
-                    
+
                     {quest.community && (
                       <div className="flex items-center gap-3">
                         <img
@@ -461,7 +461,7 @@ export default function QuestDetailPage() {
                       <div className="text-right">
                         <p className="text-white font-medium">Progress: {progress.toFixed(0)}%</p>
                         <div className="w-48 bg-gray-700 rounded-full h-3 mt-2">
-                          <div 
+                          <div
                             className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-300"
                             style={{ width: `${progress}%` }}
                           />
@@ -578,8 +578,8 @@ export default function QuestDetailPage() {
                         {quest.rewardPool.amount} {quest.rewardPool.currency}
                       </p>
                       <p className="text-sm text-gray-400">
-                        {quest.rewardPool.rewardType === 'custom' 
-                          ? quest.rewardPool.customReward 
+                        {quest.rewardPool.rewardType === 'custom'
+                          ? quest.rewardPool.customReward
                           : `${quest.rewardPool.rewardType.charAt(0).toUpperCase() + quest.rewardPool.rewardType.slice(1)} Reward`
                         }
                       </p>
@@ -604,15 +604,14 @@ export default function QuestDetailPage() {
                         </span>
                       </div>
                       <Progress value={progress} className="h-3" />
-                      
+
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${
-                            participationStatus.status === 'completed' ? 'bg-green-500' :
-                            participationStatus.status === 'in_progress' ? 'bg-blue-500' :
-                            participationStatus.status === 'winner' ? 'bg-purple-500' :
-                            'bg-gray-500'
-                          }`} />
+                          <div className={`w-3 h-3 rounded-full ${participationStatus.status === 'completed' ? 'bg-green-500' :
+                              participationStatus.status === 'in_progress' ? 'bg-blue-500' :
+                                participationStatus.status === 'winner' ? 'bg-purple-500' :
+                                  'bg-gray-500'
+                            }`} />
                           <span className="text-gray-400">Status: </span>
                           <span className="text-white font-medium capitalize">{participationStatus.status?.replace('_', ' ')}</span>
                         </div>
@@ -649,9 +648,8 @@ export default function QuestDetailPage() {
                   </Card>
                 ) : (
                   tasks.map((task, index) => (
-                    <Card key={task._id} className={`bg-black/40 backdrop-blur-xl border-purple-800/30 ${
-                      task.isCompleted ? 'border-green-600/50' : ''
-                    }`}>
+                    <Card key={task._id} className={`bg-black/40 backdrop-blur-xl border-purple-800/30 ${task.isCompleted ? 'border-green-600/50' : ''
+                      }`}>
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                           <div className="flex-1 space-y-3">
@@ -672,10 +670,10 @@ export default function QuestDetailPage() {
                                 )}
                               </div>
                             </div>
-                            
+
                             <h3 className="text-lg font-semibold text-white">{task.title}</h3>
                             <p className="text-gray-300">{task.description}</p>
-                            
+
                             <div className="text-sm text-gray-400">
                               Completed by {task.completedBy} participants
                             </div>
@@ -722,12 +720,11 @@ export default function QuestDetailPage() {
                       {[1, 2, 3, 4, 5].map((rank) => (
                         <div key={rank} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
                           <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                              rank === 1 ? 'bg-yellow-600 text-white' :
-                              rank === 2 ? 'bg-gray-400 text-black' :
-                              rank === 3 ? 'bg-amber-600 text-white' :
-                              'bg-gray-600 text-white'
-                            }`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${rank === 1 ? 'bg-yellow-600 text-white' :
+                                rank === 2 ? 'bg-gray-400 text-black' :
+                                  rank === 3 ? 'bg-amber-600 text-white' :
+                                    'bg-gray-600 text-white'
+                              }`}>
                               {rank}
                             </div>
                             <div className="w-10 h-10 bg-gray-600 rounded-full"></div>
@@ -778,7 +775,7 @@ export default function QuestDetailPage() {
                       <span className="text-purple-400 font-medium">{stats.winnerCount.toLocaleString()}</span>
                     </div>
                   </div>
-                  
+
                   <div className="pt-3 border-t border-gray-700">
                     <div className="flex justify-between mb-2">
                       <span className="text-gray-400">Completion Rate</span>
@@ -863,7 +860,7 @@ export default function QuestDetailPage() {
                 {selectedTask?.title}
               </DialogDescription>
             </DialogHeader>
-            
+
             {selectedTask && (
               <div className="space-y-4">
                 <Alert className="bg-blue-950/30 border-blue-600/50">
