@@ -16,6 +16,7 @@ import PillNavigation from '@/components/dex/PillNavigation';
 import LiquidityInterface from '@/components/dex/LiquidityInterface';
 import BuyCryptoInterface from '@/components/dex/BuyCryptoInterface';
 import AnalyticsInterface from '@/components/dex/AnalyticsInterface';
+import ChatBubble from '@/components/dex/ChatBubble';
 
 // API service for DEX swap
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
@@ -694,6 +695,9 @@ export default function SwapPage() {
           onClose={() => setShowSettings(false)}
         />
       )}
+
+      {/* Chat Bubble */}
+      <ChatBubble />
     </div>
   );
 }
