@@ -150,6 +150,10 @@ const TYPES = {
   IUserQuestService: Symbol.for("IUserQuestService"),
   IUserQuestController: Symbol.for("IUserQuestController"),
   IUserQuestRepository: Symbol.for("IUserQuestRepository"),
+
+  IDexSwapRepository: Symbol.for("IDexSwapRepository"),
+  IDexSwapService: Symbol.for("IDexSwapService"),
+  IDexSwapController: Symbol.for("IDexSwapController"),
 };
 
 export { TYPES };

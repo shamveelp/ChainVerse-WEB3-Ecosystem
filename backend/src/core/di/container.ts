@@ -227,6 +227,12 @@ import { UserQuestRepository } from "../../repositories/quest/userQuest.reposito
 import { UserQuestService } from "../../services/quest/userQuest.service"
 import { IUserQuestService } from "../interfaces/services/quest/IUserQuestService"
 import { IUserQuestRepository } from "../interfaces/repositories/quest/IUserQuest.repository"
+import { DexSwapController } from "../../controllers/dex/dexSwap.controller"
+import { DexSwapService } from "../../services/dex/dexSwap.service"
+import { DexSwapRepository } from "../../repositories/dex/dexSwap.repository"
+import { IDexSwapRepository } from "../interfaces/repositories/dex/IDexSwapRepository"
+import { IDexSwapService } from "../interfaces/services/dex/IDexSwapService"
+import { IDexSwapController } from "../interfaces/controllers/dex/IDexSwap.controller"
 
 // Create Container
 const container = new Container()
@@ -403,5 +409,9 @@ container.bind<ICommunityAdminQuestController>(TYPES.ICommunityAdminQuestControl
 container.bind<IUserQuestController>(TYPES.IUserQuestController).to(UserQuestController)
 container.bind<IUserQuestService>(TYPES.IUserQuestService).to(UserQuestService)
 container.bind<IUserQuestRepository>(TYPES.IUserQuestRepository).to(UserQuestRepository)
+
+container.bind<IDexSwapController>(TYPES.IDexSwapController).to(DexSwapController);
+container.bind<IDexSwapService>(TYPES.IDexSwapService).to(DexSwapService);
+container.bind<IDexSwapRepository>(TYPES.IDexSwapRepository).to(DexSwapRepository);
 
 export default container

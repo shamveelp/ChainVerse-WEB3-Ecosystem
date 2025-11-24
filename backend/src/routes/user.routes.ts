@@ -79,6 +79,8 @@ import {
   SubmitTaskDto,
   GetMyQuestsDto
 } from "../dtos/quest/UserQuest.dto";
+import { DexSwapController } from "../controllers/dex/dexSwap.controller";
+import { GetChartDataDto, GetSwapHistoryDto, RecordSwapDto, UpdatePriceDto } from "../dtos/dex/DexSwap.dto";
 
 // Get controller instance
 
@@ -148,6 +150,11 @@ const userMarketController = container.get<UserMarketController>(
 const userQuestController = container.get<UserQuestController>(
   TYPES.IUserQuestController
 );
+const dexSwapController = container.get<DexSwapController>(
+  TYPES.IDexSwapController
+);
+
+
 
 // Auth Routes with DTO validation
 router.post(
@@ -980,6 +987,96 @@ router.post(
   roleMiddleware(["user"]),
   upload.single("media"),
   userQuestController.uploadTaskMedia.bind(userQuestController)
+);
+
+
+// === DEX SWAP ROUTES ===
+// Record swap transaction
+router.post(
+  "/dex/swap/record",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateBody(RecordSwapDto),
+  dexSwapController.recordSwap.bind(dexSwapController)
+);
+
+// Update swap status (for blockchain confirmations)
+router.put(
+  "/dex/swap/:txHash/status",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  dexSwapController.updateSwapStatus.bind(dexSwapController)
+);
+
+// Get user swap history
+router.get(
+  "/dex/swap/history",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateQuery(GetSwapHistoryDto),
+  dexSwapController.getSwapHistory.bind(dexSwapController)
+);
+
+// Get specific swap transaction
+router.get(
+  "/dex/swap/:txHash",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  dexSwapController.getSwapTransaction.bind(dexSwapController)
+);
+
+// Get chart data for trading pairs
+router.get(
+  "/dex/chart",
+  validateQuery(GetChartDataDto),
+  dexSwapController.getChartData.bind(dexSwapController)
+);
+
+// Get token price
+router.get(
+  "/dex/price/:token",
+  dexSwapController.getTokenPrice.bind(dexSwapController)
+);
+
+// Get trading pair statistics
+router.get(
+  "/dex/stats/pair/:baseToken/:quoteToken",
+  dexSwapController.getTradingPairStats.bind(dexSwapController)
+);
+
+// Get overall DEX statistics
+router.get(
+  "/dex/stats/overall",
+  dexSwapController.getDEXStats.bind(dexSwapController)
+);
+
+// Get user trading statistics
+router.get(
+  "/dex/stats/user",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  dexSwapController.getUserTradingStats.bind(dexSwapController)
+);
+
+// Get top trading pairs
+router.get(
+  "/dex/pairs/top",
+  dexSwapController.getTopTradingPairs.bind(dexSwapController)
+);
+
+// Get recent swaps
+router.get(
+  "/dex/swaps/recent",
+  dexSwapController.getRecentSwaps.bind(dexSwapController)
+);
+
+// Admin route for updating token prices (if needed)
+router.post(
+  "/dex/price/update",
+  authMiddleware,
+  roleMiddleware(["admin"]), // Only admins can update prices manually
+  validateBody(UpdatePriceDto),
+  dexSwapController.updateTokenPrice.bind(dexSwapController)
 );
 
 export default router;

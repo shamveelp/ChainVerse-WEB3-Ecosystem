@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { useActiveAccount } from 'thirdweb/react';
-import { ArrowUpDown, AlertCircle as AlertCircle, Settings, TrendingUp, Wallet, RefreshCw, Info, Zap } from 'lucide-react';
+import { ArrowUpDown, AlertCircle, Settings, TrendingUp, Wallet, RefreshCw, Info, Zap } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { CONTRACTS, ERC20_ABI, DEX_ABI } from '@/lib/dex/contracts';
-import { loadBalances, calculateSwapOutput, getExplorerUrl } from '@/lib/dex/utils';
+import { loadBalances, getExplorerUrl } from '@/lib/dex/utils';
 import { TokenBalance, SwapForm } from '@/types/types-dex';
 import TradeNavbar from '@/components/shared/TradeNavbar';
 import Navbar from '@/components/home/navbar';
@@ -16,6 +16,52 @@ import PillNavigation from '@/components/dex/PillNavigation';
 import LiquidityInterface from '@/components/dex/LiquidityInterface';
 import BuyCryptoInterface from '@/components/dex/BuyCryptoInterface';
 import AnalyticsInterface from '@/components/dex/AnalyticsInterface';
+
+// API service for DEX swap
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+
+class DexSwapAPI {
+  static async recordSwap(swapData: any) {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(`${API_BASE_URL}/user/dex/swap/record`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(swapData)
+    });
+    return response.json();
+  }
+
+  static async updateSwapStatus(txHash: string, status: string) {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(`${API_BASE_URL}/user/dex/swap/${txHash}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ status })
+    });
+    return response.json();
+  }
+
+  static async getChartData(baseToken: string, quoteToken: string, timeframe: string) {
+    const response = await fetch(`${API_BASE_URL}/user/dex/chart?baseToken=${baseToken}&quoteToken=${quoteToken}&timeframe=${timeframe}&limit=100`);
+    return response.json();
+  }
+
+  static async getTokenPrice(token: string) {
+    const response = await fetch(`${API_BASE_URL}/user/dex/price/${token}`);
+    return response.json();
+  }
+
+  static async getTradingPairStats(baseToken: string, quoteToken: string) {
+    const response = await fetch(`${API_BASE_URL}/user/dex/stats/pair/${baseToken}/${quoteToken}`);
+    return response.json();
+  }
+}
 
 export default function SwapPage() {
   const account = useActiveAccount();
@@ -42,6 +88,15 @@ export default function SwapPage() {
     expertMode: false,
     gasPrice: 'standard'
   });
+  const [tokenPrices, setTokenPrices] = useState<{
+    ethCoinA: string;
+    ethCoinB: string;
+    coinACoinB: string;
+  }>({
+    ethCoinA: '0',
+    ethCoinB: '0',
+    coinACoinB: '0'
+  });
 
   const loadUserBalances = async () => {
     if (!account?.address || !window.ethereum) return;
@@ -59,17 +114,104 @@ export default function SwapPage() {
     }
   };
 
-  const calculateOutput = async () => {
-    if (!account?.address || !window.ethereum) return;
+  const fetchTokenPrices = async () => {
+    if (!window.ethereum) return;
 
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
-      const output = await calculateSwapOutput(
-        provider,
-        swapForm.fromToken,
-        swapForm.toToken,
-        swapForm.fromAmount
-      );
+      const dexContract = new ethers.Contract(CONTRACTS.dex, DEX_ABI, provider);
+
+      // Fetch ETH/CoinA pool
+      const poolA = await dexContract.pools(CONTRACTS.coinA);
+      const ethReserveA = poolA.ethReserve;
+      const tokenReserveA = poolA.tokenReserve;
+
+      // Fetch ETH/CoinB pool
+      const poolB = await dexContract.pools(CONTRACTS.coinB);
+      const ethReserveB = poolB.ethReserve;
+      const tokenReserveB = poolB.tokenReserve;
+
+      // Fetch CoinA/CoinB pool
+      const tokenPool = await dexContract.tokenPool();
+      const coinAReserve = tokenPool.coinAReserve;
+      const coinBReserve = tokenPool.coinBReserve;
+
+      // Calculate prices (1 ETH = X tokens)
+      let ethCoinAPrice = '0';
+      let ethCoinBPrice = '0';
+      let coinACoinBPrice = '0';
+
+      if (ethReserveA > BigInt(0) && tokenReserveA > BigInt(0)) {
+        ethCoinAPrice = ethers.formatUnits(tokenReserveA * BigInt(1e18) / ethReserveA, 18);
+      }
+
+      if (ethReserveB > BigInt(0) && tokenReserveB > BigInt(0)) {
+        ethCoinBPrice = ethers.formatUnits(tokenReserveB * BigInt(1e18) / ethReserveB, 18);
+      }
+
+      if (coinAReserve > BigInt(0) && coinBReserve > BigInt(0)) {
+        coinACoinBPrice = ethers.formatUnits(coinBReserve * BigInt(1e18) / coinAReserve, 18);
+      }
+
+      setTokenPrices({
+        ethCoinA: ethCoinAPrice,
+        ethCoinB: ethCoinBPrice,
+        coinACoinB: coinACoinBPrice
+      });
+    } catch (error) {
+      console.error('Failed to fetch token prices:', error);
+    }
+  };
+
+  const calculateOutput = async () => {
+    if (!account?.address || !window.ethereum || !swapForm.fromAmount) return;
+
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const dexContract = new ethers.Contract(CONTRACTS.dex, DEX_ABI, provider);
+
+      const amountIn = ethers.parseUnits(swapForm.fromAmount, 18);
+      let reserveIn: bigint, reserveOut: bigint;
+
+      if (swapForm.fromToken === 'ETH' && swapForm.toToken === 'CoinA') {
+        const pool = await dexContract.pools(CONTRACTS.coinA);
+        reserveIn = pool.ethReserve;
+        reserveOut = pool.tokenReserve;
+      } else if (swapForm.fromToken === 'ETH' && swapForm.toToken === 'CoinB') {
+        const pool = await dexContract.pools(CONTRACTS.coinB);
+        reserveIn = pool.ethReserve;
+        reserveOut = pool.tokenReserve;
+      } else if (swapForm.fromToken === 'CoinA' && swapForm.toToken === 'ETH') {
+        const pool = await dexContract.pools(CONTRACTS.coinA);
+        reserveIn = pool.tokenReserve;
+        reserveOut = pool.ethReserve;
+      } else if (swapForm.fromToken === 'CoinB' && swapForm.toToken === 'ETH') {
+        const pool = await dexContract.pools(CONTRACTS.coinB);
+        reserveIn = pool.tokenReserve;
+        reserveOut = pool.ethReserve;
+      } else if (swapForm.fromToken === 'CoinA' && swapForm.toToken === 'CoinB') {
+        const pool = await dexContract.tokenPool();
+        reserveIn = pool.coinAReserve;
+        reserveOut = pool.coinBReserve;
+      } else if (swapForm.fromToken === 'CoinB' && swapForm.toToken === 'CoinA') {
+        const pool = await dexContract.tokenPool();
+        reserveIn = pool.coinBReserve;
+        reserveOut = pool.coinAReserve;
+      } else {
+        return;
+      }
+
+      if (reserveIn === BigInt(0) || reserveOut === BigInt(0)) {
+        setSwapForm(prev => ({ ...prev, toAmount: '0' }));
+        return;
+      }
+
+      const amountOut = await dexContract.getAmountOut(amountIn, reserveIn, reserveOut);
+      const feePercent = BigInt(50);
+      const percentBase = BigInt(10000);
+      const afterFee = amountOut - (amountOut * feePercent / percentBase);
+
+      const output = parseFloat(ethers.formatUnits(afterFee, 18)).toFixed(6);
       setSwapForm(prev => ({ ...prev, toAmount: output }));
       setError('');
     } catch (error) {
@@ -129,7 +271,40 @@ export default function SwapPage() {
         });
       }
 
+      // Record swap in database
+      const exchangeRate = parseFloat(swapForm.toAmount) / parseFloat(swapForm.fromAmount);
+      const priceImpact = Math.abs(exchangeRate - 1) * 100;
+
+      const swapData = {
+        txHash: tx.hash,
+        walletAddress: account.address,
+        fromToken: swapForm.fromToken,
+        toToken: swapForm.toToken,
+        fromAmount: swapForm.fromAmount,
+        toAmount: swapForm.toAmount,
+        actualFromAmount: swapForm.fromAmount,
+        actualToAmount: swapForm.toAmount,
+        exchangeRate,
+        slippage: parseFloat(swapSettings.slippage),
+        gasUsed: '300000',
+        gasFee: '0.01',
+        blockNumber: await provider.getBlockNumber(),
+        priceImpact
+      };
+
+      try {
+        await DexSwapAPI.recordSwap(swapData);
+      } catch (dbError) {
+        console.error('Failed to record swap in database:', dbError);
+      }
+
       await tx.wait();
+
+      try {
+        await DexSwapAPI.updateSwapStatus(tx.hash, 'completed');
+      } catch (dbError) {
+        console.error('Failed to update swap status:', dbError);
+      }
 
       toast({
         variant: "default",
@@ -150,11 +325,21 @@ export default function SwapPage() {
       });
 
       await loadUserBalances();
+      await fetchTokenPrices();
       setSwapForm(prev => ({ ...prev, fromAmount: '', toAmount: '' }));
     } catch (error: any) {
       console.error('Swap failed:', error);
       const errorMessage = error.reason || error.message || 'Unknown error';
       setError(`Swap failed: ${errorMessage}`);
+
+      if (error.transaction?.hash) {
+        try {
+          await DexSwapAPI.updateSwapStatus(error.transaction.hash, 'failed');
+        } catch (dbError) {
+          console.error('Failed to update swap status to failed:', dbError);
+        }
+      }
+
       toast({
         variant: "destructive",
         title: "Swap Failed",
@@ -166,7 +351,7 @@ export default function SwapPage() {
   };
 
   const getTokenBalance = (token: string) => {
-    switch(token) {
+    switch (token) {
       case 'ETH': return balances.eth;
       case 'CoinA': return balances.coinA;
       case 'CoinB': return balances.coinB;
@@ -189,6 +374,12 @@ export default function SwapPage() {
       loadUserBalances();
     }
   }, [account?.address]);
+
+  useEffect(() => {
+    fetchTokenPrices();
+    const interval = setInterval(fetchTokenPrices, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (swapForm.fromAmount && account?.address && activeTab === 'swap') {
@@ -339,9 +530,9 @@ export default function SwapPage() {
                   ) : (
                     <span>
                       {!account ? 'Connect Wallet' :
-                       swapForm.fromToken === swapForm.toToken ? 'Select Different Tokens' :
-                       !swapForm.fromAmount ? 'Enter Amount' :
-                       'Execute Swap'}
+                        swapForm.fromToken === swapForm.toToken ? 'Select Different Tokens' :
+                          !swapForm.fromAmount ? 'Enter Amount' :
+                            'Execute Swap'}
                     </span>
                   )}
                 </button>
@@ -424,10 +615,24 @@ export default function SwapPage() {
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-white">$2,847.92</p>
+                        <p className="text-2xl font-bold text-white">
+                          {swapForm.fromToken === 'ETH' && swapForm.toToken === 'CoinA' && tokenPrices.ethCoinA !== '0'
+                            ? `1 ETH = ${parseFloat(tokenPrices.ethCoinA).toFixed(4)} CoinA`
+                            : swapForm.fromToken === 'ETH' && swapForm.toToken === 'CoinB' && tokenPrices.ethCoinB !== '0'
+                              ? `1 ETH = ${parseFloat(tokenPrices.ethCoinB).toFixed(4)} CoinB`
+                              : swapForm.fromToken === 'CoinA' && swapForm.toToken === 'ETH' && tokenPrices.ethCoinA !== '0'
+                                ? `1 CoinA = ${(1 / parseFloat(tokenPrices.ethCoinA)).toFixed(6)} ETH`
+                                : swapForm.fromToken === 'CoinB' && swapForm.toToken === 'ETH' && tokenPrices.ethCoinB !== '0'
+                                  ? `1 CoinB = ${(1 / parseFloat(tokenPrices.ethCoinB)).toFixed(6)} ETH`
+                                  : swapForm.fromToken === 'CoinA' && swapForm.toToken === 'CoinB' && tokenPrices.coinACoinB !== '0'
+                                    ? `1 CoinA = ${parseFloat(tokenPrices.coinACoinB).toFixed(4)} CoinB`
+                                    : swapForm.fromToken === 'CoinB' && swapForm.toToken === 'CoinA' && tokenPrices.coinACoinB !== '0'
+                                      ? `1 CoinB = ${(1 / parseFloat(tokenPrices.coinACoinB)).toFixed(4)} CoinA`
+                                      : 'Loading...'}
+                        </p>
                         <p className="text-sm text-emerald-400 flex items-center justify-end">
                           <TrendingUp className="h-4 w-4 mr-1" />
-                          +5.67%
+                          Live Price
                         </p>
                       </div>
                     </div>
@@ -437,7 +642,10 @@ export default function SwapPage() {
                 {/* Trading Chart - Only show for swap and analytics */}
                 {(activeTab === 'swap' || activeTab === 'analytics') && (
                   <div className="bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-slate-700/50 p-6 h-96">
-                    <TradingChart />
+                    <TradingChart
+                      fromToken={swapForm.fromToken}
+                      toToken={swapForm.toToken}
+                    />
                   </div>
                 )}
 

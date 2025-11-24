@@ -105,7 +105,7 @@ export default function LiquidityInterface() {
       await tx.wait();
 
       const poolName = liquidityForm.poolType === 'eth-coinA' ? 'ETH/CoinA' :
-                       liquidityForm.poolType === 'eth-coinB' ? 'ETH/CoinB' : 'CoinA/CoinB';
+        liquidityForm.poolType === 'eth-coinB' ? 'ETH/CoinB' : 'CoinA/CoinB';
 
       toast({
         variant: "default",
@@ -339,7 +339,7 @@ export default function LiquidityInterface() {
             disabled={
               loading ||
               !account ||
-              (liquidityForm.poolType === 'token-token' 
+              (liquidityForm.poolType === 'token-token'
                 ? (!liquidityForm.coinAAmount || !liquidityForm.coinBAmount)
                 : (!liquidityForm.ethAmount || !liquidityForm.tokenAmount)
               )
