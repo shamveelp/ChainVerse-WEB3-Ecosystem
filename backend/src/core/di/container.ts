@@ -233,6 +233,12 @@ import { DexSwapRepository } from "../../repositories/dex/dexSwap.repository"
 import { IDexSwapRepository } from "../interfaces/repositories/dex/IDexSwapRepository"
 import { IDexSwapService } from "../interfaces/services/dex/IDexSwapService"
 import { IDexSwapController } from "../interfaces/controllers/dex/IDexSwap.controller"
+import { IAITradingController } from "../interfaces/controllers/aiChat/IAITrading.controller"
+import { AITradingController } from "../../controllers/aiChat/aiTrading.controller"
+import { IAITradingService } from "../interfaces/services/aiChat/IAITradingService"
+import { AITradingService } from "../../services/aiChat/aiTrading.service"
+import { IAIChatHistoryRepository } from "../interfaces/repositories/aiChat/IAIChatHistory.repository"
+import { AIChatHistoryRepository } from "../../repositories/aiChat/aiChatHistory.repository"
 
 // Create Container
 const container = new Container()
@@ -413,5 +419,9 @@ container.bind<IUserQuestRepository>(TYPES.IUserQuestRepository).to(UserQuestRep
 container.bind<IDexSwapController>(TYPES.IDexSwapController).to(DexSwapController);
 container.bind<IDexSwapService>(TYPES.IDexSwapService).to(DexSwapService);
 container.bind<IDexSwapRepository>(TYPES.IDexSwapRepository).to(DexSwapRepository);
+
+container.bind<IAITradingController>(TYPES.IAITradingController).to(AITradingController);
+container.bind<IAITradingService>(TYPES.IAITradingService).to(AITradingService);
+container.bind<IAIChatHistoryRepository>(TYPES.IAIChatHistoryRepository).to(AIChatHistoryRepository);
 
 export default container

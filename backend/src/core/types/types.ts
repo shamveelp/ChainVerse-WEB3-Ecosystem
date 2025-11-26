@@ -154,6 +154,11 @@ const TYPES = {
   IDexSwapRepository: Symbol.for("IDexSwapRepository"),
   IDexSwapService: Symbol.for("IDexSwapService"),
   IDexSwapController: Symbol.for("IDexSwapController"),
+
+  IAIChatHistoryRepository: Symbol.for("IAIChatHistoryRepository"),
+  IAITradingService: Symbol.for("IAITradingService"),
+  IAITradingController: Symbol.for("IAITradingController"),
+
 };
 
 export { TYPES };
