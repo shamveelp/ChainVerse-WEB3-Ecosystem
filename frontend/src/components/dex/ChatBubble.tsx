@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Sparkles, Send, Bot, User, ArrowUpDown, Wallet, ExternalLink } from 'lucide-react';
+import { MessageCircle, X, Sparkles, Send, Bot, User, ArrowUpDown, Wallet, ExternalLink, Zap } from 'lucide-react';
 import { useActiveAccount } from 'thirdweb/react';
 import { toast } from '@/hooks/use-toast';
 import AiTradeApiService from '@/services/ai/AiTradeApiService';
@@ -37,24 +37,43 @@ export default function AiChatBubble() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Initial welcome message
+  // Initial welcome message with real data
   useEffect(() => {
     if (messages.length === 0) {
       const welcomeMessage: Message = {
         id: 'welcome',
         role: 'assistant',
-        content: "Hey there! 👋 I'm ChainVerse AI, your personal trading assistant. I can help you swap tokens, check prices, and execute trades on our DEX. What would you like to do today?",
+        content: `👋 **Welcome to ChainVerse AI!**
+
+I'm your personal DEX trading assistant. I can help you with:
+
+✅ **Real-time token prices** (fetched from live APIs)
+✅ **Smart swap calculations** with accurate estimates  
+✅ **Trade execution** when your wallet is connected
+✅ **Market analysis** and trading recommendations
+
+**Available Tokens:**
+• ETH (Ethereum Sepolia)
+• CoinA (Test Token) 
+• CoinB (Test Token)
+
+${account?.address 
+  ? `🟢 **Wallet Connected:** ${account.address.slice(0, 6)}...${account.address.slice(-4)}\nI can execute trades for you!`
+  : `🔴 **Wallet Not Connected**\nConnect your wallet to enable trade execution!`
+}
+
+What would you like to do today? 🚀`,
         timestamp: new Date(),
         suggestions: [
-          "What tokens are available? 📊",
-          "Show current prices 💰", 
+          "Show current prices 💰",
+          "What tokens are available? 📊", 
           "How to swap 0.01 ETH for CoinA? 🔄",
           "Calculate swap for 0.001 ETH ⚡"
         ]
       };
       setMessages([welcomeMessage]);
     }
-  }, []);
+  }, [account?.address]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -77,10 +96,14 @@ export default function AiChatBubble() {
     setIsLoading(true);
 
     try {
+      // Enhanced context with wallet info
       const context = {
         walletConnected: !!account?.address,
         walletAddress: account?.address,
-        // Add more context like balances if needed
+        messageCount: messages.length + 1,
+        timestamp: new Date().toISOString(),
+        // Add token balances if available
+        userAgent: navigator.userAgent,
       };
 
       const response = await AiTradeApiService.sendMessage({
@@ -107,12 +130,42 @@ export default function AiChatBubble() {
         handleActionRequired(response.data.actionRequired);
       }
 
+      // Check if the response contains executable trade details
+      const tradeDetails = AiTradeApiService.extractTradeDetailsFromResponse(response.data.response);
+      if (tradeDetails.hasTradeDetails && account?.address) {
+        // Auto-suggest trade execution
+        setTimeout(() => {
+          setMessages(prev => [...prev, {
+            id: (Date.now() + 2).toString(),
+            role: 'assistant',
+            content: `🚀 **Ready to Execute Trade?**
+
+I can execute this trade for you right now:
+• ${tradeDetails.amount} ${tradeDetails.fromToken} → ~${tradeDetails.estimatedOutput} ${tradeDetails.toToken}
+
+Click "Execute Trade" or type "**execute trade**" to proceed! ⚡`,
+            timestamp: new Date(),
+            suggestions: ["Execute Trade 🚀", "Show price impact ⚠️", "Cancel trade ❌"]
+          }]);
+        }, 1000);
+      }
+
     } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        role: 'assistant', 
-        content: `Sorry, I encountered an error: ${AiTradeApiService.getErrorMessage(error)} Please try again! 🤖`,
-        timestamp: new Date()
+        role: 'assistant',
+        content: `❌ **Connection Error**
+
+${AiTradeApiService.getErrorMessage(error)}
+
+**Troubleshooting:**
+• Check your internet connection
+• Refresh the page and try again  
+• Make sure the server is running
+
+I'll be here when you're ready! 🤖`,
+        timestamp: new Date(),
+        suggestions: ["Try again 🔄", "Check connection 🌐", "Get help 💬"]
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -124,22 +177,72 @@ export default function AiChatBubble() {
     if (action.type === 'connect_wallet') {
       toast({
         variant: "default",
-        title: "Wallet Connection Required",
+        title: "🔌 Wallet Connection Required",
+        description: action.message + " Click the wallet button in the top right!",
+      });
+    } else if (action.type === 'execute_trade') {
+      toast({
+        variant: "default", 
+        title: "🚀 Trade Ready for Execution",
         description: action.message,
       });
     }
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    // Remove emoji and send as message
-    const cleanSuggestion = suggestion.replace(/[📊💰🔄⚡👛🚀📈]/g, '').trim();
+    // Remove emojis and clean up suggestion
+    const cleanSuggestion = suggestion.replace(/[📊💰🔄⚡💛🚀📈🔌🌐💬❌⚠️🔄]/g, '').trim();
+    
+    // Handle special suggestions
+    if (cleanSuggestion.toLowerCase().includes('execute trade')) {
+      handleExecuteTrade();
+      return;
+    }
+    
     handleSendMessage(cleanSuggestion);
   };
 
+  const handleExecuteTrade = async () => {
+    if (!account?.address) {
+      toast({
+        variant: "destructive",
+        title: "Wallet Required",
+        description: "Please connect your wallet to execute trades",
+      });
+      return;
+    }
+
+    // This would integrate with your DEX trading system
+    // For now, show a demo message
+    const executeMessage: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',  
+      content: `🔄 **Executing Trade...**
+
+I'm integrating with the ChainVerse DEX to execute your trade. 
+
+**Status:** Connecting to blockchain...
+**Wallet:** ${account.address.slice(0, 6)}...${account.address.slice(-4)}
+
+Please check your wallet for transaction approval! 💫`,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, executeMessage]);
+  };
+
   const formatMessageContent = (content: string) => {
-    // Convert URLs to links
+    // Convert URLs to clickable links
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline">$1</a>');
+    let formattedContent = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline inline-flex items-center gap-1">$1 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>');
+    
+    // Format code blocks
+    formattedContent = formattedContent.replace(/`([^`]+)`/g, '<code class="bg-slate-700 px-1 py-0.5 rounded text-cyan-300 font-mono text-sm">$1</code>');
+    
+    // Format bold text
+    formattedContent = formattedContent.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+    
+    return formattedContent;
   };
 
   return (
@@ -153,11 +256,11 @@ export default function AiChatBubble() {
       >
         {/* Floating Chat Window */}
         {isOpen && (
-          <div className="absolute bottom-20 right-0 w-96 max-h-[600px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden backdrop-blur-xl animate-in slide-in-from-bottom-5 duration-300">
+          <div className="absolute bottom-20 right-0 w-[420px] max-h-[700px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden backdrop-blur-xl animate-in slide-in-from-bottom-5 duration-300">
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 p-4 flex items-center justify-between relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-              
+
               <div className="flex items-center space-x-3 relative z-10">
                 <div className="relative">
                   <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
@@ -169,7 +272,7 @@ export default function AiChatBubble() {
                   <h3 className="font-bold text-white text-lg">ChainVerse AI</h3>
                   <p className="text-blue-100 text-xs flex items-center">
                     <span className="w-2 h-2 bg-emerald-400 rounded-full mr-1 animate-pulse"></span>
-                    Trading Assistant Active
+                    {account?.address ? 'Trading Ready' : 'Connect Wallet to Trade'}
                   </p>
                 </div>
               </div>
@@ -182,11 +285,11 @@ export default function AiChatBubble() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex flex-col h-[400px]">
+            <div className="flex flex-col h-[500px]">
               <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
                 {messages.map((message) => (
                   <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
+                    <div className={`max-w-[90%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
                       <div className="flex items-start space-x-2">
                         {message.role === 'assistant' && (
                           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
@@ -202,7 +305,7 @@ export default function AiChatBubble() {
                             }`}
                           >
                             <div
-                              className="text-sm leading-relaxed"
+                              className="text-sm leading-relaxed whitespace-pre-wrap"
                               dangerouslySetInnerHTML={{
                                 __html: formatMessageContent(message.content)
                               }}
@@ -218,7 +321,7 @@ export default function AiChatBubble() {
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Suggestions */}
                       {message.suggestions && message.suggestions.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-2">
@@ -226,7 +329,7 @@ export default function AiChatBubble() {
                             <button
                               key={index}
                               onClick={() => handleSuggestionClick(suggestion)}
-                              className="px-3 py-1 text-xs bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white rounded-full border border-slate-600/30 transition-all duration-200"
+                              className="px-3 py-1.5 text-xs bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white rounded-full border border-slate-600/30 transition-all duration-200 hover:scale-105"
                             >
                               {suggestion}
                             </button>
@@ -238,7 +341,11 @@ export default function AiChatBubble() {
                       {message.actionRequired && (
                         <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
                           <div className="flex items-center space-x-2">
-                            <Wallet className="h-4 w-4 text-yellow-400" />
+                            {message.actionRequired.type === 'connect_wallet' ? (
+                              <Wallet className="h-4 w-4 text-yellow-400" />
+                            ) : (
+                              <Zap className="h-4 w-4 text-yellow-400" />
+                            )}
                             <p className="text-yellow-300 text-sm">{message.actionRequired.message}</p>
                           </div>
                         </div>
@@ -272,7 +379,7 @@ export default function AiChatBubble() {
                 <div className="flex items-center space-x-2">
                   <input
                     type="text"
-                    placeholder="Ask about trading, prices, or swaps..."
+                    placeholder="Ask about prices, trades, or say 'swap 0.01 ETH for CoinA'..."
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
@@ -288,12 +395,14 @@ export default function AiChatBubble() {
                   </button>
                 </div>
 
-                {/* Wallet Status */}
+                {/* Status Info */}
                 <div className="mt-2 flex items-center justify-between text-xs">
                   <div className="flex items-center space-x-2">
                     <div className={`w-2 h-2 rounded-full ${account?.address ? 'bg-emerald-400' : 'bg-red-400'}`}></div>
                     <span className="text-slate-400">
-                      {account?.address ? `Wallet: ${account.address.slice(0, 6)}...${account.address.slice(-4)}` : 'Wallet not connected'}
+                      {account?.address 
+                        ? `Connected: ${account.address.slice(0, 6)}...${account.address.slice(-4)}`
+                        : 'Wallet not connected'}
                     </span>
                   </div>
                   <span className="text-slate-500">Session: {sessionId.slice(-6)}</span>
@@ -340,7 +449,10 @@ export default function AiChatBubble() {
           {!isOpen && (
             <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
               <div className="bg-slate-900 text-white text-sm px-3 py-2 rounded-lg shadow-xl border border-slate-700/50 whitespace-nowrap">
-                AI Trading Assistant - Chat with me! 🤖
+                {account?.address 
+                  ? 'AI Trading Assistant - Ready to trade! 🚀'
+                  : 'AI Trading Assistant - Connect wallet to trade! 🤖'
+                }
                 <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
               </div>
             </div>

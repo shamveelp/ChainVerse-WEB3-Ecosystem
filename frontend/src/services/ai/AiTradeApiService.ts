@@ -1,6 +1,6 @@
 class AiTradeApiService {
-  private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-  private static readonly AI_TRADING_ENDPOINT = `${this.BASE_URL}/ai-trading`;
+  private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  private static readonly AI_TRADING_ENDPOINT = `${this.BASE_URL}/api/ai-trading`;
 
   // Generate unique session ID for chat
   static generateSessionId(): string {
@@ -15,48 +15,69 @@ class AiTradeApiService {
     walletConnected?: boolean;
     context?: any;
   }) {
-    const response = await fetch(`${this.AI_TRADING_ENDPOINT}/chat/message`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
+    try {
+      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/chat/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
 
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.indexOf("application/json") !== -1) {
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to send message');
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to send message');
+        }
+        return result;
+      } else {
+        const text = await response.text();
+        console.error('Received non-JSON response:', text);
+        throw new Error(`Server returned unexpected response: ${response.status} ${response.statusText}`);
       }
-      return result;
-    } else {
-      const text = await response.text();
-      console.error('Received non-JSON response:', text);
-      throw new Error(`Server returned unexpected response: ${response.status} ${response.statusText}`);
+    } catch (error: any) {
+      console.error('API Error:', error);
+
+      // If it's a network error, provide user-friendly message
+      if (error.message.includes('Failed to fetch')) {
+        throw new Error('Unable to connect to server. Please check your connection and try again.');
+      }
+
+      throw error;
     }
   }
 
   // Get available tokens
   static async getAvailableTokens() {
-    const response = await fetch(`${this.AI_TRADING_ENDPOINT}/tokens`);
+    try {
+      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/tokens`);
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch available tokens');
+      if (!response.ok) {
+        throw new Error('Failed to fetch available tokens');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching tokens:', error);
+      throw error;
     }
-
-    return response.json();
   }
 
   // Get current token prices
   static async getTokenPrices() {
-    const response = await fetch(`${this.AI_TRADING_ENDPOINT}/prices`);
+    try {
+      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/prices`);
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch token prices');
+      if (!response.ok) {
+        throw new Error('Failed to fetch token prices');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching prices:', error);
+      throw error;
     }
-
-    return response.json();
   }
 
   // Calculate swap estimate
@@ -65,19 +86,24 @@ class AiTradeApiService {
     toToken: string,
     amount: string
   ) {
-    const params = new URLSearchParams({
-      fromToken,
-      toToken,
-      amount,
-    });
+    try {
+      const params = new URLSearchParams({
+        fromToken,
+        toToken,
+        amount,
+      });
 
-    const response = await fetch(`${this.AI_TRADING_ENDPOINT}/swap/estimate?${params}`);
+      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/swap/estimate?${params}`);
 
-    if (!response.ok) {
-      throw new Error('Failed to calculate swap estimate');
+      if (!response.ok) {
+        throw new Error('Failed to calculate swap estimate');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error calculating estimate:', error);
+      throw error;
     }
-
-    return response.json();
   }
 
   // Analyze trade opportunity
@@ -87,20 +113,25 @@ class AiTradeApiService {
     amount: string;
     walletAddress?: string;
   }) {
-    const response = await fetch(`${this.AI_TRADING_ENDPOINT}/trade/analyze`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
+    try {
+      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/trade/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to analyze trade');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to analyze trade');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error analyzing trade:', error);
+      throw error;
     }
-
-    return response.json();
   }
 
   // Execute trade with AI assistance
@@ -112,33 +143,43 @@ class AiTradeApiService {
     walletAddress: string;
     slippage?: string;
   }) {
-    const response = await fetch(`${this.AI_TRADING_ENDPOINT}/trade/execute`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
+    try {
+      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/trade/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to execute trade');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to execute trade');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error executing trade:', error);
+      throw error;
     }
-
-    return response.json();
   }
 
   // Get chat history
   static async getChatHistory(sessionId: string, limit: number = 20) {
-    const response = await fetch(
-      `${this.AI_TRADING_ENDPOINT}/chat/history/${sessionId}?limit=${limit}`
-    );
+    try {
+      const response = await fetch(
+        `${this.AI_TRADING_ENDPOINT}/chat/history/${sessionId}?limit=${limit}`
+      );
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch chat history');
+      if (!response.ok) {
+        throw new Error('Failed to fetch chat history');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching history:', error);
+      throw error;
     }
-
-    return response.json();
   }
 
   // Parse trading intent from user message
@@ -152,18 +193,18 @@ class AiTradeApiService {
     const lowerMessage = message.toLowerCase();
 
     // Detect tokens
-    const tokens = ['eth', 'coina', 'coinb'];
+    const tokens = ['eth', 'ethereum', 'coina', 'coinb', 'coin a', 'coin b'];
     const foundTokens = tokens.filter(token => lowerMessage.includes(token));
 
     // Detect amounts
-    const amountRegex = /\b\d+(?:\.\d+)?\b/g;
+    const amountRegex = /\b(\d+(?:\.\d+)?)\b/g;
     const amounts = lowerMessage.match(amountRegex);
 
     // Detect trading keywords
-    const buyKeywords = ['buy', 'purchase', 'get'];
-    const sellKeywords = ['sell', 'dispose'];
-    const swapKeywords = ['swap', 'exchange', 'trade', 'convert'];
-    const infoKeywords = ['price', 'cost', 'worth', 'value', 'how much'];
+    const buyKeywords = ['buy', 'purchase', 'get', 'acquire'];
+    const sellKeywords = ['sell', 'dispose', 'liquidate'];
+    const swapKeywords = ['swap', 'exchange', 'trade', 'convert', 'change'];
+    const infoKeywords = ['price', 'cost', 'worth', 'value', 'how much', 'current'];
 
     const isBuy = buyKeywords.some(keyword => lowerMessage.includes(keyword));
     const isSell = sellKeywords.some(keyword => lowerMessage.includes(keyword));
@@ -178,10 +219,18 @@ class AiTradeApiService {
     else if (isSwap) action = 'swap';
     else if (isInfo) action = 'info';
 
+    // Normalize tokens
+    const normalizedTokens = foundTokens.map(token => {
+      if (token.includes('eth') || token === 'ethereum') return 'ETH';
+      if (token.includes('coina') || token === 'coin a') return 'CoinA';
+      if (token.includes('coinb') || token === 'coin b') return 'CoinB';
+      return token.toUpperCase();
+    }).filter((token, index, self) => self.indexOf(token) === index);
+
     return {
       isTradeIntent,
-      fromToken: foundTokens[0]?.toUpperCase(),
-      toToken: foundTokens[1]?.toUpperCase(),
+      fromToken: normalizedTokens[0],
+      toToken: normalizedTokens[1],
       amount: amounts?.[0],
       action
     };
@@ -199,7 +248,7 @@ class AiTradeApiService {
     if (context?.walletConnected) {
       return [
         ...baseResponses,
-        "Check my balance 👛",
+        "Check my balance 💛",
         "Execute a trade 🚀",
         "View transaction history 📈"
       ];
@@ -236,7 +285,7 @@ class AiTradeApiService {
     return summary;
   }
 
-  // Check if wallet connection is required for action
+  // Check if wallet connection is required for action 
   static requiresWallet(action: string): boolean {
     const walletRequiredActions = ['buy', 'sell', 'swap', 'execute', 'trade'];
     return walletRequiredActions.some(requiredAction =>
@@ -278,11 +327,64 @@ class AiTradeApiService {
 
     const validTokens = ['ETH', 'COINA', 'COINB'];
     if (!validTokens.includes(fromToken.toUpperCase()) ||
-      validTokens.includes(toToken.toUpperCase())) {
+      !validTokens.includes(toToken.toUpperCase())) {
       return { isValid: false, error: 'Invalid token specified' };
     }
 
     return { isValid: true };
+  }
+
+  // Extract trade details from AI response
+  static extractTradeDetailsFromResponse(response: string): {
+    hasTradeDetails: boolean;
+    fromToken?: string;
+    toToken?: string;
+    amount?: string;
+    estimatedOutput?: string;
+  } {
+    const lowerResponse = response.toLowerCase();
+
+    // Look for common trade patterns
+    const swapPattern = /swap\s+(\d+(?:\.\d+)?)\s+(eth|coina|coinb).*?(\d+(?:\.\d+)?)\s+(eth|coina|coinb)/i;
+    const tradeMatch = response.match(swapPattern);
+
+    if (tradeMatch) {
+      return {
+        hasTradeDetails: true,
+        amount: tradeMatch[1],
+        fromToken: tradeMatch[2].toUpperCase(),
+        estimatedOutput: tradeMatch[3],
+        toToken: tradeMatch[4].toUpperCase()
+      };
+    }
+
+    return { hasTradeDetails: false };
+  }
+
+  // Check if response contains executable trade
+  static isExecutableTradeResponse(response: string): boolean {
+    const executionKeywords = [
+      'execute trade', 'proceed with swap', 'confirm trade',
+      'execute this trade', 'ready to proceed'
+    ];
+
+    const lowerResponse = response.toLowerCase();
+    return executionKeywords.some(keyword => lowerResponse.includes(keyword));
+  }
+
+  // Generate context for better AI responses
+  static generateContextForAI(
+    walletAddress?: string,
+    recentTransactions?: any[],
+    tokenBalances?: any
+  ): any {
+    return {
+      walletConnected: !!walletAddress,
+      walletAddress: walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : null,
+      hasRecentActivity: !!(recentTransactions && recentTransactions.length > 0),
+      balancesAvailable: !!tokenBalances,
+      timestamp: new Date().toISOString()
+    };
   }
 }
 

@@ -81,6 +81,8 @@ import {
 } from "../dtos/quest/UserQuest.dto";
 import { DexSwapController } from "../controllers/dex/dexSwap.controller";
 import { GetChartDataDto, GetSwapHistoryDto, RecordSwapDto, UpdatePriceDto } from "../dtos/dex/DexSwap.dto";
+import { AITradingController } from "../controllers/aiChat/aiTrading.controller";
+import { ExecuteTradeDto, GetChatHistoryDto } from "../dtos/aiTrading/AiTrading.dto";
 
 // Get controller instance
 
@@ -152,6 +154,11 @@ const userQuestController = container.get<UserQuestController>(
 );
 const dexSwapController = container.get<DexSwapController>(
   TYPES.IDexSwapController
+);
+
+// Get AI Trading Controller
+const aiTradingController = container.get<AITradingController>(
+  TYPES.IAITradingController
 );
 
 
@@ -1077,6 +1084,49 @@ router.post(
   roleMiddleware(["admin"]), // Only admins can update prices manually
   validateBody(UpdatePriceDto),
   dexSwapController.updateTokenPrice.bind(dexSwapController)
+);
+
+
+// === AI TRADING ROUTES ===
+// Public routes (no authentication required)
+router.post(
+  "/ai-trading/chat/message",
+  validateBody(SendMessageDto),
+  aiTradingController.sendMessage.bind(aiTradingController)
+);
+
+router.get(
+  "/ai-trading/tokens",
+  aiTradingController.getAvailableTokens.bind(aiTradingController)
+);
+
+router.get(
+  "/ai-trading/prices",
+  aiTradingController.getTokenPrices.bind(aiTradingController)
+);
+
+router.get(
+  "/ai-trading/swap/estimate",
+  aiTradingController.calculateSwapEstimate.bind(aiTradingController)
+);
+
+router.post(
+  "/ai-trading/trade/analyze",
+  aiTradingController.analyzeTradeOpportunity.bind(aiTradingController)
+);
+
+// Chat history (accessible without auth but sessionId required)
+router.get(
+  "/ai-trading/chat/history/:sessionId",
+  validateParams(GetChatHistoryDto),
+  aiTradingController.getChatHistory.bind(aiTradingController)
+);
+
+// Trade execution (no auth required since wallet connection handles security)
+router.post(
+  "/ai-trading/trade/execute",
+  validateBody(ExecuteTradeDto),
+  aiTradingController.executeTradeWithAI.bind(aiTradingController)
 );
 
 export default router;
