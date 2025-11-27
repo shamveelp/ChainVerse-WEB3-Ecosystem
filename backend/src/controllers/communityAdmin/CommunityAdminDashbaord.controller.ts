@@ -6,14 +6,14 @@ import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 import { ICommunityAdminDashboardController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminDashboard.controller";
 import { ICommunityAdminDashboardService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminDashboard.service";
-import { SuccessMessages, ErrorMessages } from "../../enums/messages.enum";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class CommunityAdminDashboardController implements ICommunityAdminDashboardController {
     constructor(
         @inject(TYPES.ICommunityAdminDashboardService)
         private _dashboardService: ICommunityAdminDashboardService
-    ) {}
+    ) { }
 
     async getDashboardData(req: Request, res: Response): Promise<void> {
         try {
@@ -27,7 +27,7 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
 
             res.status(StatusCode.OK).json({
                 success: true,
-                message: SuccessMessages.SUBSCRIPTION_RETRIEVED,
+                message: SuccessMessages.DASHBOARD_DATA_FETCHED,
                 data: dashboardData,
             });
         } catch (error) {
@@ -40,7 +40,7 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             const message =
                 err.message || ErrorMessages.FAILED_GET_DASHBOARD_DATA;
 
-            logger.error("Get dashboard data error:", {
+            logger.error(LoggerMessages.GET_DASHBOARD_DATA_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id,
@@ -63,7 +63,7 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
 
             res.status(StatusCode.OK).json({
                 success: true,
-                message: SuccessMessages.SUBSCRIPTION_RETRIEVED, 
+                message: SuccessMessages.COMMUNITY_OVERVIEW_FETCHED,
                 data: overview,
             });
         } catch (error) {
@@ -76,7 +76,7 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             const message =
                 err.message || ErrorMessages.FAILED_GET_COMMUNITY_OVERVIEW;
 
-            logger.error("Get community overview error:", {
+            logger.error(LoggerMessages.GET_COMMUNITY_OVERVIEW_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id,
@@ -101,7 +101,7 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
 
             res.status(StatusCode.OK).json({
                 success: true,
-                message: SuccessMessages.SUBSCRIPTION_RETRIEVED, 
+                message: SuccessMessages.COMMUNITY_STATS_FETCHED,
                 data: stats,
             });
         } catch (error) {
@@ -114,7 +114,7 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             const message =
                 err.message || ErrorMessages.FAILED_GET_COMMUNITY_STATS;
 
-            logger.error("Get community stats error:", {
+            logger.error(LoggerMessages.GET_COMMUNITY_STATS_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id,

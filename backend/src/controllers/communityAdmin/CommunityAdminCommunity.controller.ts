@@ -7,7 +7,7 @@ import { IUserCommunityChatService } from "../../core/interfaces/services/commun
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
-import { SuccessMessages, ErrorMessages } from "../../enums/messages.enum";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class CommunityAdminCommunityController implements ICommunityAdminCommunityController {
@@ -16,7 +16,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
         private _communityService: ICommunityAdminCommunityService,
         @inject(TYPES.IUserCommunityChatService)
         private _chatService: IUserCommunityChatService
-    ) {}
+    ) { }
 
     async sendMessage(req: Request, res: Response): Promise<void> {
         try {
@@ -48,7 +48,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
                 error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_SEND_MESSAGE;
 
-            logger.error("Send community message error:", {
+            logger.error(LoggerMessages.SEND_COMMUNITY_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id
@@ -78,7 +78,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
                 error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_MESSAGES;
 
-            logger.error("Get community messages error:", {
+            logger.error(LoggerMessages.GET_COMMUNITY_MESSAGES_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id
@@ -108,7 +108,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
                 error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_GROUP_MESSAGES;
 
-            logger.error("Get group messages error:", {
+            logger.error(LoggerMessages.GET_GROUP_MESSAGES_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id
@@ -136,7 +136,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
                 error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_DELETE_GROUP_MESSAGE;
 
-            logger.error("Admin delete group message error:", {
+            logger.error(LoggerMessages.DELETE_GROUP_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id
@@ -175,7 +175,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
                 error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_UPDATE_MESSAGE;
 
-            logger.error("Update community message error:", {
+            logger.error(LoggerMessages.UPDATE_COMMUNITY_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id
@@ -203,7 +203,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
                 error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_DELETE_MESSAGE;
 
-            logger.error("Delete community message error:", {
+            logger.error(LoggerMessages.DELETE_COMMUNITY_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id
@@ -231,7 +231,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
                 error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_PIN_MESSAGE;
 
-            logger.error("Pin community message error:", {
+            logger.error(LoggerMessages.PIN_COMMUNITY_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id
@@ -259,7 +259,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
                 error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_UNPIN_MESSAGE;
 
-            logger.error("Unpin community message error:", {
+            logger.error(LoggerMessages.UNPIN_COMMUNITY_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id
@@ -287,7 +287,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
                 error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_MESSAGE_REACTIONS;
 
-            logger.error("Get message reactions error:", {
+            logger.error(LoggerMessages.GET_MESSAGE_REACTIONS_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id
@@ -323,7 +323,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
                 error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_UPLOAD_MEDIA;
 
-            logger.error("Upload media error:", {
+            logger.error(LoggerMessages.COMMUNITY_UPLOAD_MEDIA_ERROR, {
                 message,
                 stack: err.stack,
                 adminId: (req as any).user?.id

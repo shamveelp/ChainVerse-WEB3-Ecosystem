@@ -6,21 +6,13 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import { ICommunityAdminAuthController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminAuth.controller";
 import { ICommunityAdminAuthService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminAuthService";
 import cloudinary from "../../config/cloudinary";
-import { Messages } from "../../enums/messages.enum";
+import { ErrorMessages, LoggerMessages, Messages } from "../../enums/messages.enum";
 
 @injectable()
 export class CommunityAdminAuthController implements ICommunityAdminAuthController {
     constructor(
         @inject(TYPES.ICommunityAdminAuthService) private _commAdminAuthService: ICommunityAdminAuthService
-    ) {}
-
-
-    /**
-     * 
-     * @param req 
-     * @param res 
-     * @returns 
-     */
+    ) { }
 
     async checkEmailExists(req: Request, res: Response): Promise<void> {
         try {
@@ -37,7 +29,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             const result = await this._commAdminAuthService.checkEmailExists(email);
             res.status(StatusCode.OK).json(result);
         } catch (error) {
-            logger.error("Check email exists error:", error);
+            logger.error(LoggerMessages.CHECK_EMAIL_EXISTS_ERROR, error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 error: Messages.FAILED_CHECK_EMAIL
@@ -60,7 +52,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             const result = await this._commAdminAuthService.checkUsernameExists(username);
             res.status(StatusCode.OK).json(result);
         } catch (error) {
-            logger.error("Check username exists error:", error);
+            logger.error(LoggerMessages.CHECK_USERNAME_EXISTS_ERROR, error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 error: Messages.FAILED_CHECK_USERNAME
@@ -88,7 +80,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                             },
                             (error, result) => {
                                 if (error) {
-                                    logger.error("Logo upload error:", error);
+                                    logger.error(LoggerMessages.LOGO_UPLOAD_ERROR, error);
                                     reject(new Error(Messages.FAILED_UPLOAD_LOGO));
                                 } else if (result) {
                                     resolve(result.secure_url);
@@ -100,7 +92,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                         stream.end(files.logo[0].buffer);
                     });
                 } catch (uploadError) {
-                    logger.error("Logo upload failed:", uploadError);
+                    logger.error(LoggerMessages.LOGO_UPLOAD_FAILED, uploadError);
                     // Continue without logo, don't fail the entire request
                 }
             }
@@ -118,19 +110,19 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                             },
                             (error, result) => {
                                 if (error) {
-                                    logger.error("Banner upload error:", error);
-                                    reject(new Error("Failed to upload banner"));
+                                    logger.error(LoggerMessages.BANNER_UPLOAD_ERROR, error);
+                                    reject(new Error(ErrorMessages.FAILED_UPLOAD_BANNER));
                                 } else if (result) {
                                     resolve(result.secure_url);
                                 } else {
-                                    reject(new Error("No result from cloudinary"));
+                                    reject(new Error(Messages.NO_RESULT_FROM_CLOUDINARY));
                                 }
                             }
                         );
                         stream.end(files.banner[0].buffer);
                     });
                 } catch (uploadError) {
-                    logger.error("Banner upload failed:", uploadError);
+                    logger.error(LoggerMessages.BANNER_UPLOAD_FAILED, uploadError);
                     // Continue without banner, don't fail the entire request
                 }
             }
@@ -146,10 +138,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.CREATED).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Create community error:", error);
+            logger.error(LoggerMessages.CREATE_COMMUNITY_ERROR, error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: err.message || "Failed to submit application"
+                error: err.message || Messages.FAILED_SUBMIT_APPLICATION
             });
         }
     }
@@ -160,10 +152,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Set password error:", error);
+            logger.error(LoggerMessages.SET_PASSWORD_ERROR, error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: err.message || "Failed to set password"
+                error: err.message || Messages.FAILED_SET_PASSWORD
             });
         }
     }
@@ -174,10 +166,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Verify OTP error:", error);
+            logger.error(LoggerMessages.VERIFY_OTP_ERROR, error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: err.message || "OTP verification failed"
+                error: err.message || Messages.FAILED_OTP_VERIFICATION
             });
         }
     }
@@ -188,10 +180,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Resend OTP error:", error);
+            logger.error(LoggerMessages.RESEND_OTP_ERROR, error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: err.message || "Failed to resend OTP"
+                error: err.message || Messages.FAILED_RESEND_OTP
             });
         }
     }
@@ -202,9 +194,9 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Community admin login error:", error);
+            logger.error(LoggerMessages.COMMUNITY_ADMIN_LOGIN_ERROR, error);
             let statusCode = StatusCode.UNAUTHORIZED;
-            const errorMessage = err.message || "Login failed";
+            const errorMessage = err.message || Messages.FAILED_LOGIN;
 
             if (err.message?.includes('under review')) {
                 statusCode = StatusCode.FORBIDDEN;
@@ -225,10 +217,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Forgot password error:", error);
+            logger.error(LoggerMessages.FORGOT_PASSWORD_ERROR, error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: err.message || "Failed to send reset code"
+                error: err.message || Messages.FAILED_RESET_CODE
             });
         }
     }
@@ -239,10 +231,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Verify forgot password OTP error:", error);
+            logger.error(LoggerMessages.VERIFY_FORGOT_PASSWORD_OTP_ERROR, error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: err.message || "OTP verification failed"
+                error: err.message || Messages.FAILED_OTP_VERIFICATION
             });
         }
     }
@@ -253,10 +245,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Reset password error:", error);
+            logger.error(LoggerMessages.RESET_PASSWORD_ERROR, error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: err.message || "Failed to reset password"
+                error: err.message || Messages.FAILED_RESET_PASSWORD
             });
         }
     }
@@ -267,10 +259,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Refresh token error:", error);
+            logger.error(LoggerMessages.REFRESH_TOKEN_ERROR, error);
             res.status(StatusCode.UNAUTHORIZED).json({
                 success: false,
-                error: "Invalid or expired refresh token"
+                error: Messages.INVALID_REFRESH_TOKEN
             });
         }
     }
@@ -281,10 +273,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Logout error:", error);
+            logger.error(LoggerMessages.LOGOUT_ERROR, error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: "Logout failed"
+                error: Messages.FAILED_LOGOUT
             });
         }
     }
@@ -296,10 +288,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Get profile error:", error);
+            logger.error(LoggerMessages.GET_PROFILE_ERROR, error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: "Failed to get profile"
+                error: Messages.FAILED_GET_PROFILE
             });
         }
     }
@@ -311,10 +303,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Get community details error:", error);
+            logger.error(LoggerMessages.GET_COMMUNITY_DETAILS_ERROR, error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: "Failed to get community details"
+                error: Messages.FAILED_GET_COMMUNITY_DETAILS
             });
         }
     }
@@ -366,7 +358,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                             },
                             (error, uploadResult) => {
                                 if (error) {
-                                    logger.error("Community media upload error:", error);
+                                    logger.error(LoggerMessages.COMMUNITY_MEDIA_UPLOAD_ERROR, error);
                                     reject(error);
                                 } else {
                                     resolve(uploadResult);
@@ -376,7 +368,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                     });
                     return result?.secure_url;
                 } catch (error) {
-                    logger.error("Failed to upload community media:", error);
+                    logger.error(LoggerMessages.FAILED_UPLOAD_COMMUNITY_MEDIA, error);
                     return undefined;
                 }
             };
@@ -405,10 +397,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Update community error:", error);
+            logger.error(LoggerMessages.UPDATE_COMMUNITY_ERROR, error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: err.message || "Failed to update community"
+                error: err.message || Messages.FAILED_UPDATE_COMMUNITY
             });
         }
     }
@@ -433,19 +425,19 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                             },
                             (error, result) => {
                                 if (error) {
-                                    logger.error("Logo upload error:", error);
-                                    reject(new Error("Failed to upload logo"));
+                                    logger.error(LoggerMessages.LOGO_UPLOAD_ERROR, error);
+                                    reject(new Error(Messages.FAILED_UPLOAD_LOGO));
                                 } else if (result) {
                                     resolve(result.secure_url);
                                 } else {
-                                    reject(new Error("No result from cloudinary"));
+                                    reject(new Error(Messages.NO_RESULT_FROM_CLOUDINARY));
                                 }
                             }
                         );
                         stream.end(files.logo[0].buffer);
                     });
                 } catch (uploadError) {
-                    logger.error("Logo upload failed:", uploadError);
+                    logger.error(LoggerMessages.LOGO_UPLOAD_FAILED, uploadError);
                     // Continue without logo, don't fail the entire request
                 }
             }
@@ -463,19 +455,19 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                             },
                             (error, result) => {
                                 if (error) {
-                                    logger.error("Banner upload error:", error);
-                                    reject(new Error("Failed to upload banner"));
+                                    logger.error(LoggerMessages.BANNER_UPLOAD_ERROR, error);
+                                    reject(new Error(ErrorMessages.FAILED_UPLOAD_BANNER));
                                 } else if (result) {
                                     resolve(result.secure_url);
                                 } else {
-                                    reject(new Error("No result from cloudinary"));
+                                    reject(new Error(Messages.NO_RESULT_FROM_CLOUDINARY));
                                 }
                             }
                         );
                         stream.end(files.banner[0].buffer);
                     });
                 } catch (uploadError) {
-                    logger.error("Banner upload failed:", uploadError);
+                    logger.error(LoggerMessages.BANNER_UPLOAD_FAILED, uploadError);
                     // Continue without banner, don't fail the entire request
                 }
             }
@@ -491,10 +483,10 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             res.status(StatusCode.OK).json(result);
         } catch (error) {
             const err = error as Error;
-            logger.error("Reapply application error:", error);
+            logger.error(LoggerMessages.REAPPLY_APPLICATION_ERROR, error);
             res.status(StatusCode.BAD_REQUEST).json({
                 success: false,
-                error: err.message || "Failed to reapply"
+                error: err.message || Messages.FAILED_REAPPLY
             });
         }
     }

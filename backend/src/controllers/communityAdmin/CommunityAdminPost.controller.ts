@@ -7,12 +7,13 @@ import logger from "../../utils/logger";
 import cloudinary from "../../config/cloudinary";
 import { ICommunityAdminPostController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminPost.controller";
 import { ICommunityAdminPostService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminPostService";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class CommunityAdminPostController implements ICommunityAdminPostController {
     constructor(
         @inject(TYPES.ICommunityAdminPostService) private _postService: ICommunityAdminPostService
-    ) {}
+    ) { }
 
     async createPost(req: Request, res: Response): Promise<void> {
         try {
@@ -24,13 +25,13 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             res.status(StatusCode.CREATED).json({
                 success: true,
                 data: post,
-                message: "Post created successfully"
+                message: SuccessMessages.POST_CREATED
             });
         } catch (error) {
             const err = error as Error;
-            logger.error("Create community admin post error:", { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.CREATE_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to create post";
+            const message = err.message || ErrorMessages.FAILED_CREATE_POST;
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -51,9 +52,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error("Get community admin post error:", { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
+            logger.error(LoggerMessages.GET_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch post";
+            const message = err.message || ErrorMessages.FAILED_GET_POST;
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -72,13 +73,13 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             res.status(StatusCode.OK).json({
                 success: true,
                 data: post,
-                message: "Post updated successfully"
+                message: SuccessMessages.POST_UPDATED
             });
         } catch (error) {
             const err = error as Error;
-            logger.error("Update community admin post error:", { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
+            logger.error(LoggerMessages.UPDATE_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to update post";
+            const message = err.message || ErrorMessages.FAILED_UPDATE_POST;
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -100,9 +101,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error("Delete community admin post error:", { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
+            logger.error(LoggerMessages.DELETE_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to delete post";
+            const message = err.message || ErrorMessages.FAILED_DELETE_POST;
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -123,9 +124,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error("Get community admin posts error:", { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.GET_POSTS_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch posts";
+            const message = err.message || ErrorMessages.FAILED_GET_POSTS;
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -147,9 +148,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error("Toggle community admin post like error:", { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
+            logger.error(LoggerMessages.TOGGLE_POST_LIKE_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to toggle post like";
+            const message = err.message || ErrorMessages.FAILED_TOGGLE_POST_LIKE;
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -167,13 +168,13 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             res.status(StatusCode.CREATED).json({
                 success: true,
                 data: comment,
-                message: "Comment created successfully"
+                message: SuccessMessages.COMMENT_CREATED
             });
         } catch (error) {
             const err = error as Error;
-            logger.error("Create community admin comment error:", { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.CREATE_COMMENT_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to create comment";
+            const message = err.message || ErrorMessages.FAILED_CREATE_COMMENT;
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -197,9 +198,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error("Get community admin post comments error:", { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
+            logger.error(LoggerMessages.GET_COMMENTS_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch comments";
+            const message = err.message || ErrorMessages.FAILED_GET_POST_COMMENTS;
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -221,9 +222,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error("Toggle community admin comment like error:", { message: err.message, stack: err.stack, adminId: (req as any).user?.id, commentId: req.params.commentId });
+            logger.error(LoggerMessages.TOGGLE_COMMENT_LIKE_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, commentId: req.params.commentId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to toggle comment like";
+            const message = err.message || ErrorMessages.FAILED_TOGGLE_COMMENT_LIKE;
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -238,7 +239,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             if (!req.file) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "No file uploaded"
+                    error: ErrorMessages.NO_FILE_UPLOADED
                 });
                 return;
             }
@@ -255,8 +256,8 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
                     },
                     (error, result) => {
                         if (error) {
-                            logger.error("Post media upload error:", error);
-                            reject(new CustomError("Failed to upload media", StatusCode.INTERNAL_SERVER_ERROR));
+                            logger.error(LoggerMessages.CLOUDINARY_UPLOAD_ERROR, error);
+                            reject(new CustomError(ErrorMessages.MEDIA_UPLOAD_FAILED, StatusCode.INTERNAL_SERVER_ERROR));
                         } else {
                             resolve(result);
                         }
@@ -271,14 +272,14 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
                 data: {
                     mediaUrl: result.secure_url,
                     mediaType,
-                    message: "Media uploaded successfully"
+                    message: SuccessMessages.MEDIA_UPLOADED
                 }
             });
         } catch (error) {
             const err = error as Error;
-            logger.error("Upload post media error:", { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.UPLOAD_MEDIA_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to upload media";
+            const message = err.message || ErrorMessages.MEDIA_UPLOAD_FAILED;
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -301,9 +302,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error("Get community members feed error:", { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.FETCH_FEED_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch community members feed";
+            const message = err.message || ErrorMessages.FAILED_GET_COMMUNITY_MEMBERS_FEED;
             res.status(statusCode).json({
                 success: false,
                 error: message
