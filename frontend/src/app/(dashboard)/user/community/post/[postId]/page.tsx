@@ -4,17 +4,19 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowLeft, Heart, MessageCircle, Share, Send, Loader2, MoreHorizontal } from 'lucide-react'
+import { ArrowLeft, Heart, MessageCircle, Share, Send, Loader2, MoreHorizontal, TrendingUp } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
 import { postsApiService, Post, Comment } from '@/services/postsApiService'
 import { useComments } from '@/hooks/useComments'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { formatTimeAgo, formatStats, formatFullDate } from '@/utils/format'
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
+import CommentCard from '@/components/community/posts/comment-card'
+import MentionTextarea from '@/components/community/posts/mention-textarea'
 
 interface PostPageProps {
   params: Promise<{
@@ -32,7 +34,7 @@ export default function PostPage({ params }: PostPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [commentContent, setCommentContent] = useState('')
   const [isCommenting, setIsCommenting] = useState(false)
-  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [commentsWithReplies, setCommentsWithReplies] = useState<Record<string, Comment[]>>({})
 
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
   const profile = useSelector((state: RootState) => state.communityProfile?.profile)
@@ -44,6 +46,7 @@ export default function PostPage({ params }: PostPageProps) {
     createComment,
     loadComments,
     loadMoreComments,
+    loadReplies,
     toggleCommentLike,
     updateCommentInList,
     clearComments
@@ -59,14 +62,7 @@ export default function PostPage({ params }: PostPageProps) {
         const response = await postsApiService.getPostById(postId)
         setPost(response.data.post)
         
-        // Load initial comments from the post detail response
-        if (response.data.comments.length > 0) {
-          clearComments()
-          // Set comments directly since they're already loaded
-          // We'll need to modify useComments to accept initial comments
-        }
-        
-        // Load additional comments if needed
+        // Load comments
         await loadComments(postId, true)
       } catch (err: any) {
         setError(err.message || 'Failed to load post')
@@ -81,7 +77,7 @@ export default function PostPage({ params }: PostPageProps) {
     if (postId) {
       loadPostData()
     }
-  }, [postId, loadComments, clearComments])
+  }, [postId, loadComments])
 
   const handleBack = () => {
     router.back()
@@ -159,13 +155,12 @@ export default function PostPage({ params }: PostPageProps) {
       const commentData = {
         postId: post._id,
         content: commentContent.trim(),
-        parentCommentId: replyingTo || undefined
+        parentCommentId: undefined
       }
 
       const newComment = await createComment(commentData)
       if (newComment) {
         setCommentContent('')
-        setReplyingTo(null)
         
         // Update post comments count
         setPost(prev => prev ? {
@@ -182,25 +177,62 @@ export default function PostPage({ params }: PostPageProps) {
     }
   }
 
+  const handleReply = async (parentCommentId: string, content: string, mentionedUser?: string) => {
+    if (!post) return
+
+    try {
+      const replyData = {
+        postId: post._id,
+        content: mentionedUser && !content.includes(`@${mentionedUser}`) 
+          ? `@${mentionedUser} ${content}` 
+          : content,
+        parentCommentId
+      }
+
+      const newReply = await createComment(replyData)
+      if (newReply) {
+        // Add reply to the replies of the parent comment
+        setCommentsWithReplies(prev => ({
+          ...prev,
+          [parentCommentId]: [...(prev[parentCommentId] || []), newReply]
+        }))
+
+        // Update post comments count
+        setPost(prev => prev ? {
+          ...prev,
+          commentsCount: prev.commentsCount + 1
+        } : null)
+      }
+    } catch (error: any) {
+      toast.error('Failed to add reply', {
+        description: error.message || 'Please try again'
+      })
+    }
+  }
+
+  const handleLoadReplies = async (commentId: string) => {
+    try {
+      const replies = await loadReplies(commentId)
+      setCommentsWithReplies(prev => ({
+        ...prev,
+        [commentId]: replies
+      }))
+    } catch (error: any) {
+      toast.error('Failed to load replies')
+    }
+  }
+
   const handleAuthorClick = () => {
     if (post) {
       router.push(`/user/community/${post.author.username}`)
     }
   }
 
-  const formatTimeAgo = (date: Date | string) => {
-    return postsApiService.formatTimeAgo(date)
-  }
-
-  const formatStats = (count: number) => {
-    return postsApiService.formatStats(count)
-  }
-
   const renderMedia = () => {
     if (!post || post.mediaUrls.length === 0) return null
 
     return (
-      <div className="mt-4 rounded-xl overflow-hidden border border-slate-700/50">
+      <div className="mt-6 rounded-2xl overflow-hidden border border-slate-700/50 shadow-lg">
         {post.mediaType === 'image' ? (
           <div className="grid gap-2" style={{
             gridTemplateColumns: post.mediaUrls.length === 1 ? '1fr' : post.mediaUrls.length === 2 ? '1fr 1fr' : '1fr 1fr',
@@ -209,14 +241,14 @@ export default function PostPage({ params }: PostPageProps) {
             {post.mediaUrls.slice(0, 4).map((url, index) => (
               <div key={index} className="relative overflow-hidden">
                 {index === 3 && post.mediaUrls.length > 4 && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-                    <span className="text-white text-xl font-semibold">+{post.mediaUrls.length - 3}</span>
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10 backdrop-blur-sm">
+                    <span className="text-white text-2xl font-semibold">+{post.mediaUrls.length - 3}</span>
                   </div>
                 )}
                 <img
                   src={url}
                   alt={`Post media ${index + 1}`}
-                  className="w-full h-auto object-cover"
+                  className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500"
                   style={{ aspectRatio: post.mediaUrls.length === 1 ? 'auto' : '1' }}
                 />
               </div>
@@ -236,23 +268,50 @@ export default function PostPage({ params }: PostPageProps) {
   const renderContent = () => {
     if (!post) return null
 
-    // Basic hashtag and mention highlighting
-    const parts = post.content.split(/(\#\w+|\@\w+)/g)
+    // Parse hashtags, mentions, and links
+    const parts = post.content.split(/(\#\w+|\@\w+|https?:\/\/[^\s]+)/g)
     
     return (
       <p className="text-white whitespace-pre-wrap leading-relaxed text-lg">
         {parts.map((part, index) => {
           if (part.startsWith('#')) {
             return (
-              <span key={index} className="text-cyan-400 hover:text-cyan-300 cursor-pointer">
+              <span 
+                key={index} 
+                className="text-cyan-400 hover:text-cyan-300 cursor-pointer font-medium transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  router.push(`/user/community/explore?hashtag=${part.slice(1)}`)
+                }}
+              >
                 {part}
               </span>
             )
           } else if (part.startsWith('@')) {
             return (
-              <span key={index} className="text-blue-400 hover:text-blue-300 cursor-pointer">
+              <span 
+                key={index} 
+                className="text-blue-400 hover:text-blue-300 cursor-pointer font-medium transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  router.push(`/user/community/${part.slice(1)}`)
+                }}
+              >
                 {part}
               </span>
+            )
+          } else if (part.startsWith('http')) {
+            return (
+              <a 
+                key={index}
+                href={part}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-cyan-400 hover:text-cyan-300 underline transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {part}
+              </a>
             )
           }
           return <span key={index}>{part}</span>
@@ -260,66 +319,6 @@ export default function PostPage({ params }: PostPageProps) {
       </p>
     )
   }
-
-  const CommentCard = ({ comment }: { comment: Comment }) => (
-    <Card className="bg-slate-800/50 border-slate-700/50 p-4">
-      <div className="flex gap-3">
-        <Avatar className="w-10 h-10 ring-2 ring-slate-700/50 flex-shrink-0">
-          <AvatarImage src={comment.author.profilePic} alt={comment.author.name} />
-          <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
-            {comment.author.name.charAt(0)?.toUpperCase() || comment.author.username.charAt(0)?.toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <h4 className="font-semibold text-white hover:underline cursor-pointer">
-              {comment.author.name}
-            </h4>
-            {comment.author.isVerified && (
-              <div className="w-4 h-4 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
-                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </div>
-            )}
-            <span className="text-slate-400 text-sm">@{comment.author.username}</span>
-            <span className="text-slate-500">·</span>
-            <span className="text-slate-500 text-sm">{formatTimeAgo(comment.createdAt)}</span>
-          </div>
-
-          <p className="text-white mb-3 leading-relaxed">{comment.content}</p>
-
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => toggleCommentLike(comment._id)}
-              className={cn(
-                "flex items-center gap-1 rounded-full px-2 py-1",
-                comment.isLiked
-                  ? "text-red-400 hover:text-red-300 hover:bg-red-400/10"
-                  : "text-slate-400 hover:text-red-400 hover:bg-red-400/10"
-              )}
-            >
-              <Heart className={cn("w-4 h-4", comment.isLiked && "fill-current")} />
-              <span className="text-sm">{formatStats(comment.likesCount)}</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setReplyingTo(comment._id)}
-              className="flex items-center gap-1 text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full px-2 py-1"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span className="text-sm">Reply</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-    </Card>
-  )
 
   if (loading) {
     return (
@@ -330,7 +329,7 @@ export default function PostPage({ params }: PostPageProps) {
             <div className="flex items-center justify-center min-h-screen">
               <div className="text-center space-y-4">
                 <Loader2 className="h-12 w-12 animate-spin text-cyan-500 mx-auto" />
-                <p className="text-slate-400">Loading post...</p>
+                <p className="text-slate-400 text-lg">Loading post...</p>
               </div>
             </div>
           </div>
@@ -348,7 +347,7 @@ export default function PostPage({ params }: PostPageProps) {
           <div className="max-w-2xl mx-auto h-screen overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen">
               <div className="text-center space-y-4">
-                <p className="text-slate-400">{error || 'Post not found'}</p>
+                <p className="text-slate-400 text-lg">{error || 'Post not found'}</p>
                 <Button
                   onClick={handleBack}
                   variant="outline"
@@ -375,28 +374,29 @@ export default function PostPage({ params }: PostPageProps) {
         <div className="max-w-2xl mx-auto h-screen overflow-y-auto scrollbar-hidden">
           <div className="space-y-0">
             {/* Header */}
-            <div className="sticky top-0 bg-slate-950/80 backdrop-blur-xl border-b border-slate-700/50 p-4 z-10">
+            <div className="sticky top-0 bg-slate-950/90 backdrop-blur-xl border-b border-slate-700/50 p-6 z-10">
               <div className="flex items-center gap-4">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleBack}
-                  className="text-slate-400 hover:text-white hover:bg-slate-800"
+                  className="text-slate-400 hover:text-white hover:bg-slate-800 rounded-full w-10 h-10"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div>
                   <h2 className="text-xl font-bold text-white">Post</h2>
+                  <p className="text-slate-400 text-sm">by @{post.author.username}</p>
                 </div>
               </div>
             </div>
 
             {/* Post Content */}
             <div className="p-6">
-              <Card className="bg-slate-900/50 backdrop-blur-sm border-slate-700/50 p-6">
+              <Card className="bg-slate-900/60 backdrop-blur-sm border-slate-700/50 p-8 shadow-xl">
                 <div className="flex gap-4">
                   <Avatar 
-                    className="w-12 h-12 ring-2 ring-slate-700/50 flex-shrink-0 cursor-pointer"
+                    className="w-14 h-14 ring-2 ring-slate-700/50 flex-shrink-0 cursor-pointer hover:ring-cyan-400/50 transition-all"
                     onClick={handleAuthorClick}
                   >
                     <AvatarImage src={post.author.profilePic} alt={post.author.name} />
@@ -406,9 +406,9 @@ export default function PostPage({ params }: PostPageProps) {
                   </Avatar>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 mb-4">
                       <h3 
-                        className="font-semibold text-white hover:underline cursor-pointer"
+                        className="font-semibold text-white hover:underline cursor-pointer text-lg"
                         onClick={handleAuthorClick}
                       >
                         {post.author.name}
@@ -420,33 +420,44 @@ export default function PostPage({ params }: PostPageProps) {
                           </svg>
                         </div>
                       )}
-                      <span className="text-slate-400">@{post.author.username}</span>
+                      <span 
+                        className="text-slate-400 cursor-pointer hover:underline"
+                        onClick={handleAuthorClick}
+                      >
+                        @{post.author.username}
+                      </span>
+                      {post.hashtags.includes('trending') && (
+                        <div className="flex items-center gap-1 bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full">
+                          <TrendingUp className="w-3 h-3" />
+                          <span className="text-xs font-medium">Trending</span>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="mb-4">
+                    <div className="mb-6">
                       {renderContent()}
                       {renderMedia()}
                     </div>
 
-                    <div className="text-slate-500 text-sm mb-4">
-                      {new Date(post.createdAt).toLocaleString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                      {post.editedAt && ' · Edited'}
+                    <div className="text-slate-500 text-sm mb-6 flex items-center gap-2">
+                      <span>{formatFullDate(post.createdAt)}</span>
+                      {post.editedAt && (
+                        <>
+                          <span>·</span>
+                          <span>Edited</span>
+                        </>
+                      )}
                     </div>
 
-                    <div className="flex items-center justify-between py-4 border-t border-slate-700/50">
+                    <div className="flex items-center justify-between py-4 border-t border-b border-slate-700/50">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full px-4 py-2"
+                        className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full px-4 py-3 transition-all"
                       >
                         <MessageCircle className="w-5 h-5" />
-                        <span>{formatStats(post.commentsCount)}</span>
+                        <span className="font-medium">{formatStats(post.commentsCount)}</span>
+                        <span className="hidden sm:inline">Comments</span>
                       </Button>
 
                       <Button
@@ -454,24 +465,26 @@ export default function PostPage({ params }: PostPageProps) {
                         size="sm"
                         onClick={handleLike}
                         className={cn(
-                          "flex items-center gap-2 rounded-full px-4 py-2",
+                          "flex items-center gap-2 rounded-full px-4 py-3 transition-all",
                           post.isLiked
                             ? "text-red-400 hover:text-red-300 hover:bg-red-400/10"
                             : "text-slate-400 hover:text-red-400 hover:bg-red-400/10"
                         )}
                       >
                         <Heart className={cn("w-5 h-5", post.isLiked && "fill-current")} />
-                        <span>{formatStats(post.likesCount)}</span>
+                        <span className="font-medium">{formatStats(post.likesCount)}</span>
+                        <span className="hidden sm:inline">Likes</span>
                       </Button>
 
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={handleShare}
-                        className="flex items-center gap-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-full px-4 py-2"
+                        className="flex items-center gap-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-full px-4 py-3 transition-all"
                       >
                         <Share className="w-5 h-5" />
-                        <span>{formatStats(post.sharesCount)}</span>
+                        <span className="font-medium">{formatStats(post.sharesCount)}</span>
+                        <span className="hidden sm:inline">Shares</span>
                       </Button>
                     </div>
                   </div>
@@ -482,9 +495,9 @@ export default function PostPage({ params }: PostPageProps) {
             {/* Comment Form */}
             {currentUser && (
               <div className="px-6 pb-6">
-                <Card className="bg-slate-900/50 backdrop-blur-sm border-slate-700/50 p-4">
-                  <div className="flex gap-3">
-                    <Avatar className="w-10 h-10 ring-2 ring-slate-700/50 flex-shrink-0">
+                <Card className="bg-slate-900/60 backdrop-blur-sm border-slate-700/50 p-6 shadow-lg">
+                  <div className="flex gap-4">
+                    <Avatar className="w-12 h-12 ring-2 ring-slate-700/50 flex-shrink-0">
                       <AvatarImage 
                         src={profile?.profilePic || currentUser?.profileImage || ''} 
                         alt={profile?.name || currentUser?.name || currentUser?.username || 'User'} 
@@ -495,43 +508,27 @@ export default function PostPage({ params }: PostPageProps) {
                     </Avatar>
 
                     <div className="flex-1">
-                      <Textarea
-                        placeholder={replyingTo ? "Write a reply..." : "Write a comment..."}
+                      <MentionTextarea
                         value={commentContent}
-                        onChange={(e) => setCommentContent(e.target.value)}
-                        className="min-h-[80px] resize-none border-0 bg-transparent text-white placeholder:text-slate-500 focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
+                        onChange={setCommentContent}
+                        placeholder="Write a comment..."
+                        className="min-h-[100px] text-base"
                         maxLength={1000}
                       />
 
-                      <div className="flex items-center justify-between mt-3">
+                      <div className="flex items-center justify-between mt-4">
                         <div className="text-sm text-slate-400">
                           {commentContent.length}/1000
                         </div>
-                        <div className="flex items-center gap-2">
-                          {replyingTo && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setReplyingTo(null)
-                                setCommentContent('')
-                              }}
-                              className="text-slate-400 hover:text-white"
-                            >
-                              Cancel
-                            </Button>
-                          )}
-                          <Button
-                            onClick={handleComment}
-                            disabled={!commentContent.trim() || isCommenting || commentContent.length > 1000}
-                            size="sm"
-                            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-full"
-                          >
-                            {isCommenting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                            <Send className="w-4 h-4 mr-2" />
-                            {replyingTo ? 'Reply' : 'Comment'}
-                          </Button>
-                        </div>
+                        <Button
+                          onClick={handleComment}
+                          disabled={!commentContent.trim() || isCommenting || commentContent.length > 1000}
+                          className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-full px-6"
+                        >
+                          {isCommenting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                          <Send className="w-4 h-4 mr-2" />
+                          Comment
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -539,34 +536,46 @@ export default function PostPage({ params }: PostPageProps) {
               </div>
             )}
 
-            {/* Comments */}
-            <div className="px-6 pb-6 space-y-4">
+            {/* Comments Section */}
+            <div className="px-6 pb-8">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">Comments</h3>
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent"></div>
+              </div>
+
               {comments.length > 0 ? (
-                <>
+                <div className="space-y-6">
                   {comments.map((comment) => (
-                    <CommentCard key={comment._id} comment={comment} />
+                    <CommentCard
+                      key={comment._id}
+                      comment={comment}
+                      onReply={handleReply}
+                      onLikeToggle={toggleCommentLike}
+                      replies={commentsWithReplies[comment._id] || []}
+                      onLoadReplies={handleLoadReplies}
+                    />
                   ))}
 
                   {/* Load more comments */}
                   {hasMoreComments && (
-                    <div className="flex justify-center pt-4">
+                    <div className="flex justify-center pt-6">
                       <Button
                         onClick={() => loadMoreComments(post._id)}
                         disabled={commentsLoading}
                         variant="outline"
-                        className="border-slate-600 hover:bg-slate-800"
+                        className="border-slate-600 hover:bg-slate-800 rounded-full px-6"
                       >
                         {commentsLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                         Load More Comments
                       </Button>
                     </div>
                   )}
-                </>
+                </div>
               ) : (
-                <div className="text-center py-8">
-                  <MessageCircle className="h-12 w-12 mx-auto mb-4 text-slate-600" />
-                  <p className="text-slate-400">No comments yet</p>
-                  <p className="text-slate-500 text-sm">Be the first to comment on this post</p>
+                <div className="text-center py-12">
+                  <MessageCircle className="h-16 w-16 mx-auto mb-4 text-slate-600" />
+                  <h4 className="text-xl font-semibold text-white mb-2">No comments yet</h4>
+                  <p className="text-slate-400 mb-4">Be the first to share your thoughts!</p>
                 </div>
               )}
             </div>

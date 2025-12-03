@@ -9,6 +9,17 @@ export interface PostAuthor {
   isVerified: boolean;
 }
 
+interface SearchUsersResponse {
+  success: boolean;
+  users: Array<{
+    _id: string;
+    username: string;
+    name: string;
+    profilePic: string;
+    isVerified: boolean;
+  }>;
+}
+
 export interface Post {
   _id: string;
   author: PostAuthor;
@@ -744,5 +755,28 @@ export const postsApiService = {
     const mentionRegex = /@[a-zA-Z0-9_]+/g;
     const mentions = content.match(mentionRegex);
     return mentions ? mentions.map(mention => mention.slice(1).toLowerCase()) : [];
+  },
+
+  searchUsers: async (query: string, limit: number = 10): Promise<SearchUsersResponse> => {
+    try {
+      const params = new URLSearchParams();
+      params.append('q', query.trim());
+      params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
+
+      const response = await API.get(`/api/user/community/search-users?${params.toString()}`);
+
+      if (response.data?.success) {
+        return {
+          success: true,
+          users: response.data.users || []
+        };
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to search users");
+    } catch (error: any) {
+      console.error('API: Search users failed:', error);
+      handleApiError(error, "Failed to search users");
+      throw error;
+    }
   }
 };

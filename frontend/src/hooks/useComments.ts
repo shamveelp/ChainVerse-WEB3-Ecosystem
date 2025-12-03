@@ -18,8 +18,10 @@ export const useComments = () => {
       const response = await postsApiService.createComment(commentData);
       const newComment = response.data;
 
-      // Add new comment to the beginning of the list
-      setComments(prevComments => [newComment, ...prevComments]);
+      // Add new comment to the beginning of the list if it's a top-level comment
+      if (!commentData.parentCommentId) {
+        setComments(prevComments => [newComment, ...prevComments]);
+      }
       
       toast.success('Comment added successfully!');
       return newComment;
@@ -173,8 +175,7 @@ export const useComments = () => {
 
   // Load comment replies
   const loadReplies = useCallback(async (
-    commentId: string,
-    refresh: boolean = false
+    commentId: string
   ): Promise<Comment[]> => {
     try {
       const response = await postsApiService.getCommentReplies(commentId);
