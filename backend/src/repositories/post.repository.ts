@@ -165,68 +165,44 @@ export class PostRepository implements IPostRepository {
         .exec();
 
       const followingIds = followingList.map((f) => f.following);
+      // Add user's own ID to the list
+      const feedAuthorIds = [...followingIds, userObjectId];
 
-      let posts: IPost[] = [];
+      // Query 1: Posts from followed users and self
+      const friendsPostsPromise = PostModel.find({
+        ...baseQuery,
+        author: { $in: feedAuthorIds },
+      })
+        .populate("author", "_id username name profilePic community.isVerified")
+        .sort({ createdAt: -1 })
+        .limit(validLimit)
+        .lean()
+        .exec();
 
-      if (followingIds.length > 0) {
-        // Phase 1: Get posts from followed users (70% of limit)
-        const followingLimit = Math.ceil(validLimit * 0.7);
-        const followingPosts = await PostModel.find({
-          ...baseQuery,
-          author: { $in: followingIds },
-        })
-          .populate(
-            "author",
-            "_id username name profilePic community.isVerified"
-          )
-          .sort({ createdAt: -1 })
-          .limit(followingLimit + 1)
-          .lean()
-          .exec();
+      // Query 2: Public posts (excluding followed users and self)
+      const publicPostsPromise = PostModel.find({
+        ...baseQuery,
+        author: { $nin: feedAuthorIds },
+      })
+        .populate("author", "_id username name profilePic community.isVerified")
+        .sort({ createdAt: -1 })
+        .limit(validLimit)
+        .lean()
+        .exec();
 
-        posts = followingPosts.slice(0, followingLimit);
+      const [friendsPosts, publicPosts] = await Promise.all([
+        friendsPostsPromise,
+        publicPostsPromise,
+      ]);
 
-        // Phase 2: Fill remaining with trending posts (exclude already fetched)
-        const remainingLimit = validLimit - posts.length;
-        if (remainingLimit > 0) {
-          const excludeIds = posts.map((p) => p._id);
-          const trendingPosts = await PostModel.find({
-            ...baseQuery,
-            _id: { $nin: excludeIds, ...(baseQuery._id || {}) },
-            $expr: {
-              $gte: [
-                { $add: ["$likesCount", { $multiply: ["$commentsCount", 2] }] },
-                10,
-              ],
-            },
-          })
-            .populate(
-              "author",
-              "_id username name profilePic community.isVerified"
-            )
-            .sort({ likesCount: -1, commentsCount: -1, createdAt: -1 })
-            .limit(remainingLimit)
-            .lean()
-            .exec();
-
-          posts = posts.concat(trendingPosts);
-        }
-      } else {
-        // No following - show trending and random posts
-        posts = await PostModel.find(baseQuery)
-          .populate(
-            "author",
-            "_id username name profilePic community.isVerified"
-          )
-          .sort({ likesCount: -1, commentsCount: -1, createdAt: -1 })
-          .limit(validLimit + 1)
-          .lean()
-          .exec();
-      }
+      // Combine and sort
+      const allPosts = [...friendsPosts, ...publicPosts].sort((a, b) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
 
       // Check if there are more posts
-      const hasMore = posts.length > validLimit;
-      const finalPosts = posts.slice(0, validLimit);
+      const hasMore = allPosts.length > validLimit;
+      const finalPosts = allPosts.slice(0, validLimit);
       const nextCursor =
         hasMore && finalPosts.length > 0
           ? finalPosts[finalPosts.length - 1]._id.toString()
@@ -1190,9 +1166,9 @@ export class PostRepository implements IPostRepository {
       );
     }
     return PostModel.countDocuments({
-        author: { $in: userIds },
-        createdAt: { $gte: date },
-      })
+      author: { $in: userIds },
+      createdAt: { $gte: date },
+    })
   }
 
   async deletePostByAdmin(
@@ -1237,95 +1213,95 @@ export class PostRepository implements IPostRepository {
     userIds: string[],
     cursor?: string,
     limit: number = 10
-): Promise<PostsListResponseDto> {
+  ): Promise<PostsListResponseDto> {
     const validUserIds = userIds
-        .filter(id => Types.ObjectId.isValid(id))
-        .map(id => new Types.ObjectId(id));
+      .filter(id => Types.ObjectId.isValid(id))
+      .map(id => new Types.ObjectId(id));
 
     if (validUserIds.length === 0) {
-        return {
-            posts: [],
-            nextCursor: undefined,
-            hasMore: false
-        };
+      return {
+        posts: [],
+        nextCursor: undefined,
+        hasMore: false
+      };
     }
 
-    const query: any = { 
-        author: { $in: validUserIds },
-        isDeleted: false 
+    const query: any = {
+      author: { $in: validUserIds },
+      isDeleted: false
     };
 
     // If cursor provided, only get posts created before it
     if (cursor && Types.ObjectId.isValid(cursor)) {
-        query._id = { $lt: new Types.ObjectId(cursor) };
+      query._id = { $lt: new Types.ObjectId(cursor) };
     }
 
     // Fetch posts sorted by creation date (newest first)
     const posts = await PostModel.find(query)
-        .populate("author", "_id username name profilePic community.isVerified")
-        .sort({ _id: -1 })
-        .limit(limit + 1) // +1 to check for hasMore
-        .lean()
-        .exec();
+      .populate("author", "_id username name profilePic community.isVerified")
+      .sort({ _id: -1 })
+      .limit(limit + 1) // +1 to check for hasMore
+      .lean()
+      .exec();
 
     const hasMore = posts.length > limit;
     const finalPosts = posts.slice(0, limit);
-    
+
     // Transform IPost to PostResponseDto with proper type assertion
     const transformedPosts: PostResponseDto[] = finalPosts.map((post: any) => {
-        // Type assertion for populated author
-        const author = post.author as {
-            _id: Types.ObjectId;
-            username: string;
-            name: string;
-            profilePic: string;
-            community?: { isVerified: boolean };
-        };
+      // Type assertion for populated author
+      const author = post.author as {
+        _id: Types.ObjectId;
+        username: string;
+        name: string;
+        profilePic: string;
+        community?: { isVerified: boolean };
+      };
 
-        return {
-            _id: post._id.toString(),
-            author: {
-                _id: author._id.toString(),
-                username: author.username,
-                name: author.name,
-                profilePic: author.profilePic,
-                isVerified: author.community?.isVerified || false
-            },
-            content: post.content,
-            mediaUrls: post.mediaUrls || [],
-            mediaType: post.mediaType,
-            hashtags: post.hashtags || [],
-            mentions: post.mentions || [],
-            likesCount: post.likesCount || 0,
-            commentsCount: post.commentsCount || 0,
-            sharesCount: post.sharesCount || 0,
-            // Default values for required fields (can be overridden in service layer)
-            isLiked: false,
-            isOwnPost: false,
-            createdAt: post.createdAt,
-            updatedAt: post.updatedAt,
-            editedAt: post.editedAt
-        };
+      return {
+        _id: post._id.toString(),
+        author: {
+          _id: author._id.toString(),
+          username: author.username,
+          name: author.name,
+          profilePic: author.profilePic,
+          isVerified: author.community?.isVerified || false
+        },
+        content: post.content,
+        mediaUrls: post.mediaUrls || [],
+        mediaType: post.mediaType,
+        hashtags: post.hashtags || [],
+        mentions: post.mentions || [],
+        likesCount: post.likesCount || 0,
+        commentsCount: post.commentsCount || 0,
+        sharesCount: post.sharesCount || 0,
+        // Default values for required fields (can be overridden in service layer)
+        isLiked: false,
+        isOwnPost: false,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        editedAt: post.editedAt
+      };
     });
 
     const nextCursor = hasMore && finalPosts.length > 0
-        ? finalPosts[finalPosts.length - 1]._id.toString()
-        : undefined;
+      ? finalPosts[finalPosts.length - 1]._id.toString()
+      : undefined;
 
     return {
-        posts: transformedPosts,
-        nextCursor,
-        hasMore
+      posts: transformedPosts,
+      nextCursor,
+      hasMore
     };
-}
+  }
 
-    /**
-     * Count total number of posts across multiple users.
-     */
-    async getPostCountByUsers(userIds: string[]): Promise<number> {
-        const count = await PostModel.countDocuments({ author: { $in: userIds } });
-        return count;
-    }
+  /**
+   * Count total number of posts across multiple users.
+   */
+  async getPostCountByUsers(userIds: string[]): Promise<number> {
+    const count = await PostModel.countDocuments({ author: { $in: userIds } });
+    return count;
+  }
 
 
 }
