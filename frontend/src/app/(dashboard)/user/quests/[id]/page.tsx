@@ -10,30 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  ArrowLeft,
-  Users,
-  Trophy,
-  Calendar,
-  Target,
-  Clock,
-  Coins,
-  Award,
-  CheckCircle,
-  Upload,
-  Link,
-  Image as ImageIcon,
-  Twitter,
-  Wallet,
-  Crown,
-  Star,
-  TrendingUp,
-  Copy,
-  ExternalLink,
-  Loader2,
-  AlertCircle,
-  Info
-} from 'lucide-react';
+import { ArrowLeft, Users, Trophy, Calendar, Target, Clock, Coins, Award, CircleCheck as CheckCircle, Upload, Link, Image as ImageIcon, Twitter, Wallet, Crown, Star, TrendingUp, Copy, ExternalLink, Loader as Loader2, CircleAlert as AlertCircle, Info } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { userQuestApiService } from '@/services/quests/userQuestApiService';
 import Navbar from '@/components/home/navbar';
@@ -407,8 +384,8 @@ export default function QuestDetailPage() {
         </div>
 
         {/* Quest Hero */}
-        <div className="relative">
-          {quest.bannerImage && (
+        <div className="space-y-6">
+          {quest.bannerImage ? (
             <div className="w-full h-80 rounded-2xl overflow-hidden relative">
               <img
                 src={quest.bannerImage}
@@ -455,52 +432,135 @@ export default function QuestDetailPage() {
                     )}
                   </div>
 
-                  {/* Join/Status Button */}
-                  <div className="flex flex-col items-end gap-3">
-                    {participationStatus?.isParticipating ? (
-                      <div className="text-right">
-                        <p className="text-white font-medium">Progress: {progress.toFixed(0)}%</p>
-                        <div className="w-48 bg-gray-700 rounded-full h-3 mt-2">
-                          <div
-                            className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-300"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
+                  {/* Progress indicator for participating users */}
+                  {participationStatus?.isParticipating && (
+                    <div className="text-right">
+                      <p className="text-white font-medium">Progress: {progress.toFixed(0)}%</p>
+                      <div className="w-48 bg-gray-700 rounded-full h-3 mt-2">
+                        <div
+                          className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        />
                       </div>
-                    ) : (
-                      isQuestActive() && (
-                        <div className="space-y-2">
-                          {quest.rewardPool.rewardType === 'token' && (
-                            <Input
-                              placeholder="Wallet address (optional)"
-                              value={walletAddress}
-                              onChange={(e) => setWalletAddress(e.target.value)}
-                              className="bg-black/50 border-gray-600 text-white w-64"
-                            />
-                          )}
-                          <Button
-                            onClick={handleJoinQuest}
-                            disabled={joining || quest.totalParticipants >= quest.participantLimit}
-                            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white w-64"
-                          >
-                            {joining ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Joining...
-                              </>
-                            ) : quest.totalParticipants >= quest.participantLimit ? (
-                              'Quest Full'
-                            ) : (
-                              'Join Quest'
-                            )}
-                          </Button>
-                        </div>
-                      )
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
+          ) : (
+            // No banner image - show quest info in a card
+            <Card className="bg-black/40 backdrop-blur-xl border-purple-800/30">
+              <CardContent className="p-8">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Badge className={`${getStatusColor(quest.status)} text-white`}>
+                      {quest.status}
+                    </Badge>
+                    {quest.isAIGenerated && (
+                      <Badge variant="outline" className="border-blue-500 text-blue-400 bg-blue-950/30">
+                        AI Generated
+                      </Badge>
+                    )}
+                    {participationStatus?.isParticipating && (
+                      <Badge className="bg-green-600 text-white">
+                        Joined
+                      </Badge>
+                    )}
+                  </div>
+
+                  <h1 className="text-4xl font-bold text-white">{quest.title}</h1>
+                  <p className="text-gray-300 text-lg">{quest.description}</p>
+
+                  {quest.community && (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={quest.community.logo}
+                        alt={quest.community.communityName}
+                        className="w-10 h-10 rounded-full border-2 border-purple-600/50"
+                      />
+                      <div>
+                        <p className="text-white font-medium">{quest.community.communityName}</p>
+                        <p className="text-gray-400 text-sm">@{quest.community.username}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Progress indicator for participating users */}
+                  {participationStatus?.isParticipating && (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-400">Your Progress</span>
+                        <span className="text-white font-medium">{progress.toFixed(0)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-3">
+                        <div
+                          className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Join Quest Section - Always visible unless already joined */}
+          {!participationStatus?.isParticipating && (
+            <Card className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-purple-600/50 backdrop-blur-xl">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-white mb-2">Join this Quest</h3>
+                    <p className="text-gray-300">
+                      {quest.status === 'active' 
+                        ? `Join ${quest.totalParticipants.toLocaleString()} other participants and compete for rewards!`
+                        : quest.status === 'ended'
+                        ? 'This quest has ended, but you can still view the details.'
+                        : quest.status === 'draft'
+                        ? 'This quest is still in draft mode.'
+                        : 'This quest is not currently active.'
+                      }
+                    </p>
+                    {quest.totalParticipants >= quest.participantLimit && (
+                      <p className="text-red-400 text-sm mt-1">
+                        ⚠️ Quest is full ({quest.totalParticipants}/{quest.participantLimit} participants)
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col gap-3 min-w-[280px]">
+                    {quest.rewardPool.rewardType === 'token' && (
+                      <Input
+                        placeholder="Wallet address (optional)"
+                        value={walletAddress}
+                        onChange={(e) => setWalletAddress(e.target.value)}
+                        className="bg-black/50 border-gray-600 text-white"
+                      />
+                    )}
+                    <Button
+                      onClick={handleJoinQuest}
+                      disabled={joining || quest.totalParticipants >= quest.participantLimit || !user}
+                      className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white py-3 px-8"
+                      size="lg"
+                    >
+                      {joining ? (
+                        <>
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          Joining...
+                        </>
+                      ) : !user ? (
+                        'Login to Join'
+                      ) : quest.totalParticipants >= quest.participantLimit ? (
+                        'Quest Full'
+                      ) : (
+                        'Join Quest Now'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
 
