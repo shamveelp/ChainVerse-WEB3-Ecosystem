@@ -2,7 +2,6 @@ import { IsString, IsNumber, IsEnum, IsBoolean, IsArray, IsOptional, IsDate, Val
 import { Type, Transform } from "class-transformer";
 import { BaseResponseDto } from "../base/BaseResponse.dto";
 
-
 export class RewardPoolDto {
   @IsNumber()
   @Min(0)
@@ -76,8 +75,41 @@ export class TaskConfigDto {
   @IsEnum(['text', 'image', 'link'])
   @IsOptional()
   proofType?: 'text' | 'image' | 'link';
+
+  @IsString()
+  @IsOptional()
+  websiteUrl?: string;
 }
 
+// Quest Task DTO
+export class QuestTaskDto {
+  @IsString()
+  title!: string;
+
+  @IsString()
+  description!: string;
+
+  @IsEnum(['join_community', 'follow_user', 'twitter_post', 'upload_screenshot', 'nft_mint', 'token_hold', 'wallet_connect', 'custom'])
+  taskType!: 'join_community' | 'follow_user' | 'twitter_post' | 'upload_screenshot' | 'nft_mint' | 'token_hold' | 'wallet_connect' | 'custom';
+
+  @IsBoolean()
+  @IsOptional()
+  isRequired?: boolean;
+
+  @IsNumber()
+  order!: number;
+
+  @IsNumber()
+  @Min(1)
+  @Max(10)
+  @IsOptional()
+  privilegePoints?: number; // New field for leaderboard scoring
+
+  @ValidateNested()
+  @Type(() => TaskConfigDto)
+  @IsOptional()
+  config?: TaskConfigDto;
+}
 
 // Create Quest DTO
 export class CreateQuestDto {
@@ -99,8 +131,8 @@ export class CreateQuestDto {
   @IsDate()
   endDate!: Date;
 
-  @IsEnum(['fcfs', 'random'])
-  selectionMethod!: 'fcfs' | 'random';
+  @IsEnum(['fcfs', 'random', 'leaderboard'])
+  selectionMethod!: 'fcfs' | 'random' | 'leaderboard';
 
   @IsNumber()
   @Min(1)
@@ -148,9 +180,9 @@ export class UpdateQuestDto {
   @IsOptional()
   endDate?: Date;
 
-  @IsEnum(['fcfs', 'random'])
+  @IsEnum(['fcfs', 'random', 'leaderboard'])
   @IsOptional()
-  selectionMethod?: 'fcfs' | 'random';
+  selectionMethod?: 'fcfs' | 'random' | 'leaderboard';
 
   @IsNumber()
   @Min(1)
@@ -172,35 +204,6 @@ export class UpdateQuestDto {
   @IsOptional()
   status?: 'draft' | 'active' | 'ended' | 'cancelled';
 }
-
-// Reward Pool DTO
-
-// Quest Task DTO
-export class QuestTaskDto {
-  @IsString()
-  title!: string;
-
-  @IsString()
-  description!: string;
-
-  @IsEnum(['join_community', 'follow_user', 'twitter_post', 'upload_screenshot', 'nft_mint', 'token_hold', 'wallet_connect', 'custom'])
-  taskType!: 'join_community' | 'follow_user' | 'twitter_post' | 'upload_screenshot' | 'nft_mint' | 'token_hold' | 'wallet_connect' | 'custom';
-
-  @IsBoolean()
-  @IsOptional()
-  isRequired?: boolean;
-
-  @IsNumber()
-  order!: number;
-
-  @ValidateNested()
-  @Type(() => TaskConfigDto)
-  @IsOptional()
-  config?: TaskConfigDto;
-}
-
-// Task Configuration DTO
-
 
 // Get Quests Query DTO
 export class GetQuestsQueryDto {
@@ -283,9 +286,9 @@ export class SelectWinnersDto {
   @IsString()
   questId!: string;
 
-  @IsEnum(['fcfs', 'random'])
+  @IsEnum(['fcfs', 'random', 'leaderboard'])
   @IsOptional()
-  method?: 'fcfs' | 'random';
+  method?: 'fcfs' | 'random' | 'leaderboard';
 }
 
 // Response DTOs
@@ -304,6 +307,7 @@ export class QuestResponseDto extends BaseResponseDto {
   totalParticipants: number;
   totalSubmissions: number;
   winnersSelected: boolean;
+  rewardsDistributed: boolean;
   isAIGenerated?: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -325,6 +329,7 @@ export class QuestResponseDto extends BaseResponseDto {
     this.totalParticipants = quest.totalParticipants;
     this.totalSubmissions = quest.totalSubmissions;
     this.winnersSelected = quest.winnersSelected;
+    this.rewardsDistributed = quest.rewardsDistributed || false;
     this.isAIGenerated = quest.isAIGenerated;
     this.createdAt = quest.createdAt;
     this.updatedAt = quest.updatedAt;
@@ -336,6 +341,7 @@ export class QuestStatsResponseDto extends BaseResponseDto {
   activeQuests: number;
   endedQuests: number;
   totalParticipants: number;
+  totalRewardsDistributed: number;
 
   constructor(stats: any) {
     super(true, "Quest stats retrieved successfully");
@@ -343,5 +349,6 @@ export class QuestStatsResponseDto extends BaseResponseDto {
     this.activeQuests = stats.activeQuests;
     this.endedQuests = stats.endedQuests;
     this.totalParticipants = stats.totalParticipants;
+    this.totalRewardsDistributed = stats.totalRewardsDistributed || 0;
   }
 }

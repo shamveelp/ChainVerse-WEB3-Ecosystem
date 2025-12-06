@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Trophy, Plus, Users, Clock, Target, BookOpen, TrendingUp, Eye, CreditCard as Edit, Trash2, Play, Square, Search, Filter, Calendar, Coins, Award, MoreVertical } from 'lucide-react';
+import { Trophy, Plus, Users, Clock, Target, TrendingUp, Eye, CreditCard as Edit, Trash2, Play, Square, Search, Filter, Calendar, Coins, Award, MoreVertical, Crown, DollarSign } from 'lucide-react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
 import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
@@ -28,7 +28,7 @@ interface Quest {
   bannerImage?: string;
   startDate: Date;
   endDate: Date;
-  selectionMethod: 'fcfs' | 'random';
+  selectionMethod: 'fcfs' | 'random' | 'leaderboard';
   participantLimit: number;
   rewardPool: {
     amount: number;
@@ -40,6 +40,7 @@ interface Quest {
   totalParticipants: number;
   totalSubmissions: number;
   winnersSelected: boolean;
+  rewardsDistributed: boolean;
   isAIGenerated?: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -50,6 +51,7 @@ interface QuestStats {
   activeQuests: number;
   endedQuests: number;
   totalParticipants: number;
+  totalRewardsDistributed: number;
 }
 
 export default function QuestsPage() {
@@ -64,7 +66,7 @@ export default function QuestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  
+
   // Confirmation dialogs
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; questId: string; questTitle: string }>({
     open: false,
@@ -115,6 +117,12 @@ export default function QuestsPage() {
       if (response.success && response.data) {
         setQuests(response.data.quests || response.data.items || []);
         setTotalPages(response.data.pagination.pages);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: response.error || "Failed to fetch quests",
+        });
       }
     } catch (error) {
       toast({
@@ -132,6 +140,8 @@ export default function QuestsPage() {
       const response = await communityAdminQuestApiService.getCommunityQuestStats();
       if (response.success && response.data) {
         setStats(response.data);
+      } else if (response.error) {
+        console.error("Failed to fetch stats:", response.error);
       }
     } catch (error) {
       console.error("Failed to fetch stats:", error);
@@ -144,8 +154,8 @@ export default function QuestsPage() {
       const response = await communityAdminQuestApiService.deleteQuest(questId);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Quest deleted successfully",
+          title: "Success! 🗑️",
+          description: response.message || "Quest deleted successfully",
         });
         fetchQuests();
         fetchStats();
@@ -170,8 +180,8 @@ export default function QuestsPage() {
       const response = await communityAdminQuestApiService.startQuest(questId);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Quest started successfully",
+          title: "Success! 🚀",
+          description: response.message || "Quest started successfully",
         });
         fetchQuests();
         fetchStats();
@@ -196,8 +206,8 @@ export default function QuestsPage() {
       const response = await communityAdminQuestApiService.endQuest(questId);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Quest ended successfully",
+          title: "Success! 🏁",
+          description: response.message || "Quest ended successfully",
         });
         fetchQuests();
         fetchStats();
@@ -223,6 +233,19 @@ export default function QuestsPage() {
       case "draft": return "bg-yellow-600";
       case "cancelled": return "bg-red-600";
       default: return "bg-gray-600";
+    }
+  };
+
+  const getSelectionMethodBadge = (method: string) => {
+    switch (method) {
+      case 'fcfs':
+        return <Badge variant="outline" className="text-blue-400 border-blue-500">First Come First Serve</Badge>;
+      case 'random':
+        return <Badge variant="outline" className="text-green-400 border-green-500">Random Selection</Badge>;
+      case 'leaderboard':
+        return <Badge variant="outline" className="text-purple-400 border-purple-500">Leaderboard</Badge>;
+      default:
+        return <Badge variant="outline" className="text-gray-400 border-gray-500">{method}</Badge>;
     }
   };
 
@@ -263,9 +286,9 @@ export default function QuestsPage() {
           </Button>
         </div>
 
-        {/* Stats Cards */}
+        {/* Enhanced Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
@@ -321,6 +344,20 @@ export default function QuestsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-yellow-600 to-yellow-800 rounded-lg flex items-center justify-center">
+                    <DollarSign className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Rewards Distributed</p>
+                    <p className="text-2xl font-bold text-white">{stats.totalRewardsDistributed}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
@@ -331,7 +368,7 @@ export default function QuestsPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search quests..."
+                  placeholder="Search quests by title or description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && fetchQuests()}
@@ -429,7 +466,7 @@ export default function QuestsPage() {
                         {/* Quest Header */}
                         <div className="flex items-start justify-between">
                           <div className="space-y-2 flex-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <h3 className="text-lg font-semibold text-white truncate">{quest.title}</h3>
                               {quest.isAIGenerated && (
                                 <Badge variant="outline" className="text-xs border-blue-500 text-blue-400">
@@ -438,6 +475,9 @@ export default function QuestsPage() {
                               )}
                             </div>
                             <p className="text-gray-400 text-sm line-clamp-2">{quest.description}</p>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {getSelectionMethodBadge(quest.selectionMethod)}
+                            </div>
                           </div>
                           <div className="flex items-center gap-2 ml-2">
                             <Badge className={`${getStatusColor(quest.status)} text-white`}>
@@ -530,6 +570,22 @@ export default function QuestsPage() {
                           </div>
                         </div>
 
+                        {/* Enhanced Status Indicators */}
+                        <div className="space-y-2">
+                          {quest.winnersSelected && (
+                            <div className="flex items-center gap-2 text-green-400 text-sm">
+                              <Crown className="h-4 w-4" />
+                              <span>Winners Selected</span>
+                            </div>
+                          )}
+                          {quest.rewardsDistributed && (
+                            <div className="flex items-center gap-2 text-blue-400 text-sm">
+                              <DollarSign className="h-4 w-4" />
+                              <span>Rewards Distributed</span>
+                            </div>
+                          )}
+                        </div>
+
                         {/* Progress for active quests */}
                         {quest.status === 'active' && (
                           <div className="space-y-2">
@@ -583,6 +639,17 @@ export default function QuestsPage() {
                               Select Winners
                             </Button>
                           )}
+                          {quest.status === 'ended' && quest.winnersSelected && !quest.rewardsDistributed && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 border-blue-600/50 text-blue-400 hover:bg-blue-950/30"
+                              onClick={() => router.push(`/comms-admin/quests/${quest._id}`)}
+                            >
+                              <DollarSign className="h-4 w-4 mr-2" />
+                              Distribute
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -618,12 +685,12 @@ export default function QuestsPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Confirmation Dialogs */}
+        {/* Enhanced Confirmation Dialogs */}
         <ConfirmationDialog
           isOpen={deleteDialog.open}
           onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
           title="Delete Quest"
-          description={`Are you sure you want to delete "${deleteDialog.questTitle}"? This action cannot be undone.`}
+          description={`Are you sure you want to delete "${deleteDialog.questTitle}"? This action cannot be undone and will permanently remove all quest data, participants, and submissions.`}
           confirmText="Delete Quest"
           cancelText="Cancel"
           onConfirm={() => handleDeleteQuest(deleteDialog.questId)}
@@ -635,7 +702,7 @@ export default function QuestsPage() {
           isOpen={startDialog.open}
           onOpenChange={(open) => setStartDialog({ ...startDialog, open })}
           title="Start Quest"
-          description={`Are you sure you want to start "${startDialog.questTitle}"? Once started, participants can begin joining and completing tasks.`}
+          description={`Are you sure you want to start "${startDialog.questTitle}"? Once started, participants can begin joining and completing tasks. You cannot edit the quest after starting.`}
           confirmText="Start Quest"
           cancelText="Cancel"
           onConfirm={() => handleStartQuest(startDialog.questId)}

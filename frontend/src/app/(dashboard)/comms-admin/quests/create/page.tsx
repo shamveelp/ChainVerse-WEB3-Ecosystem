@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import {
   Bot, Plus, Trash2, Calendar, Users, Trophy, Target, ArrowLeft, Sparkles,
-  Upload, Save, Loader2, Check, X, Wand2, Zap, AlertTriangle
+  Upload, Save, Loader2, Check, X, Wand2, Zap, AlertTriangle, Crown
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
@@ -47,6 +47,7 @@ interface QuestTask {
   taskType: TaskType;
   isRequired: boolean;
   order: number;
+  privilegePoints: number; // New field for leaderboard
   config: TaskConfig;
 }
 
@@ -56,7 +57,7 @@ interface CreateQuestData {
   bannerImage?: string;
   startDate: Date;
   endDate: Date;
-  selectionMethod: 'fcfs' | 'random';
+  selectionMethod: 'fcfs' | 'random' | 'leaderboard';
   participantLimit: number;
   rewardPool: {
     amount: number;
@@ -87,9 +88,15 @@ const rewardTypes = [
   { value: 'custom', label: 'Custom Reward', available: true }
 ];
 
+const selectionMethods = [
+  { value: 'random', label: 'Random Selection', description: 'Winners are selected randomly from completed participants' },
+  { value: 'fcfs', label: 'First Come, First Served', description: 'Winners are selected based on completion order' },
+  { value: 'leaderboard', label: 'Leaderboard Ranking', description: 'Winners are selected based on privilege points earned' }
+];
+
 export default function CreateQuestPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("ai");
+  const [activeTab, setActiveTab] = useState("manual"); // Start with manual for better UX
   const [loading, setLoading] = useState(false);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string>("");
@@ -175,6 +182,13 @@ export default function CreateQuestPage() {
         newErrors[`task_${index}_description`] = `Task ${index + 1} description is required`;
       }
 
+      // Validate privilege points for leaderboard method
+      if (questData.selectionMethod === 'leaderboard') {
+        if (!task.privilegePoints || task.privilegePoints < 1 || task.privilegePoints > 10) {
+          newErrors[`task_${index}_privilege`] = `Task ${index + 1} privilege points must be between 1-10`;
+        }
+      }
+
       // Task-specific validation
       switch (task.taskType) {
         case 'join_community':
@@ -218,18 +232,19 @@ export default function CreateQuestPage() {
       tasks: aiQuestData.tasks.map((task, index) => ({
         ...task,
         order: index + 1,
+        privilegePoints: task.privilegePoints || 1,
         config: { ...getDefaultTaskConfig(task.taskType), ...(task.config || {}) }
       }))
     });
-    
+
     if ((aiQuestData as any).bannerFile) {
       setBannerFile((aiQuestData as any).bannerFile);
     }
-    
+
     setActiveTab("manual");
     toast({
       title: "Quest Generated! ✨",
-      description: "AI-generated quest has been loaded. You can review and modify it.",
+      description: "AI-generated quest has been loaded. You can review and modify it before creating.",
     });
   };
 
@@ -240,6 +255,7 @@ export default function CreateQuestPage() {
       taskType: 'join_community',
       isRequired: true,
       order: questData.tasks.length + 1,
+      privilegePoints: 1, // Default privilege points
       config: getDefaultTaskConfig('join_community')
     };
     setQuestData(prev => ({
@@ -310,13 +326,14 @@ export default function CreateQuestPage() {
       const response = await communityAdminQuestApiService.createQuest(questData);
 
       if (response.success && response.data) {
+        // Upload banner if provided
         if (bannerFile) {
           await communityAdminQuestApiService.uploadQuestBanner(response.data._id, bannerFile);
         }
 
         toast({
-          title: "Success! 🎉",
-          description: "Quest created successfully",
+          title: response.message || "Success! 🎉",
+          description: "Quest created successfully. You can now review and start it when ready.",
         });
         router.push('/comms-admin/quests');
       } else {
@@ -356,26 +373,21 @@ export default function CreateQuestPage() {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
               Create New Quest
             </h1>
-            <p className="text-gray-400 mt-2">Design engaging quests to grow your community</p>
+            <p className="text-gray-400 mt-2">Design engaging quests to grow your community and reward participants</p>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 bg-black/60 backdrop-blur-xl border border-purple-800/30">
-            <TabsTrigger value="ai" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white">
-              <Sparkles className="h-4 w-4 mr-2" />
-              AI Assistant
-            </TabsTrigger>
             <TabsTrigger value="manual" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white">
               <Trophy className="h-4 w-4 mr-2" />
               Manual Creation
             </TabsTrigger>
+            <TabsTrigger value="ai" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white">
+              <Sparkles className="h-4 w-4 mr-2" />
+              AI Assistant
+            </TabsTrigger>
           </TabsList>
-
-          {/* AI Assistant Tab */}
-          <TabsContent value="ai" className="min-h-[600px]">
-            <AIQuestChat onQuestGenerated={handleAIQuestGenerated} />
-          </TabsContent>
 
           {/* Manual Creation Tab */}
           <TabsContent value="manual" className="space-y-6">
@@ -492,19 +504,33 @@ export default function CreateQuestPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Selection Method</Label>
+                    <Label>Winner Selection Method *</Label>
                     <Select
                       value={questData.selectionMethod}
-                      onValueChange={(value: 'fcfs' | 'random') => setQuestData(prev => ({ ...prev, selectionMethod: value }))}
+                      onValueChange={(value: 'fcfs' | 'random' | 'leaderboard') => setQuestData(prev => ({ ...prev, selectionMethod: value }))}
                     >
                       <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-gray-800 border-gray-600">
-                        <SelectItem value="fcfs">First Come, First Served</SelectItem>
-                        <SelectItem value="random">Random Selection</SelectItem>
+                        {selectionMethods.map(method => (
+                          <SelectItem key={method.value} value={method.value}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{method.label}</span>
+                              <span className="text-xs text-gray-400">{method.description}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
+                    {questData.selectionMethod === 'leaderboard' && (
+                      <div className="mt-2 p-3 bg-purple-950/30 border border-purple-600/30 rounded-lg">
+                        <div className="flex items-center gap-2 text-purple-400 text-sm">
+                          <Crown className="h-4 w-4" />
+                          <span>Leaderboard Mode: Assign privilege points (1-10) to each task for ranking</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Banner Upload */}
@@ -539,8 +565,8 @@ export default function CreateQuestPage() {
                       value={questData.rewardPool.rewardType}
                       onValueChange={(value: any) => setQuestData(prev => ({
                         ...prev,
-                        rewardPool: { 
-                          ...prev.rewardPool, 
+                        rewardPool: {
+                          ...prev.rewardPool,
                           rewardType: value,
                           currency: value === 'points' ? 'POINTS' : prev.rewardPool.currency
                         }
@@ -551,8 +577,8 @@ export default function CreateQuestPage() {
                       </SelectTrigger>
                       <SelectContent className="bg-gray-800 border-gray-600">
                         {rewardTypes.map(type => (
-                          <SelectItem 
-                            key={type.value} 
+                          <SelectItem
+                            key={type.value}
                             value={type.value}
                             disabled={!type.available}
                           >
@@ -560,7 +586,7 @@ export default function CreateQuestPage() {
                               {type.label}
                               {!type.available && (
                                 <Badge variant="outline" className="text-xs border-gray-500 text-gray-400">
-                                  Soon
+                                  Coming Soon
                                 </Badge>
                               )}
                             </div>
@@ -726,13 +752,16 @@ export default function CreateQuestPage() {
                                 </SelectTrigger>
                                 <SelectContent className="bg-gray-800 border-gray-600">
                                   {taskTypes.map(type => (
-                                    <SelectItem 
-                                      key={type.value} 
+                                    <SelectItem
+                                      key={type.value}
                                       value={type.value}
                                       disabled={!type.available}
                                     >
                                       <div className="flex items-center justify-between w-full">
-                                        <span>{type.label}</span>
+                                        <div>
+                                          <div className="font-medium">{type.label}</div>
+                                          <div className="text-xs text-gray-400">{type.description}</div>
+                                        </div>
                                         {!type.available && (
                                           <Badge variant="outline" className="text-xs border-gray-500 text-gray-400 ml-2">
                                             Soon
@@ -770,13 +799,41 @@ export default function CreateQuestPage() {
                             )}
                           </div>
 
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id={`required-${index}`}
-                              checked={task.isRequired}
-                              onCheckedChange={(checked) => updateTask(index, 'isRequired', checked)}
-                            />
-                            <Label htmlFor={`required-${index}`}>Required task</Label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                id={`required-${index}`}
+                                checked={task.isRequired}
+                                onCheckedChange={(checked) => updateTask(index, 'isRequired', checked)}
+                              />
+                              <Label htmlFor={`required-${index}`}>Required task</Label>
+                            </div>
+                            {questData.selectionMethod === 'leaderboard' && (
+                              <div className="space-y-2">
+                                <Label>Privilege Points (1-10)</Label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="10"
+                                  value={task.privilegePoints}
+                                  onChange={(e) => {
+                                    updateTask(index, 'privilegePoints', parseInt(e.target.value) || 1);
+                                    if (errors[`task_${index}_privilege`]) {
+                                      setErrors(prev => ({ ...prev, [`task_${index}_privilege`]: '' }));
+                                    }
+                                  }}
+                                  className={`bg-gray-700 border-gray-600 text-white ${
+                                    errors[`task_${index}_privilege`] ? 'border-red-500' : ''
+                                  }`}
+                                />
+                                {errors[`task_${index}_privilege`] && (
+                                  <p className="text-red-400 text-xs flex items-center gap-1">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    {errors[`task_${index}_privilege`]}
+                                  </p>
+                                )}
+                              </div>
+                            )}
                           </div>
 
                           {/* Task Configuration */}
@@ -790,7 +847,7 @@ export default function CreateQuestPage() {
 
                           {/* Display task-specific errors */}
                           {Object.entries(errors)
-                            .filter(([key]) => key.startsWith(`task_${index}_`))
+                            .filter(([key]) => key.startsWith(`task_${index}_`) && !key.includes('title') && !key.includes('description') && !key.includes('privilege'))
                             .map(([key, error]) => (
                               <p key={key} className="text-red-400 text-xs flex items-center gap-1">
                                 <AlertTriangle className="h-3 w-3" />
@@ -832,6 +889,11 @@ export default function CreateQuestPage() {
                 )}
               </Button>
             </div>
+          </TabsContent>
+
+          {/* AI Assistant Tab */}
+          <TabsContent value="ai" className="min-h-[600px]">
+            <AIQuestChat onQuestGenerated={handleAIQuestGenerated} />
           </TabsContent>
         </Tabs>
       </div>

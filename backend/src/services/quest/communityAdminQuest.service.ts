@@ -48,7 +48,8 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
         status: 'draft' as const,
         totalParticipants: 0,
         totalSubmissions: 0,
-        winnersSelected: false
+        winnersSelected: false,
+        rewardsDistributed: false
       };
 
       const quest = await this._questRepository.createQuest(questData);
@@ -57,11 +58,12 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       if (createDto.tasks && createDto.tasks.length > 0) {
         for (const taskDto of createDto.tasks) {
           this.validateTaskData(taskDto);
-          
+
           const taskData = {
             ...taskDto,
             questId: quest._id,
-            completedBy: 0
+            completedBy: 0,
+            privilegePoints: taskDto.privilegePoints || 1 // Default to 1 if not specified
           };
           await this._questRepository.createQuestTask(taskData as Partial<IQuestTask>);
         }
@@ -124,9 +126,29 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       throw new CustomError("Reward currency is required", StatusCode.BAD_REQUEST);
     }
 
+    // Only allow points rewards for now
+    if (createDto.rewardPool.rewardType !== 'points') {
+      throw new CustomError("Only points rewards are supported currently", StatusCode.BAD_REQUEST);
+    }
+
     // Tasks validation
     if (!createDto.tasks || createDto.tasks.length === 0) {
       throw new CustomError("At least one task is required", StatusCode.BAD_REQUEST);
+    }
+
+    // Selection method validation
+    const validMethods = ['fcfs', 'random', 'leaderboard'];
+    if (!validMethods.includes(createDto.selectionMethod)) {
+      throw new CustomError("Invalid selection method", StatusCode.BAD_REQUEST);
+    }
+
+    // If leaderboard method, validate privilege points
+    if (createDto.selectionMethod === 'leaderboard') {
+      for (const task of createDto.tasks) {
+        if (!task.privilegePoints || task.privilegePoints < 1 || task.privilegePoints > 10) {
+          throw new CustomError("Privilege points must be between 1-10 for leaderboard selection", StatusCode.BAD_REQUEST);
+        }
+      }
     }
   }
 
@@ -136,6 +158,13 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     }
     if (!taskDto.description || taskDto.description.trim().length === 0) {
       throw new CustomError("Task description is required", StatusCode.BAD_REQUEST);
+    }
+
+    // Privilege points validation
+    if (taskDto.privilegePoints !== undefined) {
+      if (taskDto.privilegePoints < 1 || taskDto.privilegePoints > 10) {
+        throw new CustomError("Privilege points must be between 1-10", StatusCode.BAD_REQUEST);
+      }
     }
 
     // Task-specific validation
@@ -274,6 +303,11 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
         }
       }
 
+      // Only allow points rewards
+      if (updateDto.rewardPool && updateDto.rewardPool.rewardType && updateDto.rewardPool.rewardType !== 'points') {
+        throw new CustomError("Only points rewards are supported currently", StatusCode.BAD_REQUEST);
+      }
+
       const updatedQuest = await this._questRepository.updateQuest(questId, updateDto);
       if (!updatedQuest) {
         throw new CustomError("Failed to update quest", StatusCode.INTERNAL_SERVER_ERROR);
@@ -357,10 +391,11 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
         1. A compelling title (max 200 characters)
         2. An engaging description (max 2000 characters)
         3. Appropriate start and end dates (start: 2 days from now, duration: 7 days)
-        4. Selection method (fcfs or random)
+        4. Selection method (fcfs, random, or leaderboard)
         5. Participant limit (winners)
         6. Reward pool with appropriate currency and type (only use 'points' for rewardType)
         7. 3-5 relevant tasks with proper task types and configurations
+        8. If using leaderboard selection, assign privilege points (1-10) to each task
 
         Available task types: join_community, follow_user, twitter_post, upload_screenshot, wallet_connect, custom
 
@@ -392,6 +427,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
               "taskType": "join_community",
               "isRequired": true,
               "order": 1,
+              "privilegePoints": 2,
               "config": {
                 "requiresProof": true,
                 "proofType": "image"
@@ -434,7 +470,11 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
             rewardType: 'points',
             customReward: questData.rewardPool?.customReward
           },
-          tasks: questData.tasks || [],
+          tasks: questData.tasks ? questData.tasks.map((task: any, index: number) => ({
+            ...task,
+            order: index + 1,
+            privilegePoints: task.privilegePoints || 1
+          })) : [],
           isAIGenerated: true,
           aiPrompt: aiDto.prompt
         };
@@ -451,96 +491,6 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     } catch (error) {
       logger.error("Generate AI quest error:", error);
       throw error instanceof CustomError ? error : new CustomError("Failed to generate quest with AI", StatusCode.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  // Chat with AI for interactive quest creation
-  async chatWithAI(communityAdminId: string, message: string, history: any[] = []): Promise<{
-    response: string;
-    questGenerated?: boolean;
-    questData?: CreateQuestDto;
-    needsInput?: any[];
-  }> {
-    try {
-      const admin = await this._adminRepository.findById(communityAdminId);
-      if (!admin || !admin.communityId) {
-        throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
-      }
-
-      const community = await this._communityRepository.findById(admin.communityId.toString());
-      if (!community) {
-        throw new CustomError("Community not found", StatusCode.NOT_FOUND);
-      }
-
-      const systemPrompt = `
-        You are an expert quest designer for Web3 communities. You help community admins create engaging quests.
-        
-        Current Community: ${community.communityName}
-        Community Description: ${community.description}
-        
-        Available task types: join_community, follow_user, twitter_post, upload_screenshot, wallet_connect, custom
-        
-        Your role:
-        1. Ask relevant questions to understand their quest goals
-        2. Suggest appropriate task types and configurations
-        3. When you have enough information, generate a complete quest
-        4. Be friendly, helpful, and guide them through the process
-        
-        Guidelines:
-        - Only use 'points' for reward type (others are coming soon)
-        - Keep titles under 200 characters
-        - Keep descriptions under 2000 characters
-        - Suggest 3-5 tasks per quest
-        - Always ask about target audience, goals, and rewards
-      `;
-
-      const conversationHistory = [
-        { role: 'system', content: systemPrompt },
-        ...history,
-        { role: 'user', content: message }
-      ];
-
-      const result = await geminiModel.generateContent(
-        conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n\n')
-      );
-      
-      const response = await result.response;
-      const aiResponse = response.text();
-
-      // Check if AI wants to generate a quest
-      const questGenerated = aiResponse.includes('[GENERATE_QUEST]');
-      
-      if (questGenerated) {
-        try {
-          // Extract quest data from AI response
-          const questPrompt = conversationHistory.map(msg => msg.content).join(' ');
-          const questData = await this.generateQuestWithAI(communityAdminId, {
-            prompt: questPrompt,
-            difficulty: 'medium',
-            expectedWinners: 10
-          });
-
-          return {
-            response: aiResponse.replace('[GENERATE_QUEST]', ''),
-            questGenerated: true,
-            questData
-          };
-        } catch (error) {
-          return {
-            response: "I had trouble generating the quest data. Let me ask you a few more specific questions to get it right!",
-            questGenerated: false
-          };
-        }
-      }
-
-      return {
-        response: aiResponse,
-        questGenerated: false
-      };
-
-    } catch (error) {
-      logger.error("AI chat error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to process AI chat", StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -591,34 +541,28 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       }
 
       if (quest.winnersSelected) {
-        throw new CustomError("Winners have already been selected", StatusCode.BAD_REQUEST);
-      }
-
-      // Get completed participants
-      const { participants } = await this._questRepository.findParticipantsByQuest(
-        selectDto.questId,
-        1,
-        1000, // Get all completed participants
-        'completed'
-      );
-
-      if (participants.length === 0) {
-        throw new CustomError("No completed participants found", StatusCode.BAD_REQUEST);
+        throw new CustomError("Winners have already been selected for this quest", StatusCode.BAD_REQUEST);
       }
 
       let winners: any[] = [];
       const method = selectDto.method || quest.selectionMethod;
-      const winnerCount = Math.min(quest.participantLimit, participants.length);
+      const winnerCount = quest.participantLimit;
 
-      if (method === 'fcfs') {
-        // First come, first served based on completion time
-        winners = participants
-          .sort((a, b) => new Date(a.completedAt as Date).getTime() - new Date(b.completedAt as Date).getTime())
-          .slice(0, winnerCount);
-      } else {
-        // Random selection
-        const shuffled = [...participants].sort(() => 0.5 - Math.random());
-        winners = shuffled.slice(0, winnerCount);
+      switch (method) {
+        case 'fcfs':
+          winners = await this._questRepository.getParticipantsByFCFS(selectDto.questId, winnerCount);
+          break;
+        case 'leaderboard':
+          winners = await this._questRepository.getParticipantsByLeaderboard(selectDto.questId, winnerCount);
+          break;
+        case 'random':
+        default:
+          winners = await this._questRepository.getRandomParticipants(selectDto.questId, winnerCount);
+          break;
+      }
+
+      if (winners.length === 0) {
+        throw new CustomError("No qualified participants found", StatusCode.BAD_REQUEST);
       }
 
       // Update winners in database
@@ -628,14 +572,83 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       // Update quest as winners selected
       await this._questRepository.updateQuest(selectDto.questId, { winnersSelected: true });
 
-      logger.info(`Winners selected for quest`, { questId: selectDto.questId, winnerCount: winners.length });
+      logger.info(`Winners selected for quest using ${method} method`, { 
+        questId: selectDto.questId, 
+        winnerCount: winners.length,
+        method 
+      });
+      
       return {
         winners,
-        message: `${winners.length} winners selected successfully`
+        message: `${winners.length} winners selected successfully using ${method} method`
       };
     } catch (error) {
       logger.error("Select winners error:", error);
       throw error instanceof CustomError ? error : new CustomError("Failed to select winners", StatusCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async selectReplacementWinners(questId: string, communityAdminId: string, count: number): Promise<{ winners: any[]; message: string }> {
+    try {
+      const quest = await this.getQuestById(questId, communityAdminId);
+
+      if (quest.status !== 'ended') {
+        throw new CustomError("Quest must be ended to select replacement winners", StatusCode.BAD_REQUEST);
+      }
+
+      if (!quest.winnersSelected) {
+        throw new CustomError("Must select initial winners first", StatusCode.BAD_REQUEST);
+      }
+
+      // Get qualified participants who are not already winners or disqualified
+      const qualifiedParticipants = await this._questRepository.getQualifiedParticipants(questId);
+      const availableParticipants = qualifiedParticipants.filter(p => 
+        !p.isWinner && p.status !== 'disqualified'
+      );
+
+      if (availableParticipants.length === 0) {
+        throw new CustomError("No replacement participants available", StatusCode.BAD_REQUEST);
+      }
+
+      const replacementCount = Math.min(count, availableParticipants.length);
+      let replacementWinners: any[] = [];
+
+      // Use the same selection method as the original quest
+      switch (quest.selectionMethod) {
+        case 'fcfs':
+          replacementWinners = availableParticipants
+            .sort((a, b) => new Date(a.completedAt as Date).getTime() - new Date(b.completedAt as Date).getTime())
+            .slice(0, replacementCount);
+          break;
+        case 'leaderboard':
+          replacementWinners = availableParticipants
+            .sort((a, b) => b.totalPrivilegePoints - a.totalPrivilegePoints)
+            .slice(0, replacementCount);
+          break;
+        case 'random':
+        default:
+          const shuffled = [...availableParticipants].sort(() => 0.5 - Math.random());
+          replacementWinners = shuffled.slice(0, replacementCount);
+          break;
+      }
+
+      // Update replacement winners in database
+      const winnerIds = replacementWinners.map(w => w._id.toString());
+      await this._questRepository.selectWinners(questId, winnerIds);
+
+      logger.info(`Replacement winners selected for quest`, { 
+        questId, 
+        replacementCount,
+        method: quest.selectionMethod 
+      });
+
+      return {
+        winners: replacementWinners,
+        message: `${replacementWinners.length} replacement winners selected successfully`
+      };
+    } catch (error) {
+      logger.error("Select replacement winners error:", error);
+      throw error instanceof CustomError ? error : new CustomError("Failed to select replacement winners", StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -646,13 +659,65 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       const updated = await this._questRepository.updateParticipant(participantId, {
         status: 'disqualified',
         disqualificationReason: reason,
+        disqualifiedAt: new Date(),
         isWinner: false
       });
+
+      if (updated) {
+        logger.info(`Participant disqualified`, { questId, participantId, reason });
+      }
 
       return !!updated;
     } catch (error) {
       logger.error("Disqualify participant error:", error);
       throw error instanceof CustomError ? error : new CustomError("Failed to disqualify participant", StatusCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async distributeRewards(questId: string, communityAdminId: string): Promise<{ success: boolean; message: string; winnersRewarded: number }> {
+    try {
+      const quest = await this.getQuestById(questId, communityAdminId);
+
+      if (quest.status !== 'ended') {
+        throw new CustomError("Quest must be ended to distribute rewards", StatusCode.BAD_REQUEST);
+      }
+
+      if (!quest.winnersSelected) {
+        throw new CustomError("Winners must be selected before distributing rewards", StatusCode.BAD_REQUEST);
+      }
+
+      if (quest.rewardsDistributed) {
+        throw new CustomError("Rewards have already been distributed for this quest", StatusCode.BAD_REQUEST);
+      }
+
+      // Only support points rewards for now
+      if (quest.rewardPool.rewardType !== 'points') {
+        throw new CustomError("Only points rewards are supported currently", StatusCode.BAD_REQUEST);
+      }
+
+      const success = await this._questRepository.distributeRewards(questId);
+      
+      if (success) {
+        // Get winner count for response
+        const stats = await this._questRepository.getQuestStats(questId);
+        
+        logger.info(`Rewards distributed successfully`, { 
+          questId, 
+          winnersRewarded: stats.winnersSelected,
+          totalAmount: quest.rewardPool.amount 
+        });
+
+        return {
+          success: true,
+          message: `Rewards distributed successfully to ${stats.winnersSelected} winners`,
+          winnersRewarded: stats.winnersSelected
+        };
+      } else {
+        throw new CustomError("No eligible winners found for reward distribution", StatusCode.BAD_REQUEST);
+      }
+    } catch (error) {
+      logger.error("Distribute rewards error:", error);
+      throw error instanceof CustomError ? error : new CustomError("Failed to distribute rewards", StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -696,6 +761,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
         throw new CustomError("Failed to start quest", StatusCode.INTERNAL_SERVER_ERROR);
       }
 
+      logger.info(`Quest started successfully`, { questId, adminId: communityAdminId });
       return new QuestResponseDto(updatedQuest);
     } catch (error) {
       logger.error("Start quest error:", error);
@@ -716,6 +782,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
         throw new CustomError("Failed to end quest", StatusCode.INTERNAL_SERVER_ERROR);
       }
 
+      logger.info(`Quest ended successfully`, { questId, adminId: communityAdminId });
       return new QuestResponseDto(updatedQuest);
     } catch (error) {
       logger.error("End quest error:", error);
@@ -740,10 +807,22 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       const bannerUrl = uploadResult.secure_url;
       await this._questRepository.updateQuest(questId, { bannerImage: bannerUrl });
 
+      logger.info(`Quest banner uploaded successfully`, { questId, bannerUrl });
       return { bannerUrl };
     } catch (error) {
       logger.error("Upload quest banner error:", error);
       throw error instanceof CustomError ? error : new CustomError("Failed to upload banner", StatusCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getQuestLeaderboard(questId: string, communityAdminId: string): Promise<any[]> {
+    try {
+      await this.getQuestById(questId, communityAdminId); // Verify access
+      
+      return await this._questRepository.getQuestLeaderboard(questId);
+    } catch (error) {
+      logger.error("Get quest leaderboard error:", error);
+      throw error instanceof CustomError ? error : new CustomError("Failed to get quest leaderboard", StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 }

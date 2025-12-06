@@ -115,8 +115,6 @@ const communityAdminQuestController =
     TYPES.ICommunityAdminQuestController
   );
 
-
-
 // Live validation endpoints
 router.get(
   "/check-email",
@@ -771,17 +769,6 @@ router.post(
   )
 );
 
-// Enhanced profile routes
-// router.post(
-//   "/profile/upload-banner",
-//   authMiddleware,
-//   roleMiddleware(["communityAdmin"]),
-//   upload.single("bannerImage"),
-//   communityAdminProfileController.uploadBannerImage.bind(
-//     communityAdminProfileController
-//   )
-// );
-
 // Community members feed route
 router.get(
   "/feed/members",
@@ -792,9 +779,9 @@ router.get(
   )
 );
 
+// =================== ENHANCED QUEST MANAGEMENT ROUTES ===================
 
-
-// Quest Management Routes
+// Quest Statistics Dashboard
 router.get(
   "/quests/stats",
   authMiddleware,
@@ -802,6 +789,7 @@ router.get(
   communityAdminQuestController.getCommunityQuestStats.bind(communityAdminQuestController)
 );
 
+// Quest CRUD Operations
 router.get(
   "/quests",
   authMiddleware,
@@ -816,44 +804,6 @@ router.post(
   roleMiddleware(["communityAdmin"]),
   validateBody(CreateQuestDto),
   communityAdminQuestController.createQuest.bind(communityAdminQuestController)
-);
-
-router.post(
-  "/quests/generate-ai",
-  authMiddleware,
-  roleMiddleware(["communityAdmin"]),
-  validateBody(AIQuestGenerationDto),
-  communityAdminQuestController.generateQuestWithAI.bind(communityAdminQuestController)
-);
-
-// AI Chat endpoint
-router.post(
-  "/quests/ai-chat",
-  authMiddleware,
-  roleMiddleware(["communityAdmin"]),
-  async (req, res) => {
-    try {
-      const communityAdminId = (req as any).user.id;
-      const { message, history } = req.body;
-
-      // Get the service instance
-      const questService:any = container.get(TYPES.ICommunityAdminQuestService);
-      
-      // Call the chat method
-      const result = await questService.chatWithAI(communityAdminId, message, history);
-
-      res.status(200).json({
-        success: true,
-        data: result,
-        message: "AI response generated successfully"
-      });
-    } catch (error: any) {
-      res.status(error.statusCode || 500).json({
-        success: false,
-        error: error.message || "Failed to process AI chat"
-      });
-    }
-  }
 );
 
 router.get(
@@ -878,6 +828,7 @@ router.delete(
   communityAdminQuestController.deleteQuest.bind(communityAdminQuestController)
 );
 
+// Quest Status Management
 router.post(
   "/quests/:questId/start",
   authMiddleware,
@@ -892,6 +843,16 @@ router.post(
   communityAdminQuestController.endQuest.bind(communityAdminQuestController)
 );
 
+// AI Quest Generation
+router.post(
+  "/quests/generate-ai",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  validateBody(AIQuestGenerationDto),
+  communityAdminQuestController.generateQuestWithAI.bind(communityAdminQuestController)
+);
+
+// Quest Analytics and Stats
 router.get(
   "/quests/:questId/stats",
   authMiddleware,
@@ -899,6 +860,14 @@ router.get(
   communityAdminQuestController.getQuestStats.bind(communityAdminQuestController)
 );
 
+router.get(
+  "/quests/:questId/leaderboard",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.getQuestLeaderboard.bind(communityAdminQuestController)
+);
+
+// Quest Banner Upload
 router.post(
   "/quests/:questId/upload-banner",
   authMiddleware,
@@ -907,7 +876,9 @@ router.post(
   communityAdminQuestController.uploadQuestBanner.bind(communityAdminQuestController)
 );
 
-// Quest Participant Management Routes
+// =================== QUEST PARTICIPANT MANAGEMENT ===================
+
+// Get Quest Participants
 router.get(
   "/quests/:questId/participants",
   authMiddleware,
@@ -916,6 +887,7 @@ router.get(
   communityAdminQuestController.getQuestParticipants.bind(communityAdminQuestController)
 );
 
+// Get Individual Participant Details
 router.get(
   "/quests/:questId/participants/:participantId",
   authMiddleware,
@@ -923,6 +895,17 @@ router.get(
   communityAdminQuestController.getParticipantDetails.bind(communityAdminQuestController)
 );
 
+// Disqualify Participant
+router.post(
+  "/quests/:questId/participants/:participantId/disqualify",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.disqualifyParticipant.bind(communityAdminQuestController)
+);
+
+// =================== WINNER SELECTION & REWARD DISTRIBUTION ===================
+
+// Select Winners (Initial Selection)
 router.post(
   "/quests/select-winners",
   authMiddleware,
@@ -931,12 +914,20 @@ router.post(
   communityAdminQuestController.selectWinners.bind(communityAdminQuestController)
 );
 
+// Select Replacement Winners (After Disqualification)
 router.post(
-  "/quests/:questId/participants/:participantId/disqualify",
+  "/quests/:questId/select-replacement-winners",
   authMiddleware,
   roleMiddleware(["communityAdmin"]),
-  communityAdminQuestController.disqualifyParticipant.bind(communityAdminQuestController)
+  communityAdminQuestController.selectReplacementWinners.bind(communityAdminQuestController)
 );
 
+// Distribute Rewards to Winners
+router.post(
+  "/quests/:questId/distribute-rewards",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.distributeRewards.bind(communityAdminQuestController)
+);
 
 export default router;

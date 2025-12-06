@@ -8,6 +8,7 @@ export interface IQuestTask extends Document {
   taskType: 'join_community' | 'follow_user' | 'twitter_post' | 'upload_screenshot' | 'nft_mint' | 'token_hold' | 'wallet_connect' | 'custom';
   isRequired: boolean;
   order: number;
+  privilegePoints: number; // New field for leaderboard scoring
   config: {
     // For follow_user tasks
     targetUserId?: Types.ObjectId;
@@ -46,6 +47,7 @@ const QuestTaskSchema: Schema<IQuestTask> = new Schema({
   },
   isRequired: { type: Boolean, default: true },
   order: { type: Number, required: true },
+  privilegePoints: { type: Number, default: 1, min: 1, max: 10 }, // New field for scoring
   config: {
     targetUserId: { type: Schema.Types.ObjectId, ref: 'User' },
     targetUsername: { type: String },
@@ -66,6 +68,7 @@ const QuestTaskSchema: Schema<IQuestTask> = new Schema({
 
 // Indexes
 QuestTaskSchema.index({ questId: 1, order: 1 });
+QuestTaskSchema.index({ questId: 1, privilegePoints: -1 });
 
 export const QuestTaskModel: Model<IQuestTask> = mongoose.model<IQuestTask>('QuestTask', QuestTaskSchema);
 export default QuestTaskModel;

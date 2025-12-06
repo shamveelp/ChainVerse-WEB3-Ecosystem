@@ -9,7 +9,7 @@ export interface IQuest extends Document {
   bannerImage: string;
   startDate: Date;
   endDate: Date;
-  selectionMethod: 'fcfs' | 'random';
+  selectionMethod: 'fcfs' | 'random' | 'leaderboard'; // Added leaderboard
   participantLimit: number; // Number of winners
   rewardPool: {
     amount: number;
@@ -23,6 +23,7 @@ export interface IQuest extends Document {
   totalParticipants: number;
   totalSubmissions: number;
   winnersSelected: boolean;
+  rewardsDistributed: boolean; // New field to track reward distribution
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,7 +36,7 @@ const QuestSchema: Schema<IQuest> = new Schema({
   bannerImage: { type: String, default: '' },
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
-  selectionMethod: { type: String, enum: ['fcfs', 'random'], required: true },
+  selectionMethod: { type: String, enum: ['fcfs', 'random', 'leaderboard'], required: true },
   participantLimit: { type: Number, required: true, min: 1 },
   rewardPool: {
     amount: { type: Number, required: true, min: 0 },
@@ -48,7 +49,8 @@ const QuestSchema: Schema<IQuest> = new Schema({
   aiPrompt: { type: String },
   totalParticipants: { type: Number, default: 0 },
   totalSubmissions: { type: Number, default: 0 },
-  winnersSelected: { type: Boolean, default: false }
+  winnersSelected: { type: Boolean, default: false },
+  rewardsDistributed: { type: Boolean, default: false }
 }, {
   timestamps: true
 });

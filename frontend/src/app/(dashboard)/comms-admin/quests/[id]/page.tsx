@@ -121,7 +121,7 @@ export default function QuestDetailPage() {
       ]);
 
       if (questResponse.success && questResponse.data) {
-        setQuest(questResponse.data);
+        setQuest(questResponse.data as Quest);
       } else {
         throw new Error(questResponse.error || "Failed to fetch quest");
       }

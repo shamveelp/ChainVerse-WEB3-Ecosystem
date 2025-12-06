@@ -9,7 +9,7 @@ interface Quest {
   bannerImage?: string;
   startDate: Date;
   endDate: Date;
-  selectionMethod: 'fcfs' | 'random';
+  selectionMethod: 'fcfs' | 'random' | 'leaderboard';
   participantLimit: number;
   rewardPool: {
     amount: number;
@@ -21,6 +21,7 @@ interface Quest {
   totalParticipants: number;
   totalSubmissions: number;
   winnersSelected: boolean;
+  rewardsDistributed: boolean;
   isAIGenerated?: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +36,7 @@ interface QuestTask {
   taskType: string;
   isRequired: boolean;
   order: number;
+  privilegePoints: number; // New field for leaderboard
   config: any;
   completedBy: number;
 }
@@ -44,6 +46,7 @@ interface QuestStats {
   activeQuests: number;
   endedQuests: number;
   totalParticipants: number;
+  totalRewardsDistributed: number;
 }
 
 interface Participant {
@@ -55,6 +58,7 @@ interface Participant {
   joinedAt: Date;
   completedAt?: Date;
   totalTasksCompleted: number;
+  totalPrivilegePoints: number;
   isWinner: boolean;
   rewardClaimed: boolean;
 }
@@ -65,7 +69,7 @@ interface CreateQuestData {
   bannerImage?: string;
   startDate: Date;
   endDate: Date;
-  selectionMethod: 'fcfs' | 'random';
+  selectionMethod: 'fcfs' | 'random' | 'leaderboard';
   participantLimit: number;
   rewardPool: {
     amount: number;
@@ -79,6 +83,7 @@ interface CreateQuestData {
     taskType: string;
     isRequired: boolean;
     order: number;
+    privilegePoints?: number;
     config?: any;
   }>;
   isAIGenerated?: boolean;
@@ -351,7 +356,7 @@ class CommunityAdminQuestApiService {
     }
   }
 
-  async selectWinners(questId: string, method?: 'fcfs' | 'random'): Promise<ApiResponse<{ winners: any[]; message: string }>> {
+  async selectWinners(questId: string, method?: 'fcfs' | 'random' | 'leaderboard'): Promise<ApiResponse<{ winners: any[]; message: string }>> {
     try {
       const response = await api.post(`${this.baseUrl}/quests/select-winners`, {
         questId,
@@ -374,6 +379,28 @@ class CommunityAdminQuestApiService {
     }
   }
 
+  async selectReplacementWinners(questId: string, count: number = 1): Promise<ApiResponse<{ winners: any[]; message: string }>> {
+    try {
+      const response = await api.post(`${this.baseUrl}/quests/${questId}/select-replacement-winners`, {
+        count
+      });
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Select replacement winners error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to select replacement winners",
+      };
+    }
+  }
+
   async disqualifyParticipant(questId: string, participantId: string, reason: string): Promise<ApiResponse<{ disqualified: boolean }>> {
     try {
       const response = await api.post(`${this.baseUrl}/quests/${questId}/participants/${participantId}/disqualify`, {
@@ -392,6 +419,27 @@ class CommunityAdminQuestApiService {
           error.response?.data?.message ||
           error.message ||
           "Failed to disqualify participant",
+      };
+    }
+  }
+
+  // Reward Distribution
+  async distributeRewards(questId: string): Promise<ApiResponse<{ success: boolean; message: string; winnersRewarded: number }>> {
+    try {
+      const response = await api.post(`${this.baseUrl}/quests/${questId}/distribute-rewards`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Distribute rewards error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to distribute rewards",
       };
     }
   }
@@ -433,6 +481,26 @@ class CommunityAdminQuestApiService {
           error.response?.data?.message ||
           error.message ||
           "Failed to get community quest stats",
+      };
+    }
+  }
+
+  async getQuestLeaderboard(questId: string): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await api.get(`${this.baseUrl}/quests/${questId}/leaderboard`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Get quest leaderboard error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get quest leaderboard",
       };
     }
   }

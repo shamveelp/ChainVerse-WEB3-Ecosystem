@@ -41,7 +41,7 @@ const questTaskSchema = z.object({
   description: z.string().min(1, "Task description is required"),
   taskType: z.enum([
     "join_community",
-    "follow_user", 
+    "follow_user",
     "twitter_post",
     "upload_screenshot",
     "nft_mint",
@@ -51,6 +51,7 @@ const questTaskSchema = z.object({
   ]),
   isRequired: z.boolean().default(true),
   order: z.number().int().min(1),
+  privilegePoints: z.number().min(1).max(10).optional(),
   config: baseTaskConfigSchema,
 });
 
@@ -60,7 +61,7 @@ export const manualQuestSchema = z.object({
   bannerImage: z.string().optional(),
   startDate: dateSchema,
   endDate: dateSchema,
-  selectionMethod: z.enum(["fcfs", "random"]),
+  selectionMethod: z.enum(["fcfs", "random", "leaderboard"]),
   participantLimit: z.number().int().min(1),
   rewardPool: z.object({
     amount: z.number().min(0),
