@@ -21,6 +21,8 @@ import cloudinary from "../../config/cloudinary";
 import logger from "../../utils/logger";
 import mongoose from "mongoose";
 import { IQuestTask } from "../../models/questTask.model";
+import { UserModel } from "../../models/user.models";
+import { PointsHistoryModel } from "../../models/pointsHistory.model";
 
 @injectable()
 export class CommunityAdminQuestService implements ICommunityAdminQuestService {
@@ -28,7 +30,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     @inject(TYPES.ICommunityAdminQuestRepository) private _questRepository: ICommunityAdminQuestRepository,
     @inject(TYPES.ICommunityAdminRepository) private _adminRepository: ICommunityAdminRepository,
     @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository
-  ) {}
+  ) { }
 
   async createQuest(communityAdminId: string, createDto: CreateQuestDto): Promise<QuestResponseDto> {
     try {
@@ -569,18 +571,60 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       const winnerIds = winners.map(w => w._id.toString());
       await this._questRepository.selectWinners(selectDto.questId, winnerIds);
 
-      // Update quest as winners selected
-      await this._questRepository.updateQuest(selectDto.questId, { winnersSelected: true });
+      // Reward Distribution Logic
+      let rewardMessage = "";
+      if (quest.rewardPool.rewardType === 'points' && !quest.rewardsDistributed) {
+        const pointsPerWinner = Math.floor(quest.rewardPool.amount / quest.participantLimit);
 
-      logger.info(`Winners selected for quest using ${method} method`, { 
-        questId: selectDto.questId, 
+        if (pointsPerWinner > 0) {
+          const distributionPromises = winners.map(async (winner) => {
+            // Safety check in case user was deleted or population failed
+            if (!winner.userId || !winner.userId._id) {
+              logger.warn(`Could not distribute rewards to participant ${winner._id}: User not found`);
+              return;
+            }
+
+            // Update User Points
+            await UserModel.findByIdAndUpdate(winner.userId._id, {
+              $inc: { totalPoints: pointsPerWinner }
+            });
+
+            // Create Points History
+            await PointsHistoryModel.create({
+              userId: winner.userId._id,
+              type: 'quest_reward',
+              points: pointsPerWinner,
+              description: `Reward for winning quest: ${quest.title}`,
+              relatedId: quest._id
+            });
+          });
+
+          await Promise.all(distributionPromises);
+
+          await this._questRepository.updateQuest(selectDto.questId, {
+            winnersSelected: true,
+            rewardsDistributed: true
+          });
+
+          rewardMessage = `. ${winners.length} winners received ${pointsPerWinner} points each.`;
+        } else {
+          // Just update winners selected if points are 0 (e.g. integer division result)
+          await this._questRepository.updateQuest(selectDto.questId, { winnersSelected: true });
+        }
+      } else {
+        // Just update winners selected for other reward types or if already distributed
+        await this._questRepository.updateQuest(selectDto.questId, { winnersSelected: true });
+      }
+
+      logger.info(`Winners selected for quest using ${method} method`, {
+        questId: selectDto.questId,
         winnerCount: winners.length,
-        method 
+        method
       });
-      
+
       return {
         winners,
-        message: `${winners.length} winners selected successfully using ${method} method`
+        message: `${winners.length} winners selected successfully using ${method} method${rewardMessage}`
       };
     } catch (error) {
       logger.error("Select winners error:", error);
@@ -602,7 +646,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
 
       // Get qualified participants who are not already winners or disqualified
       const qualifiedParticipants = await this._questRepository.getQualifiedParticipants(questId);
-      const availableParticipants = qualifiedParticipants.filter(p => 
+      const availableParticipants = qualifiedParticipants.filter(p =>
         !p.isWinner && p.status !== 'disqualified'
       );
 
@@ -636,10 +680,10 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       const winnerIds = replacementWinners.map(w => w._id.toString());
       await this._questRepository.selectWinners(questId, winnerIds);
 
-      logger.info(`Replacement winners selected for quest`, { 
-        questId, 
+      logger.info(`Replacement winners selected for quest`, {
+        questId,
         replacementCount,
-        method: quest.selectionMethod 
+        method: quest.selectionMethod
       });
 
       return {
@@ -696,15 +740,15 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       }
 
       const success = await this._questRepository.distributeRewards(questId);
-      
+
       if (success) {
         // Get winner count for response
         const stats = await this._questRepository.getQuestStats(questId);
-        
-        logger.info(`Rewards distributed successfully`, { 
-          questId, 
+
+        logger.info(`Rewards distributed successfully`, {
+          questId,
           winnersRewarded: stats.winnersSelected,
-          totalAmount: quest.rewardPool.amount 
+          totalAmount: quest.rewardPool.amount
         });
 
         return {
@@ -818,7 +862,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
   async getQuestLeaderboard(questId: string, communityAdminId: string): Promise<any[]> {
     try {
       await this.getQuestById(questId, communityAdminId); // Verify access
-      
+
       return await this._questRepository.getQuestLeaderboard(questId);
     } catch (error) {
       logger.error("Get quest leaderboard error:", error);
