@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Trophy, 
-  Search, 
-  Filter, 
-  Calendar, 
-  Users, 
-  Coins, 
-  Award, 
+import {
+  Trophy,
+  Search,
+  Filter,
+  Calendar,
+  Users,
+  Coins,
+  Award,
   Star,
   ArrowRight,
   Target,
@@ -23,7 +23,10 @@ import {
   ChevronLeft,
   ChevronRight,
   TrendingUp,
-  Eye
+  Eye,
+  CheckCircle,
+  AlertCircle,
+  Timer
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
@@ -65,6 +68,14 @@ interface Quest {
   isParticipating?: boolean;
   participationStatus?: string;
   completedTasks?: number;
+  canJoin?: boolean;
+  joinMessage?: string;
+  timeRemaining?: {
+    days: number;
+    hours: number;
+    minutes: number;
+    hasEnded: boolean;
+  };
 }
 
 interface MyQuest {
@@ -93,7 +104,7 @@ const topQuestsData = [
     community: { communityName: "DeFi Alliance", logo: "https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=100&q=80" }
   },
   {
-    _id: "2", 
+    _id: "2",
     title: "NFT Creator Bootcamp",
     description: "Learn NFT creation, minting, and marketplace strategies in this creative quest",
     bannerImage: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&q=80",
@@ -173,6 +184,12 @@ export default function QuestsPage() {
         if (response.success && response.data) {
           setMyQuests(response.data.quests || []);
           setTotalPages(response.data.pagination.pages);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: response.error || "Failed to fetch your quests",
+          });
         }
       } else {
         const response = await userQuestApiService.getAvailableQuests({
@@ -187,10 +204,21 @@ export default function QuestsPage() {
         if (response.success && response.data) {
           setQuests(response.data.quests || []);
           setTotalPages(response.data.pagination.pages);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: response.error || "Failed to fetch quests",
+          });
         }
       }
     } catch (error) {
       console.error("Failed to fetch quests:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch quests",
+      });
     } finally {
       setLoading(false);
     }
@@ -257,10 +285,26 @@ export default function QuestsPage() {
     });
   };
 
+  const formatTimeRemaining = (timeRemaining?: { days: number; hours: number; minutes: number; hasEnded: boolean }) => {
+    if (!timeRemaining || timeRemaining.hasEnded) return "Ended";
+    
+    const { days, hours, minutes } = timeRemaining;
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
+
+  const getQuestStatusIcon = (quest: Quest) => {
+    if (quest.status === 'ended') return <CheckCircle className="h-4 w-4 text-gray-400" />;
+    if (quest.timeRemaining?.hasEnded) return <CheckCircle className="h-4 w-4 text-gray-400" />;
+    if (quest.status === 'active') return <Timer className="h-4 w-4 text-green-400" />;
+    return <AlertCircle className="h-4 w-4 text-yellow-400" />;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Hero Section */}
         <div className="text-center space-y-4">
@@ -300,7 +344,7 @@ export default function QuestsPage() {
           </div>
 
           <div className="relative overflow-hidden rounded-2xl">
-            <div 
+            <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${currentCarouselIndex * 100}%)` }}
             >
@@ -308,13 +352,13 @@ export default function QuestsPage() {
                 <div key={quest._id} className="w-full flex-shrink-0">
                   <Card className="relative h-80 overflow-hidden bg-black/60 backdrop-blur-xl border-purple-800/30 cursor-pointer group"
                         onClick={() => router.push(`/user/quests/${quest._id}`)}>
-                    <div 
+                    <div
                       className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                       style={{ backgroundImage: `url(${quest.bannerImage})` }}
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
                     </div>
-                    
+
                     <CardContent className="relative h-full flex items-end p-8">
                       <div className="space-y-4 w-full">
                         <div className="flex items-center gap-3">
@@ -328,11 +372,11 @@ export default function QuestsPage() {
                             <p className="text-white font-semibold">{quest.title}</p>
                           </div>
                         </div>
-                        
+
                         <p className="text-gray-200 text-sm line-clamp-2 max-w-md">
                           {quest.description}
                         </p>
-                        
+
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4 text-sm text-gray-300">
                             <div className="flex items-center gap-1">
@@ -344,8 +388,8 @@ export default function QuestsPage() {
                               <span>{quest.rewardPool.amount} {quest.rewardPool.currency}</span>
                             </div>
                           </div>
-                          
-                          <Button 
+
+                          <Button
                             className="bg-purple-600 hover:bg-purple-700 text-white group-hover:translate-x-1 transition-transform"
                             size="sm"
                           >
@@ -388,7 +432,7 @@ export default function QuestsPage() {
                   className="pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400"
                 />
               </div>
-              
+
               <div className="flex gap-2 flex-wrap">
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-40 bg-gray-800/50 border-gray-600 text-white">
@@ -510,7 +554,7 @@ export default function QuestsPage() {
                                   </h3>
                                   <div className="flex flex-col items-end gap-1 ml-2">
                                     <Badge className={`${getParticipationStatusColor(myQuest.status)} text-white text-xs`}>
-                                      {myQuest.status}
+                                      {myQuest.status.replace('_', ' ')}
                                     </Badge>
                                     {myQuest.isWinner && (
                                       <Crown className="h-4 w-4 text-yellow-400" />
@@ -539,7 +583,7 @@ export default function QuestsPage() {
                                   <span className="text-white font-medium">{myQuest.progress.toFixed(0)}%</span>
                                 </div>
                                 <div className="w-full bg-gray-700 rounded-full h-2">
-                                  <div 
+                                  <div
                                     className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-300"
                                     style={{ width: `${myQuest.progress}%` }}
                                   />
@@ -629,6 +673,15 @@ export default function QuestsPage() {
                                   </Badge>
                                 </div>
                               )}
+                              {/* Time remaining overlay */}
+                              <div className="absolute bottom-3 left-3">
+                                <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm px-2 py-1 rounded">
+                                  {getQuestStatusIcon(quest)}
+                                  <span className="text-xs text-white">
+                                    {formatTimeRemaining(quest.timeRemaining)}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           )}
 
@@ -683,6 +736,13 @@ export default function QuestsPage() {
                                 </div>
                               </div>
 
+                              {/* Join Status Message */}
+                              {!quest.canJoin && quest.joinMessage && (
+                                <div className="p-2 bg-red-900/20 border border-red-600/30 rounded text-xs text-red-400">
+                                  {quest.joinMessage}
+                                </div>
+                              )}
+
                               {/* Action Button */}
                               <Button
                                 className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white group-hover:shadow-lg transition-all"
@@ -714,7 +774,7 @@ export default function QuestsPage() {
                       <ChevronLeft className="h-4 w-4 mr-2" />
                       Previous
                     </Button>
-                    
+
                     <div className="flex items-center gap-2">
                       {[...Array(Math.min(5, totalPages))].map((_, i) => {
                         const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
@@ -723,8 +783,8 @@ export default function QuestsPage() {
                             key={page}
                             variant={currentPage === page ? "default" : "outline"}
                             onClick={() => setCurrentPage(page)}
-                            className={currentPage === page 
-                              ? "bg-purple-600 text-white" 
+                            className={currentPage === page
+                              ? "bg-purple-600 text-white"
                               : "border-purple-600/50 text-purple-400 hover:bg-purple-950/30"
                             }
                             size="sm"
@@ -734,7 +794,7 @@ export default function QuestsPage() {
                         );
                       })}
                     </div>
-                    
+
                     <Button
                       variant="outline"
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}

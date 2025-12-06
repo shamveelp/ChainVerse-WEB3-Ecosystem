@@ -77,7 +77,8 @@ import {
   GetAvailableQuestsDto,
   JoinQuestDto,
   SubmitTaskDto,
-  GetMyQuestsDto
+  GetMyQuestsDto,
+  GetLeaderboardDto
 } from "../dtos/quest/UserQuest.dto";
 import { DexSwapController } from "../controllers/dex/dexSwap.controller";
 import { GetChartDataDto, GetSwapHistoryDto, RecordSwapDto, UpdatePriceDto } from "../dtos/dex/DexSwap.dto";
@@ -914,7 +915,9 @@ router.get(
   pointsConversionController.validateConversion.bind(pointsConversionController)
 );
 
-// Quest Routes (User)
+// =================== ENHANCED QUEST ROUTES ===================
+
+// Quest Discovery (Public routes)
 router.get(
   "/quests",
   validateQuery(GetAvailableQuestsDto),
@@ -927,14 +930,6 @@ router.get(
 );
 
 router.get(
-  "/quests/my",
-  authMiddleware,
-  roleMiddleware(["user"]),
-  validateQuery(GetMyQuestsDto),
-  userQuestController.getMyQuests.bind(userQuestController)
-);
-
-router.get(
   "/quests/:questId",
   userQuestController.getQuest.bind(userQuestController)
 );
@@ -944,9 +939,20 @@ router.get(
   userQuestController.getQuestStats.bind(userQuestController)
 );
 
+// Quest Leaderboard (Enhanced with pagination)
 router.get(
   "/quests/:questId/leaderboard",
+  validateQuery(GetLeaderboardDto),
   userQuestController.getQuestLeaderboard.bind(userQuestController)
+);
+
+// Quest Participation (Protected routes)
+router.get(
+  "/quests/my",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  validateQuery(GetMyQuestsDto),
+  userQuestController.getMyQuests.bind(userQuestController)
 );
 
 router.get(
@@ -956,7 +962,6 @@ router.get(
   userQuestController.checkParticipationStatus.bind(userQuestController)
 );
 
-// Quest Participation Routes (Protected)
 router.post(
   "/quests/join",
   authMiddleware,
@@ -965,6 +970,7 @@ router.post(
   userQuestController.joinQuest.bind(userQuestController)
 );
 
+// Quest Tasks (Protected routes)
 router.get(
   "/quests/:questId/tasks",
   authMiddleware,

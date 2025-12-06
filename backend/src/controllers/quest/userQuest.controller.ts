@@ -10,7 +10,8 @@ import {
   GetAvailableQuestsDto,
   JoinQuestDto,
   SubmitTaskDto,
-  GetMyQuestsDto
+  GetMyQuestsDto,
+  GetLeaderboardDto
 } from "../../dtos/quest/UserQuest.dto";
 
 @injectable()
@@ -141,7 +142,7 @@ export class UserQuestController implements IUserQuestController {
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "Task submitted successfully"
+        message: result.message || "Task submitted successfully"
       });
     } catch (error) {
       const err = error as Error;
@@ -306,14 +307,17 @@ export class UserQuestController implements IUserQuestController {
   async getQuestLeaderboard(req: Request, res: Response): Promise<void> {
     try {
       const { questId } = req.params;
-      const limit = parseInt(req.query.limit as string) || 10;
+      const query: GetLeaderboardDto = req.query as any;
 
-      const leaderboard = await this._questService.getQuestLeaderboard(questId);
+      const leaderboard = await this._questService.getQuestLeaderboard(questId, query);
 
       res.status(StatusCode.OK).json({
         success: true,
-        data: leaderboard,
-        message: "Quest leaderboard retrieved successfully"
+        data: {
+          participants: leaderboard.participants,
+          pagination: leaderboard.pagination
+        },
+        message: leaderboard.message || "Quest leaderboard retrieved successfully"
       });
     } catch (error) {
       const err = error as Error;

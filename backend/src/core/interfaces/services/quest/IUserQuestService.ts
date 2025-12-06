@@ -5,7 +5,9 @@ import {
   GetMyQuestsDto,
   QuestResponseDto,
   MyQuestResponseDto,
-  TaskSubmissionResponseDto
+  TaskSubmissionResponseDto,
+  LeaderboardResponseDto,
+  GetLeaderboardDto
 } from "../../../../dtos/quest/UserQuest.dto";
 
 export interface IUserQuestService {
@@ -19,6 +21,6 @@ export interface IUserQuestService {
   getQuestStats(questId: string): Promise<any>;
   getTopQuests(limit?: number): Promise<QuestResponseDto[]>;
   checkParticipationStatus(userId: string, questId: string): Promise<any>;
-  getQuestLeaderboard(questId: string): Promise<any[]>;
+  getQuestLeaderboard(questId: string, query: GetLeaderboardDto): Promise<LeaderboardResponseDto>;
   uploadTaskMedia(file: Express.Multer.File, userId: string): Promise<{ mediaUrl: string }>;
 }

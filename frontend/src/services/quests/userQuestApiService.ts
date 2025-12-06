@@ -9,7 +9,7 @@ interface Quest {
   bannerImage?: string;
   startDate: Date;
   endDate: Date;
-  selectionMethod: 'fcfs' | 'random';
+  selectionMethod: 'fcfs' | 'random' | 'leaderboard';
   participantLimit: number;
   rewardPool: {
     amount: number;
@@ -33,6 +33,14 @@ interface Quest {
   isParticipating?: boolean;
   participationStatus?: string;
   completedTasks?: number;
+  canJoin?: boolean;
+  joinMessage?: string;
+  timeRemaining?: {
+    days: number;
+    hours: number;
+    minutes: number;
+    hasEnded: boolean;
+  };
 }
 
 interface QuestTask {
@@ -43,10 +51,12 @@ interface QuestTask {
   taskType: string;
   isRequired: boolean;
   order: number;
+  privilegePoints?: number;
   config: any;
   completedBy: number;
   isCompleted?: boolean;
   submission?: any;
+  canSubmit?: boolean;
 }
 
 interface MyQuest {
@@ -73,9 +83,27 @@ interface TaskSubmission {
     twitterUrl?: string;
     walletAddress?: string;
     transactionHash?: string;
+    communityId?: string;
+    targetUserId?: string;
   };
   status: string;
   submittedAt: Date;
+}
+
+interface LeaderboardParticipant {
+  _id: string;
+  userId: {
+    _id: string;
+    username: string;
+    name: string;
+    profilePic: string;
+  };
+  rank: number;
+  totalTasksCompleted: number;
+  totalPrivilegePoints: number;
+  completedAt?: Date;
+  joinedAt: Date;
+  isWinner: boolean;
 }
 
 interface ApiResponse<T = any> {
@@ -92,6 +120,7 @@ interface PaginationResponse<T> {
   data?: {
     quests?: T[];
     items?: T[];
+    participants?: T[];
     pagination: {
       page: number;
       limit: number;
@@ -270,6 +299,8 @@ class UserQuestApiService {
     twitterUrl?: string;
     walletAddress?: string;
     transactionHash?: string;
+    communityId?: string;
+    targetUserId?: string;
   }): Promise<ApiResponse<TaskSubmission>> {
     try {
       const response = await api.post(`${this.baseUrl}/quests/submit-task`, {
@@ -352,9 +383,16 @@ class UserQuestApiService {
     }
   }
 
-  async getQuestLeaderboard(questId: string): Promise<ApiResponse<any[]>> {
+  async getQuestLeaderboard(questId: string, params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<PaginationResponse<LeaderboardParticipant>> {
     try {
-      const response = await api.get(`${this.baseUrl}/quests/${questId}/leaderboard`);
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+
+      const response = await api.get(`${this.baseUrl}/quests/${questId}/leaderboard?${queryParams.toString()}`);
       return {
         success: true,
         data: response.data.data,
@@ -366,6 +404,97 @@ class UserQuestApiService {
         success: false,
         error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to get quest leaderboard",
       };
+    }
+  }
+
+  // Enhanced task type validation
+  validateTaskSubmissionData(taskType: string, submissionData: any): { valid: boolean; message?: string } {
+    switch (taskType) {
+      case 'join_community':
+        if (!submissionData.communityId) {
+          return { valid: false, message: "Please select a community to join" };
+        }
+        break;
+      case 'follow_user':
+        if (!submissionData.targetUserId) {
+          return { valid: false, message: "Please select a user to follow" };
+        }
+        break;
+      case 'twitter_post':
+        if (!submissionData.twitterUrl) {
+          return { valid: false, message: "Twitter post URL is required" };
+        }
+        const twitterUrlPattern = /^https:\/\/(twitter\.com|x\.com)\/\w+\/status\/\d+/;
+        if (!twitterUrlPattern.test(submissionData.twitterUrl)) {
+          return { valid: false, message: "Please provide a valid Twitter post URL" };
+        }
+        break;
+      case 'upload_screenshot':
+        if (!submissionData.imageUrl) {
+          return { valid: false, message: "Screenshot is required" };
+        }
+        break;
+      case 'wallet_connect':
+        if (!submissionData.walletAddress) {
+          return { valid: false, message: "Wallet address is required" };
+        }
+        const ethAddressPattern = /^0x[a-fA-F0-9]{40}$/;
+        if (!ethAddressPattern.test(submissionData.walletAddress)) {
+          return { valid: false, message: "Please provide a valid Ethereum wallet address" };
+        }
+        break;
+      case 'custom':
+        if (!submissionData.text && !submissionData.linkUrl && !submissionData.imageUrl) {
+          return { valid: false, message: "Please provide some form of submission" };
+        }
+        break;
+    }
+    return { valid: true };
+  }
+
+  // Get task type instructions for UI
+  getTaskTypeInstructions(taskType: string, config: any): string {
+    switch (taskType) {
+      case 'join_community':
+        return config.communityName 
+          ? `Join the "${config.communityName}" community`
+          : "Join the specified community";
+      case 'follow_user':
+        return config.targetUsername 
+          ? `Follow @${config.targetUsername}`
+          : "Follow the specified user";
+      case 'twitter_post':
+        return "Post the specified content on Twitter and provide the post URL";
+      case 'upload_screenshot':
+        return config.websiteUrl 
+          ? `Take a screenshot of ${config.websiteUrl} and upload it`
+          : "Upload a screenshot as proof of completion";
+      case 'wallet_connect':
+        return "Connect your wallet and provide your wallet address";
+      case 'custom':
+        return config.customInstructions || "Follow the task instructions";
+      default:
+        return "Complete the task as instructed";
+    }
+  }
+
+  // Get required fields for task type
+  getRequiredFields(taskType: string): string[] {
+    switch (taskType) {
+      case 'join_community':
+        return ['communityId'];
+      case 'follow_user':
+        return ['targetUserId'];
+      case 'twitter_post':
+        return ['twitterUrl'];
+      case 'upload_screenshot':
+        return ['imageUrl'];
+      case 'wallet_connect':
+        return ['walletAddress'];
+      case 'custom':
+        return []; // Can be text, link, or image
+      default:
+        return [];
     }
   }
 }

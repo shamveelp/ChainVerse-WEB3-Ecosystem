@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Users, Trophy, Calendar, Target, Clock, Coins, Award, CircleCheck as CheckCircle, Upload, Link, Image as ImageIcon, Twitter, Wallet, Crown, Star, TrendingUp, Copy, ExternalLink, Loader as Loader2, CircleAlert as AlertCircle, Info } from 'lucide-react';
+import { ArrowLeft, Users, Trophy, Calendar, Target, Clock, Coins, Award, CheckCircle, Upload, Link, Image as ImageIcon, Twitter, Wallet, Crown, Star, TrendingUp, Copy, ExternalLink, Loader2, AlertCircle, Info, Timer, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { userQuestApiService } from '@/services/quests/userQuestApiService';
 import Navbar from '@/components/home/navbar';
@@ -57,6 +57,15 @@ interface Quest {
   isParticipating?: boolean;
   participationStatus?: string;
   completedTasks?: number;
+  canJoin?: boolean;
+  joinMessage?: string;
+  communityId?: string;
+  timeRemaining?: {
+    days: number;
+    hours: number;
+    minutes: number;
+    hasEnded: boolean;
+  };
 }
 
 interface QuestTask {
@@ -66,9 +75,12 @@ interface QuestTask {
   taskType: string;
   isRequired: boolean;
   order: number;
+  privilegePoints?: number;
   completedBy: number;
   isCompleted?: boolean;
   submission?: any;
+  canSubmit?: boolean;
+  config?: any;
 }
 
 interface ParticipationStatus {
@@ -79,6 +91,7 @@ interface ParticipationStatus {
   totalTasksCompleted?: number;
   isWinner?: boolean;
   rewardClaimed?: boolean;
+  rank?: number;
 }
 
 interface QuestStats {
@@ -87,6 +100,22 @@ interface QuestStats {
   inProgressParticipants: number;
   winnerCount: number;
   completionRate: number;
+}
+
+interface LeaderboardParticipant {
+  _id: string;
+  userId: {
+    _id: string;
+    username: string;
+    name: string;
+    profilePic: string;
+  };
+  rank: number;
+  totalTasksCompleted: number;
+  totalPrivilegePoints: number;
+  completedAt?: Date;
+  joinedAt: Date;
+  isWinner: boolean;
 }
 
 export default function QuestDetailPage() {
@@ -99,6 +128,9 @@ export default function QuestDetailPage() {
   const [tasks, setTasks] = useState<QuestTask[]>([]);
   const [participationStatus, setParticipationStatus] = useState<ParticipationStatus | null>(null);
   const [stats, setStats] = useState<QuestStats | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardParticipant[]>([]);
+  const [leaderboardPage, setLeaderboardPage] = useState(1);
+  const [leaderboardPages, setLeaderboardPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [submitting, setSubmitting] = useState<string | null>(null);
@@ -145,6 +177,17 @@ export default function QuestDetailPage() {
             }
           }
         }
+
+        // Fetch leaderboard if quest supports it
+        if (questResponse.data.selectionMethod === 'leaderboard') {
+          await fetchLeaderboard();
+        }
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: questResponse.error || "Failed to load quest details",
+        });
       }
 
       if (statsResponse.success && statsResponse.data) {
@@ -162,6 +205,18 @@ export default function QuestDetailPage() {
     }
   };
 
+  const fetchLeaderboard = async (page: number = 1) => {
+    try {
+      const response = await userQuestApiService.getQuestLeaderboard(questId, { page, limit: 10 });
+      if (response.success && response.data) {
+        setLeaderboard(response.data.participants || []);
+        setLeaderboardPages(response.data.pagination.pages);
+      }
+    } catch (error) {
+      console.error("Failed to fetch leaderboard:", error);
+    }
+  };
+
   const handleJoinQuest = async () => {
     if (!user) {
       toast({
@@ -169,6 +224,7 @@ export default function QuestDetailPage() {
         title: "Authentication Required",
         description: "Please login to join quests",
       });
+      router.push('/auth/login');
       return;
     }
 
@@ -177,18 +233,18 @@ export default function QuestDetailPage() {
       const response = await userQuestApiService.joinQuest(questId, walletAddress);
       if (response.success) {
         toast({
-          title: "Success",
-          description: response.data?.message || "Successfully joined quest!",
+          title: "🎉 Quest Joined Successfully!",
+          description: response.data?.message || "You can now start completing tasks to earn rewards!",
         });
-        fetchQuestData(); // Refresh data
+        await fetchQuestData(); // Refresh data
       } else {
         throw new Error(response.error || "Failed to join quest");
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to join quest",
+        title: "Failed to Join Quest",
+        description: error.message || "An error occurred while joining the quest",
       });
     } finally {
       setJoining(false);
@@ -198,15 +254,43 @@ export default function QuestDetailPage() {
   const handleTaskSubmission = async () => {
     if (!selectedTask) return;
 
+    // Prepare data for validation
+    const validationData: any = {
+      text: submissionText,
+      linkUrl: submissionLink,
+      imageUrl: submissionImageUrl,
+      twitterUrl: submissionLink,
+      walletAddress: submissionText,
+    };
+
+    // Add specific fields based on task type
+    if (selectedTask.taskType === 'join_community') {
+      validationData.communityId = selectedTask.config?.communityId || quest?.communityId;
+    } else if (selectedTask.taskType === 'follow_user') {
+      validationData.targetUserId = selectedTask.config?.targetUserId;
+    }
+
+    // Validate submission data
+    const validationResult = userQuestApiService.validateTaskSubmissionData(selectedTask.taskType, validationData);
+
+    if (!validationResult.valid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Submission",
+        description: validationResult.message,
+      });
+      return;
+    }
+
     setSubmitting(selectedTask._id);
     try {
-      let imageUrl = submissionImageUrl;
+      let finalImageUrl = "";
 
       // Upload image if provided
       if (submissionImage) {
         const uploadResponse = await userQuestApiService.uploadTaskMedia(submissionImage);
         if (uploadResponse.success && uploadResponse.data) {
-          imageUrl = uploadResponse.data.mediaUrl;
+          finalImageUrl = uploadResponse.data.mediaUrl;
         } else {
           throw new Error("Failed to upload image");
         }
@@ -217,7 +301,7 @@ export default function QuestDetailPage() {
 
       switch (selectedTask.taskType) {
         case 'upload_screenshot':
-          submissionData.imageUrl = imageUrl;
+          submissionData.imageUrl = finalImageUrl;
           submissionData.text = submissionText;
           break;
         case 'twitter_post':
@@ -227,34 +311,44 @@ export default function QuestDetailPage() {
         case 'wallet_connect':
           submissionData.walletAddress = submissionText;
           break;
+        case 'join_community':
+          submissionData.communityId = validationData.communityId;
+          submissionData.text = submissionText;
+          submissionData.imageUrl = finalImageUrl;
+          break;
+        case 'follow_user':
+          submissionData.targetUserId = validationData.targetUserId;
+          submissionData.text = submissionText;
+          submissionData.imageUrl = finalImageUrl;
+          break;
         case 'custom':
           submissionData.text = submissionText;
           submissionData.linkUrl = submissionLink;
-          submissionData.imageUrl = imageUrl;
+          submissionData.imageUrl = finalImageUrl;
           break;
         default:
           submissionData.text = submissionText;
           submissionData.linkUrl = submissionLink;
-          submissionData.imageUrl = imageUrl;
+          submissionData.imageUrl = finalImageUrl;
       }
 
       const response = await userQuestApiService.submitTask(questId, selectedTask._id, submissionData);
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Task submitted successfully!",
+          title: "✅ Task Submitted Successfully!",
+          description: response.message || "Your task submission has been recorded!",
         });
         setShowTaskModal(false);
         resetSubmissionForm();
-        fetchQuestData(); // Refresh data
+        await fetchQuestData(); // Refresh data
       } else {
         throw new Error(response.error || "Failed to submit task");
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to submit task",
+        title: "Submission Failed",
+        description: error.message || "Failed to submit task. Please try again.",
       });
     } finally {
       setSubmitting(null);
@@ -270,6 +364,15 @@ export default function QuestDetailPage() {
   };
 
   const openTaskModal = (task: QuestTask) => {
+    if (!task.canSubmit) {
+      toast({
+        variant: "destructive",
+        title: "Task Already Completed",
+        description: "You have already submitted this task.",
+      });
+      return;
+    }
+
     setSelectedTask(task);
     setShowTaskModal(true);
   };
@@ -277,6 +380,16 @@ export default function QuestDetailPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: "File Too Large",
+          description: "Please select an image smaller than 5MB",
+        });
+        return;
+      }
+
       setSubmissionImage(file);
       const reader = new FileReader();
       reader.onload = (e) => setSubmissionImageUrl(e.target?.result as string);
@@ -321,6 +434,15 @@ export default function QuestDetailPage() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const formatTimeRemaining = (timeRemaining?: { days: number; hours: number; minutes: number; hasEnded: boolean }) => {
+    if (!timeRemaining || timeRemaining.hasEnded) return "Quest has ended";
+
+    const { days, hours, minutes } = timeRemaining;
+    if (days > 0) return `${days} days, ${hours} hours remaining`;
+    if (hours > 0) return `${hours} hours, ${minutes} minutes remaining`;
+    return `${minutes} minutes remaining`;
   };
 
   const isQuestActive = () => {
@@ -412,6 +534,12 @@ export default function QuestDetailPage() {
                           Joined
                         </Badge>
                       )}
+                      {participationStatus?.isWinner && (
+                        <Badge className="bg-yellow-600 text-white">
+                          <Crown className="h-3 w-3 mr-1" />
+                          Winner
+                        </Badge>
+                      )}
                     </div>
 
                     <h1 className="text-4xl font-bold text-white">{quest.title}</h1>
@@ -430,6 +558,12 @@ export default function QuestDetailPage() {
                         </div>
                       </div>
                     )}
+
+                    {/* Time remaining */}
+                    <div className="flex items-center gap-2 text-sm">
+                      <Timer className="h-4 w-4 text-gray-300" />
+                      <span className="text-gray-300">{formatTimeRemaining(quest.timeRemaining)}</span>
+                    </div>
                   </div>
 
                   {/* Progress indicator for participating users */}
@@ -442,6 +576,9 @@ export default function QuestDetailPage() {
                           style={{ width: `${progress}%` }}
                         />
                       </div>
+                      {participationStatus.rank && quest.selectionMethod === 'leaderboard' && (
+                        <p className="text-purple-400 text-sm mt-1">Rank: #{participationStatus.rank}</p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -464,6 +601,12 @@ export default function QuestDetailPage() {
                     {participationStatus?.isParticipating && (
                       <Badge className="bg-green-600 text-white">
                         Joined
+                      </Badge>
+                    )}
+                    {participationStatus?.isWinner && (
+                      <Badge className="bg-yellow-600 text-white">
+                        <Crown className="h-3 w-3 mr-1" />
+                        Winner
                       </Badge>
                     )}
                   </div>
@@ -490,7 +633,12 @@ export default function QuestDetailPage() {
                     <div className="mt-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-gray-400">Your Progress</span>
-                        <span className="text-white font-medium">{progress.toFixed(0)}%</span>
+                        <div className="flex items-center gap-4">
+                          <span className="text-white font-medium">{progress.toFixed(0)}%</span>
+                          {participationStatus.rank && quest.selectionMethod === 'leaderboard' && (
+                            <span className="text-purple-400 text-sm">Rank: #{participationStatus.rank}</span>
+                          )}
+                        </div>
                       </div>
                       <div className="w-full bg-gray-700 rounded-full h-3">
                         <div
@@ -500,64 +648,68 @@ export default function QuestDetailPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Time remaining */}
+                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <Timer className="h-4 w-4" />
+                    <span>{formatTimeRemaining(quest.timeRemaining)}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Join Quest Section - Always visible unless already joined */}
+          {/* Join Quest Section - Show based on quest status */}
           {!participationStatus?.isParticipating && (
-            <Card className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-purple-600/50 backdrop-blur-xl">
+            <Card className={`backdrop-blur-xl border ${quest.canJoin
+              ? 'bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-purple-600/50'
+              : 'bg-gradient-to-r from-red-900/50 to-gray-900/50 border-red-600/50'
+              }`}>
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-white mb-2">Join this Quest</h3>
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      {quest.canJoin ? 'Join this Quest' : 'Quest Status'}
+                    </h3>
                     <p className="text-gray-300">
-                      {quest.status === 'active' 
-                        ? `Join ${quest.totalParticipants.toLocaleString()} other participants and compete for rewards!`
-                        : quest.status === 'ended'
-                        ? 'This quest has ended, but you can still view the details.'
-                        : quest.status === 'draft'
-                        ? 'This quest is still in draft mode.'
-                        : 'This quest is not currently active.'
-                      }
+                      {quest.joinMessage}
                     </p>
-                    {quest.totalParticipants >= quest.participantLimit && (
+                    {quest.status === 'active' && quest.totalParticipants >= quest.participantLimit && (
                       <p className="text-red-400 text-sm mt-1">
                         ⚠️ Quest is full ({quest.totalParticipants}/{quest.participantLimit} participants)
                       </p>
                     )}
                   </div>
-                  
-                  <div className="flex flex-col gap-3 min-w-[280px]">
-                    {quest.rewardPool.rewardType === 'token' && (
-                      <Input
-                        placeholder="Wallet address (optional)"
-                        value={walletAddress}
-                        onChange={(e) => setWalletAddress(e.target.value)}
-                        className="bg-black/50 border-gray-600 text-white"
-                      />
-                    )}
-                    <Button
-                      onClick={handleJoinQuest}
-                      disabled={joining || quest.totalParticipants >= quest.participantLimit || !user}
-                      className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white py-3 px-8"
-                      size="lg"
-                    >
-                      {joining ? (
-                        <>
-                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Joining...
-                        </>
-                      ) : !user ? (
-                        'Login to Join'
-                      ) : quest.totalParticipants >= quest.participantLimit ? (
-                        'Quest Full'
-                      ) : (
-                        'Join Quest Now'
+
+                  {quest.canJoin && (
+                    <div className="flex flex-col gap-3 min-w-[280px]">
+                      {quest.rewardPool.rewardType === 'token' && (
+                        <Input
+                          placeholder="Wallet address (optional)"
+                          value={walletAddress}
+                          onChange={(e) => setWalletAddress(e.target.value)}
+                          className="bg-black/50 border-gray-600 text-white"
+                        />
                       )}
-                    </Button>
-                  </div>
+                      <Button
+                        onClick={handleJoinQuest}
+                        disabled={joining || !user}
+                        className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white py-3 px-8"
+                        size="lg"
+                      >
+                        {joining ? (
+                          <>
+                            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                            Joining...
+                          </>
+                        ) : !user ? (
+                          'Login to Join'
+                        ) : (
+                          'Join Quest Now'
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -647,6 +799,27 @@ export default function QuestDetailPage() {
                         Per winner: {(quest.rewardPool.amount / quest.participantLimit).toFixed(2)} {quest.rewardPool.currency}
                       </p>
                     </div>
+
+                    <div className="p-4 bg-gray-800/30 rounded-lg">
+                      <h3 className="text-lg font-semibold text-white mb-2">Selection Method</h3>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="border-purple-600/50 text-purple-400">
+                          {quest.selectionMethod === 'fcfs' ? 'First Come, First Served' :
+                            quest.selectionMethod === 'random' ? 'Random Selection' :
+                              quest.selectionMethod === 'leaderboard' ? 'Leaderboard Based' :
+                                quest.selectionMethod}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-2">
+                        {quest.selectionMethod === 'fcfs' ?
+                          'Winners will be selected based on completion time - first to complete all tasks wins!' :
+                          quest.selectionMethod === 'random' ?
+                            'Winners will be randomly selected from all participants who complete the quest.' :
+                            quest.selectionMethod === 'leaderboard' ?
+                              'Winners will be selected based on total privilege points earned from completing tasks.' :
+                              'Winners will be selected using a custom method.'}
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -665,16 +838,24 @@ export default function QuestDetailPage() {
                       </div>
                       <Progress value={progress} className="h-3" />
 
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${participationStatus.status === 'completed' ? 'bg-green-500' :
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${participationStatus.status === 'completed' ? 'bg-green-500' :
                               participationStatus.status === 'in_progress' ? 'bg-blue-500' :
                                 participationStatus.status === 'winner' ? 'bg-purple-500' :
                                   'bg-gray-500'
-                            }`} />
-                          <span className="text-gray-400">Status: </span>
-                          <span className="text-white font-medium capitalize">{participationStatus.status?.replace('_', ' ')}</span>
+                              }`} />
+                            <span className="text-gray-400">Status: </span>
+                            <span className="text-white font-medium capitalize">{participationStatus.status?.replace('_', ' ')}</span>
+                          </div>
                         </div>
+                        {participationStatus.rank && quest.selectionMethod === 'leaderboard' && (
+                          <div className="flex items-center gap-1 text-purple-400">
+                            <Trophy className="h-4 w-4" />
+                            <span className="font-medium">Rank: #{participationStatus.rank}</span>
+                          </div>
+                        )}
                         {participationStatus.isWinner && (
                           <div className="flex items-center gap-1 text-yellow-400">
                             <Crown className="h-4 w-4" />
@@ -722,6 +903,11 @@ export default function QuestDetailPage() {
                                 <Badge className={`${task.isRequired ? 'bg-red-600' : 'bg-blue-600'} text-white text-xs`}>
                                   {task.isRequired ? 'Required' : 'Optional'}
                                 </Badge>
+                                {task.privilegePoints && quest.selectionMethod === 'leaderboard' && (
+                                  <Badge className="bg-purple-600 text-white text-xs">
+                                    {task.privilegePoints} pts
+                                  </Badge>
+                                )}
                                 {task.isCompleted && (
                                   <Badge className="bg-green-600 text-white text-xs">
                                     <CheckCircle className="h-3 w-3 mr-1" />
@@ -733,6 +919,11 @@ export default function QuestDetailPage() {
 
                             <h3 className="text-lg font-semibold text-white">{task.title}</h3>
                             <p className="text-gray-300">{task.description}</p>
+
+                            {/* Task instructions based on type */}
+                            <div className="text-sm text-gray-400 bg-gray-800/30 p-3 rounded">
+                              <strong>Instructions:</strong> {userQuestApiService.getTaskTypeInstructions(task.taskType, task.config || {})}
+                            </div>
 
                             <div className="text-sm text-gray-400">
                               Completed by {task.completedBy} participants
@@ -753,10 +944,10 @@ export default function QuestDetailPage() {
                             ) : (
                               <Button
                                 onClick={() => openTaskModal(task)}
-                                disabled={!isQuestActive()}
+                                disabled={!isQuestActive() || !task.canSubmit}
                                 className="bg-purple-600 hover:bg-purple-700 text-white"
                               >
-                                Complete Task
+                                {!isQuestActive() ? 'Quest Inactive' : 'Complete Task'}
                               </Button>
                             )}
                           </div>
@@ -768,42 +959,120 @@ export default function QuestDetailPage() {
               </TabsContent>
 
               <TabsContent value="leaderboard" className="space-y-4">
-                <Card className="bg-black/40 backdrop-blur-xl border-purple-800/30">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5 text-purple-400" />
-                      Top Participants
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {[1, 2, 3, 4, 5].map((rank) => (
-                        <div key={rank} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${rank === 1 ? 'bg-yellow-600 text-white' :
-                                rank === 2 ? 'bg-gray-400 text-black' :
-                                  rank === 3 ? 'bg-amber-600 text-white' :
-                                    'bg-gray-600 text-white'
-                              }`}>
-                              {rank}
-                            </div>
-                            <div className="w-10 h-10 bg-gray-600 rounded-full"></div>
-                            <div>
-                              <p className="text-white font-medium">User #{rank}</p>
-                              <p className="text-sm text-gray-400">@user{rank}</p>
-                            </div>
+                {quest.selectionMethod !== 'leaderboard' ? (
+                  <Card className="bg-black/40 backdrop-blur-xl border-purple-800/30">
+                    <CardContent className="p-8 text-center">
+                      <TrendingUp className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-white mb-2">No Leaderboard Available</h3>
+                      <p className="text-gray-400">
+                        This quest doesn't use leaderboard-based selection. Winners will be selected using the{" "}
+                        <span className="text-purple-400 font-medium">
+                          {quest.selectionMethod === 'fcfs' ? 'First Come, First Served' : 'Random Selection'}
+                        </span>{" "}
+                        method.
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="bg-black/40 backdrop-blur-xl border-purple-800/30">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5 text-purple-400" />
+                        Quest Leaderboard
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {leaderboard.length === 0 ? (
+                          <div className="text-center py-8">
+                            <p className="text-gray-400">No participants yet</p>
                           </div>
-                          <div className="text-right">
-                            <p className="text-white font-medium">{Math.max(0, tasks.length - rank + 1)} tasks</p>
-                            <p className="text-sm text-gray-400">
-                              {((Math.max(0, tasks.length - rank + 1) / tasks.length) * 100).toFixed(0)}% complete
-                            </p>
-                          </div>
+                        ) : (
+                          leaderboard.map((participant) => (
+                            <div key={participant._id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${participant.rank === 1 ? 'bg-yellow-600 text-white' :
+                                  participant.rank === 2 ? 'bg-gray-400 text-black' :
+                                    participant.rank === 3 ? 'bg-amber-600 text-white' :
+                                      'bg-gray-600 text-white'
+                                  }`}>
+                                  {participant.rank}
+                                </div>
+                                <div className="w-10 h-10 bg-gray-600 rounded-full overflow-hidden">
+                                  {participant.userId.profilePic ? (
+                                    <img
+                                      src={participant.userId.profilePic}
+                                      alt={participant.userId.username}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full bg-gray-600 flex items-center justify-center">
+                                      <span className="text-white text-xs">
+                                        {participant.userId.name?.[0] || participant.userId.username?.[0] || '?'}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-white font-medium">
+                                    {participant.userId.name || participant.userId.username}
+                                  </p>
+                                  <p className="text-sm text-gray-400">@{participant.userId.username}</p>
+                                </div>
+                                {participant.isWinner && (
+                                  <Crown className="h-4 w-4 text-yellow-400 ml-2" />
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <p className="text-white font-medium">{participant.totalPrivilegePoints} points</p>
+                                <p className="text-sm text-gray-400">
+                                  {participant.totalTasksCompleted} tasks completed
+                                </p>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Leaderboard Pagination */}
+                      {leaderboardPages > 1 && (
+                        <div className="flex justify-center items-center gap-4 mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              const newPage = Math.max(1, leaderboardPage - 1);
+                              setLeaderboardPage(newPage);
+                              fetchLeaderboard(newPage);
+                            }}
+                            disabled={leaderboardPage === 1}
+                            className="border-purple-600/50 text-purple-400 hover:bg-purple-950/30"
+                            size="sm"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+
+                          <span className="text-gray-400 text-sm">
+                            Page {leaderboardPage} of {leaderboardPages}
+                          </span>
+
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              const newPage = Math.min(leaderboardPages, leaderboardPage + 1);
+                              setLeaderboardPage(newPage);
+                              fetchLeaderboard(newPage);
+                            }}
+                            disabled={leaderboardPage === leaderboardPages}
+                            className="border-purple-600/50 text-purple-400 hover:bg-purple-950/30"
+                            size="sm"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
             </Tabs>
           </div>
@@ -888,7 +1157,10 @@ export default function QuestDetailPage() {
                   className="w-full border-purple-600/50 text-purple-400 hover:bg-purple-950/30"
                   onClick={() => {
                     navigator.clipboard.writeText(window.location.href);
-                    toast({ title: "Copied to clipboard!" });
+                    toast({
+                      title: "📋 Copied to clipboard!",
+                      description: "Quest link copied successfully"
+                    });
                   }}
                 >
                   <Copy className="h-4 w-4 mr-2" />
@@ -898,7 +1170,7 @@ export default function QuestDetailPage() {
                   variant="outline"
                   className="w-full border-blue-600/50 text-blue-400 hover:bg-blue-950/30"
                   onClick={() => {
-                    const tweetText = `Check out this amazing quest: ${quest.title} on @ChainVerse! 🚀`;
+                    const tweetText = `Check out this amazing quest: ${quest.title} on @ChainVerse! 🚀 ${quest.rewardPool.amount} ${quest.rewardPool.currency} rewards up for grabs!`;
                     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(window.location.href)}`;
                     window.open(tweetUrl, '_blank');
                   }}
@@ -913,7 +1185,7 @@ export default function QuestDetailPage() {
 
         {/* Task Submission Modal */}
         <Dialog open={showTaskModal} onOpenChange={setShowTaskModal}>
-          <DialogContent className="bg-gray-900 border-gray-700 max-w-md">
+          <DialogContent className="bg-gray-900 border-gray-700 max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">Complete Task</DialogTitle>
               <DialogDescription className="text-gray-300">
@@ -931,6 +1203,15 @@ export default function QuestDetailPage() {
                   </AlertDescription>
                 </Alert>
 
+                {/* Task-specific instructions */}
+                <Alert className="bg-purple-950/30 border-purple-600/50">
+                  <Target className="h-4 w-4" />
+                  <AlertTitle className="text-purple-400">How to Complete</AlertTitle>
+                  <AlertDescription className="text-gray-300">
+                    {userQuestApiService.getTaskTypeInstructions(selectedTask.taskType, selectedTask.config || {})}
+                  </AlertDescription>
+                </Alert>
+
                 {/* Task-specific inputs */}
                 {selectedTask.taskType === 'upload_screenshot' && (
                   <div className="space-y-3">
@@ -943,7 +1224,10 @@ export default function QuestDetailPage() {
                       className="bg-gray-800 border-gray-600 text-white"
                     />
                     {submissionImageUrl && (
-                      <img src={submissionImageUrl} alt="Preview" className="w-full h-32 object-cover rounded" />
+                      <div className="relative">
+                        <img src={submissionImageUrl} alt="Preview" className="w-full h-32 object-cover rounded" />
+                        <p className="text-xs text-gray-400 mt-1">Image preview</p>
+                      </div>
                     )}
                     <Label htmlFor="task-description" className="text-white">Description (Optional)</Label>
                     <Textarea
@@ -967,6 +1251,9 @@ export default function QuestDetailPage() {
                       onChange={(e) => setSubmissionLink(e.target.value)}
                       className="bg-gray-800 border-gray-600 text-white"
                     />
+                    <p className="text-xs text-gray-400">
+                      Post your tweet first, then copy and paste the URL here
+                    </p>
                     <Label htmlFor="tweet-content" className="text-white">Tweet Content (Optional)</Label>
                     <Textarea
                       id="tweet-content"
@@ -989,6 +1276,91 @@ export default function QuestDetailPage() {
                       onChange={(e) => setSubmissionText(e.target.value)}
                       className="bg-gray-800 border-gray-600 text-white"
                     />
+                    <p className="text-xs text-gray-400">
+                      Enter your Ethereum wallet address
+                    </p>
+                  </div>
+                )}
+
+                {selectedTask.taskType === 'join_community' && (
+                  <div className="space-y-3">
+                    {(selectedTask.config?.communityId || quest?.communityId) && (
+                      <a
+                        href={`/user/community/${selectedTask.config?.communityId || quest?.communityId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-3 bg-blue-950/30 border border-blue-600/50 rounded-lg text-blue-400 hover:bg-blue-900/50 transition-colors mb-4"
+                      >
+                        <Users className="h-4 w-4" />
+                        <span>Go to Community Page</span>
+                        <ExternalLink className="h-3 w-3 ml-auto" />
+                      </a>
+                    )}
+
+                    <Label htmlFor="community-proof" className="text-white">Community Join Proof (Text)</Label>
+                    <Input
+                      id="community-proof"
+                      placeholder="Your username used to join"
+                      value={submissionText}
+                      onChange={(e) => setSubmissionText(e.target.value)}
+                      className="bg-gray-800 border-gray-600 text-white"
+                    />
+
+                    <Label htmlFor="community-screenshot" className="text-white">Upload Screenshot (Optional)</Label>
+                    <Input
+                      id="community-screenshot"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="bg-gray-800 border-gray-600 text-white"
+                    />
+                    {submissionImageUrl && (
+                      <div className="relative">
+                        <img src={submissionImageUrl} alt="Preview" className="w-full h-32 object-cover rounded" />
+                        <p className="text-xs text-gray-400 mt-1">Image preview</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {selectedTask.taskType === 'follow_user' && (
+                  <div className="space-y-3">
+                    {selectedTask.config?.targetUserId && (
+                      <a
+                        href={`/user/profile/${selectedTask.config.targetUserId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-3 bg-blue-950/30 border border-blue-600/50 rounded-lg text-blue-400 hover:bg-blue-900/50 transition-colors mb-4"
+                      >
+                        <Users className="h-4 w-4" />
+                        <span>Go to User Profile</span>
+                        <ExternalLink className="h-3 w-3 ml-auto" />
+                      </a>
+                    )}
+
+                    <Label htmlFor="follow-proof" className="text-white">Follow Proof (Text)</Label>
+                    <Input
+                      id="follow-proof"
+                      placeholder="Your username"
+                      value={submissionText}
+                      onChange={(e) => setSubmissionText(e.target.value)}
+                      className="bg-gray-800 border-gray-600 text-white"
+                    />
+
+                    <Label htmlFor="follow-screenshot" className="text-white">Upload Screenshot (Optional)</Label>
+                    <Input
+                      id="follow-screenshot"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="bg-gray-800 border-gray-600 text-white"
+                    />
+                    {submissionImageUrl && (
+                      <div className="relative">
+                        <img src={submissionImageUrl} alt="Preview" className="w-full h-32 object-cover rounded" />
+                        <p className="text-xs text-gray-400 mt-1">Image preview</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1019,6 +1391,9 @@ export default function QuestDetailPage() {
                       onChange={handleImageUpload}
                       className="bg-gray-800 border-gray-600 text-white"
                     />
+                    {submissionImageUrl && (
+                      <img src={submissionImageUrl} alt="Preview" className="w-full h-32 object-cover rounded" />
+                    )}
                   </div>
                 )}
 

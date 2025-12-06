@@ -10,7 +10,9 @@ import {
   GetMyQuestsDto,
   QuestResponseDto,
   MyQuestResponseDto,
-  TaskSubmissionResponseDto
+  TaskSubmissionResponseDto,
+  LeaderboardResponseDto,
+  GetLeaderboardDto
 } from "../../dtos/quest/UserQuest.dto";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -128,18 +130,36 @@ export class UserQuestService implements IUserQuestService {
         throw new CustomError("Quest not found", StatusCode.NOT_FOUND);
       }
 
+      // Enhanced validation
       if (quest.status !== 'active') {
-        throw new CustomError("Quest is not active", StatusCode.BAD_REQUEST);
+        let message = "Quest is not available for joining";
+        if (quest.status === 'ended') message = "This quest has already ended";
+        if (quest.status === 'draft') message = "This quest is still in draft mode";
+        if (quest.status === 'cancelled') message = "This quest has been cancelled";
+        throw new CustomError(message, StatusCode.BAD_REQUEST);
+      }
+
+      // Check if quest has started and not ended
+      const now = new Date();
+      const startDate = new Date(quest.startDate);
+      const endDate = new Date(quest.endDate);
+
+      if (startDate > now) {
+        throw new CustomError("Quest hasn't started yet", StatusCode.BAD_REQUEST);
+      }
+
+      if (endDate <= now) {
+        throw new CustomError("Quest has already ended", StatusCode.BAD_REQUEST);
       }
 
       if (quest.totalParticipants >= quest.participantLimit) {
-        throw new CustomError("Quest is full", StatusCode.BAD_REQUEST);
+        throw new CustomError("Quest is full - maximum participants reached", StatusCode.BAD_REQUEST);
       }
 
       // Check if user is already participating
       const existingParticipation = await this._questRepository.findParticipantByUserAndQuest(userId, joinDto.questId);
       if (existingParticipation) {
-        throw new CustomError("Already participating in this quest", StatusCode.BAD_REQUEST);
+        throw new CustomError("You are already participating in this quest", StatusCode.BAD_REQUEST);
       }
 
       // Create participation record
@@ -151,6 +171,7 @@ export class UserQuestService implements IUserQuestService {
         joinedAt: new Date(),
         completedTasks: [],
         totalTasksCompleted: 0,
+        totalPrivilegePoints: 0,
         isWinner: false,
         rewardClaimed: false
       };
@@ -159,7 +180,10 @@ export class UserQuestService implements IUserQuestService {
       await this._questRepository.incrementQuestParticipants(joinDto.questId);
 
       logger.info(`User joined quest successfully`, { userId, questId: joinDto.questId });
-      return { success: true, message: "Successfully joined quest" };
+      return { 
+        success: true, 
+        message: `Successfully joined "${quest.title}"! You can now start completing tasks to earn rewards.` 
+      };
     } catch (error) {
       logger.error("Join quest error:", error);
       throw error instanceof CustomError ? error : new CustomError("Failed to join quest", StatusCode.INTERNAL_SERVER_ERROR);
@@ -181,7 +205,25 @@ export class UserQuestService implements IUserQuestService {
       // Check if task already submitted
       const existingSubmission = await this._questRepository.findSubmissionByUserTaskQuest(userId, submitDto.taskId, submitDto.questId);
       if (existingSubmission) {
-        throw new CustomError("Task already submitted", StatusCode.BAD_REQUEST);
+        throw new CustomError("You have already submitted this task", StatusCode.BAD_REQUEST);
+      }
+
+      // Validate submission data based on task type
+      const validationResult = await this._questRepository.validateTaskSubmission(submitDto.taskId, submitDto.submissionData);
+      if (!validationResult.valid) {
+        throw new CustomError(validationResult.message || "Invalid submission data", StatusCode.BAD_REQUEST);
+      }
+
+      // Get quest to check if it's still active
+      const quest = await this._questRepository.findQuestById(submitDto.questId);
+      if (!quest || quest.status !== 'active') {
+        throw new CustomError("Quest is not active for task submissions", StatusCode.BAD_REQUEST);
+      }
+
+      // Check if quest has ended
+      const now = new Date();
+      if (new Date(quest.endDate) <= now) {
+        throw new CustomError("Quest has ended - no more submissions allowed", StatusCode.BAD_REQUEST);
       }
 
       // Create submission
@@ -198,7 +240,6 @@ export class UserQuestService implements IUserQuestService {
 
       // Update participation status and task completion
       const updatedTasksCompleted = participation.totalTasksCompleted + 1;
-      const quest = await this._questRepository.findQuestById(submitDto.questId);
       const totalTasks = await this._questRepository.findTasksByQuest(submitDto.questId);
 
       const updateData: any = {
@@ -214,8 +255,25 @@ export class UserQuestService implements IUserQuestService {
       await this._questRepository.updateParticipant(participation._id.toString(), updateData);
       await this._questRepository.incrementTaskCompletions(submitDto.taskId);
 
+      // Update privilege points for leaderboard quests
+      if (quest.selectionMethod === 'leaderboard') {
+        await this._questRepository.updateParticipantPrivilegePoints(participation._id.toString(), submitDto.questId);
+      }
+
+      // Get task info for success message
+      const tasks = await this._questRepository.findTasksByQuest(submitDto.questId);
+      const completedTask = tasks.find(t => t._id.toString() === submitDto.taskId);
+
       logger.info(`Task submitted successfully`, { userId, questId: submitDto.questId, taskId: submitDto.taskId });
-      return new TaskSubmissionResponseDto(submission);
+      
+      const response = new TaskSubmissionResponseDto(submission);
+      response.message = `Task "${completedTask?.title}" submitted successfully! ${
+        updateData.status === 'completed' 
+          ? "🎉 Congratulations! You've completed all tasks in this quest."
+          : `Progress: ${updatedTasksCompleted}/${totalTasks.length} tasks completed.`
+      }`;
+      
+      return response;
     } catch (error) {
       logger.error("Submit task error:", error);
       throw error instanceof CustomError ? error : new CustomError("Failed to submit task", StatusCode.INTERNAL_SERVER_ERROR);
@@ -233,10 +291,12 @@ export class UserQuestService implements IUserQuestService {
           const subTaskId = (sub.taskId as any)._id || sub.taskId;
           return subTaskId.toString() === task._id.toString();
         });
+        
         return {
           ...task,
           isCompleted: !!submission,
-          submission: submission || null
+          submission: submission || null,
+          canSubmit: !submission // Can submit if no existing submission
         };
       });
 
@@ -260,7 +320,12 @@ export class UserQuestService implements IUserQuestService {
   async getQuestStats(questId: string): Promise<any> {
     try {
       const stats = await this._questRepository.getQuestParticipantStats(questId);
-      return stats;
+      const taskStats = await this._questRepository.getTaskCompletionStats(questId);
+      
+      return {
+        ...stats,
+        taskCompletionStats: taskStats
+      };
     } catch (error) {
       logger.error("Get quest stats error:", error);
       throw error instanceof CustomError ? error : new CustomError("Failed to get quest stats", StatusCode.INTERNAL_SERVER_ERROR);
@@ -281,7 +346,18 @@ export class UserQuestService implements IUserQuestService {
     try {
       const participation = await this._questRepository.findParticipantByUserAndQuest(userId, questId);
       if (!participation) {
-        return { isParticipating: false };
+        return { 
+          isParticipating: false,
+          canJoin: true,
+          message: "You haven't joined this quest yet" 
+        };
+      }
+
+      // Get user's rank if quest supports leaderboard
+      let rank = null;
+      const supportsLeaderboard = await this._questRepository.questSupportsLeaderboard(questId);
+      if (supportsLeaderboard) {
+        rank = await this._questRepository.getUserRank(userId, questId);
       }
 
       return {
@@ -290,8 +366,10 @@ export class UserQuestService implements IUserQuestService {
         joinedAt: participation.joinedAt,
         completedAt: participation.completedAt,
         totalTasksCompleted: participation.totalTasksCompleted,
+        totalPrivilegePoints: participation.totalPrivilegePoints,
         isWinner: participation.isWinner,
-        rewardClaimed: participation.rewardClaimed
+        rewardClaimed: participation.rewardClaimed,
+        rank: rank
       };
     } catch (error) {
       logger.error("Check participation status error:", error);
@@ -299,10 +377,26 @@ export class UserQuestService implements IUserQuestService {
     }
   }
 
-  async getQuestLeaderboard(questId: string): Promise<any[]> {
+  async getQuestLeaderboard(questId: string, query: GetLeaderboardDto): Promise<LeaderboardResponseDto> {
     try {
-      const leaderboard = await this._questRepository.getQuestLeaderboard(questId, 10);
-      return leaderboard;
+      const { page = 1, limit = 10 } = query;
+
+      // Check if quest supports leaderboard
+      const supportsLeaderboard = await this._questRepository.questSupportsLeaderboard(questId);
+      if (!supportsLeaderboard) {
+        return new LeaderboardResponseDto({
+          participants: [],
+          pagination: { page, limit, total: 0, pages: 0 },
+          message: "This quest doesn't use leaderboard-based selection"
+        });
+      }
+
+      const { participants, total, pages } = await this._questRepository.getQuestLeaderboard(questId, page, limit);
+      
+      return new LeaderboardResponseDto({
+        participants,
+        pagination: { page, limit, total, pages }
+      });
     } catch (error) {
       logger.error("Get quest leaderboard error:", error);
       throw error instanceof CustomError ? error : new CustomError("Failed to get quest leaderboard", StatusCode.INTERNAL_SERVER_ERROR);
@@ -317,7 +411,10 @@ export class UserQuestService implements IUserQuestService {
           folder: 'quest-submissions',
           public_id: `submission_${userId}_${Date.now()}`,
           overwrite: true,
-          resource_type: file.mimetype.startsWith('video/') ? 'video' : 'image'
+          resource_type: file.mimetype.startsWith('video/') ? 'video' : 'image',
+          transformation: file.mimetype.startsWith('image/') ? [
+            { width: 1200, height: 1200, crop: 'limit', quality: 'auto' }
+          ] : []
         }
       );
 
