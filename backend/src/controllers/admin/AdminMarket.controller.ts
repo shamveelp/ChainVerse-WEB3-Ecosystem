@@ -4,6 +4,7 @@ import { TYPES } from "../../core/types/types";
 import { IAdminMarketController } from "../../core/interfaces/controllers/admin/IAdminMarketController";
 import { IAdminMarketService } from "../../core/interfaces/services/admin/IAdminMarketService";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 
@@ -12,7 +13,7 @@ export class AdminMarketController implements IAdminMarketController {
   constructor(
     @inject(TYPES.IAdminMarketService)
     private _adminMarketService: IAdminMarketService
-  ) {}
+  ) { }
 
   async getCoins(req: Request, res: Response): Promise<void> {
     try {
@@ -27,18 +28,18 @@ export class AdminMarketController implements IAdminMarketController {
 
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Market coins fetched successfully",
+        message: SuccessMessages.MARKET_COINS_FETCHED,
         ...result,
       });
     } catch (error) {
-      logger.error("Error getting market coins:", error);
+      logger.error(LoggerMessages.GET_MARKET_COINS_ERROR, error);
       const err = error as any;
       const statusCode =
         err instanceof CustomError ? err.statusCode : StatusCode.BAD_REQUEST;
       const message =
         err instanceof CustomError
           ? err.message
-          : "Failed to fetch market coins";
+          : ErrorMessages.FAILED_FETCH_MARKET_COINS;
 
       res.status(statusCode).json({
         success: false,
@@ -55,7 +56,7 @@ export class AdminMarketController implements IAdminMarketController {
       if (typeof isListed !== "boolean") {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "isListed (boolean) is required",
+          message: ErrorMessages.IS_LISTED_REQUIRED,
         });
         return;
       }
@@ -67,18 +68,18 @@ export class AdminMarketController implements IAdminMarketController {
 
       res.status(StatusCode.OK).json({
         success: true,
-        message: `Coin ${isListed ? "listed" : "unlisted"} successfully`,
+        message: SuccessMessages.COIN_LISTING_UPDATED,
         coin: updated,
       });
     } catch (error) {
-      logger.error("Error updating coin listing:", error);
+      logger.error(LoggerMessages.UPDATE_COIN_LISTING_ERROR, error);
       const err = error as any;
       const statusCode =
         err instanceof CustomError ? err.statusCode : StatusCode.BAD_REQUEST;
       const message =
         err instanceof CustomError
           ? err.message
-          : "Failed to update coin listing";
+          : ErrorMessages.FAILED_UPDATE_COIN_LISTING;
 
       res.status(statusCode).json({
         success: false,
@@ -101,7 +102,7 @@ export class AdminMarketController implements IAdminMarketController {
       if (!symbol || !name) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "symbol and name are required",
+          message: ErrorMessages.SYMBOL_NAME_REQUIRED,
         });
         return;
       }
@@ -115,18 +116,18 @@ export class AdminMarketController implements IAdminMarketController {
 
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Coin added to market successfully",
+        message: SuccessMessages.COIN_ADDED_MARKET,
         coin,
       });
     } catch (error) {
-      logger.error("Error creating coin from external data:", error);
+      logger.error(LoggerMessages.CREATE_COIN_ERROR, error);
       const err = error as any;
       const statusCode =
         err instanceof CustomError ? err.statusCode : StatusCode.BAD_REQUEST;
       const message =
         err instanceof CustomError
           ? err.message
-          : "Failed to add coin to market";
+          : ErrorMessages.FAILED_ADD_COIN_MARKET;
 
       res.status(statusCode).json({
         success: false,
@@ -142,15 +143,15 @@ export class AdminMarketController implements IAdminMarketController {
 
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Coin deleted successfully",
+        message: SuccessMessages.COIN_DELETED,
       });
     } catch (error) {
-      logger.error("Error deleting coin:", error);
+      logger.error(LoggerMessages.DELETE_COIN_ERROR, error);
       const err = error as any;
       const statusCode =
         err instanceof CustomError ? err.statusCode : StatusCode.BAD_REQUEST;
       const message =
-        err instanceof CustomError ? err.message : "Failed to delete coin";
+        err instanceof CustomError ? err.message : ErrorMessages.FAILED_DELETE_COIN;
 
       res.status(statusCode).json({
         success: false,

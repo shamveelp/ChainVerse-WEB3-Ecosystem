@@ -4,6 +4,7 @@ import { TYPES } from "../../core/types/types";
 import { IAdminWalletController } from "../../core/interfaces/controllers/admin/IAdminWalletController";
 import { IAdminWalletService } from "../../core/interfaces/services/admin/IAdminWalletService";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import logger from "../../utils/logger";
 import { CustomError } from "../../utils/customError";
 
@@ -11,7 +12,7 @@ import { CustomError } from "../../utils/customError";
 export class AdminWalletController implements IAdminWalletController {
   constructor(
     @inject(TYPES.IAdminWalletService) private _adminWalletService: IAdminWalletService
-  ) {}
+  ) { }
 
   getAllWallets = async (req: Request, res: Response) => {
     try {
@@ -23,11 +24,11 @@ export class AdminWalletController implements IAdminWalletController {
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "Wallets retrieved successfully"
+        message: SuccessMessages.WALLETS_RETRIEVED
       });
     } catch (error) {
-      logger.error("Error in getAllWallets:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallets";
+      logger.error(LoggerMessages.GET_ALL_WALLETS_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_GET_WALLETS;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
 
       res.status(statusCode).json({
@@ -44,7 +45,7 @@ export class AdminWalletController implements IAdminWalletController {
       if (!address) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Wallet address is required"
+          error: ErrorMessages.WALLET_ADDRESS_REQUIRED
         });
         return;
       }
@@ -54,7 +55,7 @@ export class AdminWalletController implements IAdminWalletController {
       if (!wallet) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
-          error: "Wallet not found"
+          error: ErrorMessages.WALLET_NOT_FOUND
         });
         return;
       }
@@ -62,11 +63,11 @@ export class AdminWalletController implements IAdminWalletController {
       res.status(StatusCode.OK).json({
         success: true,
         data: wallet,
-        message: "Wallet details retrieved successfully"
+        message: SuccessMessages.WALLET_DETAILS_RETRIEVED
       });
     } catch (error) {
-      logger.error("Error in getWalletDetails:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallet details";
+      logger.error(LoggerMessages.GET_WALLET_DETAILS_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_GET_WALLET_DETAILS;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
 
       res.status(statusCode).json({
@@ -83,11 +84,11 @@ export class AdminWalletController implements IAdminWalletController {
       res.status(StatusCode.OK).json({
         success: true,
         data: stats,
-        message: "Wallet statistics retrieved successfully"
+        message: SuccessMessages.WALLET_STATS_RETRIEVED
       });
     } catch (error) {
-      logger.error("Error in getWalletStats:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallet statistics";
+      logger.error(LoggerMessages.GET_WALLET_STATS_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_GET_WALLET_STATS;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
 
       res.status(statusCode).json({
@@ -106,7 +107,7 @@ export class AdminWalletController implements IAdminWalletController {
       if (!address) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Wallet address is required"
+          error: ErrorMessages.WALLET_ADDRESS_REQUIRED
         });
         return;
       }
@@ -116,11 +117,11 @@ export class AdminWalletController implements IAdminWalletController {
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "Wallet transactions retrieved successfully"
+        message: SuccessMessages.WALLET_TRANSACTIONS_RETRIEVED
       });
     } catch (error) {
-      logger.error("Error in getWalletTransactions:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallet transactions";
+      logger.error(LoggerMessages.GET_WALLET_TRANSACTIONS_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_GET_WALLET_TRANSACTIONS;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
 
       res.status(statusCode).json({
@@ -139,7 +140,7 @@ export class AdminWalletController implements IAdminWalletController {
       if (!address) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Wallet address is required"
+          error: ErrorMessages.WALLET_ADDRESS_REQUIRED
         });
         return;
       }
@@ -149,11 +150,11 @@ export class AdminWalletController implements IAdminWalletController {
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "Blockchain transactions retrieved successfully"
+        message: SuccessMessages.BLOCKCHAIN_TRANSACTIONS_RETRIEVED
       });
     } catch (error) {
-      logger.error("Error in getWalletBlockchainTransactions:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to get blockchain transactions";
+      logger.error(LoggerMessages.GET_WALLET_BLOCKCHAIN_TRANSACTIONS_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_GET_BLOCKCHAIN_TRANSACTIONS;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
 
       res.status(statusCode).json({
@@ -170,7 +171,7 @@ export class AdminWalletController implements IAdminWalletController {
       if (!address) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Wallet address is required"
+          error: ErrorMessages.WALLET_ADDRESS_REQUIRED
         });
         return;
       }
@@ -180,11 +181,11 @@ export class AdminWalletController implements IAdminWalletController {
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "Contract interactions retrieved successfully"
+        message: SuccessMessages.CONTRACT_INTERACTIONS_RETRIEVED
       });
     } catch (error) {
-      logger.error("Error in getWalletContractInteractions:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to get contract interactions";
+      logger.error(LoggerMessages.GET_WALLET_CONTRACT_INTERACTIONS_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_GET_CONTRACT_INTERACTIONS;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
 
       res.status(statusCode).json({
@@ -203,7 +204,7 @@ export class AdminWalletController implements IAdminWalletController {
       if (!address) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Wallet address is required"
+          error: ErrorMessages.WALLET_ADDRESS_REQUIRED
         });
         return;
       }
@@ -213,11 +214,11 @@ export class AdminWalletController implements IAdminWalletController {
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "Wallet history from Etherscan retrieved successfully"
+        message: SuccessMessages.WALLET_ETHERSCAN_HISTORY_RETRIEVED
       });
     } catch (error) {
-      logger.error("Error in getWalletHistoryFromEtherscan:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallet history from Etherscan";
+      logger.error(LoggerMessages.GET_WALLET_ETHERSCAN_HISTORY_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_GET_WALLET_ETHERSCAN_HISTORY;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
 
       res.status(statusCode).json({
@@ -236,7 +237,7 @@ export class AdminWalletController implements IAdminWalletController {
       if (!address) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Wallet address is required"
+          error: ErrorMessages.WALLET_ADDRESS_REQUIRED
         });
         return;
       }
@@ -246,11 +247,11 @@ export class AdminWalletController implements IAdminWalletController {
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "Wallet app history retrieved successfully"
+        message: SuccessMessages.WALLET_APP_HISTORY_RETRIEVED
       });
     } catch (error) {
-      logger.error("Error in getWalletAppHistory:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to get wallet app history";
+      logger.error(LoggerMessages.GET_WALLET_APP_HISTORY_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_GET_WALLET_APP_HISTORY;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
 
       res.status(statusCode).json({
@@ -267,11 +268,11 @@ export class AdminWalletController implements IAdminWalletController {
       res.status(StatusCode.OK).json({
         success: true,
         data,
-        message: "Wallet data exported successfully"
+        message: SuccessMessages.WALLET_DATA_EXPORTED
       });
     } catch (error) {
-      logger.error("Error in exportWalletData:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to export wallet data";
+      logger.error(LoggerMessages.EXPORT_WALLET_DATA_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_EXPORT_WALLET_DATA;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
 
       res.status(statusCode).json({
@@ -288,7 +289,7 @@ export class AdminWalletController implements IAdminWalletController {
       if (!address) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Wallet address is required"
+          error: ErrorMessages.WALLET_ADDRESS_REQUIRED
         });
         return;
       }
@@ -298,11 +299,11 @@ export class AdminWalletController implements IAdminWalletController {
       res.status(StatusCode.OK).json({
         success: true,
         data: wallet,
-        message: "Wallet data refreshed successfully"
+        message: SuccessMessages.WALLET_DATA_REFRESHED
       });
     } catch (error) {
-      logger.error("Error in refreshWalletData:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to refresh wallet data";
+      logger.error(LoggerMessages.REFRESH_WALLET_DATA_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_REFRESH_WALLET_DATA;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
 
       res.status(statusCode).json({

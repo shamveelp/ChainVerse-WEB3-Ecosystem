@@ -6,7 +6,7 @@ import { IMailService } from "../../core/interfaces/services/IMailService";
 import { TYPES } from "../../core/types/types";
 import logger from "../../utils/logger";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { ErrorMessages } from "../../enums/messages.enum";
+import { ErrorMessages, SuccessMessages, LoggerMessages } from "../../enums/messages.enum";
 import { CommunityRequestResponseDto } from "../../dtos/admin/AdminCommunity.dto";
 import { PaginatedResponseDto } from "../../dtos/base/BaseResponse.dto";
 
@@ -15,16 +15,16 @@ export class AdminCommunityController implements IAdminCommunityController {
   constructor(
     @inject(TYPES.IAdminCommunityService) private _adminCommunityService: IAdminCommunityService,
     @inject(TYPES.IMailService) private _mailService: IMailService,
-  ) {}
+  ) { }
 
   async getAllCommunityRequests(req: Request, res: Response): Promise<void> {
     try {
       const page = Number(req.query.page) || 1;
       const limit = Number(req.query.limit) || 10;
       const search = String(req.query.search) || '';
-      
+
       const result = await this._adminCommunityService.getAllCommunityRequests(page, limit, search);
-      
+
       const requestDtos = result.requests.map(request => new CommunityRequestResponseDto(request));
       const response = new PaginatedResponseDto(
         requestDtos,
@@ -32,13 +32,13 @@ export class AdminCommunityController implements IAdminCommunityController {
         result.page,
         result.limit,
         true,
-        "Community requests retrieved successfully"
+        SuccessMessages.COMMUNITY_REQUESTS_RETRIEVED
       );
-      
+
       res.status(StatusCode.OK).json(response);
     } catch (error) {
       const err = error as Error;
-      logger.error("Get community requests error:", err);
+      logger.error(LoggerMessages.GET_COMMUNITY_REQUESTS_ERROR, err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: err.message || ErrorMessages.SERVER_ERROR,
@@ -50,11 +50,11 @@ export class AdminCommunityController implements IAdminCommunityController {
     try {
       const { id } = req.params;
       const request = await this._adminCommunityService.getCommunityRequestById(id);
-      
+
       if (!request) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
-          message: "Community request not found",
+          message: ErrorMessages.COMMUNITY_REQUEST_NOT_FOUND,
         });
         return;
       }
@@ -66,7 +66,7 @@ export class AdminCommunityController implements IAdminCommunityController {
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("Get community request by id error:", err);
+      logger.error(LoggerMessages.GET_COMMUNITY_REQUEST_BY_ID_ERROR, err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: err.message || ErrorMessages.SERVER_ERROR,
@@ -77,12 +77,12 @@ export class AdminCommunityController implements IAdminCommunityController {
   async approveCommunityRequest(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const updatedRequest = await this._adminCommunityService.approveCommunityRequest(id);
       if (!updatedRequest) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
-          message: "Community request not found",
+          message: ErrorMessages.COMMUNITY_REQUEST_NOT_FOUND,
         });
         return;
       }
@@ -100,14 +100,14 @@ export class AdminCommunityController implements IAdminCommunityController {
       const response = new CommunityRequestResponseDto(updatedRequest);
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Community request approved successfully",
+        message: SuccessMessages.COMMUNITY_REQUEST_APPROVED,
         request: response,
       });
 
       logger.info(`Community request approved: ${id}`);
     } catch (error) {
       const err = error as Error;
-      logger.error("Approve community request error:", err);
+      logger.error(LoggerMessages.APPROVE_COMMUNITY_REQUEST_ERROR, err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: err.message || ErrorMessages.SERVER_ERROR,
@@ -123,7 +123,7 @@ export class AdminCommunityController implements IAdminCommunityController {
       if (!reason) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "Rejection reason is required",
+          message: ErrorMessages.REJECTION_REASON_REQUIRED,
         });
         return;
       }
@@ -132,7 +132,7 @@ export class AdminCommunityController implements IAdminCommunityController {
       if (!updatedRequest) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
-          message: "Community request not found",
+          message: ErrorMessages.COMMUNITY_REQUEST_NOT_FOUND,
         });
         return;
       }
@@ -151,14 +151,14 @@ export class AdminCommunityController implements IAdminCommunityController {
       const response = new CommunityRequestResponseDto(updatedRequest);
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Community request rejected successfully",
+        message: SuccessMessages.COMMUNITY_REQUEST_REJECTED,
         request: response,
       });
 
       logger.info(`Community request rejected: ${id}, reason: ${reason}`);
     } catch (error) {
       const err = error as Error;
-      logger.error("Reject community request error:", err);
+      logger.error(LoggerMessages.REJECT_COMMUNITY_REQUEST_ERROR, err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: err.message || ErrorMessages.SERVER_ERROR,
