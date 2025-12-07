@@ -12,23 +12,24 @@ import {
     CreateCommentDto,
     SharePostDto
 } from "../../dtos/posts/Post.dto";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class PostController implements IPostController {
     constructor(
         @inject(TYPES.IPostService) private _postService: IPostService
-    ) {}
+    ) { }
 
     // Post CRUD operations
     async createPost(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const user = req.user as { id: string; role: string };
 
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -38,7 +39,7 @@ export class PostController implements IPostController {
             if (!content || content.trim().length === 0) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post content is required"
+                    error: ErrorMessages.POST_CONTENT_REQUIRED
                 });
                 return;
             }
@@ -51,18 +52,18 @@ export class PostController implements IPostController {
 
             const post = await this._postService.createPost(user.id, postData);
 
-            
+
             res.status(StatusCode.CREATED).json({
                 success: true,
                 data: post,
-                message: "Post created successfully"
+                message: SuccessMessages.POST_CREATED
             });
         } catch (error) {
             const err = error as Error;
-            
+
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to create post";
-            logger.error("Create post error:", { message, stack: err.stack, userId: req.user });
+            const message = err.message || ErrorMessages.FAILED_CREATE_POST;
+            logger.error(LoggerMessages.CREATE_POST_ERROR, { message, stack: err.stack, userId: req.user });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -72,21 +73,21 @@ export class PostController implements IPostController {
 
     async getPostById(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { postId } = req.params;
             const user = req.user as { id: string; role: string } | undefined;
 
             if (!postId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post ID is required"
+                    error: ErrorMessages.POST_ID_REQUIRED
                 });
                 return;
             }
 
             const postDetail = await this._postService.getPostById(postId, user?.id);
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: postDetail
@@ -95,8 +96,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Get post by ID controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch post";
-            logger.error("Get post by ID error:", { message, stack: err.stack, postId: req.params.postId });
+            const message = err.message || ErrorMessages.FAILED_GET_POST;
+            logger.error(LoggerMessages.GET_POST_ERROR, { message, stack: err.stack, postId: req.params.postId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -106,7 +107,7 @@ export class PostController implements IPostController {
 
     async updatePost(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { postId } = req.params;
             const user = req.user as { id: string; role: string };
             const { content, mediaUrls }: UpdatePostDto = req.body;
@@ -114,7 +115,7 @@ export class PostController implements IPostController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -122,7 +123,7 @@ export class PostController implements IPostController {
             if (!postId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post ID is required"
+                    error: ErrorMessages.POST_ID_REQUIRED
                 });
                 return;
             }
@@ -130,7 +131,7 @@ export class PostController implements IPostController {
             if (!content || content.trim().length === 0) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post content is required"
+                    error: ErrorMessages.POST_CONTENT_REQUIRED
                 });
                 return;
             }
@@ -142,18 +143,18 @@ export class PostController implements IPostController {
 
             const updatedPost = await this._postService.updatePost(postId, user.id, updateData);
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: updatedPost,
-                message: "Post updated successfully"
+                message: SuccessMessages.POST_UPDATED
             });
         } catch (error) {
             const err = error as Error;
             console.error("Update post controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to update post";
-            logger.error("Update post error:", { message, stack: err.stack, postId: req.params.postId });
+            const message = err.message || ErrorMessages.FAILED_UPDATE_POST;
+            logger.error(LoggerMessages.UPDATE_POST_ERROR, { message, stack: err.stack, postId: req.params.postId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -163,14 +164,14 @@ export class PostController implements IPostController {
 
     async deletePost(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { postId } = req.params;
             const user = req.user as { id: string; role: string };
 
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -178,14 +179,14 @@ export class PostController implements IPostController {
             if (!postId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post ID is required"
+                    error: ErrorMessages.POST_ID_REQUIRED
                 });
                 return;
             }
 
             const result = await this._postService.deletePost(postId, user.id);
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -195,8 +196,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Delete post controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to delete post";
-            logger.error("Delete post error:", { message, stack: err.stack, postId: req.params.postId });
+            const message = err.message || ErrorMessages.FAILED_DELETE_POST;
+            logger.error(LoggerMessages.DELETE_POST_ERROR, { message, stack: err.stack, postId: req.params.postId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -207,14 +208,14 @@ export class PostController implements IPostController {
     // Post queries
     async getFeedPosts(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const user = req.user as { id: string; role: string };
             const { cursor, limit } = req.query;
 
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -234,7 +235,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -243,8 +244,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Get feed posts controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch feed posts";
-            logger.error("Get feed posts error:", { message, stack: err.stack });
+            const message = err.message || ErrorMessages.FAILED_FETCH_FEED_POSTS;
+            logger.error(LoggerMessages.GET_FEED_POSTS_ERROR, { message, stack: err.stack });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -254,7 +255,7 @@ export class PostController implements IPostController {
 
     async getUserPosts(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { userId } = req.params;
             const user = req.user as { id: string; role: string } | undefined;
             const { cursor, limit } = req.query;
@@ -262,7 +263,7 @@ export class PostController implements IPostController {
             if (!userId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "User ID is required"
+                    error: ErrorMessages.USER_ID_REQUIRED
                 });
                 return;
             }
@@ -283,7 +284,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -292,8 +293,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Get user posts controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch user posts";
-            logger.error("Get user posts error:", { message, stack: err.stack, userId: req.params.userId });
+            const message = err.message || ErrorMessages.FAILED_FETCH_USER_POSTS;
+            logger.error(LoggerMessages.GET_USER_POSTS_ERROR, { message, stack: err.stack, userId: req.params.userId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -303,7 +304,7 @@ export class PostController implements IPostController {
 
     async getLikedPosts(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { userId } = req.params;
             const user = req.user as { id: string; role: string } | undefined;
             const { cursor, limit } = req.query;
@@ -311,7 +312,7 @@ export class PostController implements IPostController {
             if (!userId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "User ID is required"
+                    error: ErrorMessages.USER_ID_REQUIRED
                 });
                 return;
             }
@@ -332,7 +333,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -341,8 +342,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Get liked posts controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch liked posts";
-            logger.error("Get liked posts error:", { message, stack: err.stack, userId: req.params.userId });
+            const message = err.message || ErrorMessages.FAILED_FETCH_LIKED_POSTS;
+            logger.error(LoggerMessages.GET_LIKED_POSTS_ERROR, { message, stack: err.stack, userId: req.params.userId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -352,7 +353,7 @@ export class PostController implements IPostController {
 
     async getTrendingPosts(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { cursor, limit } = req.query;
 
             // Validate limit
@@ -369,7 +370,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -378,8 +379,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Get trending posts controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch trending posts";
-            logger.error("Get trending posts error:", { message, stack: err.stack });
+            const message = err.message || ErrorMessages.FAILED_FETCH_TRENDING_POSTS;
+            logger.error(LoggerMessages.GET_TRENDING_POSTS_ERROR, { message, stack: err.stack });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -389,14 +390,14 @@ export class PostController implements IPostController {
 
     async getPostsByHashtag(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { hashtag } = req.params;
             const { cursor, limit } = req.query;
 
             if (!hashtag || hashtag.trim().length === 0) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Hashtag is required"
+                    error: ErrorMessages.HASHTAG_REQUIRED
                 });
                 return;
             }
@@ -416,7 +417,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -425,8 +426,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Get posts by hashtag controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch posts by hashtag";
-            logger.error("Get posts by hashtag error:", { message, stack: err.stack, hashtag: req.params.hashtag });
+            const message = err.message || ErrorMessages.FAILED_FETCH_POSTS_HASHTAG;
+            logger.error(LoggerMessages.GET_POSTS_HASHTAG_ERROR, { message, stack: err.stack, hashtag: req.params.hashtag });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -436,13 +437,13 @@ export class PostController implements IPostController {
 
     async searchPosts(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { q: query, cursor, limit } = req.query;
 
             if (!query || typeof query !== 'string' || query.trim().length === 0) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Search query is required"
+                    error: ErrorMessages.SEARCH_QUERY_REQUIRED
                 });
                 return;
             }
@@ -462,7 +463,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: posts
@@ -471,8 +472,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Search posts controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to search posts";
-            logger.error("Search posts error:", { message, stack: err.stack, query: req.query.q });
+            const message = err.message || ErrorMessages.FAILED_SEARCH_POSTS;
+            logger.error(LoggerMessages.SEARCH_POSTS_ERROR, { message, stack: err.stack, query: req.query.q });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -483,7 +484,7 @@ export class PostController implements IPostController {
     // Like operations
     async togglePostLike(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { postId } = req.params;
             const user = req.user as { id: string; role: string };
 
@@ -498,14 +499,14 @@ export class PostController implements IPostController {
             if (!postId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post ID is required"
+                    error: ErrorMessages.POST_ID_REQUIRED
                 });
                 return;
             }
 
             const result = await this._postService.togglePostLike(user.id, postId);
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -515,8 +516,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Toggle post like controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to toggle post like";
-            logger.error("Toggle post like error:", { message, stack: err.stack, postId: req.params.postId });
+            const message = err.message || ErrorMessages.FAILED_TOGGLE_POST_LIKE;
+            logger.error(LoggerMessages.TOGGLE_POST_LIKE_ERROR, { message, stack: err.stack, postId: req.params.postId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -526,7 +527,7 @@ export class PostController implements IPostController {
 
     async toggleCommentLike(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { commentId } = req.params;
             const user = req.user as { id: string; role: string };
 
@@ -541,14 +542,14 @@ export class PostController implements IPostController {
             if (!commentId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Comment ID is required"
+                    error: ErrorMessages.COMMENT_ID_REQUIRED
                 });
                 return;
             }
 
             const result = await this._postService.toggleCommentLike(user.id, commentId);
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -558,8 +559,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Toggle comment like controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to toggle comment like";
-            logger.error("Toggle comment like error:", { message, stack: err.stack, commentId: req.params.commentId });
+            const message = err.message || ErrorMessages.FAILED_TOGGLE_COMMENT_LIKE;
+            logger.error(LoggerMessages.TOGGLE_COMMENT_LIKE_ERROR, { message, stack: err.stack, commentId: req.params.commentId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -569,7 +570,7 @@ export class PostController implements IPostController {
 
     async getPostLikers(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { postId } = req.params;
             const { cursor, limit } = req.query;
 
@@ -596,7 +597,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: likers
@@ -605,8 +606,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Get post likers controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch post likers";
-            logger.error("Get post likers error:", { message, stack: err.stack, postId: req.params.postId });
+            const message = err.message || ErrorMessages.FAILED_FETCH_POST_LIKERS;
+            logger.error(LoggerMessages.GET_POST_LIKERS_ERROR, { message, stack: err.stack, postId: req.params.postId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -617,7 +618,7 @@ export class PostController implements IPostController {
     // Comment operations
     async createComment(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const user = req.user as { id: string; role: string };
             const { postId, content, parentCommentId }: CreateCommentDto = req.body;
 
@@ -632,7 +633,7 @@ export class PostController implements IPostController {
             if (!postId || !content) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post ID and content are required"
+                    error: ErrorMessages.POST_ID_CONTENT_REQUIRED
                 });
                 return;
             }
@@ -640,7 +641,7 @@ export class PostController implements IPostController {
             if (content.trim().length === 0) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Comment content cannot be empty"
+                    error: ErrorMessages.COMMENT_CONTENT_EMPTY
                 });
                 return;
             }
@@ -653,18 +654,18 @@ export class PostController implements IPostController {
 
             const comment = await this._postService.createComment(user.id, commentData);
 
-            
+
             res.status(StatusCode.CREATED).json({
                 success: true,
                 data: comment,
-                message: "Comment created successfully"
+                message: SuccessMessages.COMMENT_CREATED
             });
         } catch (error) {
             const err = error as Error;
             console.error("Create comment controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to create comment";
-            logger.error("Create comment error:", { message, stack: err.stack, userId: req.user });
+            const message = err.message || ErrorMessages.FAILED_CREATE_COMMENT;
+            logger.error(LoggerMessages.CREATE_COMMENT_ERROR, { message, stack: err.stack, userId: req.user });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -674,7 +675,7 @@ export class PostController implements IPostController {
 
     async updateComment(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { commentId } = req.params;
             const user = req.user as { id: string; role: string };
             const { content } = req.body;
@@ -698,25 +699,25 @@ export class PostController implements IPostController {
             if (!content || content.trim().length === 0) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Comment content is required"
+                    error: ErrorMessages.COMMENT_CONTENT_REQUIRED
                 });
                 return;
             }
 
             const updatedComment = await this._postService.updateComment(commentId, user.id, content.trim());
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: updatedComment,
-                message: "Comment updated successfully"
+                message: SuccessMessages.MESSAGE_UPDATED
             });
         } catch (error) {
             const err = error as Error;
             console.error("Update comment controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to update comment";
-            logger.error("Update comment error:", { message, stack: err.stack, commentId: req.params.commentId });
+            const message = err.message || ErrorMessages.FAILED_UPDATE_COMMENT;
+            logger.error(LoggerMessages.UPDATE_COMMENT_ERROR, { message, stack: err.stack, commentId: req.params.commentId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -726,7 +727,7 @@ export class PostController implements IPostController {
 
     async deleteComment(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { commentId } = req.params;
             const user = req.user as { id: string; role: string };
 
@@ -748,7 +749,7 @@ export class PostController implements IPostController {
 
             const result = await this._postService.deleteComment(commentId, user.id);
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -758,8 +759,8 @@ export class PostController implements IPostController {
             const err = error as Error;
             console.error("Delete comment controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to delete comment";
-            logger.error("Delete comment error:", { message, stack: err.stack, commentId: req.params.commentId });
+            const message = err.message || ErrorMessages.FAILED_DELETE_COMMENT;
+            logger.error(LoggerMessages.DELETE_COMMENT_ERROR, { message, stack: err.stack, commentId: req.params.commentId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -769,7 +770,7 @@ export class PostController implements IPostController {
 
     async getPostComments(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { postId } = req.params;
             const user = req.user as { id: string; role: string } | undefined;
             const { cursor, limit } = req.query;
@@ -798,7 +799,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: comments
@@ -818,7 +819,7 @@ export class PostController implements IPostController {
 
     async getCommentReplies(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { commentId } = req.params;
             const user = req.user as { id: string; role: string } | undefined;
             const { cursor, limit } = req.query;
@@ -847,7 +848,7 @@ export class PostController implements IPostController {
                 validLimit
             );
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: replies
@@ -868,7 +869,7 @@ export class PostController implements IPostController {
     // Media operations
     async uploadPostMedia(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const user = req.user as { id: string; role: string };
 
             if (!user || !user.id) {
@@ -887,10 +888,10 @@ export class PostController implements IPostController {
                 return;
             }
 
-            
+
             const result = await this._postService.uploadPostMedia(req.file);
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -912,7 +913,7 @@ export class PostController implements IPostController {
     // Share operations
     async sharePost(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const user = req.user as { id: string; role: string };
             const { postId, shareText }: SharePostDto = req.body;
 
@@ -939,7 +940,7 @@ export class PostController implements IPostController {
 
             const result = await this._postService.sharePost(user.id, shareData);
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result,
@@ -961,7 +962,7 @@ export class PostController implements IPostController {
     // Analytics
     async getPostStats(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const user = req.user as { id: string; role: string } | undefined;
             const { userId } = req.query;
 
@@ -970,7 +971,7 @@ export class PostController implements IPostController {
 
             const stats = await this._postService.getPostStats(targetUserId);
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: stats
@@ -990,7 +991,7 @@ export class PostController implements IPostController {
 
     async getPopularHashtags(req: Request, res: Response): Promise<void> {
         try {
-            
+
             const { limit } = req.query;
 
             // Validate limit
@@ -1004,7 +1005,7 @@ export class PostController implements IPostController {
 
             const hashtags = await this._postService.getPopularHashtags(validLimit);
 
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: { hashtags }

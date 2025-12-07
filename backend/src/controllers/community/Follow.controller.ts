@@ -5,13 +5,14 @@ import { IFollowController } from "../../core/interfaces/controllers/community/I
 import { IFollowService } from "../../core/interfaces/services/community/IFollowService";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import logger from "../../utils/logger";
 
 @injectable()
 export class FollowController implements IFollowController {
     constructor(
         @inject(TYPES.IFollowService) private _followService: IFollowService
-    ) {}
+    ) { }
 
     async followUser(req: Request, res: Response): Promise<void> {
         try {
@@ -21,7 +22,7 @@ export class FollowController implements IFollowController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -29,7 +30,7 @@ export class FollowController implements IFollowController {
             if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Valid username is required"
+                    error: ErrorMessages.VALID_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -44,15 +45,15 @@ export class FollowController implements IFollowController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to follow user";
-            
-            logger.error("Follow user error:", { 
-                message, 
-                stack: err.stack, 
+            const message = err.message || ErrorMessages.FAILED_FOLLOW_USER;
+
+            logger.error(LoggerMessages.FOLLOW_USER_ERROR, {
+                message,
+                stack: err.stack,
                 userId: req.user ? (req.user as any).id : 'unknown',
-                targetUsername: req.body?.username 
+                targetUsername: req.body?.username
             });
-            
+
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -68,7 +69,7 @@ export class FollowController implements IFollowController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -76,7 +77,7 @@ export class FollowController implements IFollowController {
             if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Valid username is required"
+                    error: ErrorMessages.VALID_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -91,15 +92,15 @@ export class FollowController implements IFollowController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to unfollow user";
-            
-            logger.error("Unfollow user error:", { 
-                message, 
-                stack: err.stack, 
+            const message = err.message || ErrorMessages.FAILED_UNFOLLOW_USER;
+
+            logger.error(LoggerMessages.UNFOLLOW_USER_ERROR, {
+                message,
+                stack: err.stack,
                 userId: req.user ? (req.user as any).id : 'unknown',
-                targetUsername: req.body?.username 
+                targetUsername: req.body?.username
             });
-            
+
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -115,7 +116,7 @@ export class FollowController implements IFollowController {
             if (!user?.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -143,10 +144,10 @@ export class FollowController implements IFollowController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get followers";
-            
-            logger.error("Get followers error:", { message, stack: err.stack });
-            
+            const message = err.message || ErrorMessages.FAILED_GET_FOLLOWERS;
+
+            logger.error(LoggerMessages.GET_FOLLOWERS_ERROR, { message, stack: err.stack });
+
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -162,7 +163,7 @@ export class FollowController implements IFollowController {
             if (!user?.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -190,10 +191,10 @@ export class FollowController implements IFollowController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get following";
-            
-            logger.error("Get following error:", { message, stack: err.stack });
-            
+            const message = err.message || ErrorMessages.FAILED_GET_FOLLOWING;
+
+            logger.error(LoggerMessages.GET_FOLLOWING_ERROR, { message, stack: err.stack });
+
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -210,7 +211,7 @@ export class FollowController implements IFollowController {
             if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Valid username is required"
+                    error: ErrorMessages.VALID_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -238,14 +239,14 @@ export class FollowController implements IFollowController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get user followers";
-            
-            logger.error("Get user followers error:", { 
-                message, 
+            const message = err.message || ErrorMessages.FAILED_GET_USER_FOLLOWERS;
+
+            logger.error(LoggerMessages.GET_USER_FOLLOWERS_ERROR, {
+                message,
                 stack: err.stack,
-                username: req.params.username 
+                username: req.params.username
             });
-            
+
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -262,7 +263,7 @@ export class FollowController implements IFollowController {
             if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Valid username is required"
+                    error: ErrorMessages.VALID_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -290,14 +291,14 @@ export class FollowController implements IFollowController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get user following";
-            
-            logger.error("Get user following error:", { 
-                message, 
+            const message = err.message || ErrorMessages.FAILED_GET_USER_FOLLOWING;
+
+            logger.error(LoggerMessages.GET_USER_FOLLOWING_ERROR, {
+                message,
                 stack: err.stack,
-                username: req.params.username 
+                username: req.params.username
             });
-            
+
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -313,7 +314,7 @@ export class FollowController implements IFollowController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -321,7 +322,7 @@ export class FollowController implements IFollowController {
             if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Valid username is required"
+                    error: ErrorMessages.VALID_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -335,14 +336,14 @@ export class FollowController implements IFollowController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get follow status";
-            
-            logger.error("Get follow status error:", { 
-                message, 
+            const message = err.message || ErrorMessages.FAILED_GET_FOLLOW_STATUS;
+
+            logger.error(LoggerMessages.GET_FOLLOW_STATUS_ERROR, {
+                message,
                 stack: err.stack,
-                username: req.params.username 
+                username: req.params.username
             });
-            
+
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -357,7 +358,7 @@ export class FollowController implements IFollowController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -371,14 +372,14 @@ export class FollowController implements IFollowController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get follow stats";
-            
-            logger.error("Get follow stats error:", { 
-                message, 
+            const message = err.message || ErrorMessages.FAILED_GET_FOLLOW_STATS;
+
+            logger.error(LoggerMessages.GET_FOLLOW_STATS_ERROR, {
+                message,
                 stack: err.stack,
-                userId: req.user ? (req.user as any).id : 'unknown' 
+                userId: req.user ? (req.user as any).id : 'unknown'
             });
-            
+
             res.status(statusCode).json({
                 success: false,
                 error: message

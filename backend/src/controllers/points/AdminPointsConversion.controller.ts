@@ -4,15 +4,16 @@ import { TYPES } from "../../core/types/types";
 import { IAdminPointsConversionController } from "../../core/interfaces/controllers/points/IAdminPointsConversionController";
 import { IAdminPointsConversionService } from "../../core/interfaces/services/points/IAdminPointsConversionService";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 
 @injectable()
 export class AdminPointsConversionController implements IAdminPointsConversionController {
   constructor(
-    @inject(TYPES.IAdminPointsConversionService) 
+    @inject(TYPES.IAdminPointsConversionService)
     private _conversionService: IAdminPointsConversionService
-  ) {}
+  ) { }
 
   async getAllConversions(req: Request, res: Response): Promise<void> {
     try {
@@ -30,10 +31,10 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("AdminPointsConversionController: Get all conversions error:", err);
+      logger.error(LoggerMessages.GET_ALL_CONVERSIONS_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get conversions";
-      
+      const message = err.message || ErrorMessages.FAILED_GET_CONVERSIONS;
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -50,7 +51,7 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       if (!admin || !admin.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "Admin not authenticated"
+          error: ErrorMessages.ADMIN_NOT_AUTHENTICATED
         });
         return;
       }
@@ -67,10 +68,10 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("AdminPointsConversionController: Approve conversion error:", err);
+      logger.error(LoggerMessages.APPROVE_CONVERSION_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to approve conversion";
-      
+      const message = err.message || ErrorMessages.FAILED_APPROVE_CONVERSION;
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -87,7 +88,7 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       if (!admin || !admin.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "Admin not authenticated"
+          error: ErrorMessages.ADMIN_NOT_AUTHENTICATED
         });
         return;
       }
@@ -95,7 +96,7 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       if (!reason) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Rejection reason is required"
+          error: ErrorMessages.REJECTION_REASON_REQUIRED
         });
         return;
       }
@@ -112,10 +113,10 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("AdminPointsConversionController: Reject conversion error:", err);
+      logger.error(LoggerMessages.REJECT_CONVERSION_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to reject conversion";
-      
+      const message = err.message || ErrorMessages.FAILED_REJECT_CONVERSION;
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -133,10 +134,10 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("AdminPointsConversionController: Get conversion stats error:", err);
+      logger.error(LoggerMessages.GET_CONVERSION_STATS_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get conversion statistics";
-      
+      const message = err.message || ErrorMessages.FAILED_GET_CONVERSION_STATS;
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -156,10 +157,10 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("AdminPointsConversionController: Get conversion by ID error:", err);
+      logger.error(LoggerMessages.GET_CONVERSION_BY_ID_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get conversion";
-      
+      const message = err.message || ErrorMessages.FAILED_GET_CONVERSION;
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -175,7 +176,7 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       if (!admin || !admin.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "Admin not authenticated"
+          error: ErrorMessages.ADMIN_NOT_AUTHENTICATED
         });
         return;
       }
@@ -183,7 +184,7 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       if (!pointsPerCVC || !minimumPoints || !minimumCVC || !claimFeeETH) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "All rate parameters are required"
+          error: ErrorMessages.ALL_RATE_PARAMS_REQUIRED
         });
         return;
       }
@@ -202,10 +203,10 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("AdminPointsConversionController: Update conversion rate error:", err);
+      logger.error(LoggerMessages.UPDATE_CONVERSION_RATE_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to update conversion rate";
-      
+      const message = err.message || ErrorMessages.FAILED_UPDATE_CONVERSION_RATE;
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -228,10 +229,10 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("AdminPointsConversionController: Get conversion rates error:", err);
+      logger.error(LoggerMessages.GET_CONVERSION_RATES_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get conversion rates";
-      
+      const message = err.message || ErrorMessages.FAILED_GET_CONVERSION_RATES;
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -249,10 +250,10 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("AdminPointsConversionController: Get current rate error:", err);
+      logger.error(LoggerMessages.GET_CURRENT_RATE_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get current rate";
-      
+      const message = err.message || ErrorMessages.FAILED_GET_CURRENT_RATE;
+
       res.status(statusCode).json({
         success: false,
         error: message

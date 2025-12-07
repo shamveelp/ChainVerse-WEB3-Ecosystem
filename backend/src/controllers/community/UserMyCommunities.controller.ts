@@ -5,13 +5,14 @@ import { IUserMyCommunitiesController } from "../../core/interfaces/controllers/
 import { IUserMyCommunitiesService } from "../../core/interfaces/services/community/IUserMyCommunitiesService";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import logger from "../../utils/logger";
 
 @injectable()
 export class UserMyCommunitiesController implements IUserMyCommunitiesController {
     constructor(
         @inject(TYPES.IUserMyCommunitiesService) private _userMyCommunitiesService: IUserMyCommunitiesService
-    ) {}
+    ) { }
 
     async getMyCommunities(req: Request, res: Response): Promise<void> {
         try {
@@ -21,7 +22,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -53,8 +54,8 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get my communities";
-            logger.error("Get my communities error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_GET_MY_COMMUNITIES;
+            logger.error(LoggerMessages.GET_MY_COMMUNITIES_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -69,7 +70,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -83,8 +84,8 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get communities stats";
-            logger.error("Get communities stats error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_GET_COMMUNITIES_STATS;
+            logger.error(LoggerMessages.GET_COMMUNITIES_STATS_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -99,7 +100,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -113,8 +114,8 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get communities activity";
-            logger.error("Get communities activity error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_GET_COMMUNITIES_ACTIVITY;
+            logger.error(LoggerMessages.GET_COMMUNITIES_ACTIVITY_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -130,7 +131,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -138,7 +139,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             if (!communityId || typeof enabled !== 'boolean') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Community ID and notification status are required"
+                    error: ErrorMessages.COMMUNITY_ID_NOTIFICATION_REQUIRED
                 });
                 return;
             }
@@ -152,13 +153,13 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             res.status(StatusCode.OK).json({
                 success: true,
                 data: { notificationsEnabled: result },
-                message: `Notifications ${enabled ? 'enabled' : 'disabled'} for community`
+                message: `${SuccessMessages.NOTIFICATIONS_UPDATED}: ${enabled ? 'enabled' : 'disabled'}`
             });
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to update notifications";
-            logger.error("Update community notifications error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_UPDATE_NOTIFICATIONS;
+            logger.error(LoggerMessages.UPDATE_COMMUNITY_NOTIFICATIONS_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -174,7 +175,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -182,7 +183,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             if (!communityId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Community ID is required"
+                    error: ErrorMessages.COMMUNITY_ID_REQUIRED
                 });
                 return;
             }
@@ -197,8 +198,8 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to leave community";
-            logger.error("Leave community error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_LEAVE_COMMUNITY;
+            logger.error(LoggerMessages.LEAVE_COMMUNITY_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message

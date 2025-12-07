@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import logger from "../../utils/logger";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { IChainCastService } from "../../core/interfaces/services/chainCast/IChainCastService";
 import {
     JoinChainCastDto,
@@ -19,7 +20,7 @@ import { IUserChainCastController } from "../../core/interfaces/controllers/chai
 export class UserChainCastController implements IUserChainCastController {
     constructor(
         @inject(TYPES.IChainCastService) private _chainCastService: IChainCastService
-    ) {}
+    ) { }
 
     async getCommunityChainCasts(req: Request, res: Response): Promise<void> {
         try {
@@ -28,16 +29,16 @@ export class UserChainCastController implements IUserChainCastController {
             const query: GetChainCastsQueryDto = req.query as any;
 
             const result = await this._chainCastService.getCommunityChainCasts(communityId, userId, query);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Get community ChainCasts error:", error);
+            logger.error(LoggerMessages.GET_COMMUNITY_CHAINCASTS_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to get community ChainCasts"
+                error: error.message || ErrorMessages.FAILED_GET_COMMUNITY_CHAINCASTS
             });
         }
     }
@@ -48,16 +49,16 @@ export class UserChainCastController implements IUserChainCastController {
             const { chainCastId } = req.params;
 
             const result = await this._chainCastService.getChainCastById(chainCastId, userId);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Get ChainCast error:", error);
+            logger.error(LoggerMessages.GET_CHAINCAST_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to get ChainCast"
+                error: error.message || ErrorMessages.FAILED_GET_CHAINCAST
             });
         }
     }
@@ -68,17 +69,17 @@ export class UserChainCastController implements IUserChainCastController {
             const joinData: JoinChainCastDto = req.body;
 
             const result = await this._chainCastService.joinChainCast(userId, joinData);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 message: result.message,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Join ChainCast error:", error);
+            logger.error(LoggerMessages.JOIN_CHAINCAST_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to join ChainCast"
+                error: error.message || ErrorMessages.FAILED_JOIN_CHAINCAST
             });
         }
     }
@@ -89,17 +90,17 @@ export class UserChainCastController implements IUserChainCastController {
             const { chainCastId } = req.params;
 
             const result = await this._chainCastService.leaveChainCast(userId, chainCastId);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 message: result.message,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Leave ChainCast error:", error);
+            logger.error(LoggerMessages.LEAVE_CHAINCAST_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to leave ChainCast"
+                error: error.message || ErrorMessages.FAILED_LEAVE_CHAINCAST
             });
         }
     }
@@ -111,17 +112,17 @@ export class UserChainCastController implements IUserChainCastController {
             const updateData: UpdateParticipantDto = req.body;
 
             const result = await this._chainCastService.updateParticipant(chainCastId, userId, updateData);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 message: result.message,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Update participant error:", error);
+            logger.error(LoggerMessages.UPDATE_PARTICIPANT_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to update participant"
+                error: error.message || ErrorMessages.FAILED_UPDATE_PARTICIPANT
             });
         }
     }
@@ -132,17 +133,17 @@ export class UserChainCastController implements IUserChainCastController {
             const requestData: RequestModerationDto = req.body;
 
             const result = await this._chainCastService.requestModeration(userId, requestData);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 message: result.message,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Request moderation error:", error);
+            logger.error(LoggerMessages.REQUEST_MODERATION_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to request moderation"
+                error: error.message || ErrorMessages.FAILED_REQUEST_MODERATION
             });
         }
     }
@@ -153,17 +154,17 @@ export class UserChainCastController implements IUserChainCastController {
             const reactionData: AddReactionDto = req.body;
 
             const result = await this._chainCastService.addReaction(userId, reactionData);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 message: result.message,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Add reaction error:", error);
+            logger.error(LoggerMessages.ADD_REACTION_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to add reaction"
+                error: error.message || ErrorMessages.FAILED_ADD_REACTION
             });
         }
     }
@@ -174,16 +175,16 @@ export class UserChainCastController implements IUserChainCastController {
             const query: GetReactionsQueryDto = { ...req.query, chainCastId } as any;
 
             const result = await this._chainCastService.getReactions(chainCastId, query);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Get reactions error:", error);
+            logger.error(LoggerMessages.GET_REACTIONS_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to get reactions"
+                error: error.message || ErrorMessages.FAILED_GET_REACTIONS
             });
         }
     }
@@ -194,16 +195,16 @@ export class UserChainCastController implements IUserChainCastController {
             const { chainCastId } = req.params;
 
             const result = await this._chainCastService.canUserJoinChainCast(userId, chainCastId);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Can join ChainCast error:", error);
+            logger.error(LoggerMessages.CHECK_JOIN_PERMISSIONS_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to check join permissions"
+                error: error.message || ErrorMessages.FAILED_CHECK_JOIN_PERMISSIONS
             });
         }
     }

@@ -2,16 +2,17 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
-import { IAITradingController } from "../../core/interfaces/controllers/aiChat/IAITrading.controller";        
+import { IAITradingController } from "../../core/interfaces/controllers/aiChat/IAITrading.controller";
 import { IAITradingService } from "../../core/interfaces/services/aiChat/IAITradingService";
 
 @injectable()
 export class AITradingController implements IAITradingController {
     constructor(
         @inject(TYPES.IAITradingService) private _aiTradingService: IAITradingService
-    ) {}
+    ) { }
 
     async sendMessage(req: Request, res: Response): Promise<void> {
         try {
@@ -21,7 +22,7 @@ export class AITradingController implements IAITradingController {
             if (!message || !sessionId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Message and sessionId are required"
+                    error: ErrorMessages.MESSAGE_SESSION_REQUIRED
                 });
                 return;
             }
@@ -54,10 +55,10 @@ export class AITradingController implements IAITradingController {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || "Failed to process AI message";
-            logger.error("Send AI message error:", { message, stack: err.stack });
+            logger.error(LoggerMessages.SEND_AI_MESSAGE_ERROR, { message, stack: err.stack });
             res.status(statusCode).json({
                 success: false,
-                error: message
+                error: message || ErrorMessages.FAILED_PROCESS_AI_MESSAGE
             });
         }
     }
@@ -67,10 +68,10 @@ export class AITradingController implements IAITradingController {
             const { fromToken, toToken, amount } = req.body;
             const walletAddress = req.body.walletAddress;
 
-            if (!fromToken || !toToken || !amount) {   
+            if (!fromToken || !toToken || !amount) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "fromToken, toToken, and amount are required"
+                    error: ErrorMessages.TRADING_PARAMS_REQUIRED
                 });
                 return;
             }
@@ -80,7 +81,7 @@ export class AITradingController implements IAITradingController {
             if (!validTokens.includes(fromToken) || !validTokens.includes(toToken)) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Invalid token symbols. Use ETH, CoinA, or CoinB"
+                    error: ErrorMessages.INVALID_TOKEN_SYMBOLS
                 });
                 return;
             }
@@ -90,7 +91,7 @@ export class AITradingController implements IAITradingController {
             if (isNaN(numAmount) || numAmount <= 0) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Invalid amount"
+                    error: ErrorMessages.INVALID_AMOUNT
                 });
                 return;
             }
@@ -109,8 +110,8 @@ export class AITradingController implements IAITradingController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to analyze trade opportunity";
-            logger.error("Analyze trade error:", { message, stack: err.stack });
+            const message = err.message || ErrorMessages.FAILED_ANALYZE_TRADE;
+            logger.error(LoggerMessages.ANALYZE_TRADE_ERROR, { message, stack: err.stack });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -129,8 +130,8 @@ export class AITradingController implements IAITradingController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get available tokens";
-            logger.error("Get available tokens error:", { message, stack: err.stack });
+            const message = err.message || ErrorMessages.FAILED_GET_TOKENS;
+            logger.error(LoggerMessages.GET_TOKENS_ERROR, { message, stack: err.stack });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -142,10 +143,10 @@ export class AITradingController implements IAITradingController {
         try {
             const { fromToken, toToken, amount } = req.query;
 
-            if (!fromToken || !toToken || !amount) {   
+            if (!fromToken || !toToken || !amount) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "fromToken, toToken, and amount are required"
+                    error: ErrorMessages.TRADING_PARAMS_REQUIRED
                 });
                 return;
             }
@@ -155,7 +156,7 @@ export class AITradingController implements IAITradingController {
             if (!validTokens.includes(fromToken as string) || !validTokens.includes(toToken as string)) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Invalid token symbols"
+                    error: ErrorMessages.INVALID_TOKEN_SYMBOLS_GENERIC
                 });
                 return;
             }
@@ -173,8 +174,8 @@ export class AITradingController implements IAITradingController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to calculate swap estimate";
-            logger.error("Calculate swap estimate error:", { message, stack: err.stack });
+            const message = err.message || ErrorMessages.FAILED_CALCULATE_SWAP;
+            logger.error(LoggerMessages.CALCULATE_SWAP_ERROR, { message, stack: err.stack });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -190,7 +191,7 @@ export class AITradingController implements IAITradingController {
             if (!sessionId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Session ID is required"    
+                    error: ErrorMessages.SESSION_ID_REQUIRED
                 });
                 return;
             }
@@ -204,8 +205,8 @@ export class AITradingController implements IAITradingController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get chat history";
-            logger.error("Get chat history error:", { message, stack: err.stack });
+            const message = err.message || ErrorMessages.FAILED_GET_CHAT_HISTORY;
+            logger.error(LoggerMessages.GET_CHAT_HISTORY_ERROR, { message, stack: err.stack });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -228,8 +229,8 @@ export class AITradingController implements IAITradingController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get token prices";
-            logger.error("Get token prices error:", { message, stack: err.stack });
+            const message = err.message || ErrorMessages.FAILED_GET_TOKEN_PRICES;
+            logger.error(LoggerMessages.GET_TOKEN_PRICES_ERROR, { message, stack: err.stack });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -244,7 +245,7 @@ export class AITradingController implements IAITradingController {
             if (!fromToken || !toToken || !amount || !sessionId || !walletAddress) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "All trading parameters are required"
+                    error: ErrorMessages.ALL_TRADING_PARAMS_REQUIRED
                 });
                 return;
             }
@@ -253,7 +254,7 @@ export class AITradingController implements IAITradingController {
             if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Invalid wallet address format"
+                    error: ErrorMessages.INVALID_WALLET_ADDRESS
                 });
                 return;
             }
@@ -266,18 +267,18 @@ export class AITradingController implements IAITradingController {
             );
 
             // Generate a realistic transaction hash
-            const mockTransactionHash = '0x' + Array(64).fill(0).map(() => 
+            const mockTransactionHash = '0x' + Array(64).fill(0).map(() =>
                 Math.floor(Math.random() * 16).toString(16)
             ).join('');
 
             const response = {
                 success: true,
-                transactionHash: mockTransactionHash,  
+                transactionHash: mockTransactionHash,
                 fromToken,
                 toToken,
                 fromAmount: amount,
                 toAmount: swapEstimate.estimatedOutput,
-                exchangeRate: (parseFloat(swapEstimate.estimatedOutput) / parseFloat(amount)).toFixed(6),     
+                exchangeRate: (parseFloat(swapEstimate.estimatedOutput) / parseFloat(amount)).toFixed(6),
                 gasFee: swapEstimate.gasFee,
                 explorerUrl: `https://sepolia.etherscan.io/tx/${mockTransactionHash}`,
                 executedAt: new Date().toISOString(),
@@ -305,7 +306,7 @@ Your trade has been completed successfully! 🎉`;
                 sessionId,
                 undefined,
                 walletAddress,
-                { 
+                {
                     transactionHash: mockTransactionHash,
                     tradeExecuted: true,
                     tradeDetails: response
@@ -319,8 +320,8 @@ Your trade has been completed successfully! 🎉`;
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to execute trade";
-            logger.error("Execute trade with AI error:", { message, stack: err.stack });
+            const message = err.message || ErrorMessages.FAILED_EXECUTE_TRADE;
+            logger.error(LoggerMessages.EXECUTE_TRADE_ERROR, { message, stack: err.stack });
             res.status(statusCode).json({
                 success: false,
                 error: message

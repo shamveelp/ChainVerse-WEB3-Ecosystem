@@ -13,12 +13,13 @@ import {
   GetMyQuestsDto,
   GetLeaderboardDto
 } from "../../dtos/quest/UserQuest.dto";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class UserQuestController implements IUserQuestController {
   constructor(
     @inject(TYPES.IUserQuestService) private _questService: IUserQuestService
-  ) {}
+  ) { }
 
   async getAvailableQuests(req: Request, res: Response): Promise<void> {
     try {
@@ -38,13 +39,13 @@ export class UserQuestController implements IUserQuestController {
             pages: result.pages
           }
         },
-        message: "Available quests retrieved successfully"
+        message: SuccessMessages.AVAILABLE_QUESTS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get available quests";
-      logger.error("Get available quests error:", { message, stack: err.stack, userId: (req as any).user?.id });
+      const message = err.message || ErrorMessages.FAILED_GET_AVAILABLE_QUESTS;
+      logger.error(LoggerMessages.GET_AVAILABLE_QUESTS_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -62,13 +63,13 @@ export class UserQuestController implements IUserQuestController {
       res.status(StatusCode.OK).json({
         success: true,
         data: quest,
-        message: "Quest retrieved successfully"
+        message: SuccessMessages.QUEST_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get quest";
-      logger.error("Get quest error:", { message, stack: err.stack, userId: (req as any).user?.id });
+      const message = err.message || ErrorMessages.FAILED_GET_QUEST;
+      logger.error(LoggerMessages.GET_QUEST_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -94,13 +95,13 @@ export class UserQuestController implements IUserQuestController {
             pages: result.pages
           }
         },
-        message: "My quests retrieved successfully"
+        message: SuccessMessages.MY_QUESTS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get my quests";
-      logger.error("Get my quests error:", { message, stack: err.stack, userId: (req as any).user?.id });
+      const message = err.message || ErrorMessages.FAILED_GET_MY_QUESTS;
+      logger.error(LoggerMessages.GET_MY_QUESTS_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -123,8 +124,8 @@ export class UserQuestController implements IUserQuestController {
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to join quest";
-      logger.error("Join quest error:", { message, stack: err.stack, userId: (req as any).user?.id });
+      const message = err.message || ErrorMessages.FAILED_JOIN_QUEST;
+      logger.error(LoggerMessages.JOIN_QUEST_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -142,13 +143,13 @@ export class UserQuestController implements IUserQuestController {
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: result.message || "Task submitted successfully"
+        message: result.message || SuccessMessages.TASK_SUBMITTED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to submit task";
-      logger.error("Submit task error:", { message, stack: err.stack, userId: (req as any).user?.id });
+      const message = err.message || ErrorMessages.FAILED_SUBMIT_TASK;
+      logger.error(LoggerMessages.SUBMIT_TASK_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -166,13 +167,13 @@ export class UserQuestController implements IUserQuestController {
       res.status(StatusCode.OK).json({
         success: true,
         data: tasks,
-        message: "Quest tasks retrieved successfully"
+        message: SuccessMessages.QUEST_TASKS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get quest tasks";
-      logger.error("Get quest tasks error:", { message, stack: err.stack, userId: (req as any).user?.id });
+      const message = err.message || ErrorMessages.FAILED_GET_QUEST_TASKS;
+      logger.error(LoggerMessages.GET_QUEST_TASKS_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -190,13 +191,13 @@ export class UserQuestController implements IUserQuestController {
       res.status(StatusCode.OK).json({
         success: true,
         data: submissions,
-        message: "Submissions retrieved successfully"
+        message: SuccessMessages.SUBMISSIONS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get submissions";
-      logger.error("Get submissions error:", { message, stack: err.stack, userId: (req as any).user?.id });
+      const message = err.message || ErrorMessages.FAILED_GET_SUBMISSIONS;
+      logger.error(LoggerMessages.GET_SUBMISSIONS_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -211,7 +212,7 @@ export class UserQuestController implements IUserQuestController {
       if (!req.file) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "No file provided"
+          error: ErrorMessages.NO_FILE_PROVIDED
         });
         return;
       }
@@ -221,13 +222,13 @@ export class UserQuestController implements IUserQuestController {
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "Media uploaded successfully"
+        message: SuccessMessages.MEDIA_UPLOADED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to upload media";
-      logger.error("Upload task media error:", { message, stack: err.stack, userId: (req as any).user?.id });
+      const message = err.message || ErrorMessages.FAILED_UPLOAD_MEDIA;
+      logger.error(LoggerMessages.UPLOAD_TASK_MEDIA_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -244,13 +245,13 @@ export class UserQuestController implements IUserQuestController {
       res.status(StatusCode.OK).json({
         success: true,
         data: stats,
-        message: "Quest stats retrieved successfully"
+        message: SuccessMessages.QUEST_STATS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get quest stats";
-      logger.error("Get quest stats error:", { message, stack: err.stack });
+      const message = err.message || ErrorMessages.FAILED_GET_QUEST_STATS;
+      logger.error(LoggerMessages.GET_QUEST_STATS_ERROR, { message, stack: err.stack });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -266,13 +267,13 @@ export class UserQuestController implements IUserQuestController {
       res.status(StatusCode.OK).json({
         success: true,
         data: quests,
-        message: "Top quests retrieved successfully"
+        message: SuccessMessages.TOP_QUESTS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get top quests";
-      logger.error("Get top quests error:", { message, stack: err.stack });
+      const message = err.message || ErrorMessages.FAILED_GET_TOP_QUESTS;
+      logger.error(LoggerMessages.GET_TOP_QUESTS_ERROR, { message, stack: err.stack });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -290,13 +291,13 @@ export class UserQuestController implements IUserQuestController {
       res.status(StatusCode.OK).json({
         success: true,
         data: status,
-        message: "Participation status retrieved successfully"
+        message: SuccessMessages.PARTICIPATION_STATUS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to check participation status";
-      logger.error("Check participation status error:", { message, stack: err.stack, userId: (req as any).user?.id });
+      const message = err.message || ErrorMessages.FAILED_CHECK_PARTICIPATION_STATUS;
+      logger.error(LoggerMessages.CHECK_PARTICIPATION_STATUS_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -317,13 +318,13 @@ export class UserQuestController implements IUserQuestController {
           participants: leaderboard.participants,
           pagination: leaderboard.pagination
         },
-        message: leaderboard.message || "Quest leaderboard retrieved successfully"
+        message: leaderboard.message || SuccessMessages.QUEST_LEADERBOARD_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get quest leaderboard";
-      logger.error("Get quest leaderboard error:", { message, stack: err.stack });
+      const message = err.message || ErrorMessages.FAILED_GET_QUEST_LEADERBOARD;
+      logger.error(LoggerMessages.GET_QUEST_LEADERBOARD_ERROR, { message, stack: err.stack });
       res.status(statusCode).json({
         success: false,
         error: message

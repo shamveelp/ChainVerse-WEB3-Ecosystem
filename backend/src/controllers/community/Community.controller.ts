@@ -5,13 +5,14 @@ import { ICommunityController } from "../../core/interfaces/controllers/communit
 import { ICommunityService } from "../../core/interfaces/services/community/ICommunityService";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import logger from "../../utils/logger";
 
 @injectable()
 export class CommunityController implements ICommunityController {
     constructor(
         @inject(TYPES.ICommunityService) private _communityService: ICommunityService
-    ) {}
+    ) { }
 
     async getCommunityById(req: Request, res: Response): Promise<void> {
         try {
@@ -21,7 +22,7 @@ export class CommunityController implements ICommunityController {
             if (!communityId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Community ID is required"
+                    error: ErrorMessages.COMMUNITY_ID_REQUIRED
                 });
                 return;
             }
@@ -31,7 +32,7 @@ export class CommunityController implements ICommunityController {
             if (!community) {
                 res.status(StatusCode.NOT_FOUND).json({
                     success: false,
-                    error: "Community not found"
+                    error: ErrorMessages.COMMUNITY_NOT_FOUND
                 });
                 return;
             }
@@ -43,8 +44,8 @@ export class CommunityController implements ICommunityController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch community";
-            logger.error("Get community by ID error:", { message, stack: err.stack, communityId: req.params.communityId });
+            const message = err.message || ErrorMessages.FAILED_FETCH_COMMUNITY;
+            logger.error(LoggerMessages.GET_COMMUNITY_BY_ID_ERROR, { message, stack: err.stack, communityId: req.params.communityId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -60,7 +61,7 @@ export class CommunityController implements ICommunityController {
             if (!username) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Community username is required"
+                    error: ErrorMessages.COMMUNITY_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -70,7 +71,7 @@ export class CommunityController implements ICommunityController {
             if (!community) {
                 res.status(StatusCode.NOT_FOUND).json({
                     success: false,
-                    error: "Community not found"
+                    error: ErrorMessages.COMMUNITY_NOT_FOUND
                 });
                 return;
             }
@@ -82,8 +83,8 @@ export class CommunityController implements ICommunityController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch community";
-            logger.error("Get community by username error:", { message, stack: err.stack, username: req.params.username });
+            const message = err.message || ErrorMessages.FAILED_FETCH_COMMUNITY;
+            logger.error(LoggerMessages.GET_COMMUNITY_BY_USERNAME_ERROR, { message, stack: err.stack, username: req.params.username });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -99,7 +100,7 @@ export class CommunityController implements ICommunityController {
             if (!query || typeof query !== 'string' || query.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Search query is required"
+                    error: ErrorMessages.SEARCH_QUERY_REQUIRED
                 });
                 return;
             }
@@ -129,8 +130,8 @@ export class CommunityController implements ICommunityController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to search communities";
-            logger.error("Search communities error:", { message, stack: err.stack, query: req.query.query });
+            const message = err.message || ErrorMessages.FAILED_SEARCH_COMMUNITIES;
+            logger.error(LoggerMessages.SEARCH_COMMUNITIES_ERROR, { message, stack: err.stack, query: req.query.query });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -166,8 +167,8 @@ export class CommunityController implements ICommunityController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get popular communities";
-            logger.error("Get popular communities error:", { message, stack: err.stack });
+            const message = err.message || ErrorMessages.FAILED_GET_POPULAR_COMMUNITIES;
+            logger.error(LoggerMessages.GET_POPULAR_COMMUNITIES_ERROR, { message, stack: err.stack });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -183,7 +184,7 @@ export class CommunityController implements ICommunityController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -191,7 +192,7 @@ export class CommunityController implements ICommunityController {
             if (!communityUsername || typeof communityUsername !== 'string' || communityUsername.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Valid community username is required"
+                    error: ErrorMessages.VALID_COMMUNITY_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -206,10 +207,10 @@ export class CommunityController implements ICommunityController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to join community";
-            logger.error("Join community error:", { 
-                message, 
-                stack: err.stack, 
+            const message = err.message || ErrorMessages.FAILED_JOIN_COMMUNITY;
+            logger.error(LoggerMessages.JOIN_COMMUNITY_ERROR, {
+                message,
+                stack: err.stack,
                 userId: req.user ? (req.user as any).id : 'unknown',
                 communityUsername: req.body?.communityUsername
             });
@@ -228,7 +229,7 @@ export class CommunityController implements ICommunityController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -236,7 +237,7 @@ export class CommunityController implements ICommunityController {
             if (!communityUsername || typeof communityUsername !== 'string' || communityUsername.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Valid community username is required"
+                    error: ErrorMessages.VALID_COMMUNITY_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -251,10 +252,10 @@ export class CommunityController implements ICommunityController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to leave community";
-            logger.error("Leave community error:", { 
-                message, 
-                stack: err.stack, 
+            const message = err.message || ErrorMessages.FAILED_LEAVE_COMMUNITY;
+            logger.error(LoggerMessages.LEAVE_COMMUNITY_ERROR, {
+                message,
+                stack: err.stack,
                 userId: req.user ? (req.user as any).id : 'unknown',
                 communityUsername: req.body?.communityUsername
             });
@@ -274,7 +275,7 @@ export class CommunityController implements ICommunityController {
             if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Valid community username is required"
+                    error: ErrorMessages.VALID_COMMUNITY_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -302,8 +303,8 @@ export class CommunityController implements ICommunityController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get community members";
-            logger.error("Get community members error:", {
+            const message = err.message || ErrorMessages.FAILED_GET_COMMUNITY_MEMBERS;
+            logger.error(LoggerMessages.GET_COMMUNITY_MEMBERS_ERROR, {
                 message,
                 stack: err.stack,
                 username: req.params.username
@@ -323,7 +324,7 @@ export class CommunityController implements ICommunityController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -331,7 +332,7 @@ export class CommunityController implements ICommunityController {
             if (!username || typeof username !== 'string' || username.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Valid community username is required"
+                    error: ErrorMessages.VALID_COMMUNITY_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -345,8 +346,8 @@ export class CommunityController implements ICommunityController {
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get member status";
-            logger.error("Get community member status error:", {
+            const message = err.message || ErrorMessages.FAILED_GET_MEMBER_STATUS;
+            logger.error(LoggerMessages.GET_COMMUNITY_MEMBER_STATUS_ERROR, {
                 message,
                 stack: err.stack,
                 username: req.params.username

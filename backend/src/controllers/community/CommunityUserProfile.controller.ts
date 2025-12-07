@@ -5,6 +5,7 @@ import { ICommunityUserProfileController } from "../../core/interfaces/controlle
 import { ICommunityUserService } from "../../core/interfaces/services/community/ICommunityUserService";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { UpdateCommunityProfileDto } from "../../dtos/community/CommunityProfile.dto";
 import { z } from "zod";
 import cloudinary from "../../config/cloudinary";
@@ -15,41 +16,41 @@ import logger from "../../utils/logger";
 export class CommunityUserProfileController implements ICommunityUserProfileController {
     constructor(
         @inject(TYPES.ICommunityUserService) private _communityUserService: ICommunityUserService
-    ) {}
+    ) { }
 
     async getCommunityProfile(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string; tokenVersion?: number };
-            
+
             if (!user || !user.id) {
-                res.status(StatusCode.UNAUTHORIZED).json({ 
-                    success: false, 
-                    error: "User not authenticated" 
+                res.status(StatusCode.UNAUTHORIZED).json({
+                    success: false,
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
 
             const profile = await this._communityUserService.getCommunityProfile(user.id, user.id);
-            
+
             if (!profile) {
-                res.status(StatusCode.NOT_FOUND).json({ 
-                    success: false, 
-                    error: "User community profile not found" 
+                res.status(StatusCode.NOT_FOUND).json({
+                    success: false,
+                    error: ErrorMessages.USER_COMMUNITY_PROFILE_NOT_FOUND
                 });
                 return;
             }
-            res.status(StatusCode.OK).json({ 
-                success: true, 
-                data: profile 
+            res.status(StatusCode.OK).json({
+                success: true,
+                data: profile
             });
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch community profile";
-            logger.error("Get community profile error:", { message, stack: err.stack, userId: req.user });
-            res.status(statusCode).json({ 
-                success: false, 
-                error: message 
+            const message = err.message || ErrorMessages.FAILED_FETCH_COMMUNITY_PROFILE;
+            logger.error(LoggerMessages.GET_COMMUNITY_PROFILE_ERROR, { message, stack: err.stack, userId: req.user });
+            res.status(statusCode).json({
+                success: false,
+                error: message
             });
         }
     }
@@ -60,36 +61,36 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
             const user = req.user as { id: string; role: string } | undefined;
 
             if (!username) {
-                res.status(StatusCode.BAD_REQUEST).json({ 
-                    success: false, 
-                    error: "Username is required" 
+                res.status(StatusCode.BAD_REQUEST).json({
+                    success: false,
+                    error: ErrorMessages.USERNAME_REQUIRED
                 });
                 return;
             }
             logger.info(`Fetching community profile for username: ${username}`);
             const profile = await this._communityUserService.getCommunityProfileByUsername(username, user?.id);
-            
+
             if (!profile) {
                 logger.warn(`Community profile not found for username: ${username}`);
-                res.status(StatusCode.NOT_FOUND).json({ 
-                    success: false, 
-                    error: "User community profile not found" 
+                res.status(StatusCode.NOT_FOUND).json({
+                    success: false,
+                    error: ErrorMessages.USER_COMMUNITY_PROFILE_NOT_FOUND
                 });
                 return;
             }
 
-            res.status(StatusCode.OK).json({ 
-                success: true, 
-                data: profile 
+            res.status(StatusCode.OK).json({
+                success: true,
+                data: profile
             });
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch community profile";
-            logger.error("Get community profile by username error:", { message, stack: err.stack, username: req.params.username });
-            res.status(statusCode).json({ 
-                success: false, 
-                error: message 
+            const message = err.message || ErrorMessages.FAILED_FETCH_COMMUNITY_PROFILE;
+            logger.error(LoggerMessages.GET_COMMUNITY_PROFILE_USERNAME_ERROR, { message, stack: err.stack, username: req.params.username });
+            res.status(statusCode).json({
+                success: false,
+                error: message
             });
         }
     }
@@ -97,19 +98,19 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
     async updateCommunityProfile(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
-            
+
             if (!user || !user.id) {
-                res.status(StatusCode.UNAUTHORIZED).json({ 
-                    success: false, 
-                    error: "User not authenticated" 
+                res.status(StatusCode.UNAUTHORIZED).json({
+                    success: false,
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
 
-            
+
             // Manual validation for UpdateCommunityProfileDto
             const updateData: UpdateCommunityProfileDto = {};
-            
+
             if (req.body.bio !== undefined) updateData.bio = req.body.bio;
             if (req.body.location !== undefined) updateData.location = req.body.location;
             if (req.body.website !== undefined) updateData.website = req.body.website;
@@ -118,28 +119,28 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
             if (req.body.settings !== undefined) updateData.settings = req.body.settings;
 
             const profile = await this._communityUserService.updateCommunityProfile(user.id, updateData);
-            
+
             if (!profile) {
-                res.status(StatusCode.NOT_FOUND).json({ 
-                    success: false, 
-                    error: "User community profile not found" 
+                res.status(StatusCode.NOT_FOUND).json({
+                    success: false,
+                    error: ErrorMessages.USER_COMMUNITY_PROFILE_NOT_FOUND
                 });
                 return;
             }
 
-            res.status(StatusCode.OK).json({ 
-                success: true, 
+            res.status(StatusCode.OK).json({
+                success: true,
                 data: profile,
-                message: "Community profile updated successfully"
+                message: SuccessMessages.COMMUNITY_PROFILE_UPDATED
             });
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to update community profile";
-            logger.error("Update community profile error:", { message, stack: err.stack, userId: req.user });
-            res.status(statusCode).json({ 
-                success: false, 
-                error: message 
+            const message = err.message || ErrorMessages.FAILED_UPDATE_COMMUNITY_PROFILE;
+            logger.error(LoggerMessages.UPDATE_COMMUNITY_PROFILE_ERROR, { message, stack: err.stack, userId: req.user });
+            res.status(statusCode).json({
+                success: false,
+                error: message
             });
         }
     }
@@ -147,35 +148,35 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
     async uploadBannerImage(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
-            
+
             if (!user || !user.id) {
-                res.status(StatusCode.UNAUTHORIZED).json({ 
-                    success: false, 
-                    error: "User not authenticated" 
+                res.status(StatusCode.UNAUTHORIZED).json({
+                    success: false,
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
 
             if (!req.file) {
-                res.status(StatusCode.BAD_REQUEST).json({ 
-                    success: false, 
-                    error: "No file uploaded" 
+                res.status(StatusCode.BAD_REQUEST).json({
+                    success: false,
+                    error: ErrorMessages.NO_FILE_UPLOADED
                 });
                 return;
             }
 
             const result: UploadApiResponse = await new Promise((resolve, reject) => {
                 cloudinary.uploader.upload_stream(
-                    { 
+                    {
                         folder: "banner_images",
                         transformation: [
                             { width: 1200, height: 400, crop: "fill" },
                             { quality: "auto" }
                         ]
-                    }, 
+                    },
                     (error, result) => {
                         if (error) {
-                            reject(new CustomError("Failed to upload image to Cloudinary", StatusCode.INTERNAL_SERVER_ERROR));
+                            reject(new CustomError(ErrorMessages.FAILED_UPLOAD_CLOUDINARY, StatusCode.INTERNAL_SERVER_ERROR));
                         } else {
                             resolve(result as UploadApiResponse);
                         }
@@ -184,28 +185,28 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
             });
 
             const profile = await this._communityUserService.uploadBannerImage(user.id, result.secure_url);
-            
+
             if (!profile) {
-                res.status(StatusCode.NOT_FOUND).json({ 
-                    success: false, 
-                    error: "User community profile not found" 
+                res.status(StatusCode.NOT_FOUND).json({
+                    success: false,
+                    error: ErrorMessages.USER_COMMUNITY_PROFILE_NOT_FOUND
                 });
                 return;
             }
 
-            res.status(StatusCode.OK).json({ 
-                success: true, 
+            res.status(StatusCode.OK).json({
+                success: true,
                 data: profile,
-                message: "Banner image updated successfully"
+                message: SuccessMessages.BANNER_IMAGE_UPDATED
             });
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to upload banner image";
-            logger.error("Upload banner image error:", { message, stack: err.stack, userId: req.user });
-            res.status(statusCode).json({ 
-                success: false, 
-                error: message 
+            const message = err.message || ErrorMessages.FAILED_UPLOAD_BANNER_IMAGE;
+            logger.error(LoggerMessages.UPLOAD_BANNER_IMAGE_ERROR, { message, stack: err.stack, userId: req.user });
+            res.status(statusCode).json({
+                success: false,
+                error: message
             });
         }
     }

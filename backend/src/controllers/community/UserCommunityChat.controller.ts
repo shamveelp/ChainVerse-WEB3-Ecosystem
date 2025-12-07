@@ -5,13 +5,14 @@ import { IUserCommunityChatController } from "../../core/interfaces/controllers/
 import { IUserCommunityChatService } from "../../core/interfaces/services/community/IUserCommunityChatService";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import logger from "../../utils/logger";
 
 @injectable()
 export class UserCommunityChatController implements IUserCommunityChatController {
     constructor(
         @inject(TYPES.IUserCommunityChatService) private _chatService: IUserCommunityChatService
-    ) {}
+    ) { }
 
     // Community Channel Methods
     async getChannelMessages(req: Request, res: Response): Promise<void> {
@@ -23,7 +24,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -31,7 +32,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!username) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Community username is required"
+                    error: ErrorMessages.COMMUNITY_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -58,8 +59,8 @@ export class UserCommunityChatController implements IUserCommunityChatController
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get channel messages";
-            logger.error("Get channel messages error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_GET_CHANNEL_MESSAGES;
+            logger.error(LoggerMessages.GET_CHANNEL_MESSAGES_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -76,7 +77,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -84,7 +85,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!messageId || !emoji) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Message ID and emoji are required"
+                    error: ErrorMessages.MESSAGE_ID_EMOJI_REQUIRED
                 });
                 return;
             }
@@ -99,8 +100,8 @@ export class UserCommunityChatController implements IUserCommunityChatController
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to add reaction";
-            logger.error("React to message error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_ADD_REACTION;
+            logger.error(LoggerMessages.REACT_MESSAGE_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -117,7 +118,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -125,7 +126,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!messageId || !emoji) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Message ID and emoji are required"
+                    error: ErrorMessages.MESSAGE_ID_EMOJI_REQUIRED
                 });
                 return;
             }
@@ -140,8 +141,8 @@ export class UserCommunityChatController implements IUserCommunityChatController
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to remove reaction";
-            logger.error("Remove reaction error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_REMOVE_PARTICIPANT;
+            logger.error(LoggerMessages.REMOVE_REACTION_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -158,7 +159,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -166,7 +167,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!communityUsername || !content || content.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Community username and message content are required"
+                    error: ErrorMessages.COMMUNITY_USERNAME_CONTENT_REQUIRED
                 });
                 return;
             }
@@ -179,13 +180,13 @@ export class UserCommunityChatController implements IUserCommunityChatController
             res.status(StatusCode.CREATED).json({
                 success: true,
                 data: message,
-                message: "Message sent successfully"
+                message: SuccessMessages.MESSAGE_SENT
             });
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to send group message";
-            logger.error("Send group message error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_SEND_GROUP_MESSAGE;
+            logger.error(LoggerMessages.SEND_GROUP_MESSAGE_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -202,7 +203,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -210,7 +211,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!username) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Community username is required"
+                    error: ErrorMessages.COMMUNITY_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -237,8 +238,8 @@ export class UserCommunityChatController implements IUserCommunityChatController
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to get group messages";
-            logger.error("Get group messages error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_GET_GROUP_MESSAGES;
+            logger.error(LoggerMessages.GET_GROUP_MESSAGES_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -255,7 +256,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -263,7 +264,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!content || content.trim() === '') {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Message content is required"
+                    error: ErrorMessages.CONTENT_IS_REQUIRED
                 });
                 return;
             }
@@ -273,13 +274,13 @@ export class UserCommunityChatController implements IUserCommunityChatController
             res.status(StatusCode.OK).json({
                 success: true,
                 data: message,
-                message: "Message updated successfully"
+                message: SuccessMessages.MESSAGE_UPDATED
             });
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to edit group message";
-            logger.error("Edit group message error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_EDIT_GROUP_MESSAGE;
+            logger.error(LoggerMessages.EDIT_GROUP_MESSAGE_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -295,7 +296,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -310,8 +311,8 @@ export class UserCommunityChatController implements IUserCommunityChatController
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to delete group message";
-            logger.error("Delete group message error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_DELETE_GROUP_MESSAGE;
+            logger.error(LoggerMessages.DELETE_GROUP_MESSAGE_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -327,7 +328,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -335,7 +336,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             if (!username) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Community username is required"
+                    error: ErrorMessages.COMMUNITY_USERNAME_REQUIRED
                 });
                 return;
             }
@@ -350,8 +351,8 @@ export class UserCommunityChatController implements IUserCommunityChatController
         } catch (error) {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to mark messages as read";
-            logger.error("Mark group messages as read error:", { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            const message = err.message || ErrorMessages.FAILED_MARK_READ;
+            logger.error(LoggerMessages.MARK_GROUP_MESSAGES_READ_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message

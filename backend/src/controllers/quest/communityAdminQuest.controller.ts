@@ -15,12 +15,13 @@ import {
 } from "../../dtos/quest/CommunityAdminQuest.dto";
 import { ICommunityAdminQuestController } from "../../core/interfaces/controllers/quest/ICommunityAdminQuest.controller";
 import { validateManualQuestPayload } from "../../validations/questValidation";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class CommunityAdminQuestController implements ICommunityAdminQuestController {
   constructor(
     @inject(TYPES.ICommunityAdminQuestService) private _questService: ICommunityAdminQuestService
-  ) {}
+  ) { }
 
   async createQuest(req: Request, res: Response): Promise<void> {
     try {
@@ -32,20 +33,20 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.CREATED).json({
         success: true,
         data: quest,
-        message: "Quest created successfully! 🎉"
+        message: SuccessMessages.QUEST_CREATED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to create quest";
-      
-      logger.error("Create quest error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_CREATE_QUEST;
+
+      logger.error(LoggerMessages.CREATE_QUEST_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questData: req.body 
+        questData: req.body
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -63,20 +64,20 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: quest,
-        message: "Quest retrieved successfully"
+        message: SuccessMessages.QUEST_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get quest";
-      
-      logger.error("Get quest error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_GET_QUEST;
+
+      logger.error(LoggerMessages.GET_QUEST_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questId: req.params.questId 
+        questId: req.params.questId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -102,20 +103,20 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
             pages: result.pages
           }
         },
-        message: "Quests retrieved successfully"
+        message: SuccessMessages.QUESTS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get quests";
-      
-      logger.error("Get quests error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_GET_QUESTS;
+
+      logger.error(LoggerMessages.GET_QUESTS_ERROR_LOG, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        query: req.query 
+        query: req.query
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -134,21 +135,21 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: quest,
-        message: "Quest updated successfully! ✨"
+        message: SuccessMessages.QUEST_UPDATED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to update quest";
-      
-      logger.error("Update quest error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_UPDATE_QUEST;
+
+      logger.error(LoggerMessages.UPDATE_QUEST_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
         questId: req.params.questId,
-        updateData: req.body 
+        updateData: req.body
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -166,20 +167,20 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: { deleted },
-        message: deleted ? "Quest deleted successfully! 🗑️" : "Quest not found"
+        message: deleted ? SuccessMessages.QUEST_DELETED : ErrorMessages.QUEST_NOT_FOUND
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to delete quest";
-      
-      logger.error("Delete quest error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_DELETE_QUEST;
+
+      logger.error(LoggerMessages.DELETE_QUEST_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questId: req.params.questId 
+        questId: req.params.questId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -197,20 +198,20 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: questData,
-        message: "Quest generated with AI successfully! 🤖✨"
+        message: SuccessMessages.QUEST_GENERATED_AI
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to generate quest with AI";
-      
-      logger.error("Generate AI quest error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_GENERATE_QUEST_AI;
+
+      logger.error(LoggerMessages.GENERATE_AI_QUEST_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        aiPrompt: req.body.prompt 
+        aiPrompt: req.body.prompt
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -237,20 +238,20 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
             pages: result.pages
           }
         },
-        message: "Participants retrieved successfully"
+        message: SuccessMessages.PARTICIPANTS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get participants";
-      
-      logger.error("Get participants error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_GET_PARTICIPANTS;
+
+      logger.error(LoggerMessages.GET_PARTICIPANTS_ERROR_LOG, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questId: req.params.questId 
+        questId: req.params.questId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -268,21 +269,21 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: participant,
-        message: "Participant details retrieved successfully"
+        message: SuccessMessages.PARTICIPANT_DETAILS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get participant details";
-      
-      logger.error("Get participant details error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_GET_PARTICIPANT_DETAILS;
+
+      logger.error(LoggerMessages.GET_PARTICIPANT_DETAILS_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
         questId: req.params.questId,
-        participantId: req.params.participantId 
+        participantId: req.params.participantId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -305,15 +306,15 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to select winners";
-      
-      logger.error("Select winners error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_SELECT_WINNERS;
+
+      logger.error(LoggerMessages.SELECT_WINNERS_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questId: req.body.questId 
+        questId: req.body.questId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -337,15 +338,15 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to select replacement winners";
-      
-      logger.error("Select replacement winners error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_SELECT_REPLACEMENT_WINNERS;
+
+      logger.error(LoggerMessages.SELECT_REPLACEMENT_WINNERS_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questId: req.params.questId 
+        questId: req.params.questId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -364,21 +365,21 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: { disqualified },
-        message: disqualified ? "Participant disqualified successfully ⛔" : "Failed to disqualify participant"
+        message: disqualified ? SuccessMessages.PARTICIPANT_DISQUALIFIED : ErrorMessages.FAILED_DISQUALIFY_PARTICIPANT
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to disqualify participant";
-      
-      logger.error("Disqualify participant error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_DISQUALIFY_PARTICIPANT;
+
+      logger.error(LoggerMessages.DISQUALIFY_PARTICIPANT_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
         questId: req.params.questId,
-        participantId: req.params.participantId 
+        participantId: req.params.participantId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -401,15 +402,15 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to distribute rewards";
-      
-      logger.error("Distribute rewards error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_DISTRIBUTE_REWARDS;
+
+      logger.error(LoggerMessages.DISTRIBUTE_REWARDS_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questId: req.params.questId 
+        questId: req.params.questId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -427,20 +428,20 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: stats,
-        message: "Quest stats retrieved successfully"
+        message: SuccessMessages.QUEST_STATS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get quest stats";
-      
-      logger.error("Get quest stats error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_GET_QUEST_STATS;
+
+      logger.error(LoggerMessages.GET_QUEST_STATS_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questId: req.params.questId 
+        questId: req.params.questId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -457,19 +458,19 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: stats,
-        message: "Community quest stats retrieved successfully"
+        message: SuccessMessages.COMMUNITY_QUEST_STATS_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get community quest stats";
-      
-      logger.error("Get community quest stats error:", { 
-        message, 
-        stack: err.stack, 
-        adminId: (req as any).user?.id 
+      const message = err.message || ErrorMessages.FAILED_GET_COMMUNITY_QUEST_STATS;
+
+      logger.error(LoggerMessages.GET_COMMUNITY_QUEST_STATS_ERROR, {
+        message,
+        stack: err.stack,
+        adminId: (req as any).user?.id
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -487,20 +488,20 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: quest,
-        message: "Quest started successfully! 🚀 Participants can now join and complete tasks."
+        message: SuccessMessages.QUEST_STARTED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to start quest";
-      
-      logger.error("Start quest error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_START_QUEST;
+
+      logger.error(LoggerMessages.START_QUEST_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questId: req.params.questId 
+        questId: req.params.questId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -518,20 +519,20 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: quest,
-        message: "Quest ended successfully! 🏁 You can now select winners."
+        message: SuccessMessages.QUEST_ENDED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to end quest";
-      
-      logger.error("End quest error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_END_QUEST;
+
+      logger.error(LoggerMessages.END_QUEST_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questId: req.params.questId 
+        questId: req.params.questId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -547,7 +548,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       if (!req.file) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "No banner image provided"
+          error: ErrorMessages.NO_BANNER_IMAGE_PROVIDED
         });
         return;
       }
@@ -557,20 +558,20 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "Quest banner uploaded successfully! 🎨"
+        message: SuccessMessages.QUEST_BANNER_UPLOADED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to upload quest banner";
-      
-      logger.error("Upload quest banner error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_UPLOAD_QUEST_BANNER;
+
+      logger.error(LoggerMessages.UPLOAD_QUEST_BANNER_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questId: req.params.questId 
+        questId: req.params.questId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -588,20 +589,20 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: leaderboard,
-        message: "Quest leaderboard retrieved successfully"
+        message: SuccessMessages.QUEST_LEADERBOARD_RETRIEVED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get quest leaderboard";
-      
-      logger.error("Get quest leaderboard error:", { 
-        message, 
-        stack: err.stack, 
+      const message = err.message || ErrorMessages.FAILED_GET_QUEST_LEADERBOARD;
+
+      logger.error(LoggerMessages.GET_QUEST_LEADERBOARD_ERROR, {
+        message,
+        stack: err.stack,
         adminId: (req as any).user?.id,
-        questId: req.params.questId 
+        questId: req.params.questId
       });
-      
+
       res.status(statusCode).json({
         success: false,
         error: message

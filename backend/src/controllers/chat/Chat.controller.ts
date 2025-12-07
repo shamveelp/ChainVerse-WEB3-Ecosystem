@@ -5,13 +5,14 @@ import { IChatController } from "../../core/interfaces/controllers/chat/IChat.co
 import { IChatService } from "../../core/interfaces/services/chat/IChatService";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import logger from "../../utils/logger";
 
 @injectable()
 export class ChatController implements IChatController {
   constructor(
     @inject(TYPES.IChatService) private _chatService: IChatService
-  ) {}
+  ) { }
 
   async sendMessage(req: Request, res: Response): Promise<void> {
     try {
@@ -21,7 +22,7 @@ export class ChatController implements IChatController {
       if (!user || !user.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "User not authenticated"
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
         });
         return;
       }
@@ -29,7 +30,7 @@ export class ChatController implements IChatController {
       if (!content || !receiverUsername) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Content and receiver username are required"
+          error: ErrorMessages.CONTENT_RECEIVER_REQUIRED
         });
         return;
       }
@@ -37,7 +38,7 @@ export class ChatController implements IChatController {
       if (typeof content !== 'string' || content.trim().length === 0) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Message content cannot be empty"
+          error: ErrorMessages.MESSAGE_CONTENT_EMPTY
         });
         return;
       }
@@ -45,7 +46,7 @@ export class ChatController implements IChatController {
       if (content.trim().length > 2000) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Message content cannot exceed 2000 characters"
+          error: ErrorMessages.MESSAGE_TOO_LONG
         });
         return;
       }
@@ -55,16 +56,16 @@ export class ChatController implements IChatController {
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "Message sent successfully"
+        message: SuccessMessages.MESSAGE_SENT
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to send message";
+      const message = err.message || ErrorMessages.FAILED_SEND_MESSAGE;
 
-      logger.error("Send message error:", { 
-        message, 
-        stack: err.stack, 
+      logger.error(LoggerMessages.SEND_MESSAGE_ERROR, {
+        message,
+        stack: err.stack,
         userId: req.user ? (req.user as any).id : 'unknown'
       });
 
@@ -83,7 +84,7 @@ export class ChatController implements IChatController {
       if (!user || !user.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "User not authenticated"
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
         });
         return;
       }
@@ -111,11 +112,11 @@ export class ChatController implements IChatController {
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get conversations";
+      const message = err.message || ErrorMessages.FAILED_GET_CONVERSATIONS;
 
-      logger.error("Get conversations error:", { 
-        message, 
-        stack: err.stack, 
+      logger.error(LoggerMessages.GET_CONVERSATIONS_ERROR, {
+        message,
+        stack: err.stack,
         userId: req.user ? (req.user as any).id : 'unknown'
       });
 
@@ -135,7 +136,7 @@ export class ChatController implements IChatController {
       if (!user || !user.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "User not authenticated"
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
         });
         return;
       }
@@ -143,7 +144,7 @@ export class ChatController implements IChatController {
       if (!conversationId) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Conversation ID is required"
+          error: ErrorMessages.CONVERSATION_ID_REQUIRED
         });
         return;
       }
@@ -171,11 +172,11 @@ export class ChatController implements IChatController {
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get messages";
+      const message = err.message || ErrorMessages.FAILED_GET_MESSAGES;
 
-      logger.error("Get messages error:", { 
-        message, 
-        stack: err.stack, 
+      logger.error(LoggerMessages.GET_MESSAGES_ERROR, {
+        message,
+        stack: err.stack,
         conversationId: req.params.conversationId
       });
 
@@ -194,7 +195,7 @@ export class ChatController implements IChatController {
       if (!user || !user.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "User not authenticated"
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
         });
         return;
       }
@@ -202,7 +203,7 @@ export class ChatController implements IChatController {
       if (!username) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Username is required"
+          error: ErrorMessages.USERNAME_REQUIRED
         });
         return;
       }
@@ -216,11 +217,11 @@ export class ChatController implements IChatController {
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get or create conversation";
+      const message = err.message || ErrorMessages.FAILED_GET_CREATE_CONVERSATION;
 
-      logger.error("Get or create conversation error:", { 
-        message, 
-        stack: err.stack, 
+      logger.error(LoggerMessages.GET_CREATE_CONVERSATION_ERROR, {
+        message,
+        stack: err.stack,
         username: req.params.username
       });
 
@@ -240,7 +241,7 @@ export class ChatController implements IChatController {
       if (!user || !user.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "User not authenticated"
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
         });
         return;
       }
@@ -248,7 +249,7 @@ export class ChatController implements IChatController {
       if (!messageId) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Message ID is required"
+          error: ErrorMessages.MESSAGE_ID_REQUIRED
         });
         return;
       }
@@ -256,7 +257,7 @@ export class ChatController implements IChatController {
       if (!content || typeof content !== 'string' || content.trim().length === 0) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Message content cannot be empty"
+          error: ErrorMessages.MESSAGE_CONTENT_EMPTY
         });
         return;
       }
@@ -264,7 +265,7 @@ export class ChatController implements IChatController {
       if (content.trim().length > 2000) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Message content cannot exceed 2000 characters"
+          error: ErrorMessages.MESSAGE_TOO_LONG
         });
         return;
       }
@@ -274,16 +275,16 @@ export class ChatController implements IChatController {
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "Message edited successfully"
+        message: SuccessMessages.MESSAGE_EDITED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to edit message";
+      const message = err.message || ErrorMessages.FAILED_EDIT_MESSAGE;
 
-      logger.error("Edit message error:", { 
-        message, 
-        stack: err.stack, 
+      logger.error(LoggerMessages.EDIT_MESSAGE_ERROR, {
+        message,
+        stack: err.stack,
         messageId: req.params.messageId
       });
 
@@ -302,7 +303,7 @@ export class ChatController implements IChatController {
       if (!user || !user.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "User not authenticated"
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
         });
         return;
       }
@@ -310,7 +311,7 @@ export class ChatController implements IChatController {
       if (!messageId) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Message ID is required"
+          error: ErrorMessages.MESSAGE_ID_REQUIRED
         });
         return;
       }
@@ -325,11 +326,11 @@ export class ChatController implements IChatController {
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to delete message";
+      const message = err.message || ErrorMessages.FAILED_DELETE_MESSAGE;
 
-      logger.error("Delete message error:", { 
-        message, 
-        stack: err.stack, 
+      logger.error(LoggerMessages.DELETE_MESSAGE_ERROR, {
+        message,
+        stack: err.stack,
         messageId: req.params.messageId
       });
 
@@ -348,7 +349,7 @@ export class ChatController implements IChatController {
       if (!user || !user.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "User not authenticated"
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
         });
         return;
       }
@@ -356,7 +357,7 @@ export class ChatController implements IChatController {
       if (!conversationId) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Conversation ID is required"
+          error: ErrorMessages.CONVERSATION_ID_REQUIRED
         });
         return;
       }
@@ -371,11 +372,11 @@ export class ChatController implements IChatController {
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to mark messages as read";
+      const message = err.message || ErrorMessages.FAILED_MARK_READ;
 
-      logger.error("Mark messages as read error:", { 
-        message, 
-        stack: err.stack, 
+      logger.error(LoggerMessages.MARK_READ_ERROR, {
+        message,
+        stack: err.stack,
         userId: req.user ? (req.user as any).id : 'unknown'
       });
 

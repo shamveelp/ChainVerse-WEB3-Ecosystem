@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import logger from "../../utils/logger";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { IChainCastService } from "../../core/interfaces/services/chainCast/IChainCastService";
 import {
     CreateChainCastDto,
@@ -20,7 +21,7 @@ import { ICommunityAdminChainCastController } from "../../core/interfaces/contro
 export class CommunityAdminChainCastController implements ICommunityAdminChainCastController {
     constructor(
         @inject(TYPES.IChainCastService) private _chainCastService: IChainCastService
-    ) {}
+    ) { }
 
     async createChainCast(req: Request, res: Response): Promise<void> {
         try {
@@ -28,17 +29,17 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const createData: CreateChainCastDto = req.body;
 
             const result = await this._chainCastService.createChainCast(adminId, createData);
-            
+
             res.status(StatusCode.CREATED).json({
                 success: true,
-                message: "ChainCast created successfully",
+                message: SuccessMessages.CHAINCAST_CREATED,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Create ChainCast error:", error);
+            logger.error(LoggerMessages.CREATE_CHAINCAST_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to create ChainCast"
+                error: error.message || ErrorMessages.FAILED_CREATE_CHAINCAST
             });
         }
     }
@@ -49,16 +50,16 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const query: GetChainCastsQueryDto = req.query as any;
 
             const result = await this._chainCastService.getChainCasts(adminId, query);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Get ChainCasts error:", error);
+            logger.error(LoggerMessages.GET_CHAINCASTS_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to get ChainCasts"
+                error: error.message || ErrorMessages.FAILED_GET_CHAINCASTS
             });
         }
     }
@@ -69,16 +70,16 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const adminId = (req as any).user.id;
 
             const result = await this._chainCastService.getChainCastById(chainCastId, adminId);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Get ChainCast error:", error);
+            logger.error(LoggerMessages.GET_CHAINCAST_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to get ChainCast"
+                error: error.message || ErrorMessages.FAILED_GET_CHAINCAST
             });
         }
     }
@@ -90,17 +91,17 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const updateData: UpdateChainCastDto = req.body;
 
             const result = await this._chainCastService.updateChainCast(adminId, chainCastId, updateData);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
-                message: "ChainCast updated successfully",
+                message: SuccessMessages.CHAINCAST_UPDATED,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Update ChainCast error:", error);
+            logger.error(LoggerMessages.UPDATE_CHAINCAST_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to update ChainCast"
+                error: error.message || ErrorMessages.FAILED_UPDATE_CHAINCAST
             });
         }
     }
@@ -111,17 +112,17 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const { chainCastId } = req.params;
 
             const result = await this._chainCastService.deleteChainCast(adminId, chainCastId);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 message: result.message,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Delete ChainCast error:", error);
+            logger.error(LoggerMessages.DELETE_CHAINCAST_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to delete ChainCast"
+                error: error.message || ErrorMessages.FAILED_DELETE_CHAINCAST
             });
         }
     }
@@ -132,17 +133,17 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const { chainCastId } = req.params;
 
             const result = await this._chainCastService.startChainCast(adminId, chainCastId);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
-                message: "ChainCast started successfully",
+                message: SuccessMessages.CHAINCAST_STARTED,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Start ChainCast error:", error);
+            logger.error(LoggerMessages.START_CHAINCAST_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to start ChainCast"
+                error: error.message || ErrorMessages.FAILED_START_CHAINCAST
             });
         }
     }
@@ -153,17 +154,17 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const { chainCastId } = req.params;
 
             const result = await this._chainCastService.endChainCast(adminId, chainCastId);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
-                message: "ChainCast ended successfully",
+                message: SuccessMessages.CHAINCAST_ENDED,
                 data: result
             });
         } catch (error: any) {
-            logger.error("End ChainCast error:", error);
+            logger.error(LoggerMessages.END_CHAINCAST_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to end ChainCast"
+                error: error.message || ErrorMessages.FAILED_END_CHAINCAST
             });
         }
     }
@@ -174,16 +175,16 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const query: GetParticipantsQueryDto = { ...req.query, chainCastId } as any;
 
             const result = await this._chainCastService.getParticipants(chainCastId, query);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Get participants error:", error);
+            logger.error(LoggerMessages.GET_PARTICIPANTS_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to get participants"
+                error: error.message || ErrorMessages.FAILED_GET_PARTICIPANTS
             });
         }
     }
@@ -195,22 +196,22 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const { reason } = req.body;
 
             const result = await this._chainCastService.removeParticipant(
-                adminId, 
-                chainCastId, 
-                participantId, 
+                adminId,
+                chainCastId,
+                participantId,
                 reason
             );
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 message: result.message,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Remove participant error:", error);
+            logger.error(LoggerMessages.REMOVE_PARTICIPANT_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to remove participant"
+                error: error.message || ErrorMessages.FAILED_REMOVE_PARTICIPANT
             });
         }
     }
@@ -221,16 +222,16 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const { chainCastId } = req.params;
 
             const result = await this._chainCastService.getModerationRequests(adminId, chainCastId);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Get moderation requests error:", error);
+            logger.error(LoggerMessages.GET_MODERATION_REQUESTS_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to get moderation requests"
+                error: error.message || ErrorMessages.FAILED_GET_MODERATION_REQUESTS
             });
         }
     }
@@ -241,17 +242,17 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const reviewData: ReviewModerationRequestDto = req.body;
 
             const result = await this._chainCastService.reviewModerationRequest(adminId, reviewData);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 message: result.message,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Review moderation request error:", error);
+            logger.error(LoggerMessages.REVIEW_MODERATION_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to review moderation request"
+                error: error.message || ErrorMessages.FAILED_REVIEW_MODERATION
             });
         }
     }
@@ -262,16 +263,16 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const { period } = req.query;
 
             const result = await this._chainCastService.getChainCastAnalytics(adminId, period as string);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Get ChainCast analytics error:", error);
+            logger.error(LoggerMessages.GET_ANALYTICS_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to get analytics"
+                error: error.message || ErrorMessages.FAILED_GET_ANALYTICS
             });
         }
     }
@@ -282,16 +283,16 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const query: GetReactionsQueryDto = { ...req.query, chainCastId } as any;
 
             const result = await this._chainCastService.getReactions(chainCastId, query);
-            
+
             res.status(StatusCode.OK).json({
                 success: true,
                 data: result
             });
         } catch (error: any) {
-            logger.error("Get reactions error:", error);
+            logger.error(LoggerMessages.GET_REACTIONS_ERROR, error);
             res.status(error.statusCode || StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                error: error.message || "Failed to get reactions"
+                error: error.message || ErrorMessages.FAILED_GET_REACTIONS
             });
         }
     }
