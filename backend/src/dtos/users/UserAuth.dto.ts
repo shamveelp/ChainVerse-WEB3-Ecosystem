@@ -1,10 +1,10 @@
-import { 
-  IsEmail, 
-  IsString, 
-  MinLength, 
-  MaxLength, 
-  Matches, 
-  IsOptional, 
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  MaxLength,
+  Matches,
+  IsOptional,
   IsBoolean,
   Length,
   IsNotEmpty
@@ -17,8 +17,8 @@ export class UserRegisterDto {
   @IsNotEmpty({ message: 'Username is required' })
   @MinLength(4, { message: 'Username must be at least 4 characters long' })
   @MaxLength(20, { message: 'Username must be at most 20 characters long' })
-  @Matches(/^[a-zA-Z0-9_]+$/, { 
-    message: 'Username can only contain letters, numbers, and underscores' 
+  @Matches(/^[a-zA-Z0-9_]+$/, {
+    message: 'Username can only contain letters, numbers, and underscores'
   })
   @Transform(({ value }) => value?.trim())
   username?: string;
@@ -40,8 +40,8 @@ export class UserRegisterDto {
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    { 
-      message: 'Password must contain at least one uppercase letter, lowercase letter, number, and special character' 
+    {
+      message: 'Password must contain at least one uppercase letter, lowercase letter, number, and special character'
     }
   )
   password?: string;
@@ -49,8 +49,8 @@ export class UserRegisterDto {
   @IsOptional()
   @IsString({ message: 'Referral code must be a string' })
   @Length(8, 8, { message: 'Referral code must be exactly 8 characters long' })
-  @Matches(/^[A-Z0-9]+$/, { 
-    message: 'Referral code must contain only uppercase letters and numbers' 
+  @Matches(/^[A-Z0-9]+$/, {
+    message: 'Referral code must contain only uppercase letters and numbers'
   })
   @Transform(({ value }) => value ? value.toUpperCase().trim() : undefined)
   referralCode?: string;
@@ -73,8 +73,8 @@ export class VerifyOtpDto {
   @IsNotEmpty({ message: 'Username is required' })
   @MinLength(4, { message: 'Username must be at least 4 characters long' })
   @MaxLength(20, { message: 'Username must be at most 20 characters long' })
-  @Matches(/^[a-zA-Z0-9_]+$/, { 
-    message: 'Username can only contain letters, numbers, and underscores' 
+  @Matches(/^[a-zA-Z0-9_]+$/, {
+    message: 'Username can only contain letters, numbers, and underscores'
   })
   @Transform(({ value }) => value?.trim())
   username?: string;
@@ -96,8 +96,8 @@ export class VerifyOtpDto {
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    { 
-      message: 'Password must contain at least one uppercase letter, lowercase letter, number, and special character' 
+    {
+      message: 'Password must contain at least one uppercase letter, lowercase letter, number, and special character'
     }
   )
   password?: string;
@@ -111,8 +111,8 @@ export class VerifyOtpDto {
   @IsOptional()
   @IsString({ message: 'Referral code must be a string' })
   @Length(8, 8, { message: 'Referral code must be exactly 8 characters long' })
-  @Matches(/^[A-Z0-9]+$/, { 
-    message: 'Referral code must contain only uppercase letters and numbers' 
+  @Matches(/^[A-Z0-9]+$/, {
+    message: 'Referral code must contain only uppercase letters and numbers'
   })
   @Transform(({ value }) => value ? value.toUpperCase().trim() : undefined)
   referralCode?: string;
@@ -123,8 +123,8 @@ export class CheckUsernameDto {
   @IsNotEmpty({ message: 'Username is required' })
   @MinLength(4, { message: 'Username must be at least 4 characters long' })
   @MaxLength(20, { message: 'Username must be at most 20 characters long' })
-  @Matches(/^[a-zA-Z0-9_]+$/, { 
-    message: 'Username can only contain letters, numbers, and underscores' 
+  @Matches(/^[a-zA-Z0-9_]+$/, {
+    message: 'Username can only contain letters, numbers, and underscores'
   })
   @Transform(({ value }) => value?.trim())
   username?: string;
@@ -148,8 +148,8 @@ export class ResetPasswordDto {
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    { 
-      message: 'Password must contain at least one uppercase letter, lowercase letter, number, and special character' 
+    {
+      message: 'Password must contain at least one uppercase letter, lowercase letter, number, and special character'
     }
   )
   newPassword?: string;
@@ -167,6 +167,15 @@ export class GoogleLoginDto {
   @IsNotEmpty({ message: 'Google token is required' })
   @MinLength(1, { message: 'Google token cannot be empty' })
   token?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Referral code must be a string' })
+  @Length(8, 8, { message: 'Referral code must be exactly 8 characters long' })
+  @Matches(/^[A-Z0-9]+$/, {
+    message: 'Referral code must contain only uppercase letters and numbers'
+  })
+  @Transform(({ value }) => value ? value.toUpperCase().trim() : undefined)
+  referralCode?: string;
 }
 
 // Response DTOs

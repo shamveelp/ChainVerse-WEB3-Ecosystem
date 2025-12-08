@@ -61,14 +61,14 @@ export const login = async (email: string, password: string) => {
 export const register = async (username: string, email: string, password: string, name: string, referralCode?: string) => {
   try {
     const payload: any = { username, email, password, name }
-    
+
     // Only include referralCode if it has a value
     if (referralCode && referralCode.trim()) {
       payload.referralCode = referralCode.trim().toUpperCase()
     }
-    
-    
-    
+
+
+
     const response = await API.post<RegisterResponse>("/api/user/register", payload)
     return {
       success: true,
@@ -92,14 +92,14 @@ export const signup = async (username: string, email: string, password: string, 
       name,
       otp,
     }
-    
+
     // Only include referralCode if it has a value
     if (referralCode && referralCode.trim()) {
       payload.referralCode = referralCode.trim().toUpperCase()
     }
-    
-    
-    
+
+
+
     const response = await API.post<LoginResponse>("/api/user/verify-otp", payload)
     return {
       success: true,
@@ -226,9 +226,13 @@ export const logout = async () => {
   }
 }
 
-export const googleLogin = async (credential: string) => {
+export const googleLogin = async (credential: string, referralCode?: string) => {
   try {
-    const response = await API.post<LoginResponse>("/api/user/google-login", { token: credential })
+    const payload: any = { token: credential }
+    if (referralCode && referralCode.trim()) {
+      payload.referralCode = referralCode.trim().toUpperCase()
+    }
+    const response = await API.post<LoginResponse>("/api/user/google-login", payload)
     return {
       success: true,
       user: response.data.user,

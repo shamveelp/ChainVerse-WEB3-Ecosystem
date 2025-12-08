@@ -190,7 +190,9 @@ export function RegisterForm() {
   }
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
-    // Implementation for Google OAuth
+    if (credentialResponse.credential) {
+      await googleLogin(credentialResponse.credential, formData.referralCode)
+    }
   }
 
   const handleGoogleError = () => {
@@ -222,8 +224,8 @@ export function RegisterForm() {
       </CardHeader>
       <CardContent className="space-y-6 p-6">
         <div className="w-full flex justify-center">
-          <GoogleLogin 
-            onSuccess={handleGoogleSuccess} 
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
             onError={handleGoogleError}
             theme="filled_black"
             size="large"

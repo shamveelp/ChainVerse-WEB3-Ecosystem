@@ -17,7 +17,7 @@ import { Types } from "mongoose";
 @injectable()
 export class UserAuthService implements IUserAuthService {
   private _googleClient: OAuth2Client;
-  
+
   constructor(
     @inject(TYPES.IUserRepository) private _userRepository: IUserRepository,
     @inject(TYPES.IReferralHistoryRepository) private _referralHistoryRepository: IReferralHistoryRepository,
@@ -30,7 +30,7 @@ export class UserAuthService implements IUserAuthService {
   async registerUser(username: string, email: string, password: string, name: string, referralCode?: string): Promise<void> {
     try {
       logger.info(`Validating registration data for: ${email}, username: ${username}`);
-      
+
       const existingUserByEmail = await this._userRepository.findByEmail(email);
       if (existingUserByEmail) {
         throw new CustomError("Email already exists", StatusCode.BAD_REQUEST);
@@ -59,7 +59,7 @@ export class UserAuthService implements IUserAuthService {
   async verifyAndRegisterUser(username: string, email: string, password: string, name: string, referralCode?: string): Promise<{ user: any; accessToken: string; refreshToken: string }> {
     try {
       logger.info(`Creating user account after OTP verification: ${email}, username: ${username}`);
-      
+
       const existingUserByEmail = await this._userRepository.findByEmail(email);
       if (existingUserByEmail) {
         throw new CustomError("Email already exists", StatusCode.BAD_REQUEST);
@@ -71,7 +71,7 @@ export class UserAuthService implements IUserAuthService {
       }
 
       const hashedPassword = await bcrypt.hash(password, 12);
-      
+
       const userReferralCode = await ReferralCodeService.generateUniqueReferralCode();
 
       let refferedById: string | null = null;
@@ -104,13 +104,13 @@ export class UserAuthService implements IUserAuthService {
       }
 
       const accessToken = this._jwtService.generateAccessToken(
-        user._id.toString(), 
-        user.role, 
+        user._id.toString(),
+        user.role,
         user.tokenVersion || 0
       );
       const refreshToken = this._jwtService.generateRefreshToken(
-        user._id.toString(), 
-        user.role, 
+        user._id.toString(),
+        user.role,
         user.tokenVersion || 0
       );
 
@@ -135,7 +135,7 @@ export class UserAuthService implements IUserAuthService {
   private async processReferralReward(referrerId: string, newUserId: string, newUsername: string, referralCode: string): Promise<void> {
     try {
       logger.info(`Processing referral reward for referrer: ${referrerId}`);
-      
+
       const referrer = await this._userRepository.findById(referrerId);
       if (referrer) {
         const newTotalPoints = (referrer.totalPoints || 0) + 100;
@@ -203,7 +203,7 @@ export class UserAuthService implements IUserAuthService {
       if (!user) {
         throw new CustomError("User not found", StatusCode.NOT_FOUND);
       }
-      
+
       const hashedPassword = await bcrypt.hash(newPassword, 12);
 
       await this._userRepository.update(user._id.toString(), {
@@ -291,13 +291,13 @@ export class UserAuthService implements IUserAuthService {
     }
   }
 
-  async loginWithGoogle(idToken: string): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
+  async loginWithGoogle(idToken: string, referralCode?: string): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
     try {
       const ticket = await this._googleClient.verifyIdToken({
         idToken,
         audience: process.env.GOOGLE_CLIENT_ID,
       });
-      
+
       const payload = ticket.getPayload();
       if (!payload) {
         throw new CustomError("Invalid Google ID token", StatusCode.UNAUTHORIZED);
@@ -314,16 +314,27 @@ export class UserAuthService implements IUserAuthService {
         user = await this._userRepository.findByEmail(email);
       }
 
+      // Referral Logic for New Users
+      let refferedById: string | null = null;
+      if (!user && referralCode && referralCode.trim()) {
+        refferedById = await ReferralCodeService.validateReferralCode(referralCode);
+        if (!refferedById) {
+          throw new CustomError("Invalid referral code", StatusCode.BAD_REQUEST);
+        }
+        logger.info(`Processing referral for new Google user from: ${refferedById}`);
+      }
+
       if (!user) {
         const username = email.split("@")[0] + Math.floor(Math.random() * 1000);
         const userReferralCode = await ReferralCodeService.generateUniqueReferralCode();
-        
+
         user = await this._userRepository.create({
           name: name || email.split("@")[0],
           email,
           googleId,
           username,
           refferalCode: userReferralCode,
+          refferedBy: refferedById ? new Types.ObjectId(refferedById) : null,
           isGoogleUser: true,
           isEmailVerified: true,
           totalPoints: 0,
@@ -331,8 +342,12 @@ export class UserAuthService implements IUserAuthService {
           role: "user",
           tokenVersion: 0,
         });
-        
+
         logger.info(`New Google user created: ${user._id}`);
+
+        if (refferedById) {
+          this.processReferralReward(refferedById, user._id.toString(), username, referralCode!);
+        }
       } else if (!user.googleId) {
         // Link existing account with Google
         await this._userRepository.update(user._id.toString(), {
@@ -340,7 +355,7 @@ export class UserAuthService implements IUserAuthService {
           isGoogleUser: true,
           profilePic: picture || user.profilePic,
         });
-        
+
         logger.info(`Linked existing account with Google: ${user._id}`);
       }
 

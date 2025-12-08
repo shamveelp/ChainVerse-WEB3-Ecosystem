@@ -44,10 +44,10 @@ export function useAuthActions() {
     }
   }
 
-  const googleLogin = async (credential: string) => {
+  const googleLogin = async (credential: string, referralCode?: string) => {
     dispatch(setLoading(true))
     try {
-      const response = await authApiService.googleLogin(credential)
+      const response = await authApiService.googleLogin(credential, referralCode)
       if (response.success && response.user && response.token) {
         dispatch(
           reduxLogin({
@@ -102,19 +102,15 @@ export function useAuthActions() {
     }
   }
 
-  const requestRegistrationOtp = async (email: string, userData: { name: string; email: string; password: string }) => {
+  const requestRegistrationOtp = async (email: string, userData: { username: string; name: string; email: string; password: string; referralCode?: string }) => {
     dispatch(setLoading(true))
     try {
-      
       const response = await authApiService.requestOtp(email)
-      
 
       if (response.success) {
         // Store the data in Redux
         dispatch(setTempUserData(userData))
         dispatch(setTempEmail(email))
-
-        
 
         toast({
           title: "OTP Sent",
@@ -146,15 +142,13 @@ export function useAuthActions() {
   const requestForgotPasswordOtp = async (email: string) => {
     dispatch(setLoading(true))
     try {
-      
       const response = await authApiService.forgotPassword(email)
-      
 
       if (response.success) {
         // Store email in Redux
         dispatch(setTempEmail(email))
         // Clear any existing user data since this is forgot password
-        dispatch(setTempUserData({name:'', email: '', password: ''}))
+        dispatch(setTempUserData({ username: '', name: '', email: '', password: '' }))
 
         toast({
           title: "Reset Code Sent",
@@ -191,11 +185,15 @@ export function useAuthActions() {
   ) => {
     dispatch(setLoading(true))
     try {
-      
-
       if (type === "register" && tempUserData) {
-        const response = await authApiService.signup(tempUserData.name, tempUserData.email, tempUserData.password, otp)
-        
+        const response = await authApiService.signup(
+          tempUserData.username,
+          tempUserData.email,
+          tempUserData.password,
+          tempUserData.name,
+          tempUserData.referralCode,
+          otp
+        )
 
         if (response.success && response.user && response.token) {
           dispatch(reduxLogin({ user: response.user, token: response.token }))
@@ -214,7 +212,6 @@ export function useAuthActions() {
         }
       } else if (type === "forgot-password" && tempEmail) {
         const response = await authApiService.verifyForgotPasswordOtp(tempEmail, otp)
-        
 
         if (response.success) {
           toast({
@@ -248,9 +245,7 @@ export function useAuthActions() {
   const resetPassword = async (email: string, newPassword: string) => {
     dispatch(setLoading(true))
     try {
-      
       const response = await authApiService.resetPassword(email, newPassword)
-      
 
       if (response.success) {
         dispatch(clearTempData())
