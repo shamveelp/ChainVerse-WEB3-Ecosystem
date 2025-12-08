@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ThemeToggle } from "./theme-toggle"
 
@@ -29,6 +29,13 @@ export default function Navbar() {
   const { user, loading } = useSelector((state: RootState) => state.userAuth)
   const { logout } = useAuthActions()
   const { toast } = useToast()
+
+  const avatarUrl = user
+    ? user.profileImage ||
+    user.profilePicture ||
+    user.profilePic ||
+    `https://api.dicebear.com/9.x/adventurer/svg?seed=${user.username}`
+    : ""
 
   const handleLogout = async () => {
     await logout()
@@ -111,10 +118,10 @@ export default function Navbar() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href={'/my-profile/points'}>
-                  <Button  variant="ghost" size="icon" className="text-foreground hover:text-primary">
-                    <CircleDollarSign className="h-5 w-5" />
-                    <span className="sr-only">Daily Check-in</span>
-                  </Button>
+                    <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
+                      <CircleDollarSign className="h-5 w-5" />
+                      <span className="sr-only">Daily Check-in</span>
+                    </Button>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent>Daily Check-in</TooltipContent>
@@ -146,6 +153,7 @@ export default function Navbar() {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center space-x-2 text-foreground hover:text-primary">
                     <Avatar className="w-8 h-8">
+                      <AvatarImage src={avatarUrl} alt={user.username} />
                       <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                         {user.username}
                       </AvatarFallback>
@@ -248,6 +256,7 @@ export default function Navbar() {
                           <div className="px-3 py-2 border-t border-border">
                             <div className="flex items-center space-x-2 mb-2">
                               <Avatar className="w-6 h-6">
+                                <AvatarImage src={avatarUrl} alt={user.username} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                                   {user.username}
                                 </AvatarFallback>
