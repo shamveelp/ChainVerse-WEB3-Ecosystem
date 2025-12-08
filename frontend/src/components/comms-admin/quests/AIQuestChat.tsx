@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Bot, 
-  User, 
-  Send, 
-  Loader2, 
-  Wand2, 
-  CheckCircle, 
+import {
+  Bot,
+  User,
+  Send,
+  Loader2,
+  Wand2,
+  CheckCircle,
   Upload,
   Search,
   ChevronDown
@@ -25,6 +25,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -47,10 +48,11 @@ interface Message {
 
 interface AIQuestChatProps {
   onQuestGenerated: (questData: any) => void;
+  onSaveAndCreate?: (questData: any) => Promise<void>;
   onClose?: () => void;
 }
 
-export function AIQuestChat({ onQuestGenerated, onClose }: AIQuestChatProps) {
+export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQuestChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -66,6 +68,7 @@ export function AIQuestChat({ onQuestGenerated, onClose }: AIQuestChatProps) {
   const [awaitingInput, setAwaitingInput] = useState<any>(null);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [showManipulateOptions, setShowManipulateOptions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -82,7 +85,7 @@ export function AIQuestChat({ onQuestGenerated, onClose }: AIQuestChatProps) {
       prompt: "Create a community growth quest with social media tasks and engagement activities"
     },
     {
-      title: "NFT Collection Quest", 
+      title: "NFT Collection Quest",
       description: "NFT minting and collection challenges",
       prompt: "Design an NFT-focused quest with minting tasks and collection activities"
     },
@@ -101,6 +104,40 @@ export function AIQuestChat({ onQuestGenerated, onClose }: AIQuestChatProps) {
   const handleSendMessage = async (messageText?: string) => {
     const message = messageText || currentMessage;
     if (!message.trim() || isLoading) return;
+
+    // Handle local field editing
+    if (awaitingInput?.type === 'field_edit') {
+      const userMessage: Message = {
+        role: 'user',
+        content: message,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage]);
+      setCurrentMessage('');
+
+      // Update local state
+      let updatedValue: any = message;
+      if (awaitingInput.fieldType === 'number') {
+        updatedValue = parseFloat(message) || 0;
+      }
+
+      const updatedQuest = { ...generatedQuest, [awaitingInput.field]: updatedValue };
+      setGeneratedQuest(updatedQuest);
+      setAwaitingInput(null);
+      setIsLoading(true);
+
+      // Simulate AI processing for local edit
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `✅ Updated ${awaitingInput.label} to "${message}". Anything else?`,
+          timestamp: new Date(),
+          questPreview: updatedQuest
+        }]);
+        setIsLoading(false);
+      }, 500);
+      return;
+    }
 
     const userMessage: Message = {
       role: 'user',
@@ -159,10 +196,16 @@ export function AIQuestChat({ onQuestGenerated, onClose }: AIQuestChatProps) {
   const handleInputResponse = async (value: any) => {
     if (!awaitingInput) return;
 
-    const responseMessage = `Selected ${awaitingInput.type}: ${
-      typeof value === 'object' ? value.name || value.username || value.symbol : value
-    }`;
-    
+    let displayValue = value;
+    let internalId = '';
+
+    if (typeof value === 'object') {
+      displayValue = value.name || value.username || value.symbol || value.communityName;
+      internalId = value._id || value.id;
+    }
+
+    const responseMessage = `Selected ${awaitingInput.type}: ${displayValue} (ID: ${internalId})`;
+
     await handleSendMessage(responseMessage);
     setAwaitingInput(null);
   };
@@ -197,15 +240,45 @@ export function AIQuestChat({ onQuestGenerated, onClose }: AIQuestChatProps) {
     }
   };
 
-  const handleUseQuest = () => {
-    if (generatedQuest) {
-      const questWithBanner = bannerFile 
+  const handleSaveAndCreate = async () => {
+    if (!generatedQuest || !onSaveAndCreate) return;
+
+    // Disable saving while processing
+    setIsLoading(true);
+    try {
+      const questWithBanner = bannerFile
         ? { ...generatedQuest, bannerFile }
         : generatedQuest;
-      
-      onQuestGenerated(questWithBanner);
-      if (onClose) onClose();
+
+      await onSaveAndCreate(questWithBanner);
+    } catch (error) {
+      // Error handling is likely done in the parent or should be shown here
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleEditManually = () => {
+    if (!generatedQuest) return;
+    const questWithBanner = bannerFile
+      ? { ...generatedQuest, bannerFile }
+      : generatedQuest;
+    onQuestGenerated(questWithBanner);
+  };
+
+  const startFieldEdit = (field: string, label: string, type: 'text' | 'number' = 'text') => {
+    setAwaitingInput({
+      type: 'field_edit',
+      field,
+      label,
+      fieldType: type,
+      prompt: `Enter new ${label}:`
+    });
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: `What should be the new ${label}?`,
+      timestamp: new Date()
+    }]);
   };
 
   const renderInputHandler = () => {
@@ -230,43 +303,46 @@ export function AIQuestChat({ onQuestGenerated, onClose }: AIQuestChatProps) {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0 bg-gray-800 border-gray-600">
-                    <Command>
+                    <Command shouldFilter={false}>
                       <CommandInput
                         placeholder={`Search ${awaitingInput.type}s...`}
                         onValueChange={handleSearchInput}
                         className="text-white"
                       />
-                      <CommandEmpty>No results found.</CommandEmpty>
-                      <CommandGroup className="max-h-64 overflow-y-auto">
-                        {searchResults.map((item: any) => (
-                          <CommandItem
-                            key={item._id}
-                            onSelect={() => {
-                              handleInputResponse(item);
-                              setSearchOpen(false);
-                            }}
-                            className="text-white hover:bg-gray-700"
-                          >
-                            <div className="flex items-center gap-2">
-                              {(item.logo || item.profilePic) && (
-                                <img 
-                                  src={item.logo || item.profilePic} 
-                                  alt="" 
-                                  className="w-6 h-6 rounded-full" 
-                                />
-                              )}
-                              <div>
-                                <p className="font-medium">
-                                  {item.communityName || item.name || item.username}
-                                </p>
-                                <p className="text-xs text-gray-400">
-                                  @{item.username}
-                                </p>
+                      <CommandList>
+                        <CommandEmpty>No results found.</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-y-auto">
+                          {searchResults.map((item: any) => (
+                            <CommandItem
+                              key={item._id}
+                              value={item._id}
+                              onSelect={() => {
+                                handleInputResponse(item);
+                                setSearchOpen(false);
+                              }}
+                              className="text-white hover:bg-gray-700 cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2 pointer-events-none">
+                                {(item.logo || item.profilePic) && (
+                                  <img
+                                    src={item.logo || item.profilePic}
+                                    alt=""
+                                    className="w-6 h-6 rounded-full"
+                                  />
+                                )}
+                                <div>
+                                  <p className="font-medium">
+                                    {item.communityName || item.name || item.username}
+                                  </p>
+                                  <p className="text-xs text-gray-400">
+                                    @{item.username}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
                     </Command>
                   </PopoverContent>
                 </Popover>
@@ -311,27 +387,26 @@ export function AIQuestChat({ onQuestGenerated, onClose }: AIQuestChatProps) {
         );
 
       default:
-        return null;
+        return null; // For field_edit, we just use the main chat input
     }
   };
 
   const renderMessage = (message: Message, index: number) => {
     const isUser = message.role === 'user';
     const isSystem = message.role === 'system';
-    
+
     return (
       <div
         key={index}
         className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}
       >
         <div
-          className={`max-w-[80%] rounded-lg p-3 ${
-            isUser
-              ? 'bg-purple-600 text-white'
-              : isSystem
+          className={`max-w-[80%] rounded-lg p-3 ${isUser
+            ? 'bg-purple-600 text-white'
+            : isSystem
               ? 'bg-red-900 text-red-200'
               : 'bg-gray-700 text-gray-100'
-          }`}
+            }`}
         >
           <div className="flex items-center gap-2 mb-1">
             {isUser ? (
@@ -346,7 +421,7 @@ export function AIQuestChat({ onQuestGenerated, onClose }: AIQuestChatProps) {
             </span>
           </div>
           <p className="whitespace-pre-wrap">{message.content}</p>
-          
+
           {message.questPreview && (
             <div className="mt-3 p-3 bg-black/20 rounded border border-gray-600">
               <h4 className="font-medium mb-2 text-green-400">Quest Preview:</h4>
@@ -426,24 +501,57 @@ export function AIQuestChat({ onQuestGenerated, onClose }: AIQuestChatProps) {
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <CheckCircle className="h-5 w-5 text-green-400" />
-                  <span className="font-medium text-green-200">Quest Generated!</span>
+                  <span className="font-medium text-green-200">Quest Ready!</span>
                 </div>
+
+                {/* Manipulate Options Chips */}
+                {showManipulateOptions && (
+                  <div className="mb-4 space-y-2">
+                    <p className="text-xs text-gray-400">Click a field to edit:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge
+                        className="cursor-pointer hover:bg-purple-600 px-3 py-1"
+                        onClick={() => startFieldEdit('title', 'Title')}
+                      >
+                        Title
+                      </Badge>
+                      <Badge
+                        className="cursor-pointer hover:bg-purple-600 px-3 py-1"
+                        onClick={() => startFieldEdit('description', 'Description')}
+                      >
+                        Description
+                      </Badge>
+                      <Badge
+                        className="cursor-pointer hover:bg-purple-600 px-3 py-1"
+                        onClick={() => startFieldEdit('participantLimit', 'Winner Limit', 'number')}
+                      >
+                        Winners
+                      </Badge>
+                      <Badge
+                        className="cursor-pointer hover:bg-blue-600 bg-blue-900 px-3 py-1"
+                        onClick={handleEditManually}
+                      >
+                        Advanced Edit (Form)
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <Button
-                    onClick={handleUseQuest}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={handleSaveAndCreate}
+                    disabled={isLoading}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                   >
-                    Use This Quest
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Save & Create Quest
                   </Button>
                   <Button
-                    onClick={() => {
-                      setQuestGenerated(false);
-                      setGeneratedQuest(null);
-                    }}
+                    onClick={() => setShowManipulateOptions(!showManipulateOptions)}
                     variant="outline"
-                    className="border-gray-600 text-gray-400"
+                    className="flex-1 border-gray-600 text-gray-400"
                   >
-                    Continue Editing
+                    {showManipulateOptions ? "Hide Options" : "Manipulate / Edit"}
                   </Button>
                 </div>
               </CardContent>
@@ -461,9 +569,10 @@ export function AIQuestChat({ onQuestGenerated, onClose }: AIQuestChatProps) {
                   handleSendMessage();
                 }
               }}
-              placeholder="Describe your quest idea or ask questions..."
+              placeholder={awaitingInput?.type === 'field_edit' ? awaitingInput.prompt : "Describe your quest idea or ask questions..."}
               className="flex-1 bg-gray-800 border-gray-600 text-white"
               disabled={isLoading}
+              autoFocus={!!awaitingInput?.type}
             />
             <Button
               onClick={() => handleSendMessage()}

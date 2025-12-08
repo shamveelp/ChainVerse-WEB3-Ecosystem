@@ -219,6 +219,36 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  async chatWithAI(req: Request, res: Response): Promise<void> {
+    try {
+      const communityAdminId = (req as any).user.id;
+      const { message, history } = req.body;
+
+      const result = await this._questService.chatWithAI(communityAdminId, message, history);
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        data: result,
+        message: "AI response generated"
+      });
+    } catch (error) {
+      const err = error as Error;
+      const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+      const message = err.message || "Failed to chat with AI";
+
+      logger.error("AI Chat Controller Error", {
+        message,
+        stack: err.stack,
+        adminId: (req as any).user?.id
+      });
+
+      res.status(statusCode).json({
+        success: false,
+        error: message
+      });
+    }
+  }
+
   async getQuestParticipants(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;

@@ -126,40 +126,41 @@ export default function CreateQuestPage() {
     };
   };
 
-  const validateForm = (): boolean => {
+  const validateForm = (data?: CreateQuestData): Record<string, string> => {
+    const dataToValidate = data || questData;
     const newErrors: Record<string, string> = {};
 
     // Basic validation
-    if (!questData.title.trim()) {
+    if (!dataToValidate.title.trim()) {
       newErrors.title = "Quest title is required";
-    } else if (questData.title.length > 200) {
+    } else if (dataToValidate.title.length > 200) {
       newErrors.title = "Quest title must be less than 200 characters";
     }
 
-    if (!questData.description.trim()) {
+    if (!dataToValidate.description.trim()) {
       newErrors.description = "Quest description is required";
-    } else if (questData.description.length > 2000) {
+    } else if (dataToValidate.description.length > 2000) {
       newErrors.description = "Quest description must be less than 2000 characters";
     }
 
-    if (questData.participantLimit < 1) {
+    if (dataToValidate.participantLimit < 1) {
       newErrors.participantLimit = "Winner limit must be at least 1";
-    } else if (questData.participantLimit > 1000) {
+    } else if (dataToValidate.participantLimit > 1000) {
       newErrors.participantLimit = "Winner limit cannot exceed 1000";
     }
 
-    if (questData.rewardPool.amount <= 0) {
+    if (dataToValidate.rewardPool.amount <= 0) {
       newErrors.rewardAmount = "Reward amount must be greater than 0";
     }
 
-    if (!questData.rewardPool.currency.trim()) {
+    if (!dataToValidate.rewardPool.currency.trim()) {
       newErrors.rewardCurrency = "Reward currency is required";
     }
 
     // Date validation
     const now = new Date();
-    const startDate = new Date(questData.startDate);
-    const endDate = new Date(questData.endDate);
+    const startDate = new Date(dataToValidate.startDate);
+    const endDate = new Date(dataToValidate.endDate);
 
     if (startDate <= now) {
       newErrors.startDate = "Start date must be in the future";
@@ -170,11 +171,11 @@ export default function CreateQuestPage() {
     }
 
     // Tasks validation
-    if (questData.tasks.length === 0) {
+    if (dataToValidate.tasks.length === 0) {
       newErrors.tasks = "At least one task is required";
     }
 
-    questData.tasks.forEach((task, index) => {
+    dataToValidate.tasks.forEach((task, index) => {
       if (!task.title.trim()) {
         newErrors[`task_${index}_title`] = `Task ${index + 1} title is required`;
       }
@@ -183,7 +184,7 @@ export default function CreateQuestPage() {
       }
 
       // Validate privilege points for leaderboard method
-      if (questData.selectionMethod === 'leaderboard') {
+      if (dataToValidate.selectionMethod === 'leaderboard') {
         if (!task.privilegePoints || task.privilegePoints < 1 || task.privilegePoints > 10) {
           newErrors[`task_${index}_privilege`] = `Task ${index + 1} privilege points must be between 1-10`;
         }
@@ -223,19 +224,30 @@ export default function CreateQuestPage() {
     });
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleAIQuestGenerated = (aiQuestData: CreateQuestData) => {
-    setQuestData({
+    // Process AI data to ensure it matches local state requirements
+    const processedData: CreateQuestData = {
       ...aiQuestData,
-      tasks: aiQuestData.tasks.map((task, index) => ({
+      participantLimit: Number(aiQuestData.participantLimit),
+      rewardPool: {
+        ...aiQuestData.rewardPool,
+        amount: Number(aiQuestData.rewardPool.amount)
+      },
+      startDate: new Date(aiQuestData.startDate),
+      endDate: new Date(aiQuestData.endDate),
+      tasks: (aiQuestData.tasks || []).map((task, index) => ({
         ...task,
         order: index + 1,
-        privilegePoints: task.privilegePoints || 1,
+        isRequired: task.isRequired ?? true,
+        privilegePoints: Number(task.privilegePoints) || 1,
         config: { ...getDefaultTaskConfig(task.taskType), ...(task.config || {}) }
       }))
-    });
+    };
+
+    setQuestData(processedData);
 
     if ((aiQuestData as any).bannerFile) {
       setBannerFile((aiQuestData as any).bannerFile);
@@ -310,25 +322,55 @@ export default function CreateQuestPage() {
     }
   };
 
-  const handleCreateQuest = async () => {
-    if (!validateForm()) {
-      const firstError = Object.values(errors)[0];
+  const handleAIQuestSave = async (aiQuestData: CreateQuestData) => {
+    // Process data for submission
+    const processedData: CreateQuestData = {
+      ...aiQuestData,
+      participantLimit: Number(aiQuestData.participantLimit),
+      rewardPool: {
+        ...aiQuestData.rewardPool,
+        amount: Number(aiQuestData.rewardPool.amount)
+      },
+      startDate: new Date(aiQuestData.startDate),
+      endDate: new Date(aiQuestData.endDate),
+      tasks: (aiQuestData.tasks || []).map((task, index) => ({
+        ...task,
+        order: index + 1,
+        isRequired: task.isRequired ?? true,
+        privilegePoints: Number(task.privilegePoints) || 1,
+        config: { ...getDefaultTaskConfig(task.taskType), ...(task.config || {}) }
+      }))
+    };
+
+    if ((aiQuestData as any).bannerFile) {
+      setBannerFile((aiQuestData as any).bannerFile);
+    }
+
+    await submitQuest(processedData);
+  };
+
+  const submitQuest = async (dataToSubmit: CreateQuestData) => {
+    const validationErrors = validateForm(dataToSubmit);
+
+    if (Object.keys(validationErrors).length > 0) {
+      const firstError = Object.values(validationErrors)[0];
       toast({
         variant: "destructive",
         title: "Validation Error",
-        description: firstError,
+        description: firstError || "Please check the form for errors",
       });
       return;
     }
 
     setLoading(true);
     try {
-      const response = await communityAdminQuestApiService.createQuest(questData);
+      const response = await communityAdminQuestApiService.createQuest(dataToSubmit);
 
       if (response.success && response.data) {
         // Upload banner if provided
-        if (bannerFile) {
-          await communityAdminQuestApiService.uploadQuestBanner(response.data._id, bannerFile);
+        const bannerToUpload = (dataToSubmit as any).bannerFile || bannerFile;
+        if (bannerToUpload) {
+          await communityAdminQuestApiService.uploadQuestBanner(response.data._id, bannerToUpload);
         }
 
         toast({
@@ -349,6 +391,8 @@ export default function CreateQuestPage() {
       setLoading(false);
     }
   };
+
+  const handleCreateQuest = () => submitQuest(questData);
 
   const formatDateForInput = (date: Date) => {
     return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
@@ -730,9 +774,8 @@ export default function CreateQuestPage() {
                                   }
                                 }}
                                 placeholder="Enter task title"
-                                className={`bg-gray-700 border-gray-600 text-white ${
-                                  errors[`task_${index}_title`] ? 'border-red-500' : ''
-                                }`}
+                                className={`bg-gray-700 border-gray-600 text-white ${errors[`task_${index}_title`] ? 'border-red-500' : ''
+                                  }`}
                               />
                               {errors[`task_${index}_title`] && (
                                 <p className="text-red-400 text-xs flex items-center gap-1">
@@ -787,9 +830,8 @@ export default function CreateQuestPage() {
                               }}
                               placeholder="Describe what the user needs to do..."
                               rows={2}
-                              className={`bg-gray-700 border-gray-600 text-white ${
-                                errors[`task_${index}_description`] ? 'border-red-500' : ''
-                              }`}
+                              className={`bg-gray-700 border-gray-600 text-white ${errors[`task_${index}_description`] ? 'border-red-500' : ''
+                                }`}
                             />
                             {errors[`task_${index}_description`] && (
                               <p className="text-red-400 text-xs flex items-center gap-1">
@@ -822,9 +864,8 @@ export default function CreateQuestPage() {
                                       setErrors(prev => ({ ...prev, [`task_${index}_privilege`]: '' }));
                                     }
                                   }}
-                                  className={`bg-gray-700 border-gray-600 text-white ${
-                                    errors[`task_${index}_privilege`] ? 'border-red-500' : ''
-                                  }`}
+                                  className={`bg-gray-700 border-gray-600 text-white ${errors[`task_${index}_privilege`] ? 'border-red-500' : ''
+                                    }`}
                                 />
                                 {errors[`task_${index}_privilege`] && (
                                   <p className="text-red-400 text-xs flex items-center gap-1">
@@ -841,7 +882,7 @@ export default function CreateQuestPage() {
                             <TaskConfiguration
                               taskType={task.taskType}
                               config={task.config}
-                              onChange={(config:any) => updateTaskConfig(index, config)}
+                              onChange={(config: any) => updateTaskConfig(index, config)}
                             />
                           </div>
 
@@ -893,7 +934,10 @@ export default function CreateQuestPage() {
 
           {/* AI Assistant Tab */}
           <TabsContent value="ai" className="min-h-[600px]">
-            <AIQuestChat onQuestGenerated={handleAIQuestGenerated} />
+            <AIQuestChat
+              onQuestGenerated={handleAIQuestGenerated}
+              onSaveAndCreate={handleAIQuestSave}
+            />
           </TabsContent>
         </Tabs>
       </div>

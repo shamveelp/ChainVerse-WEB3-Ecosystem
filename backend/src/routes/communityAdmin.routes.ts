@@ -852,6 +852,13 @@ router.post(
   communityAdminQuestController.generateQuestWithAI.bind(communityAdminQuestController)
 );
 
+router.post(
+  "/quests/ai-chat",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminQuestController.chatWithAI.bind(communityAdminQuestController)
+);
+
 // Quest Analytics and Stats
 router.get(
   "/quests/:questId/stats",

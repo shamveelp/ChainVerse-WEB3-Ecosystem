@@ -7,6 +7,7 @@ export interface ICommunityAdminQuestController {
   updateQuest(req: Request, res: Response): Promise<void>;
   deleteQuest(req: Request, res: Response): Promise<void>;
   generateQuestWithAI(req: Request, res: Response): Promise<void>;
+  chatWithAI(req: Request, res: Response): Promise<void>;
   getQuestParticipants(req: Request, res: Response): Promise<void>;
   getParticipantDetails(req: Request, res: Response): Promise<void>;
   selectWinners(req: Request, res: Response): Promise<void>;

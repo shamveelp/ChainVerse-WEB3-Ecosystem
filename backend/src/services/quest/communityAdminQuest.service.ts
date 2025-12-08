@@ -496,6 +496,136 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     }
   }
 
+  async chatWithAI(communityAdminId: string, message: string, history: any[]): Promise<any> {
+    try {
+      const admin = await this._adminRepository.findById(communityAdminId);
+      if (!admin || !admin.communityId) {
+        throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+      }
+
+      const community = await this._communityRepository.findById(admin.communityId.toString());
+      if (!community) {
+        throw new CustomError("Community not found", StatusCode.NOT_FOUND);
+      }
+
+      // Construct the system prompt
+      const systemPrompt = `
+        You are an AI assistant helping a community manager create a quest for their Web3 community.
+        Community details:
+        Name: ${community.communityName}
+        Description: ${community.description}
+
+        Your goal is to gather information to create a quest. You need to know:
+        1. Quest Title
+        2. Description
+        3. Start/End Dates (or duration)
+        4. Tasks (what users need to do)
+        5. Rewards (points amount)
+
+        CRITICAL - TASK CONFIGURATION RULES:
+        1. "Join Community" task (\`taskType: "join_community"\`): REQUIRED \`communityId\`. If you don't have it, ASK: "Please select a community".
+        2. "Follow User" task (\`taskType: "follow_user"\`): REQUIRED \`targetUserId\`. If you don't have it, ASK: "Please select a user".
+        3. "Token Hold" task (\`taskType: "token_hold"\`): REQUIRED \`tokenAddress\` and \`minimumAmount\`.
+        
+        DO NOT generate fake IDs. If you need an ID, you MUST ask the user to select it first using "Please select a community" or "Please select a user".
+        Only when the user replies with the selection (which will include the ID), allow the generation.
+
+        Interact naturally with the user. If the user provides enough information to create a quest, OR if they explicitly ask to generate/create it, you MUST generate a valid JSON object matching the CreateQuestDto structure.
+
+        If you are just chatting, return a plain text response.
+        If you are generating the quest, your response must START with specific marker "||GENERATE_QUEST||" followed by the JSON object.
+
+        JSON Structure for Quest:
+        {
+          "title": "string",
+          "description": "string",
+          "startDate": "ISO date string",
+          "endDate": "ISO date string",
+          "selectionMethod": "random" | "fcfs" | "leaderboard",
+          "participantLimit": number,
+          "rewardPool": { "amount": number, "currency": "POINTS", "rewardType": "points" },
+          "tasks": [ { "title": "string", "description": "string", "taskType": "string", "isRequired": boolean, "config": {} } ]
+        }
+      `;
+
+      // Construct chat history
+      let chatHistory = "System: " + systemPrompt + "\n\n";
+      if (history && history.length > 0) {
+        history.forEach(msg => {
+          chatHistory += `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}\n`;
+        });
+      }
+      chatHistory += `User: ${message}\nAssistant:`;
+
+      const result = await geminiModel.generateContent(chatHistory);
+      const response = await result.response;
+      const text = response.text();
+
+      // Check if response contains generation marker
+      if (text.includes("||GENERATE_QUEST||")) {
+        try {
+          const jsonStr = text.split("||GENERATE_QUEST||")[1].trim();
+          // Extract JSON if there's trailing text
+          const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const questData = JSON.parse(jsonMatch[0]);
+            // Set defaults if missing
+            const now = new Date();
+            const startDate = questData.startDate ? new Date(questData.startDate) : new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+            const endDate = questData.endDate ? new Date(questData.endDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+            const processedQuest = {
+              title: questData.title || "New Quest",
+              description: questData.description || "Quest description",
+              startDate,
+              endDate,
+              selectionMethod: questData.selectionMethod || 'random',
+              participantLimit: questData.participantLimit || 10,
+              rewardPool: {
+                amount: questData.rewardPool?.amount || 100,
+                currency: 'POINTS',
+                rewardType: 'points',
+                customReward: questData.rewardPool?.customReward
+              },
+              tasks: questData.tasks || [],
+              isAIGenerated: true,
+              aiPrompt: message
+            };
+
+            return {
+              response: "I've generated a quest based on our conversation! You can review it below.",
+              questGenerated: true,
+              questData: processedQuest
+            };
+          }
+        } catch (e) {
+          logger.error("Failed to parse generated quest JSON", e);
+          // Fallback to text response if JSON fails
+        }
+      }
+
+      // Identify if we need specific inputs
+      const needsInput = [];
+      const lowerText = text.toLowerCase();
+      if (lowerText.includes("please select a community") || lowerText.includes("select a community")) {
+        needsInput.push({ type: 'community', field: 'communityId', prompt: "Please select a community for the task:" });
+      }
+      else if (lowerText.includes("please select a user") || lowerText.includes("select a user")) {
+        needsInput.push({ type: 'user', field: 'userId', prompt: "Please select a user for the task:" });
+      }
+
+      return {
+        response: text.replace("||GENERATE_QUEST||", "").trim().split("{")[0], // Remove JSON part if it leaked but wasn't caught properly or just text
+        questGenerated: false,
+        needsInput
+      };
+
+    } catch (error) {
+      logger.error("AI Chat error:", error);
+      throw error instanceof CustomError ? error : new CustomError("Failed to chat with AI", StatusCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   async getQuestParticipants(questId: string, communityAdminId: string, query: GetParticipantsQueryDto): Promise<{ participants: any[]; total: number; pages: number }> {
     try {
       await this.getQuestById(questId, communityAdminId); // Verify access

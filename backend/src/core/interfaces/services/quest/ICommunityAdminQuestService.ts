@@ -1,7 +1,7 @@
-import { 
-  CreateQuestDto, 
-  UpdateQuestDto, 
-  GetQuestsQueryDto, 
+import {
+  CreateQuestDto,
+  UpdateQuestDto,
+  GetQuestsQueryDto,
   GetParticipantsQueryDto,
   AIQuestGenerationDto,
   SelectWinnersDto,
@@ -19,9 +19,10 @@ export interface ICommunityAdminQuestService {
 
   // AI-powered quest generation
   generateQuestWithAI(communityAdminId: string, aiDto: AIQuestGenerationDto): Promise<CreateQuestDto>;
+  chatWithAI(communityAdminId: string, message: string, history: any[]): Promise<any>;
 
   // Participant management
-  getQuestParticipants(questId: string, communityAdminId: string, query: GetParticipantsQueryDto): Promise<{ participants: any[]; total: number; pages: number }>;   
+  getQuestParticipants(questId: string, communityAdminId: string, query: GetParticipantsQueryDto): Promise<{ participants: any[]; total: number; pages: number }>;
   getParticipantDetails(questId: string, participantId: string, communityAdminId: string): Promise<any>;
   selectWinners(communityAdminId: string, selectDto: SelectWinnersDto): Promise<{ winners: any[]; message: string }>;
   selectReplacementWinners(questId: string, communityAdminId: string, count: number): Promise<{ winners: any[]; message: string }>;
