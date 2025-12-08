@@ -240,7 +240,7 @@ export default function PointsPage() {
             Convert to CVC
           </Button>
           <Button
-            onClick={() => router.push("/dex/trade")}
+            onClick={() => router.push("/trade/swap")}
             variant="outline"
             className="border-blue-800/30 text-blue-300 hover:bg-blue-700/20 px-6 py-3"
           >
