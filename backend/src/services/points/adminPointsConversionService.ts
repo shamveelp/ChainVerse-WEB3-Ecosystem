@@ -2,6 +2,8 @@ import { injectable, inject } from "inversify";
 import { IAdminPointsConversionService } from "../../core/interfaces/services/points/IAdminPointsConversionService";
 import { IPointsConversionRepository } from "../../core/interfaces/repositories/points/IPointsConversionRepository";
 import { IConversionRateRepository } from "../../core/interfaces/repositories/points/IConversionRateRepository";
+import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
+import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistoryRepository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -21,8 +23,12 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
     @inject(TYPES.IPointsConversionRepository)
     private _conversionRepository: IPointsConversionRepository,
     @inject(TYPES.IConversionRateRepository)
-    private _rateRepository: IConversionRateRepository
-  ) {}
+    private _rateRepository: IConversionRateRepository,
+    @inject(TYPES.IUserRepository)
+    private _userRepository: IUserRepository,
+    @inject(TYPES.IPointsHistoryRepository)
+    private _pointsHistoryRepository: IPointsHistoryRepository
+  ) { }
 
   async getAllConversions(page = 1, limit = 10, status?: string): Promise<{
     conversions: any[];
@@ -131,6 +137,29 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
       }
       if (conversion.status !== 'pending') {
         throw new CustomError("Conversion is not in pending status", StatusCode.BAD_REQUEST);
+      }
+
+      // Refund points to user
+      // Helper to get userId string safely (handling populated vs non-populated)
+      const userId = (conversion.userId as any)?._id
+        ? (conversion.userId as any)._id.toString()
+        : (conversion.userId as any).toString();
+
+      const user = await this._userRepository.findById(userId);
+      if (user) {
+        // Refund points
+        await this._userRepository.update(userId, {
+          totalPoints: user.totalPoints + conversion.pointsConverted
+        } as any);
+
+        // Record history
+        await this._pointsHistoryRepository.createPointsHistory({
+          userId,
+          type: 'conversion_refund',
+          points: conversion.pointsConverted,
+          description: `Refund: ${reason}`,
+          relatedId: conversion._id.toString()
+        });
       }
       const updatedConversion = await this._conversionRepository.updateStatus(
         conversionId,

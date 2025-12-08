@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { updateTotalPoints, updateProfile } from "@/redux/slices/userProfileSlice";
+import { updateTotalPoints, updateProfile, setProfile } from "@/redux/slices/userProfileSlice";
 import { userApiService } from "@/services/userApiServices";
 import { format, isSameDay } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -67,10 +67,22 @@ export default function PointsPage() {
   const [historyTotal, setHistoryTotal] = useState(0);
 
   useEffect(() => {
+    fetchUserProfile(); // Fetch fresh profile data including points
     fetchCheckInStatus();
     fetchCheckInCalendar(new Date().getMonth() + 1, new Date().getFullYear());
     fetchPointsHistory(1);
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const result = await userApiService.getProfile();
+      if (result.data) {
+        dispatch(setProfile(result.data));
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
 
   const fetchCheckInStatus = async () => {
     try {
@@ -134,11 +146,12 @@ export default function PointsPage() {
         dispatch(updateProfile({
           dailyCheckin: updatedDailyCheckin
         }));
-        
+
         toast.success("Daily Check-in Complete!", {
           description: result.data.message,
         });
         // Refresh data
+        await fetchUserProfile(); // Fetch fresh profile to get exact points from server
         await fetchCheckInStatus();
         await fetchCheckInCalendar(
           new Date().getMonth() + 1,
@@ -165,6 +178,10 @@ export default function PointsPage() {
         return <Target className="h-4 w-4 text-purple-400" />;
       case "bonus":
         return <Trophy className="h-4 w-4 text-yellow-400" />;
+      case "conversion_deduction":
+        return <ArrowRightLeft className="h-4 w-4 text-red-400" />;
+      case "conversion_refund":
+        return <ArrowRightLeft className="h-4 w-4 text-green-400" />;
       default:
         return <Coins className="h-4 w-4 text-gray-400" />;
     }
@@ -182,6 +199,10 @@ export default function PointsPage() {
         return "bg-yellow-900/50 text-yellow-300";
       case "deduction":
         return "bg-red-900/50 text-red-300";
+      case "conversion_deduction":
+        return "bg-red-900/50 text-red-300";
+      case "conversion_refund":
+        return "bg-green-900/50 text-green-300";
       default:
         return "bg-gray-900/50 text-gray-300";
     }

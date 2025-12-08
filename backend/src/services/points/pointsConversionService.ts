@@ -1,6 +1,7 @@
 import { injectable, inject } from "inversify";
 import { IPointsConversionService } from "../../core/interfaces/services/points/IPointsConversionService";
 import { IPointsConversionRepository } from "../../core/interfaces/repositories/points/IPointsConversionRepository";
+import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistoryRepository";
 import { IConversionRateRepository } from "../../core/interfaces/repositories/points/IConversionRateRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import { TYPES } from "../../core/types/types";
@@ -12,13 +13,15 @@ import logger from "../../utils/logger";
 @injectable()
 export class PointsConversionService implements IPointsConversionService {
   constructor(
-    @inject(TYPES.IPointsConversionRepository) 
+    @inject(TYPES.IPointsConversionRepository)
     private _conversionRepository: IPointsConversionRepository,
     @inject(TYPES.IConversionRateRepository)
     private _rateRepository: IConversionRateRepository,
     @inject(TYPES.IUserRepository)
-    private _userRepository: IUserRepository
-  ) {}
+    private _userRepository: IUserRepository,
+    @inject(TYPES.IPointsHistoryRepository)
+    private _pointsHistoryRepository: IPointsHistoryRepository
+  ) { }
 
   async createConversion(userId: string, pointsToConvert: number): Promise<{
     success: boolean;
@@ -73,6 +76,15 @@ export class PointsConversionService implements IPointsConversionService {
       await this._userRepository.update(userId, {
         totalPoints: user.totalPoints - pointsToConvert
       } as any);
+
+      // Record points deduction history
+      await this._pointsHistoryRepository.createPointsHistory({
+        userId,
+        type: 'conversion_deduction',
+        points: -pointsToConvert,
+        description: `Converted ${pointsToConvert} points to ${cvcAmount} CVC`,
+        relatedId: conversion._id.toString()
+      });
 
       return {
         success: true,
@@ -130,7 +142,7 @@ export class PointsConversionService implements IPointsConversionService {
   }
 
   async claimCVC(
-    conversionId: string, 
+    conversionId: string,
     userId: string,
     walletAddress: string,
     transactionHash: string
@@ -147,8 +159,8 @@ export class PointsConversionService implements IPointsConversionService {
       // Handle both populated and non-populated userId
       // When populated by mongoose, userId is an object, when not populated it's an ObjectId
       // Use mongoose's way to get the ObjectId regardless of population
-      const conversionUserId = (conversion.userId as any)?._id 
-        ? (conversion.userId as any)._id.toString() 
+      const conversionUserId = (conversion.userId as any)?._id
+        ? (conversion.userId as any)._id.toString()
         : (conversion.userId as any).toString();
 
       // Normalize both IDs to strings for comparison
@@ -245,15 +257,15 @@ export class PointsConversionService implements IPointsConversionService {
       };
 
       if (user.totalPoints < pointsToConvert) {
-        return { 
-          isValid: false, 
+        return {
+          isValid: false,
           error: "Insufficient points",
-          userPoints: user.totalPoints 
+          userPoints: user.totalPoints
         };
       }
 
       const validation = validateConversion(pointsToConvert, rateConfig);
-      
+
       return {
         isValid: validation.isValid,
         error: validation.error,

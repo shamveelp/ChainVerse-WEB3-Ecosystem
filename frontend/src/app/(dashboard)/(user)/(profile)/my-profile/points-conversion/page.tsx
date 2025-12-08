@@ -9,10 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { 
-  Coins, 
-  ArrowRightLeft, 
-  Wallet, 
+import {
+  Coins,
+  ArrowRightLeft,
+  Wallet,
   TrendingUp,
   Clock,
   CheckCircle,
@@ -24,8 +24,9 @@ import {
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
-import { updateTotalPoints } from "@/redux/slices/userProfileSlice";
+import { updateTotalPoints, setProfile } from "@/redux/slices/userProfileSlice";
 import { pointsConversionApiService, ConversionRate, PointsConversion, ConversionStats } from "@/services/points/pointsConversionApiService";
+import { userApiService } from "@/services/userApiServices";
 import { format } from "date-fns";
 import { useActiveAccount, useSendTransaction } from "thirdweb/react";
 import { getContract, prepareContractCall, readContract } from "thirdweb";
@@ -60,7 +61,7 @@ export default function PointsConversionPage() {
   const { profile } = useSelector((state: RootState) => state.userProfile);
   const account = useActiveAccount();
   const { mutateAsync: sendTransaction } = useSendTransaction();
-  
+
   const [conversionRate, setConversionRate] = useState<ConversionRate | null>(null);
   const [conversions, setConversions] = useState<PointsConversion[]>([]);
   const [stats, setStats] = useState<ConversionStats | null>(null);
@@ -74,6 +75,7 @@ export default function PointsConversionPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [selectedConversion, setSelectedConversion] = useState<PointsConversion | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -86,8 +88,8 @@ export default function PointsConversionPage() {
   }, [page]);
 
   useEffect(() => {
-    calculateCVC();
-  }, [pointsToConvert, conversionRate]);
+    validateAndCalculate();
+  }, [pointsToConvert, conversionRate, profile]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -144,15 +146,34 @@ export default function PointsConversionPage() {
     }
   };
 
-  const calculateCVC = async () => {
-    if (!pointsToConvert || !conversionRate || parseFloat(pointsToConvert) <= 0) {
+  const validateAndCalculate = () => {
+    if (!pointsToConvert) {
       setCalculatedCVC(0);
+      setValidationError(null);
       return;
     }
 
     const points = parseFloat(pointsToConvert);
-    const cvc = Math.floor(points / conversionRate.pointsPerCVC);
-    setCalculatedCVC(cvc);
+
+    // Validations
+    if (isNaN(points) || points <= 0) {
+      setCalculatedCVC(0);
+      setValidationError("Please enter a valid amount greater than 0");
+      return;
+    }
+
+    if (profile && points > profile.totalPoints) {
+      setValidationError(`Insufficient balance. You have ${profile.totalPoints} points.`);
+    } else if (conversionRate && points < conversionRate.minimumPoints) {
+      setValidationError(`Minimum amount is ${conversionRate.minimumPoints} points`);
+    } else {
+      setValidationError(null);
+    }
+
+    if (conversionRate) {
+      const cvc = Math.floor(points / conversionRate.pointsPerCVC);
+      setCalculatedCVC(cvc);
+    }
   };
 
   const handleConvertPoints = async () => {
@@ -164,7 +185,7 @@ export default function PointsConversionPage() {
     }
 
     const points = parseFloat(pointsToConvert);
-    
+
     if (points < conversionRate.minimumPoints) {
       toast.error("Minimum Points Required", {
         description: `You need at least ${conversionRate.minimumPoints} points to convert.`,
@@ -184,24 +205,27 @@ export default function PointsConversionPage() {
       toast.loading("Processing Conversion...", {
         description: "Submitting your conversion request. Please wait.",
       });
-      
+
       const result = await pointsConversionApiService.createConversion(points);
-      
+
       if (result.success && result.data) {
-        // Update Redux with new points balance
-        dispatch(updateTotalPoints(result.data.remainingPoints));
-        
+        // Fetch fresh profile data to update points
+        const profileResult = await userApiService.getProfile();
+        if (profileResult.data) {
+          dispatch(setProfile(profileResult.data));
+        }
+
         toast.success("Conversion Request Submitted!", {
           description: result.data.message,
           duration: 5000,
         });
-        
+
         setPointsToConvert("");
         setCalculatedCVC(0);
         await fetchConversions(1);
         setPage(1);
       } else {
-        toast.error("Conversion Failed", { 
+        toast.error("Conversion Failed", {
           description: result.error || "Failed to create conversion request.",
         });
       }
@@ -243,7 +267,7 @@ export default function PointsConversionPage() {
 
     // Get contract address from rate or use fallback from config
     const contractAddress = conversionRate.cvcContractAddress || "0xF7BAdb1aE47768910edDF72cB39bF4C8B30173a8";
-    
+
     if (!contractAddress || contractAddress === "undefined" || !contractAddress.startsWith("0x")) {
       toast.error("Invalid Contract Address", {
         description: "CVC contract address is not configured. Please contact support.",
@@ -329,7 +353,7 @@ export default function PointsConversionPage() {
             }
           }
         });
-        
+
         setShowClaimModal(false);
         setSelectedConversion(null);
         await fetchConversions(1);
@@ -341,7 +365,7 @@ export default function PointsConversionPage() {
       }
     } catch (error: any) {
       console.error("Claim error:", error);
-      
+
       // Handle user rejection
       if (error.message?.includes("rejected") || error.message?.includes("denied")) {
         toast.error("Transaction Rejected", {
@@ -399,14 +423,14 @@ export default function PointsConversionPage() {
     <div className="max-w-6xl mx-auto space-y-8 relative">
       {/* Wallet Connection Component */}
       <TradeNavbar topOffset="top-4" />
-      
+
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
           Points to CVC Conversion
         </h1>
         <p className="text-slate-400">Convert your earned points to ChainVerse Coins</p>
-        
+
         {conversionRate && (
           <div className="flex items-center justify-center gap-4 text-sm">
             <Badge className="bg-blue-900/50 text-blue-300">
@@ -500,13 +524,20 @@ export default function PointsConversionPage() {
                         placeholder="Enter points amount"
                         value={pointsToConvert}
                         onChange={(e) => setPointsToConvert(e.target.value)}
-                        className="bg-slate-700/50 border-slate-600/50 text-white placeholder:text-slate-400 pr-20"
+                        className={`bg-slate-700/50 border-slate-600/50 text-white placeholder:text-slate-400 pr-20 ${validationError ? "border-red-500/50 focus-visible:ring-red-500/20" : ""
+                          }`}
                         disabled={!conversionRate?.isActive || converting}
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
                         Points
                       </div>
                     </div>
+                    {validationError && (
+                      <p className="text-red-400 text-sm flex items-center gap-1.5 mt-1">
+                        <XCircle className="h-3.5 w-3.5" />
+                        {validationError}
+                      </p>
+                    )}
                     {profile && (
                       <p className="text-slate-400 text-sm">
                         Available: {profile.totalPoints} points
@@ -541,11 +572,12 @@ export default function PointsConversionPage() {
                   <Button
                     onClick={handleConvertPoints}
                     disabled={
-                      converting || 
-                      !conversionRate?.isActive || 
-                      !pointsToConvert || 
+                      converting ||
+                      !conversionRate?.isActive ||
+                      !pointsToConvert ||
                       parseFloat(pointsToConvert) <= 0 ||
-                      calculatedCVC === 0
+                      calculatedCVC === 0 ||
+                      !!validationError
                     }
                     className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3"
                   >
@@ -591,7 +623,7 @@ export default function PointsConversionPage() {
                       <p className="text-slate-400 text-sm">Submit your points for conversion to CVC tokens</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start gap-3">
                     <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-white text-sm font-bold">2</div>
                     <div>
@@ -599,7 +631,7 @@ export default function PointsConversionPage() {
                       <p className="text-slate-400 text-sm">Wait for admin to review and approve your conversion</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start gap-3">
                     <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">3</div>
                     <div>
@@ -681,7 +713,7 @@ export default function PointsConversionPage() {
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="text-right">
                         {conversion.status === 'approved' && (
                           <Button

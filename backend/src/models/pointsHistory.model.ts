@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 export interface IPointsHistory extends Document {
   _id: mongoose.Types.ObjectId;
   userId: Types.ObjectId;
-  type: 'daily_checkin' | 'referral_bonus' | 'quest_reward' | 'bonus' | 'deduction';
+  type: 'daily_checkin' | 'referral_bonus' | 'quest_reward' | 'bonus' | 'deduction' | 'conversion_deduction' | 'conversion_refund';
   points: number;
   description: string;
   relatedId?: Types.ObjectId; // For referencing related documents (referral, quest, etc.)
@@ -12,10 +12,10 @@ export interface IPointsHistory extends Document {
 
 const PointsHistorySchema: Schema<IPointsHistory> = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { 
-    type: String, 
-    enum: ['daily_checkin', 'referral_bonus', 'quest_reward', 'bonus', 'deduction'], 
-    required: true 
+  type: {
+    type: String,
+    enum: ['daily_checkin', 'referral_bonus', 'quest_reward', 'bonus', 'deduction', 'conversion_deduction', 'conversion_refund'],
+    required: true
   },
   points: { type: Number, required: true },
   description: { type: String, required: true },
