@@ -4,7 +4,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Sparkles, Send, Bot, User, ArrowUpDown, Wallet, ExternalLink, Zap } from 'lucide-react';
 import { useActiveAccount } from 'thirdweb/react';
 import { toast } from '@/hooks/use-toast';
+import { getExplorerUrl } from '@/lib/dex/utils';
 import AiTradeApiService from '@/services/ai/AiTradeApiService';
+
+interface ChatBubbleProps {
+  onExecuteSwap?: () => Promise<any>;
+  onSetSwapForm?: (form: any) => void;
+  tokenPrices?: { ethCoinA: string, ethCoinB: string };
+  currentBalances?: { eth: string, coinA: string, coinB: string };
+}
 
 interface Message {
   id: string;
@@ -19,7 +27,7 @@ interface Message {
   };
 }
 
-export default function AiChatBubble() {
+export default function AiChatBubble({ onExecuteSwap, onSetSwapForm, tokenPrices, currentBalances }: ChatBubbleProps) {
   const account = useActiveAccount();
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -57,18 +65,18 @@ I'm your personal DEX trading assistant. I can help you with:
 • CoinA (Test Token) 
 • CoinB (Test Token)
 
-${account?.address 
-  ? `🟢 **Wallet Connected:** ${account.address.slice(0, 6)}...${account.address.slice(-4)}\nI can execute trades for you!`
-  : `🔴 **Wallet Not Connected**\nConnect your wallet to enable trade execution!`
-}
+${account?.address
+            ? `🟢 **Wallet Connected:** ${account.address.slice(0, 6)}...${account.address.slice(-4)}\nI can execute trades for you!`
+            : `🔴 **Wallet Not Connected**\nConnect your wallet to enable trade execution!`
+          }
 
 What would you like to do today? 🚀`,
         timestamp: new Date(),
         suggestions: [
           "Show current prices 💰",
-          "What tokens are available? 📊", 
-          "How to swap 0.01 ETH for CoinA? 🔄",
-          "Calculate swap for 0.001 ETH ⚡"
+          "What tokens are available? 📊",
+          "Swap 0.01 ETH for CoinA 🔄",
+          "Swap 100 CoinA for ETH ⚡"
         ]
       };
       setMessages([welcomeMessage]);
@@ -96,80 +104,123 @@ What would you like to do today? 🚀`,
     setIsLoading(true);
 
     try {
-      // Enhanced context with wallet info
-      const context = {
-        walletConnected: !!account?.address,
-        walletAddress: account?.address,
-        messageCount: messages.length + 1,
-        timestamp: new Date().toISOString(),
-        // Add token balances if available
-        userAgent: navigator.userAgent,
-      };
+      // Local Intent Processing for "Perfect Implementation" Speed
+      const intent = AiTradeApiService.parseTradingIntent(message);
 
-      const response = await AiTradeApiService.sendMessage({
-        message,
-        sessionId,
-        walletAddress: account?.address,
-        walletConnected: !!account?.address,
-        context
-      });
+      let aiResponse: Message | null = null;
 
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response.data.response,
-        timestamp: new Date(),
-        suggestions: response.data.suggestions,
-        actionRequired: response.data.actionRequired
-      };
+      // 1. Handle "Prices" intent
+      if (intent.action === 'info' || message.toLowerCase().includes('price')) {
+        const priceText = tokenPrices
+          ? `**Current Prices:**\n• 1 ETH = ${tokenPrices.ethCoinA} CoinA\n• 1 ETH = ${tokenPrices.ethCoinB} CoinB`
+          : "I couldn't fetch the latest prices just yet. Please try again in a moment.";
 
-      setMessages(prev => [...prev, aiMessage]);
-
-      // Handle action required (e.g., wallet connection)
-      if (response.data.actionRequired) {
-        handleActionRequired(response.data.actionRequired);
+        aiResponse = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: priceText,
+          timestamp: new Date(),
+          suggestions: ["Swap ETH for CoinA", "Swap ETH for CoinB"]
+        };
       }
 
-      // Check if the response contains executable trade details
-      const tradeDetails = AiTradeApiService.extractTradeDetailsFromResponse(response.data.response);
-      if (tradeDetails.hasTradeDetails && account?.address) {
-        // Auto-suggest trade execution
-        setTimeout(() => {
-          setMessages(prev => [...prev, {
-            id: (Date.now() + 2).toString(),
-            role: 'assistant',
-            content: `🚀 **Ready to Execute Trade?**
+      // 2. Handle "Pairs" / "Available" intent
+      else if (message.toLowerCase().includes('pair') || message.toLowerCase().includes('available')) {
+        aiResponse = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: `**Available Trading Pairs:**
+• ETH ⇄ CoinA
+• ETH ⇄ CoinB
+• CoinA ⇄ CoinB
 
-I can execute this trade for you right now:
-• ${tradeDetails.amount} ${tradeDetails.fromToken} → ~${tradeDetails.estimatedOutput} ${tradeDetails.toToken}
-
-Click "Execute Trade" or type "**execute trade**" to proceed! ⚡`,
-            timestamp: new Date(),
-            suggestions: ["Execute Trade 🚀", "Show price impact ⚠️", "Cancel trade ❌"]
-          }]);
-        }, 1000);
+You can trade between any of these tokens instantly!`,
+          timestamp: new Date(),
+          suggestions: ["Buy 100 CoinA", "Sell CoinB"]
+        };
       }
+
+      // 3. Handle "Swap/Buy/Sell" intent
+      else if (intent.isTradeIntent && intent.amount && (intent.fromToken || intent.toToken)) {
+
+        let fromToken = intent.fromToken || 'ETH';
+        let toToken = intent.toToken || 'CoinA';
+
+        // Refine tokens based on single-token input
+        if (!intent.toToken && intent.fromToken) {
+          // Only one token found
+          if (intent.action === 'buy') {
+            toToken = intent.fromToken;
+            fromToken = toToken === 'ETH' ? 'CoinA' : 'ETH';
+          } else {
+            // Sell or default
+            fromToken = intent.fromToken;
+            toToken = fromToken === 'ETH' ? 'CoinA' : 'ETH';
+          }
+        }
+
+        // Prevent same token
+        if (fromToken === toToken) {
+          toToken = fromToken === 'ETH' ? 'CoinA' : 'ETH';
+        }
+
+        // Update the form
+        if (onSetSwapForm) {
+          onSetSwapForm({
+            fromToken: fromToken,
+            toToken: toToken,
+            fromAmount: intent.amount
+          });
+        }
+
+        const actionMsg = `I've prepared the transaction for you:
+        
+**Swap:** ${intent.amount} ${fromToken} ➝ ${toToken}
+        
+Please confirm the details in the swap card. When you are ready, click 'Execute Trade' below!`;
+
+        aiResponse = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: actionMsg,
+          timestamp: new Date(),
+          actionRequired: {
+            type: 'execute_trade',
+            message: 'Transaction ready for execution'
+          },
+          suggestions: ["Execute Trade 🚀", "Modify amount"]
+        };
+      }
+
+      // Fallback to API or General Response
+      else {
+        // Fallback to generic simple response
+        aiResponse = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: `I can help you trade! Try saying:
+• "Swap 0.1 ETH for CoinA"
+• "What are the prices?"`,
+          timestamp: new Date(),
+          suggestions: ["Show prices", "Swap ETH to CoinA"]
+        };
+      }
+
+      setTimeout(() => {
+        if (aiResponse) setMessages(prev => [...prev, aiResponse as Message]);
+        setIsLoading(false);
+      }, 600); // Simulate typing delay
 
     } catch (error) {
-      const errorMessage: Message = {
+      console.error(error);
+      setIsLoading(false);
+      const errResponse: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `❌ **Connection Error**
-
-${AiTradeApiService.getErrorMessage(error)}
-
-**Troubleshooting:**
-• Check your internet connection
-• Refresh the page and try again  
-• Make sure the server is running
-
-I'll be here when you're ready! 🤖`,
-        timestamp: new Date(),
-        suggestions: ["Try again 🔄", "Check connection 🌐", "Get help 💬"]
+        content: "Sorry, I encountered an error processing your request.",
+        timestamp: new Date()
       };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+      setMessages(prev => [...prev, errResponse]);
     }
   };
 
@@ -182,24 +233,11 @@ I'll be here when you're ready! 🤖`,
       });
     } else if (action.type === 'execute_trade') {
       toast({
-        variant: "default", 
+        variant: "default",
         title: "🚀 Trade Ready for Execution",
         description: action.message,
       });
     }
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    // Remove emojis and clean up suggestion
-    const cleanSuggestion = suggestion.replace(/[📊💰🔄⚡💛🚀📈🔌🌐💬❌⚠️🔄]/g, '').trim();
-    
-    // Handle special suggestions
-    if (cleanSuggestion.toLowerCase().includes('execute trade')) {
-      handleExecuteTrade();
-      return;
-    }
-    
-    handleSendMessage(cleanSuggestion);
   };
 
   const handleExecuteTrade = async () => {
@@ -212,47 +250,89 @@ I'll be here when you're ready! 🤖`,
       return;
     }
 
-    // This would integrate with your DEX trading system
-    // For now, show a demo message
+    if (!onExecuteSwap) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Swap execution not available",
+      });
+      return;
+    }
+
+    // Call the swap function passed from parent
     const executeMessage: Message = {
       id: Date.now().toString(),
-      role: 'assistant',  
+      role: 'assistant',
       content: `🔄 **Executing Trade...**
-
-I'm integrating with the ChainVerse DEX to execute your trade. 
-
-**Status:** Connecting to blockchain...
-**Wallet:** ${account.address.slice(0, 6)}...${account.address.slice(-4)}
-
 Please check your wallet for transaction approval! 💫`,
       timestamp: new Date()
     };
-
     setMessages(prev => [...prev, executeMessage]);
+
+    try {
+      const txHash = await onExecuteSwap();
+      if (txHash) {
+        const successMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: `✅ **Trade Successful!**
+                
+[View on Explorer](${getExplorerUrl(txHash)})
+
+Is there anything else I can help you with?`,
+          timestamp: new Date(),
+          suggestions: ["Show Balance", "New Trade"]
+        };
+        setMessages(prev => [...prev, successMsg]);
+      }
+    } catch (err: any) {
+      console.error(err);
+      const failMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `❌ **Trade Failed**
+            
+${err.message || 'Something went wrong.'} Please check your balance and try again.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, failMsg]);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    // Remove emojis and clean up suggestion
+    const cleanSuggestion = suggestion.replace(/[📊💰🔄⚡💛🚀📈🔌🌐💬❌⚠️🔄]/g, '').trim();
+
+    // Handle special suggestions
+    if (cleanSuggestion.toLowerCase().includes('execute trade')) {
+      handleExecuteTrade();
+      return;
+    }
+
+    handleSendMessage(cleanSuggestion);
   };
 
   const formatMessageContent = (content: string) => {
     // Convert URLs to clickable links
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     let formattedContent = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline inline-flex items-center gap-1">$1 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>');
-    
+
     // Format code blocks
     formattedContent = formattedContent.replace(/`([^`]+)`/g, '<code class="bg-slate-700 px-1 py-0.5 rounded text-cyan-300 font-mono text-sm">$1</code>');
-    
+
     // Format bold text
     formattedContent = formattedContent.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
-    
+
     return formattedContent;
   };
 
   return (
     <>
       <div
-        className={`fixed bottom-6 right-6 z-50 transition-all duration-500 ease-out ${
-          isVisible
+        className={`fixed bottom-6 right-6 z-50 transition-all duration-500 ease-out message-bubble-container ${isVisible
             ? 'translate-y-0 opacity-100 scale-100'
             : 'translate-y-20 opacity-0 scale-50'
-        }`}
+          }`}
       >
         {/* Floating Chat Window */}
         {isOpen && (
@@ -298,11 +378,10 @@ Please check your wallet for transaction approval! 💫`,
                         )}
                         <div className={`flex-1 ${message.role === 'user' ? 'text-right' : ''}`}>
                           <div
-                            className={`p-3 rounded-2xl ${
-                              message.role === 'user'
+                            className={`p-3 rounded-2xl ${message.role === 'user'
                                 ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-br-none'
                                 : 'bg-slate-800/50 backdrop-blur-sm text-white border border-slate-700/30 rounded-tl-none'
-                            }`}
+                              }`}
                           >
                             <div
                               className="text-sm leading-relaxed whitespace-pre-wrap"
@@ -348,6 +427,14 @@ Please check your wallet for transaction approval! 💫`,
                             )}
                             <p className="text-yellow-300 text-sm">{message.actionRequired.message}</p>
                           </div>
+                          {message.actionRequired.type === 'execute_trade' && (
+                            <button
+                              onClick={handleExecuteTrade}
+                              className="mt-2 w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded-lg transition-colors"
+                            >
+                              Execute Trade Now
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -400,7 +487,7 @@ Please check your wallet for transaction approval! 💫`,
                   <div className="flex items-center space-x-2">
                     <div className={`w-2 h-2 rounded-full ${account?.address ? 'bg-emerald-400' : 'bg-red-400'}`}></div>
                     <span className="text-slate-400">
-                      {account?.address 
+                      {account?.address
                         ? `Connected: ${account.address.slice(0, 6)}...${account.address.slice(-4)}`
                         : 'Wallet not connected'}
                     </span>
@@ -449,7 +536,7 @@ Please check your wallet for transaction approval! 💫`,
           {!isOpen && (
             <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
               <div className="bg-slate-900 text-white text-sm px-3 py-2 rounded-lg shadow-xl border border-slate-700/50 whitespace-nowrap">
-                {account?.address 
+                {account?.address
                   ? 'AI Trading Assistant - Ready to trade! 🚀'
                   : 'AI Trading Assistant - Connect wallet to trade! 🤖'
                 }
