@@ -297,7 +297,7 @@ export class AITradingController implements IAITradingController {
 
 **Transaction Hash:** \`${mockTransactionHash}\`
 
-🔗 [View on Explorer](${response.explorerUrl})
+🔗 [View on Explorer]: ${response.explorerUrl}
 
 Your trade has been completed successfully! 🎉`;
 

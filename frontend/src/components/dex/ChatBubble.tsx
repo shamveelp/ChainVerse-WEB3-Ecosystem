@@ -277,7 +277,7 @@ Please check your wallet for transaction approval! 💫`,
           role: 'assistant',
           content: `✅ **Trade Successful!**
                 
-[View on Explorer](${getExplorerUrl(txHash)})
+[View on Explorer]: ${getExplorerUrl(txHash)}
 
 Is there anything else I can help you with?`,
           timestamp: new Date(),
