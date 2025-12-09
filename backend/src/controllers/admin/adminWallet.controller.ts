@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { IAdminWalletController } from "../../core/interfaces/controllers/admin/IAdminWalletController";
-import { IAdminWalletService } from "../../core/interfaces/services/admin/IAdminWalletService";
+import { IAdminWalletService } from "../../core/interfaces/services/admin/IAdminWallet.service";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import logger from "../../utils/logger";

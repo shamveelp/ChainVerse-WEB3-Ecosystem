@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { ICommunityController } from "../../core/interfaces/controllers/community/ICommunity.controller";
-import { ICommunityService } from "../../core/interfaces/services/community/ICommunityService";
+import { ICommunityService } from "../../core/interfaces/services/community/ICommunity.service";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";

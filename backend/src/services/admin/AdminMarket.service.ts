@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { IAdminMarketService, AdminCoinListResult } from "../../core/interfaces/services/admin/IAdminMarketService";
+import { IAdminMarketService, AdminCoinListResult } from "../../core/interfaces/services/admin/IAdminMarket.service";
 import { TYPES } from "../../core/types/types";
 import { IDexRepository } from "../../core/interfaces/repositories/IDexRepository";
 import { ICoin } from "../../models/coins.model";

@@ -5,7 +5,7 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 import { IUserQuestController } from "../../core/interfaces/controllers/quest/IUserQuest.controller";
-import { IUserQuestService } from "../../core/interfaces/services/quest/IUserQuestService";
+import { IUserQuestService } from "../../core/interfaces/services/quest/IUserQuest.service";
 import {
   GetAvailableQuestsDto,
   JoinQuestDto,

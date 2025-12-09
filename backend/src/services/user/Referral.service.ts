@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { IReferralService } from "../../core/interfaces/services/user/IReferralService";
+import { IReferralService } from "../../core/interfaces/services/user/IReferral.service";
 import { IReferralHistoryRepository } from "../../core/interfaces/repositories/IReferralHistoryRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import { TYPES } from "../../core/types/types";

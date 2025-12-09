@@ -3,7 +3,7 @@ import { JwtService } from '../utils/jwt';
 import { UserModel } from '../models/user.models';
 import logger from '../utils/logger';
 import container from '../core/di/container';
-import { IChatService } from '../core/interfaces/services/chat/IChatService';
+import { IChatService } from '../core/interfaces/services/chat/IChat.service';
 import { TYPES } from '../core/types/types';
 import { SendMessageResponseDto } from '../dtos/chat/Chat.dto';
 

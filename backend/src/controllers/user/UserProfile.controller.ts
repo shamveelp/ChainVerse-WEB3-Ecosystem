@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { IUserProfileController } from "../../core/interfaces/controllers/user/IUserProfile.controller";
-import { IUserService } from "../../core/interfaces/services/user/IUserService";
+import { IUserService } from "../../core/interfaces/services/user/IUser.service";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { updateProfileSchema, checkUsernameSchema } from "../../validations/User.validation";

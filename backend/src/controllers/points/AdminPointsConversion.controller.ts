@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { IAdminPointsConversionController } from "../../core/interfaces/controllers/points/IAdminPointsConversionController";
-import { IAdminPointsConversionService } from "../../core/interfaces/services/points/IAdminPointsConversionService";
+import { IAdminPointsConversionService } from "../../core/interfaces/services/points/IAdminPointsConversion.service";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { CustomError } from "../../utils/customError";

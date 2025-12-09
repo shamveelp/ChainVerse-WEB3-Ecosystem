@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuthService";
+import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuth.service";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import { IReferralHistoryRepository } from "../../core/interfaces/repositories/IReferralHistoryRepository";
 import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistoryRepository";

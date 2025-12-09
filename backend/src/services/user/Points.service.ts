@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { IPointsService } from "../../core/interfaces/services/user/IPointsService";
+import { IPointsService } from "../../core/interfaces/services/user/IPoints.service";
 import { IDailyCheckInRepository } from "../../core/interfaces/repositories/IDailyCheckInRepository";
 import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistoryRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";

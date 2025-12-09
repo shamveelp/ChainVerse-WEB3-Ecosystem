@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { ICommunityUserService } from "../../core/interfaces/services/community/ICommunityUserService";
+import { ICommunityUserService } from "../../core/interfaces/services/community/ICommunityUser.service";
 import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";

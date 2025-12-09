@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { IUserAuthController } from "../../core/interfaces/controllers/user/IUserAuth.controllers";
-import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuthService";
+import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuth.service";
 import { IOTPService } from "../../core/interfaces/services/IOtpService";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";

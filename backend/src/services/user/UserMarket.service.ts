@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { IUserMarketService } from "../../core/interfaces/services/user/IUserMarketService";
+import { IUserMarketService } from "../../core/interfaces/services/user/IUserMarket.service";
 import { TYPES } from "../../core/types/types";
 import { IDexRepository } from "../../core/interfaces/repositories/IDexRepository";
 import { ICoin } from "../../models/coins.model";

@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { IPostController } from "../../core/interfaces/controllers/posts/IPost.controller";
-import { IPostService } from "../../core/interfaces/services/posts/IPostService";
+import { IPostService } from "../../core/interfaces/services/posts/IPost.service";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";

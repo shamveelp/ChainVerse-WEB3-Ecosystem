@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { injectable, inject } from "inversify";
 import { IAdminAuthController } from "../../core/interfaces/controllers/admin/IAuthAdmin.controllers";
-import { IAdminAuthService } from "../../core/interfaces/services/admin/IAdminAuthService";
+import { IAdminAuthService } from "../../core/interfaces/services/admin/IAdminAuth.service";
 import { IOTPService } from "../../core/interfaces/services/IOtpService";
 import { IJwtService } from "../../core/interfaces/services/IJwtService";
 import { TYPES } from "../../core/types/types";

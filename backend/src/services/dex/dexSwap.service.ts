@@ -1,6 +1,6 @@
 import { injectable, inject } from "inversify";
 import { TYPES } from "../../core/types/types";
-import { IDexSwapService } from "../../core/interfaces/services/dex/IDexSwapService";
+import { IDexSwapService } from "../../core/interfaces/services/dex/IDexSwap.service";
 import { IDexSwapRepository } from "../../core/interfaces/repositories/dex/IDexSwapRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import { CustomError } from "../../utils/customError";

@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { IAdminPointsConversionService } from "../../core/interfaces/services/points/IAdminPointsConversionService";
+import { IAdminPointsConversionService } from "../../core/interfaces/services/points/IAdminPointsConversion.service";
 import { IPointsConversionRepository } from "../../core/interfaces/repositories/points/IPointsConversionRepository";
 import { IConversionRateRepository } from "../../core/interfaces/repositories/points/IConversionRateRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";

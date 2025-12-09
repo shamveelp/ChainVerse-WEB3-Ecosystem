@@ -3,7 +3,7 @@ import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
-import { ICommunityAdminPostService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminPostService";
+import { ICommunityAdminPostService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminPost.service";
 import { ICommunityAdminPostRepository } from "../../core/interfaces/repositories/communityAdmin/ICommunityAdminPost.repository";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { IPostRepository } from "../../core/interfaces/repositories/IPostRepository";

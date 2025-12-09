@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { IChatService } from "../../core/interfaces/services/chat/IChatService";
+import { IChatService } from "../../core/interfaces/services/chat/IChat.service";
 import { IChatRepository } from "../../core/interfaces/repositories/IChatRepository";
 import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
 import { TYPES } from "../../core/types/types";

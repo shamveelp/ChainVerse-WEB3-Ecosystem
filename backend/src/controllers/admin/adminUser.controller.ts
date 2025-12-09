@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { injectable, inject } from "inversify";
 import { IAdminUserController } from "../../core/interfaces/controllers/admin/IAdminUser.controller";
-import { IAdminUserService } from "../../core/interfaces/services/admin/IAdminUserService";
+import { IAdminUserService } from "../../core/interfaces/services/admin/IAdminUser.service";
 import { IReferralHistoryService } from "../../core/interfaces/services/IReferralHistoryService";
 import { IPointsHistoryService } from "../../core/interfaces/services/IPointsHistoryService";
-import { IDailyCheckInService } from "../../core/interfaces/services/IDailyCheckInService";
+import { IDailyCheckInService } from "../../core/interfaces/services/user/IDailyCheckIn.service";
 import { TYPES } from "../../core/types/types";
 import logger from "../../utils/logger";
 import { StatusCode } from "../../enums/statusCode.enum";

@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { IAdminMarketController } from "../../core/interfaces/controllers/admin/IAdminMarketController";
-import { IAdminMarketService } from "../../core/interfaces/services/admin/IAdminMarketService";
+import { IAdminMarketService } from "../../core/interfaces/services/admin/IAdminMarket.service";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { CustomError } from "../../utils/customError";

@@ -4,8 +4,8 @@ import { UserModel } from '../models/user.models';
 import CommunityAdminModel from '../models/communityAdmin.model';
 import logger from '../utils/logger';
 import container from '../core/di/container';
-import { IUserCommunityChatService } from '../core/interfaces/services/community/IUserCommunityChatService';
-import { ICommunityAdminCommunityService } from '../core/interfaces/services/communityAdmin/ICommunityAdminCommunityService';
+import { IUserCommunityChatService } from '../core/interfaces/services/community/IUserCommunityChat.service';
+import { ICommunityAdminCommunityService } from '../core/interfaces/services/communityAdmin/ICommunityAdminCommunity.service';
 import { TYPES } from '../core/types/types';
 
 interface AuthenticatedSocket extends Socket {

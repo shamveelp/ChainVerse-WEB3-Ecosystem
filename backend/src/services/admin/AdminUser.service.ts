@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { IAdminUserService } from '../../core/interfaces/services/admin/IAdminUserService';
+import { IAdminUserService } from '../../core/interfaces/services/admin/IAdminUser.service';
 import { IUserRepository } from '../../core/interfaces/repositories/IUserRepository';
 import { IUser } from '../../models/user.models';
 import { TYPES } from '../../core/types/types';

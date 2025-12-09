@@ -5,7 +5,7 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 import { ICommunityAdminFeedController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminFeed.controller";
-import { ICommunityAdminFeedService } from "../../core/interfaces/services/communityAdmin/ICommnityAdminFeedService";
+import { ICommunityAdminFeedService } from "../../core/interfaces/services/communityAdmin/ICommnityAdminFeed.service";
 import { SuccessMessages, ErrorMessages, ValidationMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()

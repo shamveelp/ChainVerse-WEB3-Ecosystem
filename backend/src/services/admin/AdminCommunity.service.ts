@@ -1,7 +1,7 @@
 import { injectable, inject } from 'inversify';
-import { IAdminCommunityService } from '../../core/interfaces/services/admin/IAdminCommunityService';
+import { IAdminCommunityService } from '../../core/interfaces/services/admin/IAdminCommunity.service';
 import { ICommunityRequestRepository } from '../../core/interfaces/repositories/ICommunityRequestRepository';
-import { ICommunityAdminAuthService } from '../../core/interfaces/services/communityAdmin/ICommunityAdminAuthService';
+import { ICommunityAdminAuthService } from '../../core/interfaces/services/communityAdmin/ICommunityAdminAuth.service';
 import { ICommunityRequest } from '../../models/communityRequest.model';
 import { TYPES } from '../../core/types/types';
 import { CustomError } from '../../utils/customError';

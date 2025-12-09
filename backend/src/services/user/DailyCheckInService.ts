@@ -1,9 +1,9 @@
 import { injectable, inject } from "inversify";
-import { IDailyCheckInService } from "../core/interfaces/services/IDailyCheckInService";
-import { TYPES } from "../core/types/types";
-import { IDailyCheckIn } from "../models/dailyCheckIn.model";
-import { IDailyCheckInRepository } from "../core/interfaces/repositories/IDailyCheckInRepository";
-import { IAdminRepository } from "../core/interfaces/repositories/IAdminRepository";
+import { IDailyCheckInService } from "../../core/interfaces/services/user/IDailyCheckIn.service";
+import { TYPES } from "../../core/types/types";
+import { IDailyCheckIn } from "../../models/dailyCheckIn.model";
+import { IDailyCheckInRepository } from "../../core/interfaces/repositories/IDailyCheckInRepository";
+import { IAdminRepository } from "../../core/interfaces/repositories/IAdminRepository";
 
 @injectable()
 export class DailyCheckInService implements IDailyCheckInService {

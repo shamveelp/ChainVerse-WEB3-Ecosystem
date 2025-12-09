@@ -6,7 +6,7 @@ import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 import { IAITradingController } from "../../core/interfaces/controllers/aiChat/IAITrading.controller";
-import { IAITradingService } from "../../core/interfaces/services/aiChat/IAITradingService";
+import { IAITradingService } from "../../core/interfaces/services/aiChat/IAITrading.service";
 
 @injectable()
 export class AITradingController implements IAITradingController {

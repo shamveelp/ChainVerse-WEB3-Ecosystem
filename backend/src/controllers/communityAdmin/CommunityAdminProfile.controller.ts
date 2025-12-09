@@ -6,7 +6,7 @@ import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 import cloudinary from "../../config/cloudinary";
 import { ICommunityAdminProfileController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminProfile.controller";
-import { ICommunityAdminProfileService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminProfileService";
+import { ICommunityAdminProfileService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminProfile.service";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()

@@ -6,7 +6,7 @@ import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { IDexSwapController } from "../../core/interfaces/controllers/dex/IDexSwap.controller";
-import { IDexSwapService } from "../../core/interfaces/services/dex/IDexSwapService";
+import { IDexSwapService } from "../../core/interfaces/services/dex/IDexSwap.service";
 
 @injectable()
 export class DexSwapController implements IDexSwapController {

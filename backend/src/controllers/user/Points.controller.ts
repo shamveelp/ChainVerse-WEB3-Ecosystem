@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { IPointsController } from "../../core/interfaces/controllers/user/IPoints.controller";
-import { IPointsService } from "../../core/interfaces/services/user/IPointsService";
+import { IPointsService } from "../../core/interfaces/services/user/IPoints.service";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";

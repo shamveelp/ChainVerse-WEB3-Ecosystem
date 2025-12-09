@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { IUserDexController } from "../../core/interfaces/controllers/user/IUserDex.controller";
-import { IUserDexService } from "../../core/interfaces/services/user/IUserDexService";
+import { IUserDexService } from "../../core/interfaces/services/user/IUserDex.service";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 import { CustomError } from "../../utils/customError";

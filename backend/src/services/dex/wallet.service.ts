@@ -1,4 +1,4 @@
-import { IWalletService } from '../../core/interfaces/services/dex/IWalletService';
+import { IWalletService } from '../../core/interfaces/services/dex/IWallet.service';
 import { IWallet } from '../../models/wallet.model';
 import { WalletRepository } from '../../repositories/wallet.repository';
 

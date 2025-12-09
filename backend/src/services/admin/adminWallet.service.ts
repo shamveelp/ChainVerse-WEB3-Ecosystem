@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { IAdminWalletService, WalletHistoryResponse, WalletStatsResponse } from "../../core/interfaces/services/admin/IAdminWalletService";
+import { IAdminWalletService, WalletHistoryResponse, WalletStatsResponse } from "../../core/interfaces/services/admin/IAdminWallet.service";
 import { IDexRepository } from "../../core/interfaces/repositories/IDexRepository";
 import { EtherscanService } from "../../utils/etherscan.service";
 import { BlockchainService, BlockchainTransaction, ContractInteraction } from "../../utils/blockchain.service";

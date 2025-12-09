@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { ICommunityAdminCommunityService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminCommunityService";
+import { ICommunityAdminCommunityService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminCommunity.service";
 import { ICommunityMessageRepository } from "../../core/interfaces/repositories/community/ICommunityMessageRepository";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";

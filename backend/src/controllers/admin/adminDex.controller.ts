@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { IAdminDexController } from "../../core/interfaces/controllers/admin/IAdminDexController";
-import { IAdminDexService } from "../../core/interfaces/services/admin/IAdminDexService";
+import { IAdminDexService } from "../../core/interfaces/services/admin/IAdminDex.service";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import logger from "../../utils/logger";

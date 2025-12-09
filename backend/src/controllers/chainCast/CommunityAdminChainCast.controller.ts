@@ -4,7 +4,7 @@ import { TYPES } from "../../core/types/types";
 import logger from "../../utils/logger";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
-import { IChainCastService } from "../../core/interfaces/services/chainCast/IChainCastService";
+import { IChainCastService } from "../../core/interfaces/services/chainCast/IChainCast.service";
 import {
     CreateChainCastDto,
     UpdateChainCastDto,

@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { IFollowService } from "../../core/interfaces/services/community/IFollowService";
+import { IFollowService } from "../../core/interfaces/services/community/IFollow.service";
 import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";

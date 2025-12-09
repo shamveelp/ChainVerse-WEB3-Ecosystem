@@ -4,7 +4,7 @@ import { TYPES } from "../../core/types/types";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
-import { ICommunityAdminQuestService } from "../../core/interfaces/services/quest/ICommunityAdminQuestService";
+import { ICommunityAdminQuestService } from "../../core/interfaces/services/quest/ICommunityAdminQuest.service";
 import {
   CreateQuestDto,
   UpdateQuestDto,

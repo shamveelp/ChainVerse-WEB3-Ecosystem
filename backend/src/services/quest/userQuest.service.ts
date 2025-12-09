@@ -1,6 +1,6 @@
 import { injectable, inject } from "inversify";
 import { TYPES } from "../../core/types/types";
-import { IUserQuestService } from "../../core/interfaces/services/quest/IUserQuestService";
+import { IUserQuestService } from "../../core/interfaces/services/quest/IUserQuest.service";
 import { IUserQuestRepository } from "../../core/interfaces/repositories/quest/IUserQuest.repository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import {

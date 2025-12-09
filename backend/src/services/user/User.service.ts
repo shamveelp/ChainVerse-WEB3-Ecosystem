@@ -1,7 +1,7 @@
 // backend/src/services/user/User.service.ts
 import { injectable, inject } from "inversify";
 import bcrypt from "bcrypt";
-import { IUserService } from "../../core/interfaces/services/user/IUserService";
+import { IUserService } from "../../core/interfaces/services/user/IUser.service";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
 import { IUser } from "../../models/user.models";
 import { TYPES } from "../../core/types/types";

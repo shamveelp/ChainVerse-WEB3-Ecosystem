@@ -2,7 +2,7 @@ import { injectable, inject } from "inversify";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import axios from "axios";
-import { IUserDexService } from "../../core/interfaces/services/user/IUserDexService";
+import { IUserDexService } from "../../core/interfaces/services/user/IUserDex.service";
 import { IPaymentRepository } from "../../core/interfaces/repositories/IPaymentRepository";
 import { TYPES } from "../../core/types/types";
 import { IPayment } from "../../models/payment.model";

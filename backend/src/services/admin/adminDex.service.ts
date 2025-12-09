@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { IAdminDexService } from "../../core/interfaces/services/admin/IAdminDexService";
+import { IAdminDexService } from "../../core/interfaces/services/admin/IAdminDex.service";
 import { IPaymentRepository } from "../../core/interfaces/repositories/IPaymentRepository";
 import { TYPES } from "../../core/types/types";
 import { IPayment } from "../../models/payment.model";

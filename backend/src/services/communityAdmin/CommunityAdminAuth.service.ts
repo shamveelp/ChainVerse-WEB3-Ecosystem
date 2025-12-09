@@ -1,7 +1,7 @@
 import { injectable, inject } from "inversify";
 import bcrypt from "bcryptjs";
 import { TYPES } from "../../core/types/types";
-import { ICommunityAdminAuthService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminAuthService";
+import { ICommunityAdminAuthService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminAuth.service";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { ICommunityRequestRepository } from "../../core/interfaces/repositories/ICommunityRequestRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";

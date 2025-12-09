@@ -4,7 +4,7 @@ import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 import { Types } from "mongoose";
-import { IChainCastService } from "../../core/interfaces/services/chainCast/IChainCastService";
+import { IChainCastService } from "../../core/interfaces/services/chainCast/IChainCast.service";
 import { IChainCastRepository } from "../../core/interfaces/repositories/chainCast/IChainCastRepository";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { WalletService } from '../../services/dex/wallet.service';
+import { WalletService } from '../../services/dex/Wallet.service';
 import { ErrorMessages } from '../../enums/messages.enum';
 
 export class WalletController {

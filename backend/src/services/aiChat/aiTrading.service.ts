@@ -1,6 +1,6 @@
 import { injectable, inject } from "inversify";
 import { TYPES } from "../../core/types/types";
-import { IAITradingService } from "../../core/interfaces/services/aiChat/IAITradingService";
+import { IAITradingService } from "../../core/interfaces/services/aiChat/IAITrading.service";
 import { IAIChatHistoryRepository } from "../../core/interfaces/repositories/aiChat/IAIChatHistory.repository";
 import { IDexRepository } from "../../core/interfaces/repositories/IDexRepository";
 import { langChainConfig } from "../../config/langchain.config";
