@@ -4,6 +4,7 @@ import { TYPES } from "../core/types/types";
 import { AdminAuthController } from "../controllers/admin/AdminAuth.controller";
 import { AdminUserController } from "../controllers/admin/AdminUser.controller";
 import { AdminCommunityController } from "../controllers/admin/AdminCommunity.controller";
+import { AdminCommunityPostController } from "../controllers/admin/AdminCommunityPost.controller";
 import { authMiddleware, roleMiddleware } from "../middlewares/auth.middleware";
 import {
   validateBody,
@@ -57,6 +58,9 @@ const adminMarketController = container.get<AdminMarketController>(
 const adminPointsConversionController = container.get<AdminPointsConversionController>(
   TYPES.IAdminPointsConversionController
 )
+const adminCommunityPostController = container.get<AdminCommunityPostController>(
+  TYPES.IAdminCommunityPostController
+);
 
 // Auth Routes (Public)
 router.post(
@@ -197,6 +201,26 @@ router.patch(
   roleMiddleware(["admin"]),
   validateBody(RejectCommunityRequestDto),
   adminCommunityController.rejectCommunityRequest.bind(adminCommunityController)
+);
+
+// Protected Routes - Community Post Management
+router.get(
+  "/community-posts",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityPostController.getAllPosts.bind(adminCommunityPostController)
+);
+router.delete(
+  "/community-posts/:postId",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityPostController.softDeletePost.bind(adminCommunityPostController)
+);
+router.get(
+  "/community-posts/:postId",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityPostController.getPostDetails.bind(adminCommunityPostController)
 );
 
 // Protected Routes - Wallet Management

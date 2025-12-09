@@ -203,6 +203,13 @@ import { ICommunityAdminPostService } from "../interfaces/services/communityAdmi
 import { CommunityAdminPostController } from "../../controllers/communityAdmin/CommunityAdminPost.controller"
 import { ICommunityAdminPostController } from "../interfaces/controllers/communityAdmin/ICommunityAdminPost.controller"
 import { CommunityAdminPostService } from "../../services/communityAdmin/CommunityAdminPost.service"
+
+import { IAdminCommunityPostRepository } from "../interfaces/repositories/admin/IAdminCommunityPost.repository";
+import { AdminCommunityPostRepository } from "../../repositories/admin/AdminCommunityPost.repository";
+import { IAdminCommunityPostService } from "../interfaces/services/admin/IAdminCommunityPost.service";
+import { AdminCommunityPostService } from "../../services/admin/AdminCommunityPost.service";
+import { IAdminCommunityPostController } from "../interfaces/controllers/admin/IAdminCommunityPost.controller";
+import { AdminCommunityPostController } from "../../controllers/admin/AdminCommunityPost.controller";
 import { IPointsConversionRepository } from "../interfaces/repositories/points/IPointsConversion.repository"
 import { IConversionRateRepository } from "../interfaces/repositories/points/IConversionRate.repository"
 import { PointsConversionRepository } from "../../repositories/points/PointsConversion.repository"
@@ -394,6 +401,11 @@ container.bind<ICommunityAdminSubscriptionController>(TYPES.ICommunityAdminSubsc
 container.bind<ICommunityAdminPostRepository>(TYPES.ICommunityAdminPostRepository).to(CommunityAdminPostRepository);
 container.bind<ICommunityAdminPostService>(TYPES.ICommunityAdminPostService).to(CommunityAdminPostService);
 container.bind<ICommunityAdminPostController>(TYPES.ICommunityAdminPostController).to(CommunityAdminPostController);
+
+// Admin Comms Post
+container.bind<IAdminCommunityPostRepository>(TYPES.IAdminCommunityPostRepository).to(AdminCommunityPostRepository);
+container.bind<IAdminCommunityPostService>(TYPES.IAdminCommunityPostService).to(AdminCommunityPostService);
+container.bind<IAdminCommunityPostController>(TYPES.IAdminCommunityPostController).to(AdminCommunityPostController);
 
 // Repositories
 container.bind<IPointsConversionRepository>(TYPES.IPointsConversionRepository).to(PointsConversionRepository);

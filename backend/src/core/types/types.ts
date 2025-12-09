@@ -6,23 +6,23 @@ const TYPES = {
   IPointsController: Symbol.for("IPointsController"),
 
   IPostController: Symbol.for("IPostController"),
-  
+
   // Admin Controllers
   IAdminAuthController: Symbol.for("IAdminAuthController"),
   IAdminUserController: Symbol.for("IAdminUserController"),
   IAdminCommunityController: Symbol.for("IAdminCommunityController"),
-  
+
   // Community Admin Controllers
   ICommunityAdminAuthController: Symbol.for("ICommunityAdminAuthController"),
-  
+
   // Community Controllers
   ICommunityUserProfileController: Symbol.for("ICommunityUserProfileController"),
   IFollowController: Symbol.for("IFollowController"),
 
   //chat controller
   IChatController: Symbol.for("IChatController"),
-  
-  
+
+
   // Services
   IUserAuthService: Symbol.for("IUserAuthService"),
   IUserService: Symbol.for("IUserService"),
@@ -32,27 +32,27 @@ const TYPES = {
   IPostService: Symbol.for("IPostService"),
 
   ICommunityAdminFeedService: Symbol.for("ICommunityAdminFeedService"),
-  
+
   // Admin Services
   IAdminAuthService: Symbol.for("IAdminAuthService"),
   IAdminUserService: Symbol.for("IAdminUserService"),
   IAdminCommunityService: Symbol.for("IAdminCommunityService"),
-  
+
   // Community Admin Services
   ICommunityAdminAuthService: Symbol.for("ICommunityAdminAuthService"),
-  
+
   // Community Services
   ICommunityUserService: Symbol.for("ICommunityUserService"),
-  IFollowService : Symbol.for("IFollowService"),
+  IFollowService: Symbol.for("IFollowService"),
 
   //Chat
   IChatService: Symbol.for("IChatService"),
-  
+
   // Other Services
   IJwtService: Symbol.for("IJwtService"),
   IOtpService: Symbol.for("IOtpService"),
   IMailService: Symbol.for("IMailService"),
-  
+
   // Repositories
   IUserRepository: Symbol.for("IUserRepository"),
   IReferralHistoryRepository: Symbol.for("IReferralHistoryRepository"),
@@ -68,18 +68,18 @@ const TYPES = {
 
   //Chat Repo
   IChatRepository: Symbol.for("IChatRepository"),
-  
+
   // History Services
   IReferralHistoryService: Symbol.for("IReferralHistoryService"),
   IPointsHistoryService: Symbol.for("IPointsHistoryService"),
   IDailyCheckInService: Symbol.for("IDailyCheckInService"),
-  
+
   // DEX
   IAdminDexController: Symbol.for("IAdminDexController"),
   IAdminWalletController: Symbol.for("IAdminWalletController"),
   IDexController: Symbol.for("IDexController"),
   IWalletController: Symbol.for("IWalletController"),
-  
+
   // DEX Services
   IDexService: Symbol.for("IDexService"),
   IWalletService: Symbol.for("IWalletService"),
@@ -91,11 +91,11 @@ const TYPES = {
   IAdminMarketController: Symbol.for("IAdminMarketController"),
   IUserMarketService: Symbol.for("IUserMarketService"),
   IUserMarketController: Symbol.for("IUserMarketController"),
-  
+
   // DEX Repositories
   IDexRepository: Symbol.for("IDexRepository"),
   IPaymentRepository: Symbol.for("IPaymentRepository"),
-  
+
   // External Services
   EtherscanService: Symbol.for("EtherscanService"),
   OAuthClient: Symbol.for("OAuthClient"),
@@ -130,21 +130,25 @@ const TYPES = {
   ICommunityAdminChainCastController: Symbol.for("ICommunityAdminChainCastController"),
   IUserChainCastController: Symbol.for("IUserChainCastController"),
   IChainCastService: Symbol.for("IChainCastService"),
-  ICommunitySubscriptionRepository  : Symbol.for("ICommunitySubscriptionRepository"),
-  ICommunityAdminSubscriptionService      : Symbol.for("ICommunityAdminSubscriptionService"),
+  ICommunitySubscriptionRepository: Symbol.for("ICommunitySubscriptionRepository"),
+  ICommunityAdminSubscriptionService: Symbol.for("ICommunityAdminSubscriptionService"),
 
-  ICommunityAdminSubscriptionController   : Symbol.for("ICommunityAdminSubscriptionController"),
-  ICommunityAdminPostRepository : Symbol.for("ICommunityAdminPostRepository"),
-  ICommunityAdminPostService    : Symbol.for("ICommunityAdminPostService"),
-  ICommunityAdminPostController : Symbol.for("ICommunityAdminPostController"),
+  ICommunityAdminSubscriptionController: Symbol.for("ICommunityAdminSubscriptionController"),
+  ICommunityAdminPostRepository: Symbol.for("ICommunityAdminPostRepository"),
+  ICommunityAdminPostService: Symbol.for("ICommunityAdminPostService"),
+  ICommunityAdminPostController: Symbol.for("ICommunityAdminPostController"),
 
-  IPointsConversionRepository : Symbol.for("IPointsConversionRepository"),
-  IPointsConversionService    : Symbol.for("IPointsConversionService"),
-  IPointsConversionController : Symbol.for("IPointsConversionController"),
-  IConversionRateRepository   : Symbol.for("IConversionRateRepository"),
-  IAdminPointsConversionService : Symbol.for("IAdminPointsConversionService"),
-  IAdminPointsConversionController  : Symbol.for("IAdminPointsConversionController"),
-  ICommunityAdminQuestRepository  : Symbol.for("ICommunityAdminQuestRepository"),
+  IAdminCommunityPostController: Symbol.for("IAdminCommunityPostController"),
+  IAdminCommunityPostService: Symbol.for("IAdminCommunityPostService"),
+  IAdminCommunityPostRepository: Symbol.for("IAdminCommunityPostRepository"),
+
+  IPointsConversionRepository: Symbol.for("IPointsConversionRepository"),
+  IPointsConversionService: Symbol.for("IPointsConversionService"),
+  IPointsConversionController: Symbol.for("IPointsConversionController"),
+  IConversionRateRepository: Symbol.for("IConversionRateRepository"),
+  IAdminPointsConversionService: Symbol.for("IAdminPointsConversionService"),
+  IAdminPointsConversionController: Symbol.for("IAdminPointsConversionController"),
+  ICommunityAdminQuestRepository: Symbol.for("ICommunityAdminQuestRepository"),
   ICommunityAdminQuestService: Symbol.for("ICommunityAdminQuestService"),
   ICommunityAdminQuestController: Symbol.for("ICommunityAdminQuestController"),
   IUserQuestService: Symbol.for("IUserQuestService"),

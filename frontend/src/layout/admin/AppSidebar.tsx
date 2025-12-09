@@ -86,6 +86,9 @@ const navItems: NavItem[] = [
     name: "Community",
     subItems: [
       { name: "Community Requests", path: "/admin/community-requests", pro: false },
+      { name: "Community Management", path: "/admin/community-management", pro: false },
+      { name: "Community Posts", path: "/admin/community-posts", pro: false },
+
     ],
   },
   // {
