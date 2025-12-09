@@ -34,6 +34,7 @@ import { Users, Search, MoreHorizontal, Crown, Shield, Ban, UserX, UserCheck, Ac
 import { cn } from "@/lib/utils";
 import { communityAdminMembersApiService } from "@/services/communityAdmin/communityAdminMembersApiService";
 import { toast } from "sonner";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface CommunityMember {
   _id: string;
@@ -76,6 +77,7 @@ export default function CommunityAdminMembers() {
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("recent");
@@ -86,7 +88,7 @@ export default function CommunityAdminMembers() {
   const [showUnbanDialog, setShowUnbanDialog] = useState(false);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
-  
+
   const [banReason, setBanReason] = useState("");
   const [banDuration, setBanDuration] = useState<number>();
   const [newRole, setNewRole] = useState<'member' | 'moderator'>('member');
@@ -110,7 +112,7 @@ export default function CommunityAdminMembers() {
 
   useEffect(() => {
     loadMembers(true);
-  }, [roleFilter, statusFilter, sortBy, searchQuery]);
+  }, [roleFilter, statusFilter, sortBy, debouncedSearchQuery]);
 
   const loadMembers = async (isInitial = false) => {
     try {
@@ -178,7 +180,7 @@ export default function CommunityAdminMembers() {
       });
 
       if (response.success && response.data) {
-        setMembers(prev => prev.map(member => 
+        setMembers(prev => prev.map(member =>
           member._id === selectedMember._id ? response.data!.member : member
         ));
         toast.success('Member banned successfully');
@@ -204,7 +206,7 @@ export default function CommunityAdminMembers() {
       const response = await communityAdminMembersApiService.unbanMember(selectedMember._id);
 
       if (response.success && response.data) {
-        setMembers(prev => prev.map(member => 
+        setMembers(prev => prev.map(member =>
           member._id === selectedMember._id ? response.data!.member : member
         ));
         toast.success('Member unbanned successfully');
@@ -255,7 +257,7 @@ export default function CommunityAdminMembers() {
       });
 
       if (response.success && response.data) {
-        setMembers(prev => prev.map(member => 
+        setMembers(prev => prev.map(member =>
           member._id === selectedMember._id ? response.data!.member : member
         ));
         toast.success('Member role updated successfully');
@@ -340,18 +342,7 @@ export default function CommunityAdminMembers() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
-            <p className="text-gray-400">Loading community members...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-8">
@@ -497,7 +488,14 @@ export default function CommunityAdminMembers() {
       </Card>
 
       {/* Members List */}
-      {members.length === 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
+            <p className="text-gray-400">Loading community members...</p>
+          </div>
+        </div>
+      ) : members.length === 0 ? (
         <Card className="bg-black/40 backdrop-blur-xl border-gray-700/50">
           <CardContent className="p-12 text-center">
             <Users className="h-16 w-16 text-gray-600 mx-auto mb-4" />
@@ -514,7 +512,7 @@ export default function CommunityAdminMembers() {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {members.map((member, index) => {
             const status = getMemberStatus(member);
-            
+
             return (
               <Card
                 key={member._id}
@@ -530,7 +528,7 @@ export default function CommunityAdminMembers() {
                           {member.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      
+
                       {/* Status indicator */}
                       <div className={cn(
                         "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-gray-900",
@@ -552,7 +550,7 @@ export default function CommunityAdminMembers() {
                             )}
                           </div>
                           <p className="text-sm text-gray-400 truncate">@{member.username}</p>
-                          
+
                           <div className="flex items-center gap-2 mt-2">
                             <Badge className={getRoleBadgeColor(member.role)}>
                               <span className="flex items-center gap-1">
@@ -586,9 +584,9 @@ export default function CommunityAdminMembers() {
                                 {member.role === 'moderator' ? 'Demote to Member' : 'Promote to Moderator'}
                               </DropdownMenuItem>
                             )}
-                            
+
                             <DropdownMenuSeparator className="bg-gray-700/50" />
-                            
+
                             {member.bannedUntil && new Date(member.bannedUntil) > new Date() ? (
                               <DropdownMenuItem
                                 onClick={() => openUnbanDialog(member)}
@@ -608,7 +606,7 @@ export default function CommunityAdminMembers() {
                                 </DropdownMenuItem>
                               )
                             )}
-                            
+
                             {member.role !== 'admin' && (
                               <DropdownMenuItem
                                 onClick={() => openRemoveDialog(member)}
@@ -633,7 +631,7 @@ export default function CommunityAdminMembers() {
                           </div>
                           <p className="text-xs text-gray-400">Posts</p>
                         </div>
-                        
+
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-1">
                             <Heart className="w-3 h-3 text-red-400" />
