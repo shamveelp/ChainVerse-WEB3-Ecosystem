@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import CommunitySection from "@/components/comms-admin/chats/community-section"
 import CommunityChatsSection from "@/components/comms-admin/chats/community-chats-section"
 import PillNavigation from "@/components/comms-admin/chats/pill-navigation"
@@ -12,8 +13,21 @@ import { Loader2 } from "lucide-react"
 type ViewType = "community" | "chats"
 
 export default function Page() {
-  const [activeView, setActiveView] = useState<ViewType>("community")
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const tab = searchParams.get('tab')
+
+  // Determine active view based on URL parameter
+  const activeView: ViewType = tab === 'group' ? 'chats' : 'community'
+
   const { isReady, isAuthenticated, admin: currentAdmin, token, loading: authLoading } = useCommunityAdminAuth()
+
+  // Handle view changes by updating URL
+  const handleViewChange = (view: ViewType) => {
+    const newTab = view === 'chats' ? 'group' : 'channel'
+    router.push(`${pathname}?tab=${newTab}`)
+  }
 
   // Connect to community socket when component mounts and auth is ready
   useEffect(() => {
@@ -71,24 +85,22 @@ export default function Page() {
       <main className="flex-1 min-h-screen">
         <div className="h-screen flex flex-col">
           {/* Pill Navigation */}
-          <PillNavigation activeView={activeView} onViewChange={setActiveView} />
+          <PillNavigation activeView={activeView} onViewChange={handleViewChange} />
 
           {/* Main Content Area - Fixed Height */}
           <div className="flex-1 overflow-hidden relative">
             {/* Community View */}
             <div
-              className={`absolute inset-0 transition-opacity duration-300 ${
-                activeView === "community" ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-300 ${activeView === "community" ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
             >
               <CommunitySection />
             </div>
 
             {/* Community Chats View */}
             <div
-              className={`absolute inset-0 transition-opacity duration-300 ${
-                activeView === "chats" ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-300 ${activeView === "chats" ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
             >
               <CommunityChatsSection />
             </div>
