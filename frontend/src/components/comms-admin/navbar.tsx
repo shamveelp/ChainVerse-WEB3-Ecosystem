@@ -63,7 +63,6 @@ export function Navbar({ className }: NavbarProps) {
           <Button
             variant="ghost"
             size="sm"
-            size="sm"
             className="relative text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <Bell className="h-5 w-5" />
