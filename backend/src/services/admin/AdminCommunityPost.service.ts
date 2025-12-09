@@ -11,8 +11,8 @@ export class AdminCommunityPostService implements IAdminCommunityPostService {
         @inject(TYPES.IAdminCommunityPostRepository) private _repository: IAdminCommunityPostRepository
     ) { }
 
-    async getAllPosts(cursor?: string, limit: number = 10, type: 'all' | 'user' | 'admin' = 'all'): Promise<AdminCommunityPostListResponseDto> {
-        const result = await this._repository.getAllPosts(cursor, limit, type);
+    async getAllPosts(cursor?: string, limit: number = 10, type: 'all' | 'user' | 'admin' = 'all', search?: string): Promise<AdminCommunityPostListResponseDto> {
+        const result = await this._repository.getAllPosts(cursor, limit, type, search);
 
         const dtos = result.posts.map(post => new AdminPostItemDto(post));
 
@@ -21,6 +21,10 @@ export class AdminCommunityPostService implements IAdminCommunityPostService {
 
     async softDeletePost(postId: string, type: 'user' | 'admin'): Promise<boolean> {
         return await this._repository.softDeletePost(postId, type);
+    }
+
+    async restorePost(postId: string, type: 'user' | 'admin'): Promise<boolean> {
+        return await this._repository.restorePost(postId, type);
     }
 
     async getPostDetails(postId: string, type: 'user' | 'admin'): Promise<any> {

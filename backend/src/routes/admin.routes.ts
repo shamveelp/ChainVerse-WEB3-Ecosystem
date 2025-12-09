@@ -216,6 +216,12 @@ router.delete(
   roleMiddleware(["admin"]),
   adminCommunityPostController.softDeletePost.bind(adminCommunityPostController)
 );
+router.patch(
+  "/community-posts/:postId/restore",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityPostController.restorePost.bind(adminCommunityPostController)
+);
 router.get(
   "/community-posts/:postId",
   authMiddleware,

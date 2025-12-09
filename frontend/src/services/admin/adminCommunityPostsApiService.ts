@@ -48,9 +48,9 @@ export interface AdminLikersResponse {
 
 
 export const adminCommunityPostsApiService = {
-    getAllPosts: async (cursor?: string, limit: number = 10, type: 'all' | 'user' | 'admin' = 'all') => {
+    getAllPosts: async (cursor?: string, limit: number = 10, type: 'all' | 'user' | 'admin' = 'all', search?: string) => {
         const response = await api.get<AdminPostsResponse>(`/api/admin/community-posts`, {
-            params: { cursor, limit, type }
+            params: { cursor, limit, type, search }
         });
         return response.data;
     },
@@ -58,6 +58,13 @@ export const adminCommunityPostsApiService = {
     softDeletePost: async (postId: string, type: 'user' | 'admin') => {
         const response = await api.delete(`/api/admin/community-posts/${postId}`, {
             data: { type } // Axios DELETE body
+        });
+        return response.data;
+    },
+
+    restorePost: async (postId: string, type: 'user' | 'admin') => {
+        const response = await api.patch(`/api/admin/community-posts/${postId}/restore`, {
+            type
         });
         return response.data;
     },

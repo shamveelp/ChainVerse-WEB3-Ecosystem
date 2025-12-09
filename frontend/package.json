@@ -71,6 +71,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "thirdweb": "^5.105.37",
+    "use-debounce": "^10.0.6",
     "uuid": "^11.1.0",
     "viem": "^2.37.5",
     "wagmi": "^2.16.9",

@@ -8,13 +8,15 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Trash2, Eye, MessageSquare, Heart, Shield, User, FileText, AlertCircle, ExternalLink } from 'lucide-react';
+import { Loader2, Trash2, RotateCcw, Eye, MessageSquare, Heart, Shield, User, FileText, AlertCircle, ExternalLink, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { useDebounce } from 'use-debounce';
 
 export default function AdminCommunityPostsPage() {
     const [posts, setPosts] = useState<AdminPostItem[]>([]);
@@ -23,6 +25,8 @@ export default function AdminCommunityPostsPage() {
     const [activeTab, setActiveTab] = useState<'all' | 'user' | 'admin'>('all');
     const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
     const [hasMore, setHasMore] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch] = useDebounce(searchQuery, 500);
 
     // Details Dialog State
     const [selectedPost, setSelectedPost] = useState<AdminPostItem | null>(null);
@@ -48,7 +52,8 @@ export default function AdminCommunityPostsPage() {
             if (reset) setLoading(true);
             else setLoadingMore(true);
 
-            const response = await adminCommunityPostsApiService.getAllPosts(cursor, 10, activeTab);
+            // Pass debouncedSearch to API
+            const response = await adminCommunityPostsApiService.getAllPosts(cursor, 10, activeTab, debouncedSearch);
 
             if (response.success) {
                 setPosts(prev => reset ? response.data.posts : [...prev, ...response.data.posts]);
@@ -62,13 +67,13 @@ export default function AdminCommunityPostsPage() {
             setLoading(false);
             setLoadingMore(false);
         }
-    }, [activeTab, nextCursor]);
+    }, [activeTab, nextCursor, debouncedSearch]);
 
     useEffect(() => {
         setNextCursor(undefined);
         setPosts([]);
         fetchPosts(true);
-    }, [activeTab]);
+    }, [activeTab, debouncedSearch]); // Trigger on tab change or search change
 
     // Fetch Details (Comments/Likers)
     const fetchComments = async (reset = false) => {
@@ -148,6 +153,26 @@ export default function AdminCommunityPostsPage() {
         }
     };
 
+    const handleRestorePost = async (post: AdminPostItem) => {
+        if (!confirm("Are you sure you want to restore this post? It will be visible to the community again.")) return;
+
+        try {
+            const response = await adminCommunityPostsApiService.restorePost(post._id, post.postType);
+            if (response.success) {
+                toast.success("Post restored successfully");
+                setPosts(prev => prev.map(p => p._id === post._id ? { ...p, isDeleted: false } : p));
+                if (selectedPost?._id === post._id) {
+                    setSelectedPost(prev => prev ? { ...prev, isDeleted: false } : null);
+                }
+            } else {
+                toast.error("Failed to restore post");
+            }
+        } catch (error) {
+            console.error("Error restoring post", error);
+            toast.error("An error occurred while restoring the post");
+        }
+    };
+
     // Animation Variants
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -172,13 +197,24 @@ export default function AdminCommunityPostsPage() {
                 </div>
             </div>
 
-            <Tabs defaultValue="all" className="w-full" onValueChange={(val) => setActiveTab(val as any)}>
-                <TabsList className="bg-slate-900 border border-slate-800">
-                    <TabsTrigger value="all" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white">All Posts</TabsTrigger>
-                    <TabsTrigger value="user" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white">User Posts</TabsTrigger>
-                    <TabsTrigger value="admin" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white">Admin Posts</TabsTrigger>
-                </TabsList>
-            </Tabs>
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <Tabs defaultValue="all" className="w-full sm:w-auto" onValueChange={(val) => setActiveTab(val as any)}>
+                    <TabsList className="bg-slate-900 border border-slate-800">
+                        <TabsTrigger value="all" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white">All Posts</TabsTrigger>
+                        <TabsTrigger value="user" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white">User Posts</TabsTrigger>
+                        <TabsTrigger value="admin" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white">Admin Posts</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+                <div className="relative w-full sm:w-72">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500" />
+                    <Input
+                        placeholder="Search posts, hashtags, users..."
+                        className="pl-8 bg-slate-900 border-slate-800 focus:border-violet-500 text-slate-200"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+            </div>
 
             {loading ? (
                 <div className="flex justify-center items-center py-20">
@@ -188,6 +224,7 @@ export default function AdminCommunityPostsPage() {
                 <div className="flex flex-col items-center justify-center py-20 text-slate-500">
                     <FileText className="h-16 w-16 mb-4 opacity-50" />
                     <p className="text-xl">No posts found</p>
+                    {searchQuery && <p className="text-sm mt-2 opacity-70">Try using different keywords</p>}
                 </div>
             ) : (
                 <motion.div
@@ -207,7 +244,7 @@ export default function AdminCommunityPostsPage() {
                                         </Avatar>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <Link href={`/admin/users/${post.author?._id}`} className="hover:underline hover:text-violet-400 transition-colors" onClick={(e) => e.stopPropagation()}>
+                                                <Link href={`/admin/user-management/${post.author?._id}`} className="hover:underline hover:text-violet-400 transition-colors" onClick={(e) => e.stopPropagation()}>
                                                     <p className="font-semibold text-sm truncate text-white">
                                                         {post.author?.username || 'Unknown'}
                                                     </p>
@@ -271,14 +308,26 @@ export default function AdminCommunityPostsPage() {
                                             >
                                                 <Eye className="h-4 w-4" />
                                             </Button>
-                                            {!post.isDeleted && (
+
+                                            {!post.isDeleted ? (
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/20"
                                                     onClick={() => handleSoftDelete(post)}
+                                                    title="Unlist Post"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 p-0 text-green-400 hover:text-green-300 hover:bg-green-900/20"
+                                                    onClick={() => handleRestorePost(post)}
+                                                    title="Restore Post"
+                                                >
+                                                    <RotateCcw className="h-4 w-4" />
                                                 </Button>
                                             )}
                                         </div>
@@ -404,7 +453,7 @@ export default function AdminCommunityPostsPage() {
                                             <div className="p-6 space-y-4">
                                                 {comments.map((comment) => (
                                                     <div key={comment._id} className="flex gap-4 p-4 rounded-lg bg-slate-950/30 border border-slate-800/50">
-                                                        <Link href={`/admin/users/${comment.author?._id}`}>
+                                                        <Link href={`/admin/user-management/${comment.author?._id}`}>
                                                             <Avatar className="h-8 w-8 border border-slate-700 cursor-pointer hover:border-violet-500">
                                                                 <AvatarImage src={comment.author?.profileImage} />
                                                                 <AvatarFallback>{comment.author?.username?.substring(0, 2).toUpperCase() || 'UN'}</AvatarFallback>
@@ -412,7 +461,7 @@ export default function AdminCommunityPostsPage() {
                                                         </Link>
                                                         <div className="flex-1">
                                                             <div className="flex justify-between items-start">
-                                                                <Link href={`/admin/users/${comment.author?._id}`} className="hover:underline hover:text-violet-400">
+                                                                <Link href={`/admin/user-management/${comment.author?._id}`} className="hover:underline hover:text-violet-400">
                                                                     <h4 className="font-medium text-sm text-slate-200">{comment.author?.username || 'Unknown'}</h4>
                                                                 </Link>
                                                                 <span className="text-xs text-slate-500">{formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}</span>
@@ -448,7 +497,7 @@ export default function AdminCommunityPostsPage() {
                                         <ScrollArea className="flex-1">
                                             <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 {likers.map((like) => (
-                                                    <Link key={like._id} href={`/admin/users/${like.user?._id}`}>
+                                                    <Link key={like._id} href={`/admin/user-management/${like.user?._id}`}>
                                                         <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-950/30 border border-slate-800/50 hover:bg-slate-800/50 hover:border-violet-500/30 transition-all cursor-pointer group">
                                                             <Avatar className="h-10 w-10 border border-slate-700 group-hover:border-violet-500/50">
                                                                 <AvatarImage src={like.user?.profileImage} />
@@ -487,7 +536,14 @@ export default function AdminCommunityPostsPage() {
                                 Unlist Post
                             </Button>
                         ) : (
-                            <div /> // Spacer
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-green-400 border-green-900/50 hover:bg-green-900/20 hover:text-green-300"
+                                onClick={() => selectedPost && handleRestorePost(selectedPost)}
+                            >
+                                Restore Post
+                            </Button>
                         )}
                         <Button variant="outline" size="sm" onClick={() => setSelectedPost(null)}>
                             Close

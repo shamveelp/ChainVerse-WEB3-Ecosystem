@@ -2,8 +2,9 @@
 import { AdminCommunityPostListResponseDto } from "../../../../dtos/admin/AdminCommunityPost.dto";
 
 export interface IAdminCommunityPostService {
-    getAllPosts(cursor?: string, limit?: number, type?: 'all' | 'user' | 'admin'): Promise<AdminCommunityPostListResponseDto>;
+    getAllPosts(cursor?: string, limit?: number, type?: 'all' | 'user' | 'admin', search?: string): Promise<AdminCommunityPostListResponseDto>;
     softDeletePost(postId: string, type: 'user' | 'admin'): Promise<boolean>;
+    restorePost(postId: string, type: 'user' | 'admin'): Promise<boolean>;
     getPostDetails(postId: string, type: 'user' | 'admin'): Promise<any>;
     getPostComments(postId: string, type: 'user' | 'admin', cursor?: string, limit?: number): Promise<{
         comments: any[];

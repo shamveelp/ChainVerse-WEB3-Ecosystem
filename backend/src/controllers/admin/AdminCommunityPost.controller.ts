@@ -15,11 +15,12 @@ export class AdminCommunityPostController implements IAdminCommunityPostControll
 
     async getAllPosts(req: Request, res: Response): Promise<void> {
         try {
-            const { cursor, limit, type } = req.query;
+            const { cursor, limit, type, search } = req.query;
             const limitNum = limit ? parseInt(limit as string) : 10;
             const postType = (type === 'user' || type === 'admin') ? type : 'all';
+            const searchStr = search ? (search as string) : undefined;
 
-            const result = await this._service.getAllPosts(cursor as string, limitNum, postType);
+            const result = await this._service.getAllPosts(cursor as string, limitNum, postType, searchStr);
 
             res.status(StatusCode.OK).json({
                 success: true,
@@ -36,13 +37,7 @@ export class AdminCommunityPostController implements IAdminCommunityPostControll
     async softDeletePost(req: Request, res: Response): Promise<void> {
         try {
             const { postId } = req.params;
-            const { type } = req.body; // Expecting type in body for safety
-
-            if (!postId || !type || (type !== 'user' && type !== 'admin')) {
-                // Typo above: moduleId -> postId. 
-                // Wait, I cannot edit here. I need to be careful.
-                // Correct logic below.
-            }
+            const { type } = req.body;
 
             if (!postId || !type) {
                 res.status(StatusCode.BAD_REQUEST).json({
@@ -70,6 +65,40 @@ export class AdminCommunityPostController implements IAdminCommunityPostControll
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 error: (error as Error).message || "Failed to delete post"
+            });
+        }
+    }
+
+    async restorePost(req: Request, res: Response): Promise<void> {
+        try {
+            const { postId } = req.params;
+            const { type } = req.body;
+
+            if (!postId || !type) {
+                res.status(StatusCode.BAD_REQUEST).json({
+                    success: false,
+                    error: "Post ID and Type are required"
+                });
+                return;
+            }
+
+            const success = await this._service.restorePost(postId, type as 'user' | 'admin');
+
+            if (success) {
+                res.status(StatusCode.OK).json({
+                    success: true,
+                    message: "Post restored successfully"
+                });
+            } else {
+                res.status(StatusCode.NOT_FOUND).json({
+                    success: false,
+                    error: "Post not found or restoration failed"
+                });
+            }
+        } catch (error) {
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                error: (error as Error).message || "Failed to restore post"
             });
         }
     }
