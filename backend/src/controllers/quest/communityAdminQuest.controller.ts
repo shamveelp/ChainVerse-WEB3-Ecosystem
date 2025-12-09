@@ -229,14 +229,14 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       res.status(StatusCode.OK).json({
         success: true,
         data: result,
-        message: "AI response generated"
+        message: SuccessMessages.AI_RESPONSE_GENERATED
       });
     } catch (error) {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to chat with AI";
+      const message = err.message || ErrorMessages.FAILED_CHAT_AI;
 
-      logger.error("AI Chat Controller Error", {
+      logger.error(LoggerMessages.AI_CHAT_ERROR, {
         message,
         stack: err.stack,
         adminId: (req as any).user?.id

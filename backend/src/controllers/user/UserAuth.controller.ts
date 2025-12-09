@@ -22,6 +22,7 @@ import {
   RegisterResponseDto,
   UsernameCheckResponseDto
 } from "../../dtos/users/UserAuth.dto";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class UserAuthController implements IUserAuthController {
@@ -46,11 +47,11 @@ export class UserAuthController implements IUserAuthController {
 
       await this._otpService.requestOtp(email!, "user");
 
-      const response = new RegisterResponseDto("Registration data validated. OTP sent to your email.");
+      const response = new RegisterResponseDto(SuccessMessages.REGISTRATION_INITIATED);
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      logger.error("Error in register:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Registration validation failed";
+      logger.error(LoggerMessages.REGISTER_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.VALIDATION_ERROR;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.BAD_REQUEST;
 
       res.status(statusCode).json({
@@ -68,15 +69,15 @@ export class UserAuthController implements IUserAuthController {
       await this._otpService.requestOtp(email!, "user");
       res.status(StatusCode.OK).json({
         success: true,
-        message: "OTP sent successfully"
+        message: SuccessMessages.OTP_SENT
       });
     } catch (error) {
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to send OTP";
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_RESEND_OTP;
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
         error: errorMessage
       });
-      logger.error("Error requesting OTP:", error);
+      logger.error(LoggerMessages.REQUEST_OTP_ERROR, error);
     }
   };
 
@@ -99,11 +100,11 @@ export class UserAuthController implements IUserAuthController {
 
       this._jwtService.setTokens(res, accessToken, refreshToken);
 
-      const response = new LoginResponseDto(user, accessToken, "Account created successfully");
+      const response = new LoginResponseDto(user, accessToken, SuccessMessages.USER_REGISTERED);
       res.status(StatusCode.CREATED).json(response);
     } catch (error) {
-      logger.error("Error verifying OTP:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "OTP verification failed";
+      logger.error(LoggerMessages.VERIFY_OTP_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_OTP_VERIFICATION;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.BAD_REQUEST;
 
       res.status(statusCode).json({
@@ -123,10 +124,10 @@ export class UserAuthController implements IUserAuthController {
       const response = new UsernameCheckResponseDto(isAvailable);
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      logger.error("Error checking username:", error);
+      logger.error(LoggerMessages.CHECK_USERNAME_AVAILABILITY_ERROR, error);
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
-        error: "Failed to check username availability"
+        error: ErrorMessages.FAILED_CHECK_USERNAME
       });
     }
   };
@@ -140,10 +141,10 @@ export class UserAuthController implements IUserAuthController {
         username
       });
     } catch (error) {
-      logger.error("Error generating username:", error);
+      logger.error(LoggerMessages.GENERATE_USERNAME_ERROR, error);
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
-        error: "Failed to generate username"
+        error: ErrorMessages.FAILED_GENERATE_USERNAME
       });
     }
   };
@@ -156,11 +157,11 @@ export class UserAuthController implements IUserAuthController {
       await this._otpService.requestForgotPasswordOtp(email!, "user");
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Password reset OTP sent to your email"
+        message: SuccessMessages.PASSWORD_RESET_OTP_SENT
       });
     } catch (error) {
-      logger.error("Error requesting forgot password OTP:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Failed to send reset code";
+      logger.error(LoggerMessages.FORGOT_PASSWORD_OTP_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_RESET_CODE;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.BAD_REQUEST;
 
       res.status(statusCode).json({
@@ -177,11 +178,11 @@ export class UserAuthController implements IUserAuthController {
       await this._otpService.verifyOtp(email, otp);
       res.status(StatusCode.OK).json({
         success: true,
-        message: "OTP verified successfully. You can now reset your password."
+        message: SuccessMessages.OTP_VERIFIED
       });
     } catch (error) {
-      logger.error("Error verifying forgot password OTP:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Invalid or expired OTP";
+      logger.error(LoggerMessages.VERIFY_FORGOT_PASSWORD_OTP_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.INVALID_OTP;
 
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
@@ -198,11 +199,11 @@ export class UserAuthController implements IUserAuthController {
       await this._userAuthService.resetPassword(email!, newPassword!);
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Password reset successfully"
+        message: SuccessMessages.PASSWORD_RESET
       });
     } catch (error) {
-      logger.error("Error resetting password:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Password reset failed";
+      logger.error(LoggerMessages.RESET_PASSWORD_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_RESET_PASSWORD;
 
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
@@ -220,11 +221,11 @@ export class UserAuthController implements IUserAuthController {
 
       this._jwtService.setTokens(res, accessToken, refreshToken);
 
-      const response = new LoginResponseDto(user, accessToken, "Login successful");
+      const response = new LoginResponseDto(user, accessToken, SuccessMessages.USER_LOGGED_IN);
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      logger.error("Error logging in:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Login failed";
+      logger.error(LoggerMessages.LOGIN_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.FAILED_LOGIN;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.UNAUTHORIZED;
 
       res.status(statusCode).json({
@@ -241,13 +242,13 @@ export class UserAuthController implements IUserAuthController {
       await this._otpService.requestOtp(email, "user");
       res.status(StatusCode.OK).json({
         success: true,
-        message: "OTP resent successfully"
+        message: SuccessMessages.OTP_RESENT
       });
     } catch (error) {
-      logger.error("Error resending OTP:", error);
+      logger.error(LoggerMessages.RESEND_OTP_ERROR, error);
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
-        error: "Failed to resend OTP"
+        error: ErrorMessages.FAILED_RESEND_OTP
       });
     }
   };
@@ -259,7 +260,7 @@ export class UserAuthController implements IUserAuthController {
       if (!refreshToken) {
         return res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "Refresh token is required"
+          error: ErrorMessages.REFRESH_TOKEN_REQUIRED
         });
       }
 
@@ -288,10 +289,10 @@ export class UserAuthController implements IUserAuthController {
         refreshToken: newRefreshToken
       });
     } catch (error) {
-      logger.error("Error refreshing access token:", error);
+      logger.error(LoggerMessages.REFRESH_TOKEN_ERROR, error);
       return res.status(StatusCode.UNAUTHORIZED).json({
         success: false,
-        error: "Invalid refresh token"
+        error: ErrorMessages.INVALID_REFRESH_TOKEN
       });
     }
   };
@@ -304,18 +305,18 @@ export class UserAuthController implements IUserAuthController {
       if (!idToken) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Google ID token is required"
+          error: ErrorMessages.GOOGLE_ID_TOKEN_REQUIRED
         });
       }
 
       const { user, accessToken, refreshToken } = await this._userAuthService.loginWithGoogle(idToken as any, referralCode);
       this._jwtService.setTokens(res, accessToken, refreshToken);
 
-      const response = new LoginResponseDto(user, accessToken, "Google login successful");
+      const response = new LoginResponseDto(user, accessToken, SuccessMessages.GOOGLE_LOGIN_SUCCESS);
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      logger.error("Error logging in with Google:", error);
-      const errorMessage = error instanceof CustomError ? error.message : "Google login failed";
+      logger.error(LoggerMessages.GOOGLE_LOGIN_ERROR, error);
+      const errorMessage = error instanceof CustomError ? error.message : ErrorMessages.GOOGLE_LOGIN_FAILED;
 
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
@@ -330,13 +331,13 @@ export class UserAuthController implements IUserAuthController {
       logger.info("User logged out successfully");
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Logged out successfully"
+        message: SuccessMessages.USER_LOGGED_OUT
       });
     } catch (error) {
-      logger.error("Error logging out:", error);
+      logger.error(LoggerMessages.LOGOUT_ERROR, error);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        error: "Logout failed"
+        error: ErrorMessages.FAILED_LOGOUT
       });
     }
   };

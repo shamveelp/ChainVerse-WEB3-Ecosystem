@@ -234,6 +234,12 @@ export enum SuccessMessages {
     QUEST_ENDED = "Quest ended successfully! 🏁 You can now select winners.",
     QUEST_BANNER_UPLOADED = "Quest banner uploaded successfully! 🎨",
     PROFILE_IMAGE_UPDATED = "Profile image updated successfully",
+    REGISTRATION_INITIATED = "Registration data validated. OTP sent to your email.",
+    OTP_RESENT = "OTP resent successfully",
+    GOOGLE_LOGIN_SUCCESS = "Google login successful",
+    LISTED_MARKET_COINS_FETCHED = "Listed market coins fetched successfully",
+    AI_RESPONSE_GENERATED = "AI response generated",
+    PASSWORD_RESET_OTP_SENT = "Password reset OTP sent to your email",
 
 
 
@@ -538,6 +544,11 @@ export enum ErrorMessages {
     FAILED_CHECK_USERNAME_AVAILABILITY = "Failed to check username availability",
     FAILED_UPLOAD_IMAGE_CLOUDINARY = "Failed to upload image to Cloudinary",
     FAILED_UPLOAD_PROFILE_IMAGE = "Failed to upload profile image",
+    FAILED_GENERATE_USERNAME = "Failed to generate username",
+    GOOGLE_ID_TOKEN_REQUIRED = "Google ID token is required",
+    GOOGLE_LOGIN_FAILED = "Google login failed",
+    FAILED_FETCH_LISTED_MARKET_COINS = "Failed to fetch listed market coins",
+    FAILED_CHAT_AI = "Failed to chat with AI",
 
 
 
@@ -798,6 +809,15 @@ export enum LoggerMessages {
     SUBMIT_TASK_ERROR = "Submit task error:",
     GET_QUEST_TASKS_ERROR = "Get quest tasks error:",
     GET_SUBMISSIONS_ERROR = "Get submissions error:",
+    REGISTER_ERROR = "Error in register:",
+    REQUEST_OTP_ERROR = "Error requesting OTP:",
+    CHECK_USERNAME_AVAILABILITY_ERROR = "Error checking username:",
+    GENERATE_USERNAME_ERROR = "Error generating username:",
+    FORGOT_PASSWORD_OTP_ERROR = "Error requesting forgot password OTP:",
+    LOGIN_ERROR = "Error logging in:",
+    GOOGLE_LOGIN_ERROR = "Error logging in with Google:",
+    GET_LISTED_MARKET_COINS_ERROR = "Error getting listed market coins:",
+    AI_CHAT_ERROR = "AI Chat Controller Error",
     UPLOAD_TASK_MEDIA_ERROR = "Upload task media error:",
     GET_QUEST_STATS_ERROR = "Get quest stats error:",
     GET_TOP_QUESTS_ERROR = "Get top quests error:",

@@ -6,13 +6,14 @@ import { IUserMarketService } from "../../core/interfaces/services/user/IUserMar
 import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
+import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class UserMarketController implements IUserMarketController {
   constructor(
     @inject(TYPES.IUserMarketService)
     private _userMarketService: IUserMarketService
-  ) {}
+  ) { }
 
   async getListedCoins(req: Request, res: Response): Promise<void> {
     try {
@@ -20,18 +21,18 @@ export class UserMarketController implements IUserMarketController {
 
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Listed market coins fetched successfully",
+        message: SuccessMessages.LISTED_MARKET_COINS_FETCHED,
         coins,
       });
     } catch (error) {
-      logger.error("Error getting listed market coins:", error);
+      logger.error(LoggerMessages.GET_LISTED_MARKET_COINS_ERROR, error);
       const err = error as any;
       const statusCode =
         err instanceof CustomError ? err.statusCode : StatusCode.BAD_REQUEST;
       const message =
         err instanceof CustomError
           ? err.message
-          : "Failed to fetch listed market coins";
+          : ErrorMessages.FAILED_FETCH_LISTED_MARKET_COINS;
 
       res.status(statusCode).json({
         success: false,
