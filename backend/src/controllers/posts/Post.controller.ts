@@ -94,7 +94,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get post by ID controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_POST;
             logger.error(LoggerMessages.GET_POST_ERROR, { message, stack: err.stack, postId: req.params.postId });
@@ -151,7 +150,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Update post controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_UPDATE_POST;
             logger.error(LoggerMessages.UPDATE_POST_ERROR, { message, stack: err.stack, postId: req.params.postId });
@@ -194,7 +192,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Delete post controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_DELETE_POST;
             logger.error(LoggerMessages.DELETE_POST_ERROR, { message, stack: err.stack, postId: req.params.postId });
@@ -242,7 +239,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get feed posts controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_FETCH_FEED_POSTS;
             logger.error(LoggerMessages.GET_FEED_POSTS_ERROR, { message, stack: err.stack });
@@ -291,7 +287,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get user posts controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_FETCH_USER_POSTS;
             logger.error(LoggerMessages.GET_USER_POSTS_ERROR, { message, stack: err.stack, userId: req.params.userId });
@@ -340,7 +335,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get liked posts controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_FETCH_LIKED_POSTS;
             logger.error(LoggerMessages.GET_LIKED_POSTS_ERROR, { message, stack: err.stack, userId: req.params.userId });
@@ -377,7 +371,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get trending posts controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_FETCH_TRENDING_POSTS;
             logger.error(LoggerMessages.GET_TRENDING_POSTS_ERROR, { message, stack: err.stack });
@@ -424,7 +417,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get posts by hashtag controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_FETCH_POSTS_HASHTAG;
             logger.error(LoggerMessages.GET_POSTS_HASHTAG_ERROR, { message, stack: err.stack, hashtag: req.params.hashtag });
@@ -470,7 +462,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Search posts controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_SEARCH_POSTS;
             logger.error(LoggerMessages.SEARCH_POSTS_ERROR, { message, stack: err.stack, query: req.query.q });
@@ -491,7 +482,7 @@ export class PostController implements IPostController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -514,7 +505,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Toggle post like controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_TOGGLE_POST_LIKE;
             logger.error(LoggerMessages.TOGGLE_POST_LIKE_ERROR, { message, stack: err.stack, postId: req.params.postId });
@@ -534,7 +524,7 @@ export class PostController implements IPostController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -557,7 +547,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Toggle comment like controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_TOGGLE_COMMENT_LIKE;
             logger.error(LoggerMessages.TOGGLE_COMMENT_LIKE_ERROR, { message, stack: err.stack, commentId: req.params.commentId });
@@ -577,7 +566,7 @@ export class PostController implements IPostController {
             if (!postId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post ID is required"
+                    error: ErrorMessages.POST_ID_REQUIRED
                 });
                 return;
             }
@@ -604,7 +593,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get post likers controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_FETCH_POST_LIKERS;
             logger.error(LoggerMessages.GET_POST_LIKERS_ERROR, { message, stack: err.stack, postId: req.params.postId });
@@ -625,7 +613,7 @@ export class PostController implements IPostController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -662,7 +650,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Create comment controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_CREATE_COMMENT;
             logger.error(LoggerMessages.CREATE_COMMENT_ERROR, { message, stack: err.stack, userId: req.user });
@@ -683,7 +670,7 @@ export class PostController implements IPostController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -691,7 +678,7 @@ export class PostController implements IPostController {
             if (!commentId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Comment ID is required"
+                    error: ErrorMessages.COMMENT_ID_REQUIRED
                 });
                 return;
             }
@@ -714,7 +701,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Update comment controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_UPDATE_COMMENT;
             logger.error(LoggerMessages.UPDATE_COMMENT_ERROR, { message, stack: err.stack, commentId: req.params.commentId });
@@ -734,7 +720,7 @@ export class PostController implements IPostController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -742,7 +728,7 @@ export class PostController implements IPostController {
             if (!commentId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Comment ID is required"
+                    error: ErrorMessages.COMMENT_ID_REQUIRED
                 });
                 return;
             }
@@ -757,7 +743,6 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Delete comment controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_DELETE_COMMENT;
             logger.error(LoggerMessages.DELETE_COMMENT_ERROR, { message, stack: err.stack, commentId: req.params.commentId });
@@ -778,7 +763,7 @@ export class PostController implements IPostController {
             if (!postId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post ID is required"
+                    error: ErrorMessages.POST_ID_REQUIRED
                 });
                 return;
             }
@@ -806,10 +791,9 @@ export class PostController implements IPostController {
             });
         } catch (error) {
             const err = error as Error;
-            console.error("Get post comments controller error:", error);
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-            const message = err.message || "Failed to fetch post comments";
-            logger.error("Get post comments error:", { message, stack: err.stack, postId: req.params.postId });
+            const message = err.message || ErrorMessages.FAILED_GET_POST_COMMENTS;
+            logger.error(LoggerMessages.GET_POST_COMMENTS_ERROR, { message, stack: err.stack, postId: req.params.postId });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -827,7 +811,7 @@ export class PostController implements IPostController {
             if (!commentId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Comment ID is required"
+                    error: ErrorMessages.COMMENT_ID_REQUIRED
                 });
                 return;
             }
@@ -875,7 +859,7 @@ export class PostController implements IPostController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -920,7 +904,7 @@ export class PostController implements IPostController {
             if (!user || !user.id) {
                 res.status(StatusCode.UNAUTHORIZED).json({
                     success: false,
-                    error: "User not authenticated"
+                    error: ErrorMessages.USER_NOT_AUTHENTICATED
                 });
                 return;
             }
@@ -928,7 +912,7 @@ export class PostController implements IPostController {
             if (!postId) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
-                    error: "Post ID is required"
+                    error: ErrorMessages.POST_ID_REQUIRED
                 });
                 return;
             }

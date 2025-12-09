@@ -61,10 +61,10 @@ export class AdminAuthController implements IAdminAuthController {
         success: true,
         message: SuccessMessages.ADMIN_LOGGED_OUT,
       });
-      logger.info("Admin logged out successfully");
+      logger.info(SuccessMessages.ADMIN_LOGGED_OUT);
     } catch (error) {
       const err = error as Error;
-      logger.error("Admin logout error:", err);
+      logger.error(LoggerMessages.ADMIN_LOGOUT_ERROR, err);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: ErrorMessages.SERVER_ERROR,

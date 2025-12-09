@@ -840,4 +840,9 @@ export enum LoggerMessages {
     UPLOAD_QUEST_BANNER_ERROR = "Upload quest banner error:",
     CHECK_USERNAME_ERROR = "Check username error:",
     UPLOAD_PROFILE_IMAGE_ERROR = "Upload profile image error:",
+    SEND_APPROVAL_EMAIL_ERROR = "Failed to send approval email:",
+    SEND_REJECTION_EMAIL_ERROR = "Failed to send rejection email:",
+    COMMUNITY_REQUEST_APPROVED_LOG = "Community request approved:",
+    COMMUNITY_REQUEST_REJECTED_LOG = "Community request rejected:",
+    GET_POST_COMMENTS_ERROR = "Get post comments error:",
 }

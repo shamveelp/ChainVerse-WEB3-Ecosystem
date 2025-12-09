@@ -17,6 +17,12 @@ export class AdminCommunityController implements IAdminCommunityController {
     @inject(TYPES.IMailService) private _mailService: IMailService,
   ) { }
 
+  /**
+   * 
+   * @param req 
+   * @param res 
+   */
+
   async getAllCommunityRequests(req: Request, res: Response): Promise<void> {
     try {
       const page = Number(req.query.page) || 1;
@@ -46,6 +52,13 @@ export class AdminCommunityController implements IAdminCommunityController {
     }
   }
 
+  /**
+   * 
+   * @param req 
+   * @param res 
+   * @returns 
+   */
+
   async getCommunityRequestById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -74,6 +87,13 @@ export class AdminCommunityController implements IAdminCommunityController {
     }
   }
 
+  /**
+   * 
+   * @param req 
+   * @param res 
+   * @returns 
+   */
+
   async approveCommunityRequest(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -94,7 +114,7 @@ export class AdminCommunityController implements IAdminCommunityController {
           updatedRequest.communityName
         );
       } catch (emailError) {
-        logger.warn("Failed to send approval email:", emailError);
+        logger.warn(LoggerMessages.SEND_APPROVAL_EMAIL_ERROR, emailError);
       }
 
       const response = new CommunityRequestResponseDto(updatedRequest);
@@ -104,7 +124,7 @@ export class AdminCommunityController implements IAdminCommunityController {
         request: response,
       });
 
-      logger.info(`Community request approved: ${id}`);
+      logger.info(`${LoggerMessages.COMMUNITY_REQUEST_APPROVED_LOG} ${id}`);
     } catch (error) {
       const err = error as Error;
       logger.error(LoggerMessages.APPROVE_COMMUNITY_REQUEST_ERROR, err);
@@ -114,6 +134,13 @@ export class AdminCommunityController implements IAdminCommunityController {
       });
     }
   }
+
+  /**
+   * 
+   * @param req 
+   * @param res 
+   * @returns 
+   */
 
   async rejectCommunityRequest(req: Request, res: Response): Promise<void> {
     try {
@@ -145,7 +172,7 @@ export class AdminCommunityController implements IAdminCommunityController {
           reason
         );
       } catch (emailError) {
-        logger.warn("Failed to send rejection email:", emailError);
+        logger.warn(LoggerMessages.SEND_REJECTION_EMAIL_ERROR, emailError);
       }
 
       const response = new CommunityRequestResponseDto(updatedRequest);
@@ -155,7 +182,7 @@ export class AdminCommunityController implements IAdminCommunityController {
         request: response,
       });
 
-      logger.info(`Community request rejected: ${id}, reason: ${reason}`);
+      logger.info(`${LoggerMessages.COMMUNITY_REQUEST_REJECTED_LOG} ${id}, reason: ${reason}`);
     } catch (error) {
       const err = error as Error;
       logger.error(LoggerMessages.REJECT_COMMUNITY_REQUEST_ERROR, err);

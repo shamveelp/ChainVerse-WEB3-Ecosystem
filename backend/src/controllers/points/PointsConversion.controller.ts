@@ -6,13 +6,14 @@ import { IPointsConversionService } from "../../core/interfaces/services/points/
 import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
+import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class PointsConversionController implements IPointsConversionController {
   constructor(
-    @inject(TYPES.IPointsConversionService) 
+    @inject(TYPES.IPointsConversionService)
     private _conversionService: IPointsConversionService
-  ) {}
+  ) { }
 
   async createConversion(req: Request, res: Response): Promise<void> {
     try {
@@ -22,7 +23,7 @@ export class PointsConversionController implements IPointsConversionController {
       if (!user || !user.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "User not authenticated"
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
         });
         return;
       }
@@ -30,7 +31,7 @@ export class PointsConversionController implements IPointsConversionController {
       if (!pointsToConvert || pointsToConvert <= 0) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Valid points amount is required"
+          error: ErrorMessages.VALID_POINTS_REQUIRED
         });
         return;
       }
@@ -43,10 +44,10 @@ export class PointsConversionController implements IPointsConversionController {
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("PointsConversionController: Create conversion error:", err);
+      logger.error(LoggerMessages.CREATE_CONVERSION_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to create conversion";
-      
+      const message = err.message || ErrorMessages.FAILED_CREATE_CONVERSION;
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -62,7 +63,7 @@ export class PointsConversionController implements IPointsConversionController {
       if (!user || !user.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "User not authenticated"
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
         });
         return;
       }
@@ -79,10 +80,10 @@ export class PointsConversionController implements IPointsConversionController {
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("PointsConversionController: Get user conversions error:", err);
+      logger.error(LoggerMessages.GET_USER_CONVERSIONS_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get conversions";
-      
+      const message = err.message || ErrorMessages.FAILED_GET_CONVERSIONS;
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -98,7 +99,7 @@ export class PointsConversionController implements IPointsConversionController {
       if (!user || !user.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "User not authenticated"
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
         });
         return;
       }
@@ -106,7 +107,7 @@ export class PointsConversionController implements IPointsConversionController {
       if (!conversionId || !walletAddress || !transactionHash) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Conversion ID, wallet address, and transaction hash are required"
+          error: ErrorMessages.CONVERSION_CLAIM_PARAMS_REQUIRED
         });
         return;
       }
@@ -124,10 +125,10 @@ export class PointsConversionController implements IPointsConversionController {
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("PointsConversionController: Claim CVC error:", err);
+      logger.error(LoggerMessages.CLAIM_CVC_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to claim CVC";
-      
+      const message = err.message || ErrorMessages.FAILED_CLAIM_CVC;
+
       res.status(statusCode).json({
         success: false,
         error: message
@@ -145,10 +146,10 @@ export class PointsConversionController implements IPointsConversionController {
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("PointsConversionController: Get current rate error:", err);
+      logger.error(LoggerMessages.GET_CURRENT_RATE_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to get conversion rate";
-      
+      const message = err.message || ErrorMessages.FAILED_GET_CONVERSION_RATE;
+
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         error: message
@@ -164,7 +165,7 @@ export class PointsConversionController implements IPointsConversionController {
       if (!user || !user.id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          error: "User not authenticated"
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
         });
         return;
       }
@@ -172,7 +173,7 @@ export class PointsConversionController implements IPointsConversionController {
       if (!pointsToConvert) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          error: "Points amount is required"
+          error: ErrorMessages.POINTS_AMOUNT_REQUIRED
         });
         return;
       }
@@ -188,10 +189,10 @@ export class PointsConversionController implements IPointsConversionController {
       });
     } catch (error) {
       const err = error as Error;
-      logger.error("PointsConversionController: Validate conversion error:", err);
+      logger.error(LoggerMessages.VALIDATE_CONVERSION_ERROR, err);
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
-      const message = err.message || "Failed to validate conversion";
-      
+      const message = err.message || ErrorMessages.FAILED_VALIDATE_CONVERSION;
+
       res.status(statusCode).json({
         success: false,
         error: message
