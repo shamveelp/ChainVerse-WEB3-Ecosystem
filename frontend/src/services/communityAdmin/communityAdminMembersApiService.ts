@@ -96,10 +96,10 @@ class CommunityAdminMembersApiService {
       console.error("Get community members error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to get community members",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get community members",
       };
     }
   }
@@ -116,73 +116,73 @@ class CommunityAdminMembersApiService {
       console.error("Get member details error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to get member details",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get member details",
       };
     }
   }
 
   // Update member role
-  async updateMemberRole(data: UpdateMemberRoleData): Promise<ApiResponse<CommunityMember>> {
+  async updateMemberRole(data: UpdateMemberRoleData): Promise<ApiResponse<{ member: CommunityMember }>> {
     try {
       const response = await api.put(`${this.baseUrl}/role`, data);
       return {
         success: true,
-        data: response.data.data,
+        data: { member: response.data.member },
         message: response.data.message
       };
     } catch (error: any) {
       console.error("Update member role error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to update member role",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to update member role",
       };
     }
   }
 
   // Ban member
-  async banMember(data: BanMemberData): Promise<ApiResponse<CommunityMember>> {
+  async banMember(data: BanMemberData): Promise<ApiResponse<{ member: CommunityMember }>> {
     try {
       const response = await api.post(`${this.baseUrl}/ban`, data);
       return {
         success: true,
-        data: response.data.data,
+        data: { member: response.data.member },
         message: response.data.message
       };
     } catch (error: any) {
       console.error("Ban member error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to ban member",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to ban member",
       };
     }
   }
 
   // Unban member
-  async unbanMember(memberId: string): Promise<ApiResponse<CommunityMember>> {
+  async unbanMember(memberId: string): Promise<ApiResponse<{ member: CommunityMember }>> {
     try {
       const response = await api.post(`${this.baseUrl}/${memberId}/unban`);
       return {
         success: true,
-        data: response.data.data,
+        data: { member: response.data.member },
         message: response.data.message
       };
     } catch (error: any) {
       console.error("Unban member error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to unban member",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to unban member",
       };
     }
   }
@@ -202,10 +202,10 @@ class CommunityAdminMembersApiService {
       console.error("Remove member error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to remove member",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to remove member",
       };
     }
   }
@@ -222,10 +222,10 @@ class CommunityAdminMembersApiService {
       console.error("Get member activity error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to get member activity",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get member activity",
       };
     }
   }
@@ -243,10 +243,10 @@ class CommunityAdminMembersApiService {
       console.error("Bulk update members error:", error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to perform bulk action",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to perform bulk action",
       };
     }
   }
@@ -296,10 +296,10 @@ class CommunityAdminMembersApiService {
     if (!member.isActive) {
       return 'text-gray-500';
     }
-    
+
     const lastActive = new Date(member.lastActiveAt);
     const daysSinceActive = (Date.now() - lastActive.getTime()) / (1000 * 60 * 60 * 24);
-    
+
     if (daysSinceActive <= 1) {
       return 'text-green-400';
     } else if (daysSinceActive <= 7) {
