@@ -15,6 +15,11 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
         private _dashboardService: ICommunityAdminDashboardService
     ) { }
 
+    /**
+     * Retrieves dashboard data for a given period.
+     * @param req - Express Request object containing period query parameter.
+     * @param res - Express Response object.
+     */
     async getDashboardData(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -53,6 +58,11 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
         }
     }
 
+    /**
+     * Retrieves an overview of the community.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getCommunityOverview(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -89,6 +99,11 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
         }
     }
 
+    /**
+     * Retrieves community statistics for a given period.
+     * @param req - Express Request object containing period query parameter.
+     * @param res - Express Response object.
+     */
     async getCommunityStats(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;

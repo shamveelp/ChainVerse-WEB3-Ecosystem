@@ -9,6 +9,11 @@ export class WalletController {
     this.walletService = new WalletService();
   }
 
+  /**
+   * Saves a wallet address.
+   * @param req - Express Request object containing address in body.
+   * @param res - Express Response object.
+   */
   async saveWallet(req: Request, res: Response) {
     try {
       const { address } = req.body;

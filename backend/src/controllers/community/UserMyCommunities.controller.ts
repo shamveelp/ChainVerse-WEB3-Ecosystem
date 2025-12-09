@@ -14,6 +14,11 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
         @inject(TYPES.IUserMyCommunitiesService) private _userMyCommunitiesService: IUserMyCommunitiesService
     ) { }
 
+    /**
+     * Retrieves a list of communities the user has joined or created.
+     * @param req - Express Request object containing pagination, filter, and sort parameters.
+     * @param res - Express Response object.
+     */
     async getMyCommunities(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -63,6 +68,11 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
         }
     }
 
+    /**
+     * Retrieves statistics about the user's communities (e.g., total joined, created).
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getMyCommunitiesStats(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -93,6 +103,11 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
         }
     }
 
+    /**
+     * Retrieves recent activity from the user's communities.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getMyCommunitiesActivity(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -123,6 +138,11 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
         }
     }
 
+    /**
+     * Updates notification settings for a specific community.
+     * @param req - Express Request object containing communityId and enabled status in body.
+     * @param res - Express Response object.
+     */
     async updateCommunityNotifications(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -167,6 +187,11 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
         }
     }
 
+    /**
+     * Leaves a community directly from the "My Communities" list.
+     * @param req - Express Request object containing communityId in params.
+     * @param res - Express Response object.
+     */
     async leaveCommunityFromMy(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };

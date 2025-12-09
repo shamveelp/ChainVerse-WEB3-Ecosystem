@@ -27,7 +27,7 @@ import {
   RejectCommunityRequestDto,
 } from "../dtos/admin/AdminCommunity.dto";
 import { AdminWalletController } from "../controllers/admin/AdminWallet.controller";
-import { AdminDexController } from "../controllers/admin/adminDex.controller";
+import { AdminDexController } from "../controllers/admin/AdminDex.controller";
 import { AdminMarketController } from "../controllers/admin/AdminMarket.controller";
 import { ApproveConversionDto, GetConversionsAdminQueryDto, GetConversionsQueryDto, RejectConversionDto, UpdateConversionRateDto } from "../dtos/points/PointsConversion.dto";
 import { Admin } from "mongodb";

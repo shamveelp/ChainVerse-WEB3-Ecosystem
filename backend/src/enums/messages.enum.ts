@@ -240,6 +240,14 @@ export enum SuccessMessages {
     LISTED_MARKET_COINS_FETCHED = "Listed market coins fetched successfully",
     AI_RESPONSE_GENERATED = "AI response generated",
     PASSWORD_RESET_OTP_SENT = "Password reset OTP sent to your email",
+    DAILY_CHECKIN_COMPLETED = "Daily check-in completed successfully",
+    CHECKIN_STATUS_RETRIEVED = "Check-in status retrieved successfully",
+    CHECKIN_CALENDAR_RETRIEVED = "Check-in calendar retrieved successfully",
+    ETH_PRICE_RETRIEVED = "ETH price retrieved successfully",
+    ESTIMATE_CALCULATED = "Estimate calculated successfully",
+    PAYMENT_ORDER_CREATED = "Payment order created successfully",
+    PAYMENT_VERIFIED = "Payment verified successfully",
+    USER_PAYMENTS_RETRIEVED = "User payments retrieved successfully",
 
 
 
@@ -549,6 +557,16 @@ export enum ErrorMessages {
     GOOGLE_LOGIN_FAILED = "Google login failed",
     FAILED_FETCH_LISTED_MARKET_COINS = "Failed to fetch listed market coins",
     FAILED_CHAT_AI = "Failed to chat with AI",
+    FAILED_DAILY_CHECKIN = "Failed to perform daily check-in",
+    FAILED_GET_CHECKIN_STATUS = "Failed to get check-in status",
+    FAILED_GET_CHECKIN_CALENDAR = "Failed to get check-in calendar",
+    FAILED_GET_POINTS_HISTORY = "Failed to get points history",
+    FAILED_GET_ETH_PRICE = "Failed to get ETH price",
+    FAILED_CALCULATE_ESTIMATE = "Failed to calculate estimate",
+    FAILED_CREATE_PAYMENT_ORDER = "Failed to create payment order",
+    FAILED_GET_USER_PAYMENTS = "Failed to get user payments",
+    AMOUNT_TOO_LOW = "Amount must be at least 100",
+    ALL_FIELDS_REQUIRED = "All fields are required",
 
 
 
@@ -845,4 +863,13 @@ export enum LoggerMessages {
     COMMUNITY_REQUEST_APPROVED_LOG = "Community request approved:",
     COMMUNITY_REQUEST_REJECTED_LOG = "Community request rejected:",
     GET_POST_COMMENTS_ERROR = "Get post comments error:",
+    DAILY_CHECKIN_ERROR = "Daily check-in error:",
+    GET_CHECKIN_STATUS_ERROR = "Get check-in status error:",
+    GET_CHECKIN_CALENDAR_ERROR = "Get check-in calendar error:",
+    GET_POINTS_HISTORY_ERROR = "Get points history error:",
+    GET_ETH_PRICE_ERROR = "Error getting ETH price:",
+    CALCULATE_ESTIMATE_ERROR = "Error calculating estimate:",
+    CREATE_PAYMENT_ORDER_ERROR = "Error creating payment order:",
+    VERIFY_PAYMENT_ERROR = "Error verifying payment:",
+    GET_USER_PAYMENTS_ERROR = "Error getting user payments:",
 }

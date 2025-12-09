@@ -20,6 +20,11 @@ export class AdminUserController implements IAdminUserController {
     @inject(TYPES.IDailyCheckInService) private _dailyCheckInService: IDailyCheckInService,
   ) { }
 
+  /**
+   * Retrieves all users with pagination and search functionality.
+   * @param req - Express Request object containing query parameters (page, limit, search).
+   * @param res - Express Response object.
+   */
   async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
       const page = Number(req.query.page) || 1;
@@ -47,6 +52,11 @@ export class AdminUserController implements IAdminUserController {
     }
   }
 
+  /**
+   * Retrieves a specific user by their ID.
+   * @param req - Express Request object containing user ID in params.
+   * @param res - Express Response object.
+   */
   async getUserById(req: Request, res: Response): Promise<void> {
     try {
       const id = req.params.id;
@@ -75,6 +85,11 @@ export class AdminUserController implements IAdminUserController {
     }
   }
 
+  /**
+   * Updates the status of a user (e.g., active, suspended).
+   * @param req - Express Request object containing user ID in params and update data in body.
+   * @param res - Express Response object.
+   */
   async updateUserStatus(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -106,6 +121,11 @@ export class AdminUserController implements IAdminUserController {
     }
   }
 
+  /**
+   * Bans or unbans a user.
+   * @param req - Express Request object containing user ID in params and isBanned status in body.
+   * @param res - Express Response object.
+   */
   async updateUserBanStatus(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -137,6 +157,11 @@ export class AdminUserController implements IAdminUserController {
     }
   }
 
+  /**
+   * Deletes a user from the system.
+   * @param req - Express Request object containing user ID in params.
+   * @param res - Express Response object.
+   */
   async deleteUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -164,6 +189,11 @@ export class AdminUserController implements IAdminUserController {
     }
   }
 
+  /**
+   * Retrieves referral history for a specific user.
+   * @param req - Express Request object containing user ID in params and pagination queries.
+   * @param res - Express Response object.
+   */
   async getUserReferrals(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -191,6 +221,11 @@ export class AdminUserController implements IAdminUserController {
     }
   }
 
+  /**
+   * Retrieves points history for a specific user.
+   * @param req - Express Request object containing user ID in params and pagination queries.
+   * @param res - Express Response object.
+   */
   async getUserPointsHistory(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -218,6 +253,11 @@ export class AdminUserController implements IAdminUserController {
     }
   }
 
+  /**
+   * Retrieves daily check-in history for a specific user.
+   * @param req - Express Request object containing user ID in params and pagination queries.
+   * @param res - Express Response object.
+   */
   async getUserCheckInHistory(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -245,6 +285,11 @@ export class AdminUserController implements IAdminUserController {
     }
   }
 
+  /**
+   * Retrieves general statistics for a specific user.
+   * @param req - Express Request object containing user ID in params.
+   * @param res - Express Response object.
+   */
   async getUserStats(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;

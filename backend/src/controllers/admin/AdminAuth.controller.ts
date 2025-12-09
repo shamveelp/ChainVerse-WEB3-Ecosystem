@@ -19,6 +19,12 @@ export class AdminAuthController implements IAdminAuthController {
     @inject(TYPES.IOtpService) private _otpService: IOTPService,
   ) { }
 
+  /**
+   * Logs in an admin.
+   * @param req - Express Request object containing credentials.
+   * @param res - Express Response object.
+   * 
+   */
   async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
@@ -52,6 +58,11 @@ export class AdminAuthController implements IAdminAuthController {
     }
   }
 
+  /**
+   * Logs out the admin.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   async logout(req: Request, res: Response): Promise<void> {
     try {
       this._jwtService.clearTokens(res);
@@ -72,6 +83,11 @@ export class AdminAuthController implements IAdminAuthController {
     }
   }
 
+  /**
+   * Initiates forgot password process for admin.
+   * @param req - Express Request object containing email.
+   * @param res - Express Response object.
+   */
   async forgotPassword(req: Request, res: Response): Promise<void> {
     try {
       const { email } = req.body;
@@ -102,6 +118,11 @@ export class AdminAuthController implements IAdminAuthController {
     }
   }
 
+  /**
+   * Verifies OTP for forgot password.
+   * @param req - Express Request object containing email and otp.
+   * @param res - Express Response object.
+   */
   async verifyForgotPasswordOtp(req: Request, res: Response): Promise<void> {
     try {
       const { email, otp } = req.body;
@@ -139,6 +160,11 @@ export class AdminAuthController implements IAdminAuthController {
     }
   }
 
+  /**
+   * Resets admin password.
+   * @param req - Express Request object containing email and new password.
+   * @param res - Express Response object.
+   */
   async resetPassword(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
@@ -169,6 +195,11 @@ export class AdminAuthController implements IAdminAuthController {
     }
   }
 
+  /**
+   * Retrieves admin profile.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   async getProfile(req: Request, res: Response): Promise<void> {
     try {
       const adminId = (req as any).user.id;
@@ -197,6 +228,11 @@ export class AdminAuthController implements IAdminAuthController {
     }
   }
 
+  /**
+   * Changes admin password.
+   * @param req - Express Request object containing current and new password.
+   * @param res - Express Response object.
+   */
   async changePassword(req: Request, res: Response): Promise<void> {
     try {
       const adminId = (req as any).user.id;
@@ -228,6 +264,11 @@ export class AdminAuthController implements IAdminAuthController {
     }
   }
 
+  /**
+   * Refreshes admin access token.
+   * @param req - Express Request object containing refresh token in cookies.
+   * @param res - Express Response object.
+   */
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
       const refreshToken = req.cookies?.refreshToken;

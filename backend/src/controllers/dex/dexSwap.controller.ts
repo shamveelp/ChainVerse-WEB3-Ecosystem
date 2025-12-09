@@ -14,6 +14,11 @@ export class DexSwapController implements IDexSwapController {
         @inject(TYPES.IDexSwapService) private _dexSwapService: IDexSwapService
     ) { }
 
+    /**
+     * Records a swap transaction.
+     * @param req - Express Request object containing swap data in body.
+     * @param res - Express Response object.
+     */
     async recordSwap(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user.id;
@@ -38,6 +43,11 @@ export class DexSwapController implements IDexSwapController {
         }
     }
 
+    /**
+     * Updates the status of a swap transaction.
+     * @param req - Express Request object containing txHash in params and status in body.
+     * @param res - Express Response object.
+     */
     async updateSwapStatus(req: Request, res: Response): Promise<void> {
         try {
             const { txHash } = req.params;
@@ -70,6 +80,11 @@ export class DexSwapController implements IDexSwapController {
         }
     }
 
+    /**
+     * Retrieves the swap history for the user.
+     * @param req - Express Request object containing filter parameters.
+     * @param res - Express Response object.
+     */
     async getSwapHistory(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user.id;
@@ -93,6 +108,11 @@ export class DexSwapController implements IDexSwapController {
         }
     }
 
+    /**
+     * Retrieves a specific swap transaction by hash.
+     * @param req - Express Request object containing txHash in params.
+     * @param res - Express Response object.
+     */
     async getSwapTransaction(req: Request, res: Response): Promise<void> {
         try {
             const { txHash } = req.params;
@@ -115,6 +135,11 @@ export class DexSwapController implements IDexSwapController {
         }
     }
 
+    /**
+     * Retrieves chart data for the DEX.
+     * @param req - Express Request object containing query parameters for the chart.
+     * @param res - Express Response object.
+     */
     async getChartData(req: Request, res: Response): Promise<void> {
         try {
             const chartQuery = req.query;
@@ -137,6 +162,11 @@ export class DexSwapController implements IDexSwapController {
         }
     }
 
+    /**
+     * Updates the price of a token.
+     * @param req - Express Request object containing price data.
+     * @param res - Express Response object.
+     */
     async updateTokenPrice(req: Request, res: Response): Promise<void> {
         try {
             const priceData = req.body;
@@ -160,6 +190,11 @@ export class DexSwapController implements IDexSwapController {
         }
     }
 
+    /**
+     * Retrieves the current price of a token.
+     * @param req - Express Request object containing token symbol in params.
+     * @param res - Express Response object.
+     */
     async getTokenPrice(req: Request, res: Response): Promise<void> {
         try {
             const { token } = req.params;
@@ -190,6 +225,11 @@ export class DexSwapController implements IDexSwapController {
         }
     }
 
+    /**
+     * Retrieves statistics for a trading pair.
+     * @param req - Express Request object containing baseToken and quoteToken in params.
+     * @param res - Express Response object.
+     */
     async getTradingPairStats(req: Request, res: Response): Promise<void> {
         try {
             const { baseToken, quoteToken } = req.params;
@@ -220,6 +260,11 @@ export class DexSwapController implements IDexSwapController {
         }
     }
 
+    /**
+     * Retrieves overall DEX statistics.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getDEXStats(req: Request, res: Response): Promise<void> {
         try {
             const result = await this._dexSwapService.getOverallDEXStats();
@@ -240,6 +285,11 @@ export class DexSwapController implements IDexSwapController {
         }
     }
 
+    /**
+     * Retrieves trading statistics for the user.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getUserTradingStats(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user.id;
@@ -262,6 +312,11 @@ export class DexSwapController implements IDexSwapController {
         }
     }
 
+    /**
+     * Retrieves the top trading pairs.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getTopTradingPairs(req: Request, res: Response): Promise<void> {
         try {
             const result = await this._dexSwapService.getTopTradingPairs();
@@ -282,6 +337,11 @@ export class DexSwapController implements IDexSwapController {
         }
     }
 
+    /**
+     * Retrieves recent swaps.
+     * @param req - Express Request object containing limit in query.
+     * @param res - Express Response object.
+     */
     async getRecentSwaps(req: Request, res: Response): Promise<void> {
         try {
             const limit = parseInt(req.query.limit as string) || 20;

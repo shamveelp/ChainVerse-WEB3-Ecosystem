@@ -23,6 +23,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     @inject(TYPES.ICommunityAdminQuestService) private _questService: ICommunityAdminQuestService
   ) { }
 
+  /**
+   * Creates a new manual quest.
+   * @param req - Express Request object containing quest data.
+   * @param res - Express Response object.
+   */
   async createQuest(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -54,6 +59,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Retrieves a specific quest by ID.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async getQuest(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -85,6 +95,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Retrieves a list of quests managed by the admin.
+   * @param req - Express Request object containing pagination and filter parameters.
+   * @param res - Express Response object.
+   */
   async getQuests(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -124,6 +139,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Updates an existing quest.
+   * @param req - Express Request object containing questId in params and update data in body.
+   * @param res - Express Response object.
+   */
   async updateQuest(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -157,6 +177,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Deletes a quest.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async deleteQuest(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -188,6 +213,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Generates a quest using AI based on a prompt.
+   * @param req - Express Request object containing AI generation parameters.
+   * @param res - Express Response object.
+   */
   async generateQuestWithAI(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -219,6 +249,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Chats with AI to refine quest details.
+   * @param req - Express Request object containing message and history.
+   * @param res - Express Response object.
+   */
   async chatWithAI(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -249,6 +284,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Retrieves participants of a quest.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async getQuestParticipants(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -289,6 +329,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Retrieves details of a specific participant.
+   * @param req - Express Request object containing questId and participantId in params.
+   * @param res - Express Response object.
+   */
   async getParticipantDetails(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -321,6 +366,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Selects winners for a quest manually.
+   * @param req - Express Request object containing selection details.
+   * @param res - Express Response object.
+   */
   async selectWinners(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -352,6 +402,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Selects replacement winners if needed.
+   * @param req - Express Request object containing questId in params and count in body.
+   * @param res - Express Response object.
+   */
   async selectReplacementWinners(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -384,6 +439,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Disqualifies a participant from a quest.
+   * @param req - Express Request object containing questId, participantId in params and reason in body.
+   * @param res - Express Response object.
+   */
   async disqualifyParticipant(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -417,6 +477,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Distributes rewards to quest winners.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async distributeRewards(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -448,6 +513,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Retrieves statistics for a specific quest.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async getQuestStats(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -479,6 +549,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Retrieves overall community quest statistics.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   async getCommunityQuestStats(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -508,6 +583,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Starts a quest.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async startQuest(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -539,6 +619,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Ends a quest.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async endQuest(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -570,6 +655,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Uploads a banner image for a quest.
+   * @param req - Express Request object containing file.
+   * @param res - Express Response object.
+   */
   async uploadQuestBanner(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -609,6 +699,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
     }
   }
 
+  /**
+   * Retrieves the leaderboard for a quest.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async getQuestLeaderboard(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;

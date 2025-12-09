@@ -15,6 +15,11 @@ export class PointsConversionController implements IPointsConversionController {
     private _conversionService: IPointsConversionService
   ) { }
 
+  /**
+   * Initiates a points conversion request.
+   * @param req - Express Request object containing pointsToConvert.
+   * @param res - Express Response object.
+   */
   async createConversion(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as { id: string; role: string };
@@ -55,6 +60,11 @@ export class PointsConversionController implements IPointsConversionController {
     }
   }
 
+  /**
+   * Retrieves the user's conversion history.
+   * @param req - Express Request object containing pagination parameters.
+   * @param res - Express Response object.
+   */
   async getUserConversions(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as { id: string; role: string };
@@ -91,6 +101,11 @@ export class PointsConversionController implements IPointsConversionController {
     }
   }
 
+  /**
+   * Claims CVC tokens for an approved conversion.
+   * @param req - Express Request object containing conversionId, walletAddress, and transactionHash.
+   * @param res - Express Response object.
+   */
   async claimCVC(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as { id: string; role: string };
@@ -136,6 +151,11 @@ export class PointsConversionController implements IPointsConversionController {
     }
   }
 
+  /**
+   * Retrieves the current conversion rate.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   async getCurrentRate(req: Request, res: Response): Promise<void> {
     try {
       const rate = await this._conversionService.getCurrentConversionRate();
@@ -157,6 +177,11 @@ export class PointsConversionController implements IPointsConversionController {
     }
   }
 
+  /**
+   * Validates a potential conversion request.
+   * @param req - Express Request object containing pointsToConvert.
+   * @param res - Express Response object.
+   */
   async validateConversion(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as { id: string; role: string };

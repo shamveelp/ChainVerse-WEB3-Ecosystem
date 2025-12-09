@@ -19,6 +19,11 @@ export class UserProfileController implements IUserProfileController {
     @inject(TYPES.IUserService) private _userService: IUserService
   ) { }
 
+  /**
+   * Retrieves the user's profile.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   async getProfile(req: Request, res: Response): Promise<void> {
     try {
 
@@ -62,6 +67,11 @@ export class UserProfileController implements IUserProfileController {
     }
   }
 
+  /**
+   * Updates the user's profile information.
+   * @param req - Express Request object containing update details.
+   * @param res - Express Response object.
+   */
   async updateProfile(req: Request, res: Response): Promise<void> {
     try {
 
@@ -114,6 +124,11 @@ export class UserProfileController implements IUserProfileController {
     }
   }
 
+  /**
+   * Checks availability of a username (Note: Code is currently commented out).
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   async checkUsername(req: Request, res: Response): Promise<void> {
     try {
       // 
@@ -155,6 +170,11 @@ export class UserProfileController implements IUserProfileController {
     }
   }
 
+  /**
+   * Uploads and updates the user's profile image.
+   * @param req - Express Request object containing the file.
+   * @param res - Express Response object.
+   */
   async uploadProfileImage(req: Request, res: Response): Promise<void> {
     try {
 

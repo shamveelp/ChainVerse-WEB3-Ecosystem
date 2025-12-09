@@ -15,6 +15,11 @@ export class AdminDexController implements IAdminDexController {
     @inject(TYPES.IAdminDexService) private _adminDexService: IAdminDexService
   ) { }
 
+  /**
+   * Retrieves all payments with pagination and optional status filter.
+   * @param req - Express Request object containing query parameters (page, limit, status).
+   * @param res - Express Response object.
+   */
   getAllPayments = async (req: Request, res: Response) => {
     try {
       const { page = 1, limit = 10, status } = req.query as any;
@@ -39,6 +44,11 @@ export class AdminDexController implements IAdminDexController {
     }
   };
 
+  /**
+   * Approves a specific payment.
+   * @param req - Express Request object containing paymentId, adminNote, and transactionHash in body.
+   * @param res - Express Response object.
+   */
   approvePayment = async (req: Request, res: Response) => {
     try {
       const { paymentId, adminNote, transactionHash } = req.body;
@@ -73,6 +83,11 @@ export class AdminDexController implements IAdminDexController {
     }
   };
 
+  /**
+   * Rejects a specific payment.
+   * @param req - Express Request object containing paymentId and reason in body.
+   * @param res - Express Response object.
+   */
   rejectPayment = async (req: Request, res: Response) => {
     try {
       const { paymentId, reason } = req.body;
@@ -106,6 +121,11 @@ export class AdminDexController implements IAdminDexController {
     }
   };
 
+  /**
+   * Fulfills a payment manually.
+   * @param req - Express Request object containing paymentId, transactionHash, and adminNote in body.
+   * @param res - Express Response object.
+   */
   fulfillPayment = async (req: Request, res: Response) => {
     try {
       const { paymentId, transactionHash, adminNote } = req.body;
@@ -139,6 +159,11 @@ export class AdminDexController implements IAdminDexController {
     }
   };
 
+  /**
+   * Retrieves statistics for payments.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   getPaymentStats = async (req: Request, res: Response) => {
     try {
       const stats = await this._adminDexService.getPaymentStats();
@@ -157,6 +182,11 @@ export class AdminDexController implements IAdminDexController {
     }
   };
 
+  /**
+   * Retrieves all pending payments.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   getPendingPayments = async (req: Request, res: Response) => {
     try {
       const pendingPayments = await this._adminDexService.getPendingPayments();

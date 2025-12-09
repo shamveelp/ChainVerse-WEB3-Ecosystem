@@ -14,6 +14,11 @@ export class AdminWalletController implements IAdminWalletController {
     @inject(TYPES.IAdminWalletService) private _adminWalletService: IAdminWalletService
   ) { }
 
+  /**
+   * Retrieves all wallets with pagination.
+   * @param req - Express Request object containing query parameters (page, limit).
+   * @param res - Express Response object.
+   */
   getAllWallets = async (req: Request, res: Response) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
@@ -38,6 +43,11 @@ export class AdminWalletController implements IAdminWalletController {
     }
   };
 
+  /**
+   * Retrieves details of a specific wallet by address.
+   * @param req - Express Request object containing wallet address in params.
+   * @param res - Express Response object.
+   */
   getWalletDetails = async (req: Request, res: Response) => {
     try {
       const { address } = req.params;
@@ -77,6 +87,11 @@ export class AdminWalletController implements IAdminWalletController {
     }
   };
 
+  /**
+   * Retrieves aggregate statistics for all wallets.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   getWalletStats = async (req: Request, res: Response) => {
     try {
       const stats = await this._adminWalletService.getWalletStats();
@@ -98,6 +113,11 @@ export class AdminWalletController implements IAdminWalletController {
     }
   };
 
+  /**
+   * Retrieves transactions for a specific wallet from the local database.
+   * @param req - Express Request object containing wallet address in params.
+   * @param res - Express Response object.
+   */
   getWalletTransactions = async (req: Request, res: Response) => {
     try {
       const { address } = req.params;
@@ -131,6 +151,11 @@ export class AdminWalletController implements IAdminWalletController {
     }
   };
 
+  /**
+   * Retrieves blockchain transactions for a specific wallet (e.g., from Etherscan/BscScan).
+   * @param req - Express Request object containing wallet address in params.
+   * @param res - Express Response object.
+   */
   getWalletBlockchainTransactions = async (req: Request, res: Response) => {
     try {
       const { address } = req.params;
@@ -164,6 +189,11 @@ export class AdminWalletController implements IAdminWalletController {
     }
   };
 
+  /**
+   * Retrieves contract interactions for a specific wallet.
+   * @param req - Express Request object containing wallet address in params.
+   * @param res - Express Response object.
+   */
   getWalletContractInteractions = async (req: Request, res: Response) => {
     try {
       const { address } = req.params;
@@ -195,6 +225,11 @@ export class AdminWalletController implements IAdminWalletController {
     }
   };
 
+  /**
+   * Retrieves wallet history specifically from Etherscan.
+   * @param req - Express Request object containing wallet address in params.
+   * @param res - Express Response object.
+   */
   getWalletHistoryFromEtherscan = async (req: Request, res: Response) => {
     try {
       const { address } = req.params;
@@ -228,6 +263,11 @@ export class AdminWalletController implements IAdminWalletController {
     }
   };
 
+  /**
+   * Retrieves wallet history concerning app-specific interactions.
+   * @param req - Express Request object containing wallet address in params.
+   * @param res - Express Response object.
+   */
   getWalletAppHistory = async (req: Request, res: Response) => {
     try {
       const { address } = req.params;
@@ -261,6 +301,11 @@ export class AdminWalletController implements IAdminWalletController {
     }
   };
 
+  /**
+   * Exports wallet data to a file (e.g., CSV/JSON).
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   exportWalletData = async (req: Request, res: Response) => {
     try {
       const data = await this._adminWalletService.exportWalletData();
@@ -282,6 +327,11 @@ export class AdminWalletController implements IAdminWalletController {
     }
   };
 
+  /**
+   * Manually refreshes data for a specific wallet.
+   * @param req - Express Request object containing wallet address in params.
+   * @param res - Express Response object.
+   */
   refreshWalletData = async (req: Request, res: Response) => {
     try {
       const { address } = req.params;

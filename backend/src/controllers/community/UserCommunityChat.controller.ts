@@ -15,6 +15,11 @@ export class UserCommunityChatController implements IUserCommunityChatController
     ) { }
 
     // Community Channel Methods
+    /**
+     * Retrieves messages from a community channel.
+     * @param req - Express Request object containing username in params and pagination parameters.
+     * @param res - Express Response object.
+     */
     async getChannelMessages(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -68,6 +73,11 @@ export class UserCommunityChatController implements IUserCommunityChatController
         }
     }
 
+    /**
+     * Adds an emoji reaction to a message.
+     * @param req - Express Request object containing messageId in params and emoji in body.
+     * @param res - Express Response object.
+     */
     async reactToMessage(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -109,6 +119,11 @@ export class UserCommunityChatController implements IUserCommunityChatController
         }
     }
 
+    /**
+     * Removes an emoji reaction from a message.
+     * @param req - Express Request object containing messageId in params and emoji in body.
+     * @param res - Express Response object.
+     */
     async removeReaction(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -151,6 +166,11 @@ export class UserCommunityChatController implements IUserCommunityChatController
     }
 
     // Community Group Chat Methods
+    /**
+     * Sends a message to a community group chat.
+     * @param req - Express Request object containing communityUsername and content in body.
+     * @param res - Express Response object.
+     */
     async sendGroupMessage(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -194,6 +214,11 @@ export class UserCommunityChatController implements IUserCommunityChatController
         }
     }
 
+    /**
+     * Retrieves messages from a community group chat.
+     * @param req - Express Request object containing username in params and pagination parameters.
+     * @param res - Express Response object.
+     */
     async getGroupMessages(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -247,6 +272,11 @@ export class UserCommunityChatController implements IUserCommunityChatController
         }
     }
 
+    /**
+     * Edits a previously sent group message.
+     * @param req - Express Request object containing messageId in params and new content in body.
+     * @param res - Express Response object.
+     */
     async editGroupMessage(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -288,6 +318,11 @@ export class UserCommunityChatController implements IUserCommunityChatController
         }
     }
 
+    /**
+     * Deletes a group message.
+     * @param req - Express Request object containing messageId in params.
+     * @param res - Express Response object.
+     */
     async deleteGroupMessage(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -320,6 +355,11 @@ export class UserCommunityChatController implements IUserCommunityChatController
         }
     }
 
+    /**
+     * Marks group messages as read for the user.
+     * @param req - Express Request object containing username in params.
+     * @param res - Express Response object.
+     */
     async markGroupMessagesAsRead(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };

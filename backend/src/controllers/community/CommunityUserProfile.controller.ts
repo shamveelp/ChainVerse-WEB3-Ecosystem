@@ -18,6 +18,11 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
         @inject(TYPES.ICommunityUserService) private _communityUserService: ICommunityUserService
     ) { }
 
+    /**
+     * Retrieves the community profile for the authenticated user.
+     * @param req - Express Request object containing authenticated user details.
+     * @param res - Express Response object.
+     */
     async getCommunityProfile(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string; tokenVersion?: number };
@@ -55,6 +60,11 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
         }
     }
 
+    /**
+     * Retrieves a community profile by username.
+     * @param req - Express Request object containing username in params.
+     * @param res - Express Response object.
+     */
     async getCommunityProfileByUsername(req: Request, res: Response): Promise<void> {
         try {
             const { username } = req.params;
@@ -95,6 +105,11 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
         }
     }
 
+    /**
+     * Updates the authenticated user's community profile.
+     * @param req - Express Request object containing profile updates in body.
+     * @param res - Express Response object.
+     */
     async updateCommunityProfile(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -145,6 +160,11 @@ export class CommunityUserProfileController implements ICommunityUserProfileCont
         }
     }
 
+    /**
+     * Uploads a banner image for the user's community profile.
+     * @param req - Express Request object containing the file.
+     * @param res - Express Response object.
+     */
     async uploadBannerImage(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };

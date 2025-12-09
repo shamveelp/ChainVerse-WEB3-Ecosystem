@@ -18,6 +18,11 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
         private _chatService: IUserCommunityChatService
     ) { }
 
+    /**
+     * Sends a message to the community channel or group.
+     * @param req - Express Request object containing message content and type.
+     * @param res - Express Response object.
+     */
     async sendMessage(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -58,6 +63,11 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
         }
     }
 
+    /**
+     * Retrieves messages from the community channel.
+     * @param req - Express Request object containing pagination parameters.
+     * @param res - Express Response object.
+     */
     async getMessages(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -88,6 +98,11 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
         }
     }
 
+    /**
+     * Retrieves messages from the community group.
+     * @param req - Express Request object containing pagination parameters.
+     * @param res - Express Response object.
+     */
     async getGroupMessages(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -118,6 +133,11 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
         }
     }
 
+    /**
+     * Deletes a message from the group chat.
+     * @param req - Express Request object containing messageId in params.
+     * @param res - Express Response object.
+     */
     async deleteGroupMessage(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -146,6 +166,11 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
         }
     }
 
+    /**
+     * Updates a previously sent message.
+     * @param req - Express Request object containing messageId in params and new content.
+     * @param res - Express Response object.
+     */
     async updateMessage(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -185,6 +210,11 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
         }
     }
 
+    /**
+     * Deletes a message from the community channel.
+     * @param req - Express Request object containing messageId in params.
+     * @param res - Express Response object.
+     */
     async deleteMessage(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -213,6 +243,11 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
         }
     }
 
+    /**
+     * Pins a message in the community channel.
+     * @param req - Express Request object containing messageId in params.
+     * @param res - Express Response object.
+     */
     async pinMessage(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -241,6 +276,11 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
         }
     }
 
+    /**
+     * Unpins a message in the community channel.
+     * @param req - Express Request object containing messageId in params.
+     * @param res - Express Response object.
+     */
     async unpinMessage(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -269,6 +309,11 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
         }
     }
 
+    /**
+     * Retrieves reactions for a specific message.
+     * @param req - Express Request object containing messageId in params.
+     * @param res - Express Response object.
+     */
     async getMessageReactions(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -297,6 +342,11 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
         }
     }
 
+    /**
+     * Uploads media files for a message.
+     * @param req - Express Request object containing files.
+     * @param res - Express Response object.
+     */
     async uploadMedia(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;

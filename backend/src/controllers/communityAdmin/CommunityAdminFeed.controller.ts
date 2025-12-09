@@ -15,6 +15,11 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
         private _feedService: ICommunityAdminFeedService
     ) { }
 
+    /**
+     * Retrieves the community feed.
+     * @param req - Express Request object containing cursor, limit, and type query parameters.
+     * @param res - Express Response object.
+     */
     async getCommunityFeed(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -54,6 +59,11 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
         }
     }
 
+    /**
+     * Toggles a like on a post.
+     * @param req - Express Request object containing postId in params.
+     * @param res - Express Response object.
+     */
     async togglePostLike(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -81,6 +91,11 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
         }
     }
 
+    /**
+     * Creates a comment on a post.
+     * @param req - Express Request object containing postId, content, and optional parentCommentId.
+     * @param res - Express Response object.
+     */
     async createComment(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -127,6 +142,11 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
         }
     }
 
+    /**
+     * Shares a post.
+     * @param req - Express Request object containing postId in params and optional shareText in body.
+     * @param res - Express Response object.
+     */
     async sharePost(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -163,6 +183,11 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
         }
     }
 
+    /**
+     * Retrieves engagement statistics.
+     * @param req - Express Request object containing period query parameter.
+     * @param res - Express Response object.
+     */
     async getEngagementStats(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -189,6 +214,11 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
         }
     }
 
+    /**
+     * Pins a post.
+     * @param req - Express Request object containing postId in params.
+     * @param res - Express Response object.
+     */
     async pinPost(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -216,6 +246,11 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
         }
     }
 
+    /**
+     * Deletes a post.
+     * @param req - Express Request object containing postId in params and optional reason in body.
+     * @param res - Express Response object.
+     */
     async deletePost(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;

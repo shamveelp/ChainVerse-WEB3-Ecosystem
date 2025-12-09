@@ -12,8 +12,13 @@ import { CommunityAdminMembersMessages as Msg } from "../../enums/messages.enum"
 export class CommunityAdminMembersController implements ICommunityAdminMembersController {
     constructor(
         @inject(TYPES.ICommunityAdminMembersService) private _membersService: ICommunityAdminMembersService
-    ) {}
+    ) { }
 
+    /**
+     * Retrieves a list of community members based on filters.
+     * @param req - Express Request object containing cursor, limit, search, role, status, and sortBy query parameters.
+     * @param res - Express Response object.
+     */
     async getCommunityMembers(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -44,6 +49,11 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
         }
     }
 
+    /**
+     * Retrieves details of a specific community member.
+     * @param req - Express Request object containing memberId in params.
+     * @param res - Express Response object.
+     */
     async getMemberDetails(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -60,6 +70,11 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
         }
     }
 
+    /**
+     * Updates the role of a community member.
+     * @param req - Express Request object containing memberId, role, and optional reason in body.
+     * @param res - Express Response object.
+     */
     async updateMemberRole(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -81,6 +96,11 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
         }
     }
 
+    /**
+     * Bans a community member.
+     * @param req - Express Request object containing memberId, reason, and optional durationDays in body.
+     * @param res - Express Response object.
+     */
     async banMember(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -102,6 +122,11 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
         }
     }
 
+    /**
+     * Unbans a community member.
+     * @param req - Express Request object containing memberId in params.
+     * @param res - Express Response object.
+     */
     async unbanMember(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -118,6 +143,11 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
         }
     }
 
+    /**
+     * Removes a member from the community.
+     * @param req - Express Request object containing memberId in params and optional reason in body.
+     * @param res - Express Response object.
+     */
     async removeMember(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -135,6 +165,11 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
         }
     }
 
+    /**
+     * Retrieves activity logs for a specific member.
+     * @param req - Express Request object containing memberId in params and period in query.
+     * @param res - Express Response object.
+     */
     async getMemberActivity(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -152,6 +187,11 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
         }
     }
 
+    /**
+     * Performs bulk updates on multiple members.
+     * @param req - Express Request object containing memberIds, action, and optional reason in body.
+     * @param res - Express Response object.
+     */
     async bulkUpdateMembers(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;

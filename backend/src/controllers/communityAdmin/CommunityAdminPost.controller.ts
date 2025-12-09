@@ -15,6 +15,11 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
         @inject(TYPES.ICommunityAdminPostService) private _postService: ICommunityAdminPostService
     ) { }
 
+    /**
+     * Creates a new post in the community.
+     * @param req - Express Request object containing post data in body.
+     * @param res - Express Response object.
+     */
     async createPost(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -39,6 +44,11 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
         }
     }
 
+    /**
+     * Retrieves a post by its ID.
+     * @param req - Express Request object containing postId in params.
+     * @param res - Express Response object.
+     */
     async getPostById(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -62,6 +72,11 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
         }
     }
 
+    /**
+     * Updates an existing post.
+     * @param req - Express Request object containing postId in params and update data in body.
+     * @param res - Express Response object.
+     */
     async updatePost(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -87,6 +102,11 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
         }
     }
 
+    /**
+     * Deletes a post.
+     * @param req - Express Request object containing postId in params.
+     * @param res - Express Response object.
+     */
     async deletePost(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -111,6 +131,11 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
         }
     }
 
+    /**
+     * Retrieves posts managed by the admin with filters.
+     * @param req - Express Request object containing query parameters.
+     * @param res - Express Response object.
+     */
     async getAdminPosts(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -134,6 +159,11 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
         }
     }
 
+    /**
+     * Toggles a like on a post.
+     * @param req - Express Request object containing postId in params.
+     * @param res - Express Response object.
+     */
     async togglePostLike(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -158,6 +188,11 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
         }
     }
 
+    /**
+     * Creates a comment on a post.
+     * @param req - Express Request object containing comment data in body.
+     * @param res - Express Response object.
+     */
     async createComment(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -182,6 +217,11 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
         }
     }
 
+    /**
+     * Retrieves comments for a specific post.
+     * @param req - Express Request object containing postId in params and pagination parameters.
+     * @param res - Express Response object.
+     */
     async getPostComments(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -208,6 +248,11 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
         }
     }
 
+    /**
+     * Toggles a like on a comment.
+     * @param req - Express Request object containing commentId in params.
+     * @param res - Express Response object.
+     */
     async toggleCommentLike(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -232,6 +277,11 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
         }
     }
 
+    /**
+     * Uploads media files for a post.
+     * @param req - Express Request object containing file.
+     * @param res - Express Response object.
+     */
     async uploadPostMedia(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -287,6 +337,11 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
         }
     }
 
+    /**
+     * Retrieves the feed for community members.
+     * @param req - Express Request object containing pagination parameters.
+     * @param res - Express Response object.
+     */
     async getCommunityMembersFeed(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;

@@ -14,6 +14,11 @@ export class ChatController implements IChatController {
     @inject(TYPES.IChatService) private _chatService: IChatService
   ) { }
 
+  /**
+   * Sends a private message to another user.
+   * @param req - Express Request object containing receiverUsername and content.
+   * @param res - Express Response object.
+   */
   async sendMessage(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as { id: string; role: string };
@@ -76,6 +81,11 @@ export class ChatController implements IChatController {
     }
   }
 
+  /**
+   * Retrieves the list of active conversations for the user.
+   * @param req - Express Request object containing pagination parameters.
+   * @param res - Express Response object.
+   */
   async getUserConversations(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as { id: string; role: string };
@@ -127,6 +137,11 @@ export class ChatController implements IChatController {
     }
   }
 
+  /**
+   * Retrieves messages from a specific conversation.
+   * @param req - Express Request object containing conversationId in params.
+   * @param res - Express Response object.
+   */
   async getConversationMessages(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as { id: string; role: string };
@@ -187,6 +202,11 @@ export class ChatController implements IChatController {
     }
   }
 
+  /**
+   * Retrieves or creates a conversation with a specific user.
+   * @param req - Express Request object containing username in params.
+   * @param res - Express Response object.
+   */
   async getOrCreateConversation(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as { id: string; role: string };
@@ -232,6 +252,11 @@ export class ChatController implements IChatController {
     }
   }
 
+  /**
+   * Edits a previously sent message.
+   * @param req - Express Request object containing messageId in params and new content.
+   * @param res - Express Response object.
+   */
   async editMessage(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as { id: string; role: string };
@@ -295,6 +320,11 @@ export class ChatController implements IChatController {
     }
   }
 
+  /**
+   * Deletes a message.
+   * @param req - Express Request object containing messageId in params.
+   * @param res - Express Response object.
+   */
   async deleteMessage(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as { id: string; role: string };
@@ -341,6 +371,11 @@ export class ChatController implements IChatController {
     }
   }
 
+  /**
+   * Marks all messages in a conversation as read.
+   * @param req - Express Request object containing conversationId in body.
+   * @param res - Express Response object.
+   */
   async markMessagesAsRead(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as { id: string; role: string };

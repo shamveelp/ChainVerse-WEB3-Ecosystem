@@ -15,6 +15,11 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
         @inject(TYPES.ICommunityAdminProfileService) private _profileService: ICommunityAdminProfileService
     ) { }
 
+    /**
+     * Retrieves the profile of the logged-in community admin.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getProfile(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -38,6 +43,11 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
         }
     }
 
+    /**
+     * Updates the profile of the community admin.
+     * @param req - Express Request object containing profile updates in body.
+     * @param res - Express Response object.
+     */
     async updateProfile(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -62,6 +72,11 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
         }
     }
 
+    /**
+     * Uploads and updates the profile picture.
+     * @param req - Express Request object containing the file.
+     * @param res - Express Response object.
+     */
     async uploadProfilePicture(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -118,6 +133,11 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
         }
     }
 
+    /**
+     * Uploads and updates the banner image.
+     * @param req - Express Request object containing the file.
+     * @param res - Express Response object.
+     */
     async uploadBannerImage(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -171,6 +191,11 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
         }
     }
 
+    /**
+     * Retrieves community statistics for the admin's profile.
+     * @param req - Express Request object containing period in query.
+     * @param res - Express Response object.
+     */
     async getCommunityStats(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;

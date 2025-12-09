@@ -1,7 +1,7 @@
 import { Router } from "express";
 import container from "../core/di/container";
 import { TYPES } from "../core/types/types";
-import { AITradingController } from "../controllers/aiChat/aiTrading.controller";
+import { AITradingController } from "../controllers/aiChat/AiTrading.controller";
 import { authMiddleware, roleMiddleware } from "../middlewares/auth.middleware";
 import { validateBody, validateQuery, validateParams } from "../middlewares/validation.middleware";
 import {

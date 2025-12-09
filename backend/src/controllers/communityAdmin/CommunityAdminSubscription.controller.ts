@@ -15,6 +15,11 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
     @inject(TYPES.ICommunityAdminSubscriptionService) private _subscriptionService: ICommunityAdminSubscriptionService
   ) { }
 
+  /**
+   * Creates a new subscription order.
+   * @param req - Express Request object containing subscription plan details in body.
+   * @param res - Express Response object.
+   */
   async createOrder(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -37,6 +42,11 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
     }
   }
 
+  /**
+   * Verifies a subscription payment.
+   * @param req - Express Request object containing payment verification data.
+   * @param res - Express Response object.
+   */
   async verifyPayment(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -59,6 +69,11 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
     }
   }
 
+  /**
+   * Retrieves the current subscription details.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   async getSubscription(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -89,6 +104,11 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
     }
   }
 
+  /**
+   * Retries a failed subscription payment.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   async retryPayment(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;
@@ -110,6 +130,11 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
     }
   }
 
+  /**
+   * Retrieves the time remaining for the current subscription.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   async getTimeRemaining(req: Request, res: Response): Promise<void> {
     try {
       const communityAdminId = (req as any).user.id;

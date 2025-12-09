@@ -72,7 +72,7 @@ import {
 import { ClaimCVCDto, CreateConversionDto, GetConversionsQueryDto, ValidateConversionDto } from "../dtos/points/PointsConversion.dto";
 import { PointsConversionController } from "../controllers/points/PointsConversion.controller";
 import { UserMarketController } from "../controllers/user/UserMarket.controller";
-import { UserQuestController } from "../controllers/quest/userQuest.controller";
+import { UserQuestController } from "../controllers/quest/UserQuest.controller";
 import {
   GetAvailableQuestsDto,
   JoinQuestDto,
@@ -80,9 +80,9 @@ import {
   GetMyQuestsDto,
   GetLeaderboardDto
 } from "../dtos/quest/UserQuest.dto";
-import { DexSwapController } from "../controllers/dex/dexSwap.controller";
+import { DexSwapController } from "../controllers/dex/DexSwap.controller";
 import { GetChartDataDto, GetSwapHistoryDto, RecordSwapDto, UpdatePriceDto } from "../dtos/dex/DexSwap.dto";
-import { AITradingController } from "../controllers/aiChat/aiTrading.controller";
+import { AITradingController } from "../controllers/aiChat/AiTrading.controller";
 import { ExecuteTradeDto, GetChatHistoryDto } from "../dtos/aiTrading/AiTrading.dto";
 
 // Get controller instance

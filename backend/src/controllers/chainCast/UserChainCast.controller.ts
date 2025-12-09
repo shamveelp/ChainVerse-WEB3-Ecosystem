@@ -22,6 +22,11 @@ export class UserChainCastController implements IUserChainCastController {
         @inject(TYPES.IChainCastService) private _chainCastService: IChainCastService
     ) { }
 
+    /**
+     * Retrieves ChainCasts for a specific community.
+     * @param req - Express Request object containing community ID and query parameters.
+     * @param res - Express Response object.
+     */
     async getCommunityChainCasts(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user.id;
@@ -43,6 +48,11 @@ export class UserChainCastController implements IUserChainCastController {
         }
     }
 
+    /**
+     * Retrieves details of a specific ChainCast.
+     * @param req - Express Request object containing ChainCast ID in params.
+     * @param res - Express Response object.
+     */
     async getChainCast(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user.id;
@@ -63,6 +73,11 @@ export class UserChainCastController implements IUserChainCastController {
         }
     }
 
+    /**
+     * Joins a ChainCast.
+     * @param req - Express Request object containing join details in body.
+     * @param res - Express Response object.
+     */
     async joinChainCast(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user.id;
@@ -84,6 +99,11 @@ export class UserChainCastController implements IUserChainCastController {
         }
     }
 
+    /**
+     * Leaves a ChainCast.
+     * @param req - Express Request object containing ChainCast ID in params.
+     * @param res - Express Response object.
+     */
     async leaveChainCast(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user.id;
@@ -105,6 +125,11 @@ export class UserChainCastController implements IUserChainCastController {
         }
     }
 
+    /**
+     * Updates participant details (e.g., role, status).
+     * @param req - Express Request object containing update details.
+     * @param res - Express Response object.
+     */
     async updateParticipant(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user.id;
@@ -127,6 +152,11 @@ export class UserChainCastController implements IUserChainCastController {
         }
     }
 
+    /**
+     * Requests moderation action.
+     * @param req - Express Request object containing request details.
+     * @param res - Express Response object.
+     */
     async requestModeration(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user.id;
@@ -148,6 +178,11 @@ export class UserChainCastController implements IUserChainCastController {
         }
     }
 
+    /**
+     * Adds a reaction to a ChainCast item.
+     * @param req - Express Request object containing reaction details.
+     * @param res - Express Response object.
+     */
     async addReaction(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user.id;
@@ -169,6 +204,11 @@ export class UserChainCastController implements IUserChainCastController {
         }
     }
 
+    /**
+     * Retrieves reactions on a ChainCast.
+     * @param req - Express Request object containing ChainCast ID.
+     * @param res - Express Response object.
+     */
     async getReactions(req: Request, res: Response): Promise<void> {
         try {
             const { chainCastId } = req.params;
@@ -189,6 +229,11 @@ export class UserChainCastController implements IUserChainCastController {
         }
     }
 
+    /**
+     * Checks if a user has permission to join a ChainCast.
+     * @param req - Express Request object containing ChainCast ID.
+     * @param res - Express Response object.
+     */
     async canJoinChainCast(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user.id;

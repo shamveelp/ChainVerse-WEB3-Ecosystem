@@ -14,6 +14,11 @@ export class DexController implements IDexController {
     @inject(TYPES.IDexService) private _dexService: IDexService
   ) { }
 
+  /**
+   * Executes a token swap.
+   * @param req - Express Request object containing swap details.
+   * @param res - Express Response object.
+   */
   executeSwap = async (req: Request, res: Response) => {
     try {
       const { walletAddress, fromToken, toToken, fromAmount, toAmount, transactionHash, network } = req.body;
@@ -52,6 +57,11 @@ export class DexController implements IDexController {
     }
   };
 
+  /**
+   * Retrieves a quote for a token swap.
+   * @param req - Express Request object containing fromToken, toToken, and amount in query.
+   * @param res - Express Response object.
+   */
   getSwapQuote = async (req: Request, res: Response) => {
     try {
       const { fromToken, toToken, amount } = req.query;
@@ -85,6 +95,11 @@ export class DexController implements IDexController {
     }
   };
 
+  /**
+   * Retrieves transaction history for a wallet.
+   * @param req - Express Request object containing walletAddress in params and pagination in query.
+   * @param res - Express Response object.
+   */
   getTransactionHistory = async (req: Request, res: Response) => {
     try {
       const { walletAddress } = req.params;
@@ -116,6 +131,11 @@ export class DexController implements IDexController {
     }
   };
 
+  /**
+   * Retrieves details of a specific transaction.
+   * @param req - Express Request object containing transaction hash in params.
+   * @param res - Express Response object.
+   */
   getTransactionDetails = async (req: Request, res: Response) => {
     try {
       const { hash } = req.params;
@@ -152,6 +172,11 @@ export class DexController implements IDexController {
     }
   };
 
+  /**
+   * Retrieves available trading pairs.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   getAvailablePairs = async (req: Request, res: Response) => {
     try {
       const pairs = await this._dexService.getAvailablePairs();
@@ -172,6 +197,11 @@ export class DexController implements IDexController {
     }
   };
 
+  /**
+   * Updates the status of a transaction.
+   * @param req - Express Request object containing hash in params and status/details in body.
+   * @param res - Express Response object.
+   */
   updateTransactionStatus = async (req: Request, res: Response) => {
     try {
       const { hash } = req.params;

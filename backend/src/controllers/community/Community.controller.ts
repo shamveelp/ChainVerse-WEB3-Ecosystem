@@ -14,6 +14,11 @@ export class CommunityController implements ICommunityController {
         @inject(TYPES.ICommunityService) private _communityService: ICommunityService
     ) { }
 
+    /**
+     * Retrieves community details by its ID.
+     * @param req - Express Request object containing community ID in params.
+     * @param res - Express Response object.
+     */
     async getCommunityById(req: Request, res: Response): Promise<void> {
         try {
             const { communityId } = req.params;
@@ -53,6 +58,11 @@ export class CommunityController implements ICommunityController {
         }
     }
 
+    /**
+     * Retrieves community details by its username.
+     * @param req - Express Request object containing username in params.
+     * @param res - Express Response object.
+     */
     async getCommunityByUsername(req: Request, res: Response): Promise<void> {
         try {
             const { username } = req.params;
@@ -92,6 +102,11 @@ export class CommunityController implements ICommunityController {
         }
     }
 
+    /**
+     * Searches for communities based on a query string.
+     * @param req - Express Request object containing search query and filters.
+     * @param res - Express Response object.
+     */
     async searchCommunities(req: Request, res: Response): Promise<void> {
         try {
             const { query, type, cursor, limit } = req.query;
@@ -139,6 +154,11 @@ export class CommunityController implements ICommunityController {
         }
     }
 
+    /**
+     * Retrieves a list of popular communities.
+     * @param req - Express Request object containing pagination and category filters.
+     * @param res - Express Response object.
+     */
     async getPopularCommunities(req: Request, res: Response): Promise<void> {
         try {
             const { cursor, limit, category } = req.query;
@@ -176,6 +196,11 @@ export class CommunityController implements ICommunityController {
         }
     }
 
+    /**
+     * Joins a community.
+     * @param req - Express Request object containing community username in body.
+     * @param res - Express Response object.
+     */
     async joinCommunity(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -221,6 +246,11 @@ export class CommunityController implements ICommunityController {
         }
     }
 
+    /**
+     * Leaves a community.
+     * @param req - Express Request object containing community username in body.
+     * @param res - Express Response object.
+     */
     async leaveCommunity(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -266,6 +296,11 @@ export class CommunityController implements ICommunityController {
         }
     }
 
+    /**
+     * Retrieves members of a specific community.
+     * @param req - Express Request object containing community username in params.
+     * @param res - Express Response object.
+     */
     async getCommunityMembers(req: Request, res: Response): Promise<void> {
         try {
             const { username } = req.params;
@@ -316,6 +351,11 @@ export class CommunityController implements ICommunityController {
         }
     }
 
+    /**
+     * Retrieves the status of a specific member in a community.
+     * @param req - Express Request object containing community username in params.
+     * @param res - Express Response object.
+     */
     async getCommunityMemberStatus(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };

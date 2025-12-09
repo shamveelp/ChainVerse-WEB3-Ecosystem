@@ -15,6 +15,11 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
     private _conversionService: IAdminPointsConversionService
   ) { }
 
+  /**
+   * Retrieves all conversion requests.
+   * @param req - Express Request object containing filter parameters.
+   * @param res - Express Response object.
+   */
   async getAllConversions(req: Request, res: Response): Promise<void> {
     try {
       const { page = 1, limit = 10, status } = req.query;
@@ -42,6 +47,11 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
     }
   }
 
+  /**
+   * Approves a conversion request.
+   * @param req - Express Request object containing conversionId in params and note in body.
+   * @param res - Express Response object.
+   */
   async approveConversion(req: Request, res: Response): Promise<void> {
     try {
       const admin = req.user as { id: string; role: string };
@@ -79,6 +89,11 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
     }
   }
 
+  /**
+   * Rejects a conversion request.
+   * @param req - Express Request object containing conversionId in params and reason in body.
+   * @param res - Express Response object.
+   */
   async rejectConversion(req: Request, res: Response): Promise<void> {
     try {
       const admin = req.user as { id: string; role: string };
@@ -124,6 +139,11 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
     }
   }
 
+  /**
+   * Retrieves conversion statistics.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   async getConversionStats(req: Request, res: Response): Promise<void> {
     try {
       const stats = await this._conversionService.getConversionStats();
@@ -145,6 +165,11 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
     }
   }
 
+  /**
+   * Retrieves a specific conversion request.
+   * @param req - Express Request object containing conversionId.
+   * @param res - Express Response object.
+   */
   async getConversionById(req: Request, res: Response): Promise<void> {
     try {
       const { conversionId } = req.params;
@@ -168,6 +193,11 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
     }
   }
 
+  /**
+   * Updates the conversion rate configuration.
+   * @param req - Express Request object containing new rate details.
+   * @param res - Express Response object.
+   */
   async updateConversionRate(req: Request, res: Response): Promise<void> {
     try {
       const admin = req.user as { id: string; role: string };
@@ -214,6 +244,11 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
     }
   }
 
+  /**
+   * Retrieves historical conversion rates.
+   * @param req - Express Request object containing pagination parameters.
+   * @param res - Express Response object.
+   */
   async getConversionRates(req: Request, res: Response): Promise<void> {
     try {
       const { page = 1, limit = 10 } = req.query;
@@ -240,6 +275,11 @@ export class AdminPointsConversionController implements IAdminPointsConversionCo
     }
   }
 
+  /**
+   * Retrieves the current active conversion rate.
+   * @param req - Express Request object.
+   * @param res - Express Response object.
+   */
   async getCurrentRate(req: Request, res: Response): Promise<void> {
     try {
       const rate = await this._conversionService.getCurrentRate();

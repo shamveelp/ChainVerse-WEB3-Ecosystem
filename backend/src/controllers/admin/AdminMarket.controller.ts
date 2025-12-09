@@ -15,6 +15,11 @@ export class AdminMarketController implements IAdminMarketController {
     private _adminMarketService: IAdminMarketService
   ) { }
 
+  /**
+   * Retrieves a list of coins from the market.
+   * @param req - Express Request object containing query parameters (page, limit, search, includeUnlisted).
+   * @param res - Express Response object to send the result.
+   */
   async getCoins(req: Request, res: Response): Promise<void> {
     try {
       const { page = 1, limit = 10, search, includeUnlisted } = req.query as any;
@@ -48,6 +53,11 @@ export class AdminMarketController implements IAdminMarketController {
     }
   }
 
+  /**
+   * Toggles the listing status of a coin.
+   * @param req - Express Request object containing the coin's contract address in params and isListed status in body.
+   * @param res - Express Response object.
+   */
   async toggleCoinListing(req: Request, res: Response): Promise<void> {
     try {
       const { contractAddress } = req.params;
@@ -88,6 +98,11 @@ export class AdminMarketController implements IAdminMarketController {
     }
   }
 
+  /**
+   * Creates a new coin listing from external data.
+   * @param req - Express Request object containing coin details in the body.
+   * @param res - Express Response object.
+   */
   async createCoinFromExternal(req: Request, res: Response): Promise<void> {
     try {
       const { symbol, name, priceUSD, volume24h, marketCap, network } = req.body as {
@@ -136,6 +151,11 @@ export class AdminMarketController implements IAdminMarketController {
     }
   }
 
+  /**
+   * Deletes a coin from the market specific to its contract address.
+   * @param req - Express Request object containing the coin's contract address.
+   * @param res - Express Response object.
+   */
   async deleteCoin(req: Request, res: Response): Promise<void> {
     try {
       const { contractAddress } = req.params;

@@ -14,6 +14,11 @@ export class FollowController implements IFollowController {
         @inject(TYPES.IFollowService) private _followService: IFollowService
     ) { }
 
+    /**
+     * Follows a user.
+     * @param req - Express Request object containing target username in body.
+     * @param res - Express Response object.
+     */
     async followUser(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -61,6 +66,11 @@ export class FollowController implements IFollowController {
         }
     }
 
+    /**
+     * Unfollows a user.
+     * @param req - Express Request object containing target username in body.
+     * @param res - Express Response object.
+     */
     async unfollowUser(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -108,6 +118,11 @@ export class FollowController implements IFollowController {
         }
     }
 
+    /**
+     * Retrieves the list of followers for the authenticated user.
+     * @param req - Express Request object containing pagination parameters.
+     * @param res - Express Response object.
+     */
     async getFollowers(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string } | undefined;
@@ -155,6 +170,11 @@ export class FollowController implements IFollowController {
         }
     }
 
+    /**
+     * Retrieves the list of users the authenticated user is following.
+     * @param req - Express Request object containing pagination parameters.
+     * @param res - Express Response object.
+     */
     async getFollowing(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string } | undefined;
@@ -202,6 +222,11 @@ export class FollowController implements IFollowController {
         }
     }
 
+    /**
+     * Retrieves the list of followers for a specific user.
+     * @param req - Express Request object containing username in params and pagination parameters.
+     * @param res - Express Response object.
+     */
     async getUserFollowers(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string } | undefined;
@@ -254,6 +279,11 @@ export class FollowController implements IFollowController {
         }
     }
 
+    /**
+     * Retrieves the list of users a specific user is following.
+     * @param req - Express Request object containing username in params and pagination parameters.
+     * @param res - Express Response object.
+     */
     async getUserFollowing(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string } | undefined;
@@ -306,6 +336,11 @@ export class FollowController implements IFollowController {
         }
     }
 
+    /**
+     * Checks the follow status between the authenticated user and another user.
+     * @param req - Express Request object containing target username in params.
+     * @param res - Express Response object.
+     */
     async getFollowStatus(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };
@@ -351,6 +386,11 @@ export class FollowController implements IFollowController {
         }
     }
 
+    /**
+     * Retrieves follow statistics (followers/following count) for the authenticated user.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getFollowStats(req: Request, res: Response): Promise<void> {
         try {
             const user = req.user as { id: string; role: string };

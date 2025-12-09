@@ -14,6 +14,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         @inject(TYPES.ICommunityAdminAuthService) private _commAdminAuthService: ICommunityAdminAuthService
     ) { }
 
+    /**
+     * Checks if an email address is already registered.
+     * @param req - Express Request object containing email in query.
+     * @param res - Express Response object.
+     */
     async checkEmailExists(req: Request, res: Response): Promise<void> {
         try {
             const { email } = req.query;
@@ -37,6 +42,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Checks if a username is already taken.
+     * @param req - Express Request object containing username in query.
+     * @param res - Express Response object.
+     */
     async checkUsernameExists(req: Request, res: Response): Promise<void> {
         try {
             const { username } = req.query;
@@ -60,6 +70,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Creates a new community application.
+     * @param req - Express Request object containing application data and optional files.
+     * @param res - Express Response object.
+     */
     async createCommunity(req: Request, res: Response): Promise<void> {
         try {
             const files = req.files as { [fieldname: string]: Express.Multer.File[] };
@@ -146,6 +161,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Sets the password for a community admin account.
+     * @param req - Express Request object containing password data.
+     * @param res - Express Response object.
+     */
     async setPassword(req: Request, res: Response): Promise<void> {
         try {
             const result = await this._commAdminAuthService.setPassword(req.body);
@@ -160,6 +180,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Verifies the OTP sent to the community admin.
+     * @param req - Express Request object containing OTP data.
+     * @param res - Express Response object.
+     */
     async verifyOtp(req: Request, res: Response): Promise<void> {
         try {
             const result = await this._commAdminAuthService.verifyOtp(req.body);
@@ -174,6 +199,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Resends the OTP to the community admin.
+     * @param req - Express Request object containing user identifier.
+     * @param res - Express Response object.
+     */
     async resendOtp(req: Request, res: Response): Promise<void> {
         try {
             const result = await this._commAdminAuthService.resendOtp(req.body);
@@ -188,6 +218,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Logs in a community admin.
+     * @param req - Express Request object containing login credentials.
+     * @param res - Express Response object.
+     */
     async login(req: Request, res: Response): Promise<void> {
         try {
             const result = await this._commAdminAuthService.loginCommunityAdmin(req.body, res);
@@ -211,6 +246,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Initiates the forgot password process.
+     * @param req - Express Request object containing email.
+     * @param res - Express Response object.
+     */
     async forgotPassword(req: Request, res: Response): Promise<void> {
         try {
             const result = await this._commAdminAuthService.forgotPassword(req.body);
@@ -225,6 +265,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Verifies the OTP for forgot password.
+     * @param req - Express Request object containing OTP.
+     * @param res - Express Response object.
+     */
     async verifyForgotPasswordOtp(req: Request, res: Response): Promise<void> {
         try {
             const result = await this._commAdminAuthService.verifyForgotPasswordOtp(req.body);
@@ -239,6 +284,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Resets the password using a verified token.
+     * @param req - Express Request object containing new password and token.
+     * @param res - Express Response object.
+     */
     async resetPassword(req: Request, res: Response): Promise<void> {
         try {
             const result = await this._commAdminAuthService.resetPassword(req.body);
@@ -253,6 +303,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Refreshes the authentication token.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async refreshToken(req: Request, res: Response): Promise<void> {
         try {
             const result = await this._commAdminAuthService.refreshToken(req, res);
@@ -267,6 +322,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Logs out the community admin.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async logout(req: Request, res: Response): Promise<void> {
         try {
             const result = await this._commAdminAuthService.logout(res);
@@ -281,6 +341,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Retrieves the profile of the logged-in community admin.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getProfile(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -296,6 +361,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Retrieves details of the community managed by the admin.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getCommunityDetails(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -311,6 +381,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Updates community details.
+     * @param req - Express Request object containing updates and optional files.
+     * @param res - Express Response object.
+     */
     async updateCommunity(req: Request, res: Response): Promise<void> {
         try {
             const communityAdminId = (req as any).user.id;
@@ -405,6 +480,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
         }
     }
 
+    /**
+     * Reapplies for a community application.
+     * @param req - Express Request object containing application data and optional files.
+     * @param res - Express Response object.
+     */
     async reapplyApplication(req: Request, res: Response): Promise<void> {
         try {
             const files = req.files as { [fieldname: string]: Express.Multer.File[] };

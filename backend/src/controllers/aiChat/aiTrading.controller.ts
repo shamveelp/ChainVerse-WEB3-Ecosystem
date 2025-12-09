@@ -14,6 +14,11 @@ export class AITradingController implements IAITradingController {
         @inject(TYPES.IAITradingService) private _aiTradingService: IAITradingService
     ) { }
 
+    /**
+     * Processes a message sent to the AI trading assistant.
+     * @param req - Express Request object containing message, sessionId, and context.
+     * @param res - Express Response object.
+     */
     async sendMessage(req: Request, res: Response): Promise<void> {
         try {
             const { message, sessionId, walletAddress, walletConnected, context } = req.body;
@@ -63,6 +68,11 @@ export class AITradingController implements IAITradingController {
         }
     }
 
+    /**
+     * Analyzes a trade opportunity between two tokens.
+     * @param req - Express Request object containing token symbols, amount, and wallet address.
+     * @param res - Express Response object.
+     */
     async analyzeTradeOpportunity(req: Request, res: Response): Promise<void> {
         try {
             const { fromToken, toToken, amount } = req.body;
@@ -119,6 +129,11 @@ export class AITradingController implements IAITradingController {
         }
     }
 
+    /**
+     * Retrieves a list of available tokens for trading.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getAvailableTokens(req: Request, res: Response): Promise<void> {
         try {
             const tokens = await this._aiTradingService.getAvailableTokens();
@@ -139,6 +154,11 @@ export class AITradingController implements IAITradingController {
         }
     }
 
+    /**
+     * Calculates an estimate for a token swap.
+     * @param req - Express Request object containing fromToken, toToken, and amount in query.
+     * @param res - Express Response object.
+     */
     async calculateSwapEstimate(req: Request, res: Response): Promise<void> {
         try {
             const { fromToken, toToken, amount } = req.query;
@@ -183,6 +203,11 @@ export class AITradingController implements IAITradingController {
         }
     }
 
+    /**
+     * Retrieves the chat history for a specific session.
+     * @param req - Express Request object containing sessionId in params and limit in query.
+     * @param res - Express Response object.
+     */
     async getChatHistory(req: Request, res: Response): Promise<void> {
         try {
             const { sessionId } = req.params;
@@ -214,6 +239,11 @@ export class AITradingController implements IAITradingController {
         }
     }
 
+    /**
+     * Retrieves current prices for supported tokens.
+     * @param req - Express Request object.
+     * @param res - Express Response object.
+     */
     async getTokenPrices(req: Request, res: Response): Promise<void> {
         try {
             const tokens = await this._aiTradingService.getAvailableTokens();
@@ -238,6 +268,11 @@ export class AITradingController implements IAITradingController {
         }
     }
 
+    /**
+     * Executes a trade via the AI assistant.
+     * @param req - Express Request object containing trade details.
+     * @param res - Express Response object.
+     */
     async executeTradeWithAI(req: Request, res: Response): Promise<void> {
         try {
             const { fromToken, toToken, amount, sessionId, walletAddress, slippage } = req.body;

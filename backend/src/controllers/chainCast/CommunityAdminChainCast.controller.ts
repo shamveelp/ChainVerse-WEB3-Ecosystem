@@ -23,6 +23,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         @inject(TYPES.IChainCastService) private _chainCastService: IChainCastService
     ) { }
 
+    /**
+     * Creates a new ChainCast.
+     * @param req - Express Request object containing ChainCast details.
+     * @param res - Express Response object.
+     */
     async createChainCast(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -44,6 +49,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Retrieves a list of ChainCasts managed by the admin.
+     * @param req - Express Request object containing query parameters.
+     * @param res - Express Response object.
+     */
     async getChainCasts(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -64,6 +74,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Retrieves details of a specific ChainCast.
+     * @param req - Express Request object containing ChainCast ID.
+     * @param res - Express Response object.
+     */
     async getChainCast(req: Request, res: Response): Promise<void> {
         try {
             const { chainCastId } = req.params;
@@ -84,6 +99,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Updates an existing ChainCast.
+     * @param req - Express Request object containing update details.
+     * @param res - Express Response object.
+     */
     async updateChainCast(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -106,6 +126,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Deletes a ChainCast.
+     * @param req - Express Request object containing ChainCast ID.
+     * @param res - Express Response object.
+     */
     async deleteChainCast(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -127,6 +152,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Starts a ChainCast session.
+     * @param req - Express Request object containing ChainCast ID.
+     * @param res - Express Response object.
+     */
     async startChainCast(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -148,6 +178,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Ends a ChainCast session.
+     * @param req - Express Request object containing ChainCast ID.
+     * @param res - Express Response object.
+     */
     async endChainCast(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -169,6 +204,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Retrieves the list of participants in a ChainCast.
+     * @param req - Express Request object containing ChainCast ID and query parameters.
+     * @param res - Express Response object.
+     */
     async getParticipants(req: Request, res: Response): Promise<void> {
         try {
             const { chainCastId } = req.params;
@@ -189,6 +229,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Removes a participant from a ChainCast.
+     * @param req - Express Request object containing participant ID and reason.
+     * @param res - Express Response object.
+     */
     async removeParticipant(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -216,6 +261,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Retrieves moderation requests for a ChainCast.
+     * @param req - Express Request object containing ChainCast ID.
+     * @param res - Express Response object.
+     */
     async getModerationRequests(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -236,6 +286,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Reviews a moderation request.
+     * @param req - Express Request object containing review decision.
+     * @param res - Express Response object.
+     */
     async reviewModerationRequest(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -257,6 +312,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Retrieves analytics data for ChainCasts.
+     * @param req - Express Request object containing period query parameter.
+     * @param res - Express Response object.
+     */
     async getAnalytics(req: Request, res: Response): Promise<void> {
         try {
             const adminId = (req as any).user.id;
@@ -277,6 +337,11 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
         }
     }
 
+    /**
+     * Retrieves reactions on a ChainCast.
+     * @param req - Express Request object containing ChainCast ID.
+     * @param res - Express Response object.
+     */
     async getReactions(req: Request, res: Response): Promise<void> {
         try {
             const { chainCastId } = req.params;

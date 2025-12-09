@@ -21,6 +21,11 @@ export class UserQuestController implements IUserQuestController {
     @inject(TYPES.IUserQuestService) private _questService: IUserQuestService
   ) { }
 
+  /**
+   * Retrieves available quests for the user.
+   * @param req - Express Request object containing query parameters.
+   * @param res - Express Response object.
+   */
   async getAvailableQuests(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user?.id;
@@ -53,6 +58,11 @@ export class UserQuestController implements IUserQuestController {
     }
   }
 
+  /**
+   * Retrieves a specific quest by ID.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async getQuest(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user?.id;
@@ -77,6 +87,11 @@ export class UserQuestController implements IUserQuestController {
     }
   }
 
+  /**
+   * Retrieves user's participated quests.
+   * @param req - Express Request object containing pagination parameters.
+   * @param res - Express Response object.
+   */
   async getMyQuests(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user.id;
@@ -109,6 +124,11 @@ export class UserQuestController implements IUserQuestController {
     }
   }
 
+  /**
+   * Joins a quest.
+   * @param req - Express Request object containing join details in body.
+   * @param res - Express Response object.
+   */
   async joinQuest(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user.id;
@@ -133,6 +153,11 @@ export class UserQuestController implements IUserQuestController {
     }
   }
 
+  /**
+   * Submits proof for a quest task.
+   * @param req - Express Request object containing submission details in body.
+   * @param res - Express Response object.
+   */
   async submitTask(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user.id;
@@ -157,6 +182,11 @@ export class UserQuestController implements IUserQuestController {
     }
   }
 
+  /**
+   * Retrieves tasks for a specific quest.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async getQuestTasks(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user.id;
@@ -181,6 +211,11 @@ export class UserQuestController implements IUserQuestController {
     }
   }
 
+  /**
+   * Retrieves user's submissions for a quest.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async getMySubmissions(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user.id;
@@ -205,6 +240,11 @@ export class UserQuestController implements IUserQuestController {
     }
   }
 
+  /**
+   * Uploads media for a task submission.
+   * @param req - Express Request object containing file.
+   * @param res - Express Response object.
+   */
   async uploadTaskMedia(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user.id;
@@ -236,6 +276,11 @@ export class UserQuestController implements IUserQuestController {
     }
   }
 
+  /**
+   * Retrieves statistics for a quest.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async getQuestStats(req: Request, res: Response): Promise<void> {
     try {
       const { questId } = req.params;
@@ -259,6 +304,11 @@ export class UserQuestController implements IUserQuestController {
     }
   }
 
+  /**
+   * Retrieves the top ranking quests.
+   * @param req - Express Request object containing limit in query.
+   * @param res - Express Response object.
+   */
   async getTopQuests(req: Request, res: Response): Promise<void> {
     try {
       const limit = parseInt(req.query.limit as string) || 10;
@@ -281,6 +331,11 @@ export class UserQuestController implements IUserQuestController {
     }
   }
 
+  /**
+   * Checks if the user is participating in a quest.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async checkParticipationStatus(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user.id;
@@ -305,6 +360,11 @@ export class UserQuestController implements IUserQuestController {
     }
   }
 
+  /**
+   * Retrieves the leaderboard for a quest.
+   * @param req - Express Request object containing questId in params.
+   * @param res - Express Response object.
+   */
   async getQuestLeaderboard(req: Request, res: Response): Promise<void> {
     try {
       const { questId } = req.params;
