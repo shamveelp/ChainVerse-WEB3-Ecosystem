@@ -26,4 +26,20 @@ export class AdminCommunityPostService implements IAdminCommunityPostService {
     async getPostDetails(postId: string, type: 'user' | 'admin'): Promise<any> {
         return await this._repository.getPostDetails(postId, type);
     }
+
+    async getPostComments(postId: string, type: 'user' | 'admin', cursor?: string, limit: number = 10): Promise<{
+        comments: any[];
+        nextCursor?: string;
+        hasMore: boolean;
+    }> {
+        return await this._repository.getPostComments(postId, type, cursor, limit);
+    }
+
+    async getPostLikers(postId: string, type: 'user' | 'admin', cursor?: string, limit: number = 10): Promise<{
+        likers: any[];
+        nextCursor?: string;
+        hasMore: boolean;
+    }> {
+        return await this._repository.getPostLikers(postId, type, cursor, limit);
+    }
 }

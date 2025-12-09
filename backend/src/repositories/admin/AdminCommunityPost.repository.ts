@@ -3,6 +3,10 @@ import { injectable } from "inversify";
 import { IAdminCommunityPostRepository } from "../../core/interfaces/repositories/admin/IAdminCommunityPost.repository";
 import { PostModel } from "../../models/post.models";
 import { CommunityAdminPostModel } from "../../models/communityAdminPost.model";
+import { CommentModel } from "../../models/comment.models";
+import { CommunityAdminCommentModel } from "../../models/communityAdminComment.model";
+import { LikeModel } from "../../models/like.models";
+import { CommunityAdminPostLikeModel } from "../../models/communityAdminPostLike.model";
 import { FilterQuery } from "mongoose";
 
 @injectable()
@@ -87,5 +91,84 @@ export class AdminCommunityPostRepository implements IAdminCommunityPostReposito
         } else {
             return await CommunityAdminPostModel.findById(postId).populate('author', 'username email profileImage').lean();
         }
+    }
+
+    async getPostComments(postId: string, type: 'user' | 'admin', cursor?: string, limit: number = 10): Promise<{
+        comments: any[];
+        nextCursor?: string;
+        hasMore: boolean;
+    }> {
+        const query: FilterQuery<any> = { post: postId, isDeleted: false };
+        if (cursor) {
+            query.createdAt = { $lt: new Date(cursor) };
+        }
+
+        let comments: any[] = [];
+
+        if (type === 'user') {
+            comments = await CommentModel.find(query)
+                .sort({ createdAt: -1 })
+                .limit(limit + 1)
+                .populate('author', 'username email profileImage')
+                .lean();
+        } else {
+            comments = await CommunityAdminCommentModel.find(query)
+                .sort({ createdAt: -1 })
+                .limit(limit + 1)
+                .populate('author', 'username email profileImage')
+                .lean();
+        }
+
+        const hasMore = comments.length > limit;
+        const validComments = hasMore ? comments.slice(0, limit) : comments;
+        const nextCursor = validComments.length > 0 ? validComments[validComments.length - 1].createdAt.toISOString() : undefined;
+
+        return { comments: validComments, nextCursor, hasMore };
+    }
+
+    async getPostLikers(postId: string, type: 'user' | 'admin', cursor?: string, limit: number = 10): Promise<{
+        likers: any[];
+        nextCursor?: string;
+        hasMore: boolean;
+    }> {
+        const query: FilterQuery<any> = { post: postId };
+        if (cursor) {
+            query.createdAt = { $lt: new Date(cursor) };
+        }
+
+        let likes: any[] = [];
+        let likers: any[] = [];
+
+        if (type === 'user') {
+            likes = await LikeModel.find(query)
+                .sort({ createdAt: -1 })
+                .limit(limit + 1)
+                .populate('user', 'username email profileImage')
+                .lean();
+            // Map to unified liker structure
+            likers = likes.map(l => ({
+                _id: l._id,
+                likedAt: l.createdAt,
+                user: l.user
+            }));
+        } else {
+            likes = await CommunityAdminPostLikeModel.find(query)
+                .sort({ createdAt: -1 })
+                .limit(limit + 1)
+                .populate('admin', 'username email profileImage')
+                .lean();
+            // Map to unified liker structure
+            likers = likes.map(l => ({
+                _id: l._id,
+                likedAt: l.createdAt,
+                user: l.admin // Alias admin as user for frontend consistency
+            }));
+        }
+
+        const hasMore = likers.length > limit;
+        const validLikers = hasMore ? likers.slice(0, limit) : likers;
+        const nextCursor = validLikers.length > 0 ? validLikers[validLikers.length - 1].likedAt.toISOString() : undefined;
+
+        return { likers: validLikers, nextCursor, hasMore };
     }
 }

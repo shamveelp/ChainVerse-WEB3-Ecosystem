@@ -107,4 +107,60 @@ export class AdminCommunityPostController implements IAdminCommunityPostControll
             });
         }
     }
+
+    async getPostComments(req: Request, res: Response): Promise<void> {
+        try {
+            const { postId } = req.params;
+            const { type, cursor, limit } = req.query;
+
+            if (!postId || !type) {
+                res.status(StatusCode.BAD_REQUEST).json({
+                    success: false,
+                    error: "Post ID and Type are required"
+                });
+                return;
+            }
+
+            const limitNum = limit ? parseInt(limit as string) : 10;
+            const result = await this._service.getPostComments(postId, type as 'user' | 'admin', cursor as string, limitNum);
+
+            res.status(StatusCode.OK).json({
+                success: true,
+                data: result
+            });
+        } catch (error) {
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                error: (error as Error).message || "Failed to fetch comments"
+            });
+        }
+    }
+
+    async getPostLikers(req: Request, res: Response): Promise<void> {
+        try {
+            const { postId } = req.params;
+            const { type, cursor, limit } = req.query;
+
+            if (!postId || !type) {
+                res.status(StatusCode.BAD_REQUEST).json({
+                    success: false,
+                    error: "Post ID and Type are required"
+                });
+                return;
+            }
+
+            const limitNum = limit ? parseInt(limit as string) : 10;
+            const result = await this._service.getPostLikers(postId, type as 'user' | 'admin', cursor as string, limitNum);
+
+            res.status(StatusCode.OK).json({
+                success: true,
+                data: result
+            });
+        } catch (error) {
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                error: (error as Error).message || "Failed to fetch likers"
+            });
+        }
+    }
 }

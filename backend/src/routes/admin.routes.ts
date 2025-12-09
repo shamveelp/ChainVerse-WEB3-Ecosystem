@@ -222,6 +222,18 @@ router.get(
   roleMiddleware(["admin"]),
   adminCommunityPostController.getPostDetails.bind(adminCommunityPostController)
 );
+router.get(
+  "/community-posts/:postId/comments",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityPostController.getPostComments.bind(adminCommunityPostController)
+);
+router.get(
+  "/community-posts/:postId/likers",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityPostController.getPostLikers.bind(adminCommunityPostController)
+);
 
 // Protected Routes - Wallet Management
 router.get(
