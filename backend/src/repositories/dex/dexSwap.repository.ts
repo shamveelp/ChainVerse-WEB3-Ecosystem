@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IDexSwapRepository } from "../../core/interfaces/repositories/dex/IDexSwapRepository";
+import { IDexSwapRepository } from "../../core/interfaces/repositories/dex/IDexSwap.repository";
 import { SwapTransactionModel, ISwapTransaction } from "../../models/dexSwap.model";
 import { TokenPriceModel, ITokenPrice } from "../../models/tokenPrice.model";
 import { TradingPairModel, ITradingPair } from "../../models/tradingPair.model";

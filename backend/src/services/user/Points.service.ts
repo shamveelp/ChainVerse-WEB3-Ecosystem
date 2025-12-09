@@ -1,8 +1,8 @@
 import { injectable, inject } from "inversify";
 import { IPointsService } from "../../core/interfaces/services/user/IPoints.service";
-import { IDailyCheckInRepository } from "../../core/interfaces/repositories/IDailyCheckInRepository";
-import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistoryRepository";
-import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
+import { IDailyCheckInRepository } from "../../core/interfaces/repositories/IDailyCheckIn.repository";
+import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistory.repository";
+import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";

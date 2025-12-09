@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IConversionRateRepository } from "../../core/interfaces/repositories/points/IConversionRateRepository";
+import { IConversionRateRepository } from "../../core/interfaces/repositories/points/IConversionRate.repository";
 import { ConversionRateModel, IConversionRate } from "../../models/conversionRate.model";
 import { Types } from "mongoose";
 import logger from "../../utils/logger";

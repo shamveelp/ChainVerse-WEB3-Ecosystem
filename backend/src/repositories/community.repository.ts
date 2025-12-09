@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { ICommunityRepository } from "../core/interfaces/repositories/ICommunityRepository";
+import { ICommunityRepository } from "../core/interfaces/repositories/ICommunity.repository";
 import { IUser, UserModel } from "../models/user.models";
 import { FollowModel } from "../models/follow.models";
 import { CustomError } from "../utils/customError";

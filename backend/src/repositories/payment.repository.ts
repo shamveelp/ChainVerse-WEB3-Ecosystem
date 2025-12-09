@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
 import { PaymentModel, IPayment } from "../models/payment.model";
-import { IPaymentRepository, PaginatedPayments } from "../core/interfaces/repositories/IPaymentRepository";
+import { IPaymentRepository, PaginatedPayments } from "../core/interfaces/repositories/IPayment.repository";
 import logger from "../utils/logger";
 import { Model } from "mongoose";
 

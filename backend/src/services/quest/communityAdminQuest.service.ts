@@ -1,9 +1,9 @@
 import { injectable, inject } from "inversify";
 import { TYPES } from "../../core/types/types";
 import { ICommunityAdminQuestService } from "../../core/interfaces/services/quest/ICommunityAdminQuest.service";
-import { ICommunityAdminQuestRepository } from "../../core/interfaces/repositories/quest/ICommunityAdminQuestRepository";
+import { ICommunityAdminQuestRepository } from "../../core/interfaces/repositories/quest/ICommunityAdminQuest.repository";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
-import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
+import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunity.repository";
 import {
   CreateQuestDto,
   UpdateQuestDto,

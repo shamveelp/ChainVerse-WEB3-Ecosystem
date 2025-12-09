@@ -1,5 +1,5 @@
 import WalletModel from '../models/wallet.model';
-import { IWalletRepository } from '../core/interfaces/repositories/IWalletRepository';
+import { IWalletRepository } from '../core/interfaces/repositories/IWallet.repository';
 import { IWallet } from '../models/wallet.model';
 
 export class WalletRepository implements IWalletRepository {

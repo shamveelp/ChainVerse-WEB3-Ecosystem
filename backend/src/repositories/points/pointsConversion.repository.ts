@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IPointsConversionRepository } from "../../core/interfaces/repositories/points/IPointsConversionRepository";
+import { IPointsConversionRepository } from "../../core/interfaces/repositories/points/IPointsConversion.repository";
 import { PointsConversionModel, IPointsConversion } from "../../models/pointsConversion.model";
 import { Types } from "mongoose";
 import logger from "../../utils/logger";

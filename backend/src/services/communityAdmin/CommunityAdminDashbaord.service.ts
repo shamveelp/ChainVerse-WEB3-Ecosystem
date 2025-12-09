@@ -5,8 +5,8 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 import { ICommunityAdminDashboardService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminDashboard.service";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
-import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
-import { IPostRepository } from "../../core/interfaces/repositories/IPostRepository";
+import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunity.repository";
+import { IPostRepository } from "../../core/interfaces/repositories/IPost.repository";
 import CommunityMemberModel from "../../models/communityMember.model";
 import {
     CommunityAdminDashboardResponseDto,
@@ -15,7 +15,7 @@ import {
     RecentActivityDto,
     TopMemberDto
 } from "../../dtos/communityAdmin/CommunityAdminDashboard.dto";
-import { ICommunityRequestRepository } from "../../core/interfaces/repositories/ICommunityRequestRepository";
+import { ICommunityRequestRepository } from "../../core/interfaces/repositories/ICommunityRequest.repository";
 
 @injectable()
 export class CommunityAdminDashboardService implements ICommunityAdminDashboardService {

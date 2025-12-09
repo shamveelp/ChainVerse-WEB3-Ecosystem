@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IDexRepository } from "../core/interfaces/repositories/IDexRepository";
+import { IDexRepository } from "../core/interfaces/repositories/IDex.repository";
 import Wallet, { IWallet } from "../models/wallet.model";
 import Transaction, { ITransaction } from "../models/transactions.model";
 import Coin, { ICoin } from "../models/coins.model";

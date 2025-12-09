@@ -1,7 +1,7 @@
 import { injectable, inject } from "inversify";
 import { IReferralService } from "../../core/interfaces/services/user/IReferral.service";
-import { IReferralHistoryRepository } from "../../core/interfaces/repositories/IReferralHistoryRepository";
-import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
+import { IReferralHistoryRepository } from "../../core/interfaces/repositories/IReferralHistory.repository";
+import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";

@@ -1,6 +1,6 @@
 import { injectable, inject } from "inversify";
 import { IUserMyCommunitiesService } from "../../core/interfaces/services/community/IUserMyCommunities.service";
-import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
+import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunity.repository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";

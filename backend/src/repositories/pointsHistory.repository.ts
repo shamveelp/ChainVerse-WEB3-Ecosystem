@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IPointsHistoryRepository } from "../core/interfaces/repositories/IPointsHistoryRepository";
+import { IPointsHistoryRepository } from "../core/interfaces/repositories/IPointsHistory.repository";
 import { PointsHistoryModel, IPointsHistory } from "../models/pointsHistory.model";
 import { Types } from "mongoose";
 

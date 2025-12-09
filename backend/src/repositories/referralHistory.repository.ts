@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IReferralHistoryRepository } from "../core/interfaces/repositories/IReferralHistoryRepository";
+import { IReferralHistoryRepository } from "../core/interfaces/repositories/IReferralHistory.repository";
 import { ReferralHistoryModel, IReferralHistory } from "../models/referralHistory.model";
 import { Types } from "mongoose";
 

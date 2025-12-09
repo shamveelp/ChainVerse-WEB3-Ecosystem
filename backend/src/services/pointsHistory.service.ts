@@ -1,6 +1,6 @@
 import { injectable, inject } from "inversify";
-import { IPointsHistoryService } from "../core/interfaces/services/IPointsHistoryService";
-import { IPointsHistoryRepository } from "../core/interfaces/repositories/IPointsHistoryRepository";
+import { IPointsHistoryService } from "../core/interfaces/services/IPointsHistory.service";
+import { IPointsHistoryRepository } from "../core/interfaces/repositories/IPointsHistory.repository";
 import { TYPES } from "../core/types/types";
 import { IPointsHistory } from "../models/pointsHistory.model";
 

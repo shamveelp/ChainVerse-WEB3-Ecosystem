@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
 import { Types } from "mongoose";
-import { IChainCastRepository } from "../../core/interfaces/repositories/chainCast/IChainCastRepository";
+import { IChainCastRepository } from "../../core/interfaces/repositories/chainCast/IChainCast.repository";
 import ChainCastModel, { IChainCast } from "../../models/chainCast.model";
 import ChainCastParticipantModel, { IChainCastParticipant } from "../../models/chainCastParticipant.model";
 import ChainCastReactionModel, { IChainCastReaction } from "../../models/chainCastReaction.model";

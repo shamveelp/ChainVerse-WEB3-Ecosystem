@@ -1,8 +1,8 @@
 import { injectable, inject } from "inversify";
 import { ICommunityAdminCommunityService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminCommunity.service";
-import { ICommunityMessageRepository } from "../../core/interfaces/repositories/community/ICommunityMessageRepository";
+import { ICommunityMessageRepository } from "../../core/interfaces/repositories/community/ICommunityMessage.repository";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
-import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
+import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunity.repository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";

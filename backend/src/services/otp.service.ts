@@ -1,11 +1,11 @@
 import { injectable, inject } from "inversify";
-import { IOTPService } from "../core/interfaces/services/IOtpService";
-import { IUserRepository } from "../core/interfaces/repositories/IUserRepository";
-import { IOtpRepository } from "../core/interfaces/repositories/IOtpRepository";
+import { IOTPService } from "../core/interfaces/services/IOTP.service";
+import { IUserRepository } from "../core/interfaces/repositories/IUser.repository";
+import { IOtpRepository } from "../core/interfaces/repositories/IOTP.repository";
 import { TYPES } from "../core/types/types";
-import { IMailService } from "../core/interfaces/services/IMailService";
+import { IMailService } from "../core/interfaces/services/IMail.service";
 import logger from "../utils/logger";
-import { IAdminRepository } from "../core/interfaces/repositories/IAdminRepository";
+import { IAdminRepository } from "../core/interfaces/repositories/IAdmin.repository";
 import { ICommunityAdminRepository } from "../core/interfaces/repositories/ICommunityAdminRepository";
 import { CustomError } from "../utils/customError";
 import { StatusCode } from "../enums/statusCode.enum";

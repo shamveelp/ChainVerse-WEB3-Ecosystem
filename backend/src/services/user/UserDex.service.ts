@@ -3,7 +3,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import axios from "axios";
 import { IUserDexService } from "../../core/interfaces/services/user/IUserDex.service";
-import { IPaymentRepository } from "../../core/interfaces/repositories/IPaymentRepository";
+import { IPaymentRepository } from "../../core/interfaces/repositories/IPayment.repository";
 import { TYPES } from "../../core/types/types";
 import { IPayment } from "../../models/payment.model";
 import { StatusCode } from "../../enums/statusCode.enum";

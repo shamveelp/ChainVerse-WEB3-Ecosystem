@@ -1,8 +1,8 @@
 import { injectable, inject } from "inversify";
 import { TYPES } from "../../core/types/types";
 import { IDexSwapService } from "../../core/interfaces/services/dex/IDexSwap.service";
-import { IDexSwapRepository } from "../../core/interfaces/repositories/dex/IDexSwapRepository";
-import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
+import { IDexSwapRepository } from "../../core/interfaces/repositories/dex/IDexSwap.repository";
+import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";

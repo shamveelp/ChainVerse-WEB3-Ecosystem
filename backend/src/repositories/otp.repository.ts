@@ -3,7 +3,7 @@ import { OtpModel } from "../models/otp.model";
 import { Types } from "mongoose";
 import { IOTP } from "../models/otp.model"; 
 import logger from "../utils/logger";
-import { IOtpRepository } from "../core/interfaces/repositories/IOtpRepository";
+import { IOtpRepository } from "../core/interfaces/repositories/IOTP.repository";
 
 @injectable()
 export class OtpRepository implements IOtpRepository {

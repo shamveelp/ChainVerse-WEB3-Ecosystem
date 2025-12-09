@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { ICommunityAdminQuestRepository } from "../../core/interfaces/repositories/quest/ICommunityAdminQuestRepository";
+import { ICommunityAdminQuestRepository } from "../../core/interfaces/repositories/quest/ICommunityAdminQuest.repository";
 import QuestModel, { IQuest } from "../../models/quest.model";
 import QuestTaskModel, { IQuestTask } from "../../models/questTask.model";
 import QuestParticipantModel, { IQuestParticipant } from "../../models/questParticipant.model";

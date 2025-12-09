@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { ICommunityMessageRepository } from "../../core/interfaces/repositories/community/ICommunityMessageRepository";
+import { ICommunityMessageRepository } from "../../core/interfaces/repositories/community/ICommunityMessage.repository";
 import CommunityMessageModel, { ICommunityMessage } from "../../models/communityMessage.model";
 import CommunityGroupMessageModel, { ICommunityGroupMessage } from "../../models/communityGroupMessage.model";
 import { Types } from "mongoose";

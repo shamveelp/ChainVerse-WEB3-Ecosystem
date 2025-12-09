@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { IAdminRepository } from "../core/interfaces/repositories/IAdminRepository";
+import { IAdminRepository } from "../core/interfaces/repositories/IAdmin.repository";
 import Admin, { IAdmin } from "../models/admin.model";
 import { DailyCheckInModel, IDailyCheckIn } from "../models/dailyCheckIn.model";
 

@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { TYPES } from "../../core/types/types";
-import { IWalletRepository } from "../../core/interfaces/repositories/IWalletRepository";
+import { IWalletRepository } from "../../core/interfaces/repositories/IWallet.repository";
 import { IWalletService } from "../../core/interfaces/services/user/IWallet.service";
 import { IWallet } from "../../models/wallet.model";
 

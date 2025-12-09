@@ -1,5 +1,5 @@
 import { IPayment } from "../../../../models/payment.model";
-import { PaginatedPayments } from "../../repositories/IPaymentRepository";
+import { PaginatedPayments } from "../../repositories/IPayment.repository";
 
 export interface IAdminDexService {
   getAllPayments(

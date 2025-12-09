@@ -2,7 +2,7 @@
 import { injectable, inject } from "inversify";
 import bcrypt from "bcrypt";
 import { IUserService } from "../../core/interfaces/services/user/IUser.service";
-import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
+import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
 import { IUser } from "../../models/user.models";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";

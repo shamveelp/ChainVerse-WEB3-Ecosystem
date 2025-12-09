@@ -2,7 +2,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { inject, injectable } from "inversify";
 import { TYPES } from "../core/types/types";
-import { IUserRepository } from "../core/interfaces/repositories/IUserRepository";
+import { IUserRepository } from "../core/interfaces/repositories/IUser.repository";
 import logger from "../utils/logger";
 
 

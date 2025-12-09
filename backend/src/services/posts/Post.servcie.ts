@@ -1,7 +1,7 @@
 import { injectable, inject } from "inversify";
 import { IPostService } from "../../core/interfaces/services/posts/IPost.service";
-import { IPostRepository } from "../../core/interfaces/repositories/IPostRepository";
-import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
+import { IPostRepository } from "../../core/interfaces/repositories/IPost.repository";
+import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunity.repository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";

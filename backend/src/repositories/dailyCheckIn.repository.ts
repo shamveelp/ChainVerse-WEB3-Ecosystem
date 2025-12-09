@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IDailyCheckInRepository } from "../core/interfaces/repositories/IDailyCheckInRepository";
+import { IDailyCheckInRepository } from "../core/interfaces/repositories/IDailyCheckIn.repository";
 import { DailyCheckInModel, IDailyCheckIn } from "../models/dailyCheckIn.model";
 import { Types } from "mongoose";
 

@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { IUserMarketService } from "../../core/interfaces/services/user/IUserMarket.service";
 import { TYPES } from "../../core/types/types";
-import { IDexRepository } from "../../core/interfaces/repositories/IDexRepository";
+import { IDexRepository } from "../../core/interfaces/repositories/IDex.repository";
 import { ICoin } from "../../models/coins.model";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";

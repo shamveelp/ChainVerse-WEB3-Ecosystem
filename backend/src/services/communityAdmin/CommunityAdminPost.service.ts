@@ -6,7 +6,7 @@ import logger from "../../utils/logger";
 import { ICommunityAdminPostService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminPost.service";
 import { ICommunityAdminPostRepository } from "../../core/interfaces/repositories/communityAdmin/ICommunityAdminPost.repository";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
-import { IPostRepository } from "../../core/interfaces/repositories/IPostRepository";
+import { IPostRepository } from "../../core/interfaces/repositories/IPost.repository";
 import CommunityMemberModel from "../../models/communityMember.model";
 import {
     CreateCommunityAdminPostDto,

@@ -1,6 +1,6 @@
 import { IWalletService } from '../../core/interfaces/services/dex/IWallet.service';
 import { IWallet } from '../../models/wallet.model';
-import { WalletRepository } from '../../repositories/wallet.repository';
+import { WalletRepository } from '../../repositories/Wallet.repository';
 
 export class WalletService implements IWalletService {
   private walletRepository: WalletRepository;

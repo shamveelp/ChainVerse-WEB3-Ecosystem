@@ -1,6 +1,6 @@
 import { injectable, inject } from "inversify";
-import { IReferralHistoryService } from "../core/interfaces/services/IReferralHistoryService";
-import { IReferralHistoryRepository } from "../core/interfaces/repositories/IReferralHistoryRepository";
+import { IReferralHistoryService } from "../core/interfaces/services/IReferralHistory.service";
+import { IReferralHistoryRepository } from "../core/interfaces/repositories/IReferralHistory.repository";
 import { TYPES } from "../core/types/types";
 import { IReferralHistory } from "../models/referralHistory.model";
 

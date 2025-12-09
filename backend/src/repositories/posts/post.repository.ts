@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IPostRepository } from "../../core/interfaces/repositories/posts/IPostRepository";
+import { IPostRepository } from "../../core/interfaces/repositories/posts/IPost.repository";
 import { PostModel, IPost } from "../../models/post.models";
 import { LikeModel } from "../../models/like.models";
 import { CommentModel, IComment } from "../../models/comment.models";

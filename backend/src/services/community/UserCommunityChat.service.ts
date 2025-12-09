@@ -1,7 +1,7 @@
 import { injectable, inject } from "inversify";
 import { IUserCommunityChatService } from "../../core/interfaces/services/community/IUserCommunityChat.service";
-import { ICommunityMessageRepository } from "../../core/interfaces/repositories/community/ICommunityMessageRepository";
-import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
+import { ICommunityMessageRepository } from "../../core/interfaces/repositories/community/ICommunityMessage.repository";
+import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunity.repository";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";

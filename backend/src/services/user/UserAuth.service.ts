@@ -1,8 +1,8 @@
 import { injectable, inject } from "inversify";
 import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuth.service";
-import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
-import { IReferralHistoryRepository } from "../../core/interfaces/repositories/IReferralHistoryRepository";
-import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistoryRepository";
+import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
+import { IReferralHistoryRepository } from "../../core/interfaces/repositories/IReferralHistory.repository";
+import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistory.repository";
 import { TYPES } from "../../core/types/types";
 import bcrypt from "bcrypt";
 import { IUser } from "../../models/user.models";

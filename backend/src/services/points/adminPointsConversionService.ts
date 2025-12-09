@@ -1,9 +1,9 @@
 import { injectable, inject } from "inversify";
 import { IAdminPointsConversionService } from "../../core/interfaces/services/points/IAdminPointsConversion.service";
-import { IPointsConversionRepository } from "../../core/interfaces/repositories/points/IPointsConversionRepository";
-import { IConversionRateRepository } from "../../core/interfaces/repositories/points/IConversionRateRepository";
-import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
-import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistoryRepository";
+import { IPointsConversionRepository } from "../../core/interfaces/repositories/points/IPointsConversion.repository";
+import { IConversionRateRepository } from "../../core/interfaces/repositories/points/IConversionRate.repository";
+import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
+import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistory.repository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";

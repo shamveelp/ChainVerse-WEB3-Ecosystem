@@ -5,9 +5,9 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 import { Types } from "mongoose";
 import { IChainCastService } from "../../core/interfaces/services/chainCast/IChainCast.service";
-import { IChainCastRepository } from "../../core/interfaces/repositories/chainCast/IChainCastRepository";
+import { IChainCastRepository } from "../../core/interfaces/repositories/chainCast/IChainCast.repository";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
-import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
+import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
 import CommunityMemberModel from "../../models/communityMember.model";
 import {
   CreateChainCastDto,

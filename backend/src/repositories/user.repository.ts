@@ -1,7 +1,7 @@
 import { injectable } from "inversify";
 import { UserModel, IUser } from "../models/user.models";
-import { IUserRepository } from "../core/interfaces/repositories/IUserRepository";
-import { BaseRepository } from "./base.repository";
+import { IUserRepository } from "../core/interfaces/repositories/IUser.repository";
+import { BaseRepository } from "./Base.repository";
 import logger from "../utils/logger";
 
 export interface PaginatedUsers {

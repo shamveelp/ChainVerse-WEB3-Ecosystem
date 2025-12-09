@@ -5,8 +5,8 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 import { ICommunityAdminFeedService } from "../../core/interfaces/services/communityAdmin/ICommnityAdminFeed.service";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
-import { IPostRepository } from "../../core/interfaces/repositories/posts/IPostRepository";
-import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
+import { IPostRepository } from "../../core/interfaces/repositories/posts/IPost.repository";
+import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunity.repository";
 import CommunityMemberModel from "../../models/communityMember.model";
 import {
     CommunityFeedResponseDto,

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { injectable, inject } from "inversify";
 import { IAdminCommunityController } from "../../core/interfaces/controllers/admin/IAdminCommunity.controller";
 import { IAdminCommunityService } from "../../core/interfaces/services/admin/IAdminCommunity.service";
-import { IMailService } from "../../core/interfaces/services/IMailService";
+import { IMailService } from "../../core/interfaces/services/IMail.service";
 import { TYPES } from "../../core/types/types";
 import logger from "../../utils/logger";
 import { StatusCode } from "../../enums/statusCode.enum";

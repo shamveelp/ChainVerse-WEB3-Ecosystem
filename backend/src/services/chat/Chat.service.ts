@@ -1,7 +1,7 @@
 import { injectable, inject } from "inversify";
 import { IChatService } from "../../core/interfaces/services/chat/IChat.service";
-import { IChatRepository } from "../../core/interfaces/repositories/IChatRepository";
-import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunityRepository";
+import { IChatRepository } from "../../core/interfaces/repositories/IChat.repository";
+import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunity.repository";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";

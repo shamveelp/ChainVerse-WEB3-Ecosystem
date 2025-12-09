@@ -1,7 +1,7 @@
 import { injectable } from "inversify";
 import { ICommunityRequest } from "../models/communityRequest.model";
 import CommunityRequestModel from "../models/communityRequest.model";
-import { ICommunityRequestRepository } from "../core/interfaces/repositories/ICommunityRequestRepository";
+import { ICommunityRequestRepository } from "../core/interfaces/repositories/ICommunityRequest.repository";
 import CommunityModel, { ICommunity } from "../models/community.model";
 
 @injectable()

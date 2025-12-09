@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
 import nodemailer from "nodemailer";
-import { IMailService } from "../core/interfaces/services/IMailService";
+import { IMailService } from "../core/interfaces/services/IMail.service";
 import logger from "../utils/logger";
 
 @injectable()

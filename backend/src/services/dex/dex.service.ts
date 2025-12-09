@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { IDexService } from "../../core/interfaces/services/dex/IDex.service";
-import { IDexRepository } from "../../core/interfaces/repositories/IDexRepository";
+import { IDexRepository } from "../../core/interfaces/repositories/IDex.repository";
 import { TYPES } from "../../core/types/types";
 import { ITransaction } from "../../models/transactions.model";
 import { ICoin } from "../../models/coins.model";

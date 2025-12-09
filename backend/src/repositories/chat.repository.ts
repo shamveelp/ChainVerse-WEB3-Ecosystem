@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IChatRepository } from "../core/interfaces/repositories/IChatRepository";
+import { IChatRepository } from "../core/interfaces/repositories/IChat.repository";
 import { IConversation, IMessage, ConversationModel, MessageModel } from "../models/chat.models";
 import { IUser, UserModel } from "../models/user.models";
 import { CustomError } from "../utils/customError";

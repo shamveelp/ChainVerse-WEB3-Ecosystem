@@ -5,7 +5,7 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 import { ICommunityAdminMembersService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminMembers.service";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
-import { IUserRepository } from "../../core/interfaces/repositories/IUserRepository";
+import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
 import CommunityMemberModel from "../../models/communityMember.model";
 import { Types } from "mongoose";
 import {
