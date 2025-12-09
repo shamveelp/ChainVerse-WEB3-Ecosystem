@@ -38,7 +38,7 @@ export function Sidebar({ className }: SidebarProps) {
     <TooltipProvider>
       <div
         className={cn(
-          "relative flex flex-col h-full bg-gray-800 backdrop-blur-xl border-r border-blue-500/50 shadow-lg shadow-blue-500/20 z-20 transition-all duration-300",
+          "relative flex flex-col h-full bg-slate-950/80 backdrop-blur-xl border-r border-slate-800 shadow-xl z-20 transition-all duration-300",
           isCollapsed ? "w-16" : "w-64 sm:w-72",
           className
         )}
@@ -48,7 +48,7 @@ export function Sidebar({ className }: SidebarProps) {
           onClick={() => setIsCollapsed(!isCollapsed)}
           variant="ghost"
           size="sm"
-          className="absolute -right-3 top-6 z-50 h-8 w-8 rounded-full bg-gray-800 border border-blue-500/50 text-blue-400 hover:text-blue-300 hover:bg-blue-600/30"
+          className="absolute -right-3 top-6 z-50 h-8 w-8 rounded-full bg-slate-900 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 shadow-md"
         >
           {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
@@ -56,19 +56,19 @@ export function Sidebar({ className }: SidebarProps) {
         {/* Logo */}
         <div className="p-4 sm:p-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl shadow-lg shadow-violet-500/20 flex items-center justify-center">
               <Zap className="h-6 w-6 text-white" />
             </div>
             {!isCollapsed && (
               <div>
-                <h2 className="text-lg font-bold text-white">ChainVerse</h2>
-                <p className="text-xs text-blue-400">Community Admin</p>
+                <h2 className="text-lg font-bold text-white tracking-tight">ChainVerse</h2>
+                <p className="text-xs text-slate-400 font-medium">Community Admin</p>
               </div>
             )}
           </div>
         </div>
 
-        <Separator className="bg-blue-500/50" />
+        <Separator className="bg-slate-800" />
 
         {/* Navigation */}
         <ScrollArea className="flex-1 px-3 py-4">
@@ -103,7 +103,7 @@ export function Sidebar({ className }: SidebarProps) {
                     </TooltipTrigger>
                     <TooltipContent
                       side={isCollapsed ? "right" : "top"}
-                      className="bg-gray-900 text-white border border-blue-500/50"
+                      className="bg-slate-900 text-white border border-slate-700"
                     >
                       <div className="text-center">
                         <p className="font-medium">Premium Feature</p>
@@ -127,8 +127,8 @@ export function Sidebar({ className }: SidebarProps) {
                   className={cn(
                     "w-full justify-start gap-3 h-10",
                     isActive
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "text-gray-300 hover:text-white hover:bg-blue-600/30",
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/20"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors",
                     isCollapsed && "px-2 justify-center"
                   )}
                 >

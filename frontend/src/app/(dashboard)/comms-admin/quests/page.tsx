@@ -272,14 +272,14 @@ export default function QuestsPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
               Quest Management
             </h1>
-            <p className="text-gray-400 mt-2">Create and manage engaging quests for your community</p>
+            <p className="text-slate-400 mt-2 font-light">Create and manage engaging quests for your community</p>
           </div>
           <Button
             onClick={() => router.push('/comms-admin/quests/create')}
-            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white"
+            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-violet-500/20"
           >
             <Plus className="h-4 w-4 mr-2" />
             Create Quest
@@ -289,70 +289,70 @@ export default function QuestsPage() {
         {/* Enhanced Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-violet-500/30 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg flex items-center justify-center">
-                    <Trophy className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center">
+                    <Trophy className="h-6 w-6 text-violet-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Total Quests</p>
+                    <p className="text-sm text-slate-400 font-medium">Total Quests</p>
                     <p className="text-2xl font-bold text-white">{stats.totalQuests}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-emerald-500/30 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-green-800 rounded-lg flex items-center justify-center">
-                    <Play className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center">
+                    <Play className="h-6 w-6 text-emerald-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Active Quests</p>
+                    <p className="text-sm text-slate-400 font-medium">Active Quests</p>
                     <p className="text-2xl font-bold text-white">{stats.activeQuests}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-indigo-500/30 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
-                    <Users className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center">
+                    <Users className="h-6 w-6 text-indigo-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Total Participants</p>
+                    <p className="text-sm text-slate-400 font-medium">Total Participants</p>
                     <p className="text-2xl font-bold text-white">{stats.totalParticipants.toLocaleString()}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-slate-600/30 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-orange-600 to-orange-800 rounded-lg flex items-center justify-center">
-                    <Square className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 bg-slate-700/30 rounded-xl flex items-center justify-center">
+                    <Square className="h-6 w-6 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Ended Quests</p>
+                    <p className="text-sm text-slate-400 font-medium">Ended Quests</p>
                     <p className="text-2xl font-bold text-white">{stats.endedQuests}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-amber-500/30 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-yellow-600 to-yellow-800 rounded-lg flex items-center justify-center">
-                    <DollarSign className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center">
+                    <DollarSign className="h-6 w-6 text-amber-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Rewards Distributed</p>
+                    <p className="text-sm text-slate-400 font-medium">Rewards Distributed</p>
                     <p className="text-2xl font-bold text-white">{stats.totalRewardsDistributed}</p>
                   </div>
                 </div>
@@ -362,23 +362,23 @@ export default function QuestsPage() {
         )}
 
         {/* Search and Filter */}
-        <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+        <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800">
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   placeholder="Search quests by title or description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && fetchQuests()}
-                  className="pl-10 bg-gray-800 border-gray-600 text-white"
+                  className="pl-10 bg-slate-800/50 border-slate-700 text-white placeholder-slate-500 focus-visible:ring-violet-500 focus-visible:border-violet-500 transition-all duration-300"
                 />
               </div>
               <Button
                 onClick={fetchQuests}
                 variant="outline"
-                className="border-purple-600/50 text-purple-400 hover:bg-purple-950/30"
+                className="border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:text-violet-300"
               >
                 <Filter className="h-4 w-4 mr-2" />
                 Search
@@ -389,60 +389,41 @@ export default function QuestsPage() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-black/60 backdrop-blur-xl border border-purple-800/30">
-            <TabsTrigger
-              value="active"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white"
-            >
-              Active
-            </TabsTrigger>
-            <TabsTrigger
-              value="draft"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white"
-            >
-              Drafts
-            </TabsTrigger>
-            <TabsTrigger
-              value="ended"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white"
-            >
-              Ended
-            </TabsTrigger>
-            <TabsTrigger
-              value="cancelled"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white"
-            >
-              Cancelled
-            </TabsTrigger>
-            <TabsTrigger
-              value="all"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white"
-            >
-              All
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 p-1 bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-xl">
+            {["active", "draft", "ended", "cancelled", "all"].map((tab) => (
+              <TabsTrigger
+                key={tab}
+                value={tab}
+                className="capitalize data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
+              >
+                {tab}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value={activeTab} className="space-y-4">
             {loading ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <Card key={i} className="bg-black/60 backdrop-blur-xl border-purple-800/30 animate-pulse">
+                  <Card key={i} className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 animate-pulse">
                     <CardContent className="p-6">
                       <div className="space-y-4">
-                        <div className="h-6 bg-gray-700 rounded"></div>
-                        <div className="h-4 bg-gray-700 rounded"></div>
-                        <div className="h-20 bg-gray-700 rounded"></div>
+                        <div className="h-6 bg-slate-800 rounded w-3/4"></div>
+                        <div className="h-4 bg-slate-800 rounded w-full"></div>
+                        <div className="h-20 bg-slate-800 rounded"></div>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             ) : quests.length === 0 ? (
-              <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+              <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800">
                 <CardContent className="p-12 text-center">
-                  <Trophy className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Trophy className="h-10 w-10 text-slate-500" />
+                  </div>
                   <h3 className="text-xl font-semibold text-white mb-2">No Quests Found</h3>
-                  <p className="text-gray-400 mb-6">
+                  <p className="text-slate-400 mb-6 max-w-md mx-auto">
                     {activeTab === 'draft' ? 'No draft quests. Start creating your first quest!' :
                       activeTab === 'active' ? 'No active quests. Create and launch a quest to engage your community!' :
                         activeTab === 'ended' ? 'No completed quests yet.' :
@@ -450,7 +431,7 @@ export default function QuestsPage() {
                   </p>
                   <Button
                     onClick={() => router.push('/comms-admin/quests/create')}
-                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white"
+                    className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-violet-500/20"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Create Quest
@@ -460,39 +441,39 @@ export default function QuestsPage() {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {quests.map((quest) => (
-                  <Card key={quest._id} className="bg-black/60 backdrop-blur-xl border-purple-800/30 hover:border-purple-700/50 transition-all duration-300">
+                  <Card key={quest._id} className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 hover:border-violet-500/30 transition-all duration-300 group">
                     <CardContent className="p-6">
                       <div className="space-y-4">
                         {/* Quest Header */}
                         <div className="flex items-start justify-between">
                           <div className="space-y-2 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="text-lg font-semibold text-white truncate">{quest.title}</h3>
+                              <h3 className="text-lg font-semibold text-slate-100 truncate group-hover:text-violet-200 transition-colors">{quest.title}</h3>
                               {quest.isAIGenerated && (
-                                <Badge variant="outline" className="text-xs border-blue-500 text-blue-400">
+                                <Badge variant="outline" className="text-xs border-indigo-500/30 text-indigo-400 bg-indigo-500/5">
                                   AI
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-gray-400 text-sm line-clamp-2">{quest.description}</p>
+                            <p className="text-slate-400 text-sm line-clamp-2">{quest.description}</p>
                             <div className="flex flex-wrap gap-2 mt-2">
                               {getSelectionMethodBadge(quest.selectionMethod)}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 ml-2">
-                            <Badge className={`${getStatusColor(quest.status)} text-white`}>
+                            <Badge className={`${getStatusColor(quest.status)} text-white shadow-sm`}>
                               {quest.status}
                             </Badge>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-800">
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-gray-800 border-gray-600">
+                              <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-slate-200">
                                 <DropdownMenuItem
                                   onClick={() => router.push(`/comms-admin/quests/${quest._id}`)}
-                                  className="text-white hover:bg-gray-700"
+                                  className="text-slate-200 hover:bg-slate-800 cursor-pointer focus:bg-slate-800 focus:text-white"
                                 >
                                   <Eye className="h-4 w-4 mr-2" />
                                   View Details
@@ -500,7 +481,7 @@ export default function QuestsPage() {
                                 {quest.status === 'draft' && (
                                   <DropdownMenuItem
                                     onClick={() => router.push(`/comms-admin/quests/edit/${quest._id}`)}
-                                    className="text-white hover:bg-gray-700"
+                                    className="text-slate-200 hover:bg-slate-800 cursor-pointer focus:bg-slate-800 focus:text-white"
                                   >
                                     <Edit className="h-4 w-4 mr-2" />
                                     Edit
@@ -513,7 +494,7 @@ export default function QuestsPage() {
                                       questId: quest._id,
                                       questTitle: quest.title
                                     })}
-                                    className="text-green-400 hover:bg-gray-700"
+                                    className="text-emerald-400 hover:bg-emerald-500/10 cursor-pointer focus:bg-emerald-500/10 focus:text-emerald-300"
                                   >
                                     <Play className="h-4 w-4 mr-2" />
                                     Start Quest
@@ -526,20 +507,20 @@ export default function QuestsPage() {
                                       questId: quest._id,
                                       questTitle: quest.title
                                     })}
-                                    className="text-orange-400 hover:bg-gray-700"
+                                    className="text-amber-400 hover:bg-amber-500/10 cursor-pointer focus:bg-amber-500/10 focus:text-amber-300"
                                   >
                                     <Square className="h-4 w-4 mr-2" />
                                     End Quest
                                   </DropdownMenuItem>
                                 )}
-                                <DropdownMenuSeparator className="bg-gray-600" />
+                                <DropdownMenuSeparator className="bg-slate-700" />
                                 <DropdownMenuItem
                                   onClick={() => setDeleteDialog({
                                     open: true,
                                     questId: quest._id,
                                     questTitle: quest.title
                                   })}
-                                  className="text-red-400 hover:bg-gray-700"
+                                  className="text-red-400 hover:bg-red-500/10 cursor-pointer focus:bg-red-500/10 focus:text-red-300"
                                   disabled={quest.status === 'active'}
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />
@@ -579,7 +560,7 @@ export default function QuestsPage() {
                             </div>
                           )}
                           {quest.rewardsDistributed && (
-                            <div className="flex items-center gap-2 text-blue-400 text-sm">
+                            <div className="flex items-center gap-2 text-indigo-400 text-sm">
                               <DollarSign className="h-4 w-4" />
                               <span>Rewards Distributed</span>
                             </div>
@@ -597,7 +578,7 @@ export default function QuestsPage() {
                             </div>
                             <Progress
                               value={(quest.totalParticipants / quest.participantLimit) * 100}
-                              className="h-2"
+                              className="h-2 bg-slate-800"
                             />
                           </div>
                         )}
@@ -643,7 +624,7 @@ export default function QuestsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="flex-1 border-blue-600/50 text-blue-400 hover:bg-blue-950/30"
+                              className="flex-1 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300"
                               onClick={() => router.push(`/comms-admin/quests/${quest._id}`)}
                             >
                               <DollarSign className="h-4 w-4 mr-2" />
@@ -722,6 +703,6 @@ export default function QuestsPage() {
           loading={actionLoading}
         />
       </div>
-    </QuestAccessGuard>
+    </QuestAccessGuard >
   );
 }

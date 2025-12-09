@@ -40,7 +40,7 @@ export function Navbar({ className }: NavbarProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full bg-gray-800/80 backdrop-blur-xl border-b border-blue-500/30",
+        "sticky top-0 z-50 w-full bg-slate-950/80 backdrop-blur-xl border-b border-slate-800",
         className
       )}
     >
@@ -48,12 +48,12 @@ export function Navbar({ className }: NavbarProps) {
         {/* Search */}
         <div className="flex items-center gap-4 flex-1 max-w-xs sm:max-w-sm md:max-w-md">
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search members, posts, quests..."
-              className="pl-10 bg-gray-700/50 border-blue-500/30 text-white placeholder:text-gray-400 focus:border-blue-600 focus:ring-blue-600/20"
+              className="pl-10 bg-slate-900/50 border-slate-700 text-slate-200 placeholder:text-slate-500 focus:border-violet-500 focus:ring-violet-500/20 transition-all duration-300"
             />
           </div>
         </div>
@@ -63,7 +63,8 @@ export function Navbar({ className }: NavbarProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="relative text-gray-400 hover:text-white hover:bg-blue-600/30"
+            size="sm"
+            className="relative text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <Bell className="h-5 w-5" />
             <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-600 text-xs">
@@ -74,33 +75,33 @@ export function Navbar({ className }: NavbarProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
+                  <AvatarFallback className="bg-gradient-to-br from-violet-600 to-indigo-600 text-white font-semibold">
                     {communityAdmin?.name ? getInitials(communityAdmin.name) : "CA"}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-gray-800 border-blue-500/30" align="end" forceMount>
+            <DropdownMenuContent className="w-56 bg-slate-900 border-slate-700 text-slate-200" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium text-white">
                     {communityAdmin?.name || "Community Admin"}
                   </p>
-                  <p className="text-xs text-gray-400">{communityAdmin?.email || "admin@example.com"}</p>
+                  <p className="text-xs text-slate-400">{communityAdmin?.email || "admin@example.com"}</p>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-blue-500/30" />
-              <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-blue-600/30 cursor-pointer">
+              <DropdownMenuSeparator className="bg-slate-700" />
+              <DropdownMenuItem className="text-slate-300 hover:text-white hover:bg-slate-800 cursor-pointer focus:bg-slate-800 focus:text-white">
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-blue-600/30 cursor-pointer">
+              <DropdownMenuItem className="text-slate-300 hover:text-white hover:bg-slate-800 cursor-pointer focus:bg-slate-800 focus:text-white">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-blue-500/30" />
+              <DropdownMenuSeparator className="bg-slate-700" />
               <DropdownMenuItem
-                className="text-red-400 hover:text-red-300 hover:bg-red-600/30 cursor-pointer"
+                className="text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer focus:bg-red-500/10 focus:text-red-300"
                 onClick={logout}
               >
                 <LogOut className="mr-2 h-4 w-4" />

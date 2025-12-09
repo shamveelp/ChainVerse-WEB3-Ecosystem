@@ -50,15 +50,15 @@ export default function CommunityAdminLayout({ children }: { children: React.Rea
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-950 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 relative overflow-hidden">
       <div className="relative z-10 flex h-screen">
         <Sidebar />
         <div className="flex-1 flex flex-col relative">
           {/* Animated Background for Main Content Only */}
           <div className="absolute inset-0 z-0 pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-950/50 to-purple-950/50" />
-            <div className="absolute top-1/5 left-1/5 w-80 h-80 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-1/5 right-1/5 w-64 h-64 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900/50 to-slate-950" />
+            <div className="absolute top-1/5 left-1/5 w-80 h-80 bg-violet-500/10 rounded-full blur-[100px] animate-pulse" />
+            <div className="absolute bottom-1/5 right-1/5 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px] animate-pulse delay-1000" />
           </div>
           <Navbar />
           <main className="flex-1 overflow-y-auto relative z-10">
