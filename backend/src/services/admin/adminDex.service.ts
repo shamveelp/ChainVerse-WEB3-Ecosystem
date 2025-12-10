@@ -6,22 +6,39 @@ import { IPayment } from "../../models/payment.model";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
+import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class AdminDexService implements IAdminDexService {
   constructor(
     @inject(TYPES.IPaymentRepository) private _paymentRepository: IPaymentRepository
-  ) {}
+  ) { }
 
+  /**
+   * Retrieves all payments with pagination.
+   * @param {number} [page=1] - Page number.
+   * @param {number} [limit=10] - Items per page.
+   * @param {string} [status] - Filter by status.
+   * @returns {Promise<any>} Paginated payments.
+   */
   async getAllPayments(page: number = 1, limit: number = 10, status?: string) {
     try {
       return await this._paymentRepository.findAllWithPagination(page, limit, status);
     } catch (error) {
-      logger.error("Error getting all payments:", error);
-      throw new CustomError("Failed to retrieve payments", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_ALL_PAYMENTS_ERROR, error);
+      throw new CustomError(ErrorMessages.FAILED_RETRIEVE_PAYMENTS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Approves a payment.
+   * @param {string} paymentId - Payment ID.
+   * @param {string} adminId - Admin ID.
+   * @param {string} [adminNote] - Optional note.
+   * @param {string} [transactionHash] - Optional transaction hash.
+   * @returns {Promise<IPayment>} Updated payment.
+   * @throws {CustomError} If payment not found, invalid status, or update fails.
+   */
   async approvePayment(
     paymentId: string,
     adminId: string,
@@ -31,11 +48,11 @@ export class AdminDexService implements IAdminDexService {
     try {
       const payment = await this._paymentRepository.findById(paymentId);
       if (!payment) {
-        throw new CustomError("Payment not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.PAYMENT_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       if (payment.status !== 'success') {
-        throw new CustomError("Only successful payments can be approved", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.INVALID_PAYMENT_STATUS, StatusCode.BAD_REQUEST);
       }
 
       const updatedPayment = await this._paymentRepository.updateStatus(
@@ -52,11 +69,19 @@ export class AdminDexService implements IAdminDexService {
       logger.info(`Payment approved: ${paymentId} by admin: ${adminId}`);
       return updatedPayment!;
     } catch (error) {
-      logger.error("Error approving payment:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to approve payment", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.APPROVE_PAYMENT_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_APPROVE_PAYMENT, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Rejects a payment.
+   * @param {string} paymentId - Payment ID.
+   * @param {string} adminId - Admin ID.
+   * @param {string} reason - Rejection reason.
+   * @returns {Promise<IPayment>} Updated payment.
+   * @throws {CustomError} If payment not found, invalid status, or update fails.
+   */
   async rejectPayment(
     paymentId: string,
     adminId: string,
@@ -65,11 +90,11 @@ export class AdminDexService implements IAdminDexService {
     try {
       const payment = await this._paymentRepository.findById(paymentId);
       if (!payment) {
-        throw new CustomError("Payment not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.PAYMENT_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       if (payment.status !== 'success') {
-        throw new CustomError("Only successful payments can be rejected", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.INVALID_PAYMENT_STATUS, StatusCode.BAD_REQUEST);
       }
 
       const updatedPayment = await this._paymentRepository.updateStatus(
@@ -85,11 +110,19 @@ export class AdminDexService implements IAdminDexService {
       logger.info(`Payment rejected: ${paymentId} by admin: ${adminId}`);
       return updatedPayment!;
     } catch (error) {
-      logger.error("Error rejecting payment:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to reject payment", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.REJECT_PAYMENT_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_REJECT_PAYMENT, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Fulfills a payment.
+   * @param {string} paymentId - Payment ID.
+   * @param {string} adminId - Admin ID.
+   * @param {string} transactionHash - Transaction hash.
+   * @returns {Promise<IPayment>} Updated payment.
+   * @throws {CustomError} If payment not found, invalid status, or update fails.
+   */
   async fulfillPayment(
     paymentId: string,
     adminId: string,
@@ -98,11 +131,11 @@ export class AdminDexService implements IAdminDexService {
     try {
       const payment = await this._paymentRepository.findById(paymentId);
       if (!payment) {
-        throw new CustomError("Payment not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.PAYMENT_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       if (payment.status !== 'success') {
-        throw new CustomError("Only successful payments can be fulfilled", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.INVALID_PAYMENT_STATUS, StatusCode.BAD_REQUEST);
       }
 
       const updatedPayment = await this._paymentRepository.updateStatus(
@@ -119,11 +152,16 @@ export class AdminDexService implements IAdminDexService {
       logger.info(`Payment fulfilled: ${paymentId} by admin: ${adminId}`);
       return updatedPayment!;
     } catch (error) {
-      logger.error("Error fulfilling payment:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to fulfill payment", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.FULFILL_PAYMENT_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_FULFILL_PAYMENT, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves payment statistics.
+   * @returns {Promise<any>} Payment stats.
+   * @throws {CustomError} If retrieval fails.
+   */
   async getPaymentStats() {
     try {
       const [
@@ -151,17 +189,22 @@ export class AdminDexService implements IAdminDexService {
         rejectedCount
       };
     } catch (error) {
-      logger.error("Error getting payment stats:", error);
-      throw new CustomError("Failed to get payment statistics", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_PAYMENT_STATS_ERROR, error);
+      throw new CustomError(ErrorMessages.FAILED_GET_PAYMENT_STATS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves all pending payments.
+   * @returns {Promise<IPayment[]>} List of pending payments.
+   * @throws {CustomError} If retrieval fails.
+   */
   async getPendingPayments(): Promise<IPayment[]> {
     try {
       return await this._paymentRepository.findPendingPayments();
     } catch (error) {
-      logger.error("Error getting pending payments:", error);
-      throw new CustomError("Failed to get pending payments", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_PENDING_PAYMENTS_ERROR, error);
+      throw new CustomError(ErrorMessages.FAILED_GET_PENDING_PAYMENTS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 }

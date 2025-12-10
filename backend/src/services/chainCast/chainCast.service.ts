@@ -9,6 +9,7 @@ import { IChainCastRepository } from "../../core/interfaces/repositories/chainCa
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
 import CommunityMemberModel from "../../models/communityMember.model";
+import { ErrorMessages, SuccessMessages, LoggerMessages } from "../../enums/messages.enum";
 import {
   CreateChainCastDto,
   UpdateChainCastDto,
@@ -38,9 +39,15 @@ export class ChainCastService implements IChainCastService {
     @inject(TYPES.ICommunityAdminRepository)
     private _adminRepository: ICommunityAdminRepository,
     @inject(TYPES.IUserRepository) private _userRepository: IUserRepository
-  ) {}
+  ) { }
 
   // Admin ChainCast management
+  /**
+   * Creates a new ChainCast.
+   * @param {string} adminId - Admin ID.
+   * @param {CreateChainCastDto} data - ChainCast data.
+   * @returns {Promise<ChainCastResponseDto>} Created ChainCast.
+   */
   async createChainCast(
     adminId: string,
     data: CreateChainCastDto
@@ -50,7 +57,7 @@ export class ChainCastService implements IChainCastService {
       const admin = await this._adminRepository.findById(adminId);
       if (!admin || !admin.communityId) {
         throw new CustomError(
-          "Community admin not found or no associated community",
+          ErrorMessages.ADMIN_NOT_FOUND,
           StatusCode.NOT_FOUND
         );
       }
@@ -62,7 +69,7 @@ export class ChainCastService implements IChainCastService {
         );
       if (activeChainCast) {
         throw new CustomError(
-          "There is already an active ChainCast in this community",
+          ErrorMessages.ACTIVE_CHAINCAST_EXISTS,
           StatusCode.BAD_REQUEST
         );
       }
@@ -100,7 +107,7 @@ export class ChainCastService implements IChainCastService {
       const chainCast =
         await this._chainCastRepository.createChainCast(chainCastData);
 
-      logger.info("ChainCast created successfully", {
+      logger.info(SuccessMessages.CHAINCAST_CREATED, {
         chainCastId: chainCast._id,
         adminId,
         communityId: admin.communityId,
@@ -109,17 +116,23 @@ export class ChainCastService implements IChainCastService {
 
       return new ChainCastResponseDto(chainCast, admin, "admin", true, true);
     } catch (error) {
-      logger.error("Create ChainCast error:", error);
+      logger.error(LoggerMessages.CREATE_CHAINCAST_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to create ChainCast",
+        ErrorMessages.FAILED_CREATE_CHAINCAST,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Retrieves ChainCasts for an admin.
+   * @param {string} adminId - Admin ID.
+   * @param {GetChainCastsQueryDto} query - Query parameters.
+   * @returns {Promise<ChainCastsListResponseDto>} List of ChainCasts.
+   */
   async getChainCasts(
     adminId: string,
     query: GetChainCastsQueryDto
@@ -128,7 +141,7 @@ export class ChainCastService implements IChainCastService {
       const admin = await this._adminRepository.findById(adminId);
       if (!admin) {
         throw new CustomError(
-          "Community admin not found",
+          ErrorMessages.ADMIN_NOT_FOUND,
           StatusCode.NOT_FOUND
         );
       }
@@ -167,17 +180,23 @@ export class ChainCastService implements IChainCastService {
         summary
       );
     } catch (error) {
-      logger.error("Get ChainCasts error:", error);
+      logger.error(LoggerMessages.GET_CHAINCASTS_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to get ChainCasts",
+        ErrorMessages.FAILED_GET_CHAINCASTS,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Retrieves a ChainCast by ID.
+   * @param {string} chainCastId - ChainCast ID.
+   * @param {string} [userId] - User ID.
+   * @returns {Promise<ChainCastResponseDto>} ChainCast details.
+   */
   async getChainCastById(
     chainCastId: string,
     userId?: string
@@ -186,7 +205,7 @@ export class ChainCastService implements IChainCastService {
       const chainCast =
         await this._chainCastRepository.findChainCastById(chainCastId);
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       let userRole: string | undefined;
@@ -231,17 +250,24 @@ export class ChainCastService implements IChainCastService {
         canModerate
       );
     } catch (error) {
-      logger.error("Get ChainCast by ID error:", error);
+      logger.error(LoggerMessages.GET_CHAINCAST_BY_ID_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to get ChainCast",
+        ErrorMessages.FAILED_GET_CHAINCAST,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Updates a ChainCast.
+   * @param {string} adminId - Admin ID.
+   * @param {string} chainCastId - ChainCast ID.
+   * @param {UpdateChainCastDto} data - Update data.
+   * @returns {Promise<ChainCastResponseDto>} Updated ChainCast.
+   */
   async updateChainCast(
     adminId: string,
     chainCastId: string,
@@ -251,7 +277,7 @@ export class ChainCastService implements IChainCastService {
       const chainCast =
         await this._chainCastRepository.findChainCastById(chainCastId);
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Verify ownership
@@ -262,7 +288,7 @@ export class ChainCastService implements IChainCastService {
 
       if (adminIdFromCast !== adminId) {
         throw new CustomError(
-          "You are not authorized to update this ChainCast",
+          ErrorMessages.UNAUTHORIZED_CHAINCAST_ACTION,
           StatusCode.FORBIDDEN
         );
       }
@@ -270,7 +296,7 @@ export class ChainCastService implements IChainCastService {
       // Don't allow updates to live or ended ChainCasts
       if (chainCast.status === "live" || chainCast.status === "ended") {
         throw new CustomError(
-          "Cannot update a live or ended ChainCast",
+          ErrorMessages.CHAINCAST_LIVE_OR_ENDED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -291,7 +317,7 @@ export class ChainCastService implements IChainCastService {
       );
       if (!updatedChainCast) {
         throw new CustomError(
-          "Failed to update ChainCast",
+          ErrorMessages.FAILED_UPDATE_CHAINCAST,
           StatusCode.INTERNAL_SERVER_ERROR
         );
       }
@@ -305,17 +331,23 @@ export class ChainCastService implements IChainCastService {
         true
       );
     } catch (error) {
-      logger.error("Update ChainCast error:", error);
+      logger.error(LoggerMessages.UPDATE_CHAINCAST_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to update ChainCast",
+        ErrorMessages.FAILED_UPDATE_CHAINCAST,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Deletes a ChainCast.
+   * @param {string} adminId - Admin ID.
+   * @param {string} chainCastId - ChainCast ID.
+   * @returns {Promise<{ success: boolean; message: string }>} Result.
+   */
   async deleteChainCast(
     adminId: string,
     chainCastId: string
@@ -324,7 +356,7 @@ export class ChainCastService implements IChainCastService {
       const chainCast =
         await this._chainCastRepository.findChainCastById(chainCastId);
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Verify ownership
@@ -335,7 +367,7 @@ export class ChainCastService implements IChainCastService {
 
       if (adminIdFromCast !== adminId) {
         throw new CustomError(
-          "You are not authorized to delete this ChainCast",
+          ErrorMessages.UNAUTHORIZED_CHAINCAST_ACTION,
           StatusCode.FORBIDDEN
         );
       }
@@ -343,7 +375,7 @@ export class ChainCastService implements IChainCastService {
       // Don't allow deletion of live ChainCasts
       if (chainCast.status === "live") {
         throw new CustomError(
-          "Cannot delete a live ChainCast. End it first.",
+          ErrorMessages.CHAINCAST_LIVE_DELETE_ERROR,
           StatusCode.BAD_REQUEST
         );
       }
@@ -352,28 +384,34 @@ export class ChainCastService implements IChainCastService {
         await this._chainCastRepository.deleteChainCast(chainCastId);
       if (!success) {
         throw new CustomError(
-          "Failed to delete ChainCast",
+          ErrorMessages.FAILED_DELETE_CHAINCAST,
           StatusCode.INTERNAL_SERVER_ERROR
         );
       }
 
       return {
         success: true,
-        message: "ChainCast deleted successfully",
+        message: SuccessMessages.CHAINCAST_DELETED,
       };
     } catch (error) {
-      logger.error("Delete ChainCast error:", error);
+      logger.error(LoggerMessages.DELETE_CHAINCAST_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to delete ChainCast",
+        ErrorMessages.FAILED_DELETE_CHAINCAST,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
   // ChainCast control
+  /**
+   * Starts a ChainCast.
+   * @param {string} adminId - Admin ID.
+   * @param {string} chainCastId - ChainCast ID.
+   * @returns {Promise<ChainCastResponseDto>} Started ChainCast.
+   */
   async startChainCast(
     adminId: string,
     chainCastId: string
@@ -382,7 +420,7 @@ export class ChainCastService implements IChainCastService {
       const chainCast =
         await this._chainCastRepository.findChainCastById(chainCastId);
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       const adminIdFromCast =
@@ -393,14 +431,14 @@ export class ChainCastService implements IChainCastService {
       // Verify ownership
       if (adminIdFromCast !== adminId) {
         throw new CustomError(
-          "You are not authorized to start this ChainCast",
+          ErrorMessages.UNAUTHORIZED_CHAINCAST_ACTION,
           StatusCode.FORBIDDEN
         );
       }
 
       if (chainCast.status !== "scheduled") {
         throw new CustomError(
-          "Only scheduled ChainCasts can be started",
+          ErrorMessages.CHAINCAST_NOT_SCHEDULED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -421,7 +459,7 @@ export class ChainCastService implements IChainCastService {
       );
       if (!updatedChainCast) {
         throw new CustomError(
-          "Failed to start ChainCast",
+          ErrorMessages.FAILED_START_CHAINCAST,
           StatusCode.INTERNAL_SERVER_ERROR
         );
       }
@@ -438,17 +476,23 @@ export class ChainCastService implements IChainCastService {
         true
       );
     } catch (error) {
-      logger.error("Start ChainCast error:", error);
+      logger.error(LoggerMessages.START_CHAINCAST_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to start ChainCast",
+        ErrorMessages.FAILED_START_CHAINCAST,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Ends a ChainCast.
+   * @param {string} adminId - Admin ID.
+   * @param {string} chainCastId - ChainCast ID.
+   * @returns {Promise<ChainCastResponseDto>} Ended ChainCast.
+   */
   async endChainCast(
     adminId: string,
     chainCastId: string
@@ -457,7 +501,7 @@ export class ChainCastService implements IChainCastService {
       const chainCast =
         await this._chainCastRepository.findChainCastById(chainCastId);
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       const adminIdFromCast =
@@ -468,14 +512,14 @@ export class ChainCastService implements IChainCastService {
       // Verify ownership
       if (adminIdFromCast !== adminId) {
         throw new CustomError(
-          "You are not authorized to end this ChainCast",
+          ErrorMessages.UNAUTHORIZED_CHAINCAST_ACTION,
           StatusCode.FORBIDDEN
         );
       }
 
       if (chainCast.status !== "live") {
         throw new CustomError(
-          "Only live ChainCasts can be ended",
+          ErrorMessages.CHAINCAST_NOT_LIVE_END_ERROR,
           StatusCode.BAD_REQUEST
         );
       }
@@ -493,7 +537,7 @@ export class ChainCastService implements IChainCastService {
       );
       if (!updatedChainCast) {
         throw new CustomError(
-          "Failed to end ChainCast",
+          ErrorMessages.FAILED_END_CHAINCAST,
           StatusCode.INTERNAL_SERVER_ERROR
         );
       }
@@ -510,18 +554,25 @@ export class ChainCastService implements IChainCastService {
         true
       );
     } catch (error) {
-      logger.error("End ChainCast error:", error);
+      logger.error(LoggerMessages.END_CHAINCAST_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to end ChainCast",
+        ErrorMessages.FAILED_END_CHAINCAST,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
   // User ChainCast participation
+  /**
+   * Retrieves ChainCasts for a community.
+   * @param {string} communityId - Community ID.
+   * @param {string} userId - User ID.
+   * @param {GetChainCastsQueryDto} query - Query parameters.
+   * @returns {Promise<ChainCastsListResponseDto>} List of ChainCasts.
+   */
   async getCommunityChainCasts(
     communityId: string,
     userId: string,
@@ -575,17 +626,23 @@ export class ChainCastService implements IChainCastService {
         nextCursor
       );
     } catch (error) {
-      logger.error("Get community ChainCasts error:", error);
+      logger.error(LoggerMessages.GET_COMMUNITY_CHAINCASTS_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to get community ChainCasts",
+        ErrorMessages.FAILED_GET_COMMUNITY_CHAINCASTS,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Joins a ChainCast.
+   * @param {string} userId - User ID.
+   * @param {JoinChainCastDto} data - Join data.
+   * @returns {Promise<{ success: boolean; message: string; streamUrl?: string }>} Join result.
+   */
   async joinChainCast(
     userId: string,
     data: JoinChainCastDto
@@ -595,12 +652,12 @@ export class ChainCastService implements IChainCastService {
         data.chainCastId
       );
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       if (chainCast.status !== "live") {
         throw new CustomError(
-          "ChainCast is not currently live",
+          ErrorMessages.CHAINCAST_NOT_LIVE,
           StatusCode.BAD_REQUEST
         );
       }
@@ -612,7 +669,7 @@ export class ChainCastService implements IChainCastService {
         );
       if (currentCount >= chainCast.maxParticipants) {
         throw new CustomError(
-          "ChainCast has reached maximum participant limit",
+          ErrorMessages.CHAINCAST_FULL,
           StatusCode.BAD_REQUEST
         );
       }
@@ -627,7 +684,7 @@ export class ChainCastService implements IChainCastService {
       if (existingParticipant && existingParticipant.isActive) {
         return {
           success: true,
-          message: "You are already in this ChainCast",
+          message: ErrorMessages.ALREADY_PARTICIPANT,
           streamUrl: chainCast.streamData.streamUrl,
         };
       }
@@ -682,21 +739,27 @@ export class ChainCastService implements IChainCastService {
 
       return {
         success: true,
-        message: "Successfully joined ChainCast",
+        message: SuccessMessages.JOIN_CHAINCAST_SUCCESS,
         streamUrl: chainCast.streamData.streamUrl,
       };
     } catch (error) {
-      logger.error("Join ChainCast error:", error);
+      logger.error(LoggerMessages.JOIN_CHAINCAST_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to join ChainCast",
+        ErrorMessages.FAILED_JOIN_CHAINCAST,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Leaves a ChainCast.
+   * @param {string} userId - User ID.
+   * @param {string} chainCastId - ChainCast ID.
+   * @returns {Promise<{ success: boolean; message: string }>} Result.
+   */
   async leaveChainCast(
     userId: string,
     chainCastId: string
@@ -711,7 +774,7 @@ export class ChainCastService implements IChainCastService {
       if (!participant || !participant.isActive) {
         return {
           success: true,
-          message: "You are not in this ChainCast",
+          message: ErrorMessages.NOT_PARTICIPANT,
         };
       }
 
@@ -730,21 +793,27 @@ export class ChainCastService implements IChainCastService {
 
       return {
         success: true,
-        message: "Successfully left ChainCast",
+        message: SuccessMessages.LEAVE_CHAINCAST_SUCCESS,
       };
     } catch (error) {
-      logger.error("Leave ChainCast error:", error);
+      logger.error(LoggerMessages.LEAVE_CHAINCAST_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to leave ChainCast",
+        ErrorMessages.FAILED_LEAVE_CHAINCAST,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
   // Participant management
+  /**
+   * Retrieves participants of a ChainCast.
+   * @param {string} chainCastId - ChainCast ID.
+   * @param {GetParticipantsQueryDto} query - Query parameters.
+   * @returns {Promise<ChainCastParticipantsListResponseDto>} List of participants.
+   */
   async getParticipants(
     chainCastId: string,
     query: GetParticipantsQueryDto
@@ -753,7 +822,7 @@ export class ChainCastService implements IChainCastService {
       const chainCast =
         await this._chainCastRepository.findChainCastById(chainCastId);
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       const limit = Math.min(query.limit || 20, 100);
@@ -797,17 +866,24 @@ export class ChainCastService implements IChainCastService {
         nextCursor
       );
     } catch (error) {
-      logger.error("Get participants error:", error);
+      logger.error(LoggerMessages.GET_PARTICIPANTS_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to get participants",
+        ErrorMessages.FAILED_GET_PARTICIPANTS,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Updates a participant's settings.
+   * @param {string} chainCastId - ChainCast ID.
+   * @param {string} userId - User ID.
+   * @param {UpdateParticipantDto} data - Update data.
+   * @returns {Promise<{ success: boolean; message: string }>} Result.
+   */
   async updateParticipant(
     chainCastId: string,
     userId: string,
@@ -822,7 +898,7 @@ export class ChainCastService implements IChainCastService {
 
       if (!participant || !participant.isActive) {
         throw new CustomError(
-          "You are not a participant in this ChainCast",
+          ErrorMessages.NOT_PARTICIPANT,
           StatusCode.FORBIDDEN
         );
       }
@@ -842,20 +918,28 @@ export class ChainCastService implements IChainCastService {
 
       return {
         success: true,
-        message: "Participant updated successfully",
+        message: SuccessMessages.PARTICIPANT_UPDATED,
       };
     } catch (error) {
-      logger.error("Update participant error:", error);
+      logger.error(LoggerMessages.UPDATE_PARTICIPANT_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to update participant",
+        ErrorMessages.FAILED_UPDATE_PARTICIPANT,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Removes a participant from a ChainCast.
+   * @param {string} adminId - Admin ID.
+   * @param {string} chainCastId - ChainCast ID.
+   * @param {string} participantId - Participant ID.
+   * @param {string} [reason] - Reason for removal.
+   * @returns {Promise<{ success: boolean; message: string }>} Result.
+   */
   async removeParticipant(
     adminId: string,
     chainCastId: string,
@@ -866,7 +950,7 @@ export class ChainCastService implements IChainCastService {
       const chainCast =
         await this._chainCastRepository.findChainCastById(chainCastId);
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Verify ownership
@@ -877,7 +961,7 @@ export class ChainCastService implements IChainCastService {
 
       if (adminIdFromCast !== adminId) {
         throw new CustomError(
-          "You are not authorized to remove participants",
+          ErrorMessages.UNAUTHORIZED_CHAINCAST_ACTION,
           StatusCode.FORBIDDEN
         );
       }
@@ -889,13 +973,13 @@ export class ChainCastService implements IChainCastService {
         );
 
       if (!participant || !participant.isActive) {
-        throw new CustomError("Participant not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.PARTICIPANT_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Cannot remove other admins
       if (participant.role === "admin") {
         throw new CustomError(
-          "Cannot remove community admin",
+          ErrorMessages.CANNOT_REMOVE_ADMIN,
           StatusCode.FORBIDDEN
         );
       }
@@ -914,21 +998,27 @@ export class ChainCastService implements IChainCastService {
 
       return {
         success: true,
-        message: "Participant removed successfully",
+        message: SuccessMessages.PARTICIPANT_REMOVED,
       };
     } catch (error) {
-      logger.error("Remove participant error:", error);
+      logger.error(LoggerMessages.REMOVE_PARTICIPANT_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to remove participant",
+        ErrorMessages.FAILED_REMOVE_PARTICIPANT,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
   // Moderation
+  /**
+   * Requests moderation permissions for a participant.
+   * @param {string} userId - User ID.
+   * @param {RequestModerationDto} data - Request data.
+   * @returns {Promise<{ success: boolean; message: string }>} Result.
+   */
   async requestModeration(
     userId: string,
     data: RequestModerationDto
@@ -938,12 +1028,12 @@ export class ChainCastService implements IChainCastService {
         data.chainCastId
       );
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       if (chainCast.status !== "live") {
         throw new CustomError(
-          "ChainCast is not currently live",
+          ErrorMessages.CHAINCAST_NOT_LIVE,
           StatusCode.BAD_REQUEST
         );
       }
@@ -957,14 +1047,14 @@ export class ChainCastService implements IChainCastService {
 
       if (!participant || !participant.isActive) {
         throw new CustomError(
-          "You must be a participant to request moderation",
+          ErrorMessages.MODERATION_REQUEST_NOT_PARTICIPANT,
           StatusCode.FORBIDDEN
         );
       }
 
       if (participant.role !== "viewer") {
         throw new CustomError(
-          "You already have moderation permissions",
+          ErrorMessages.ALREADY_MODERATOR,
           StatusCode.BAD_REQUEST
         );
       }
@@ -978,7 +1068,7 @@ export class ChainCastService implements IChainCastService {
 
       if (existingRequest) {
         throw new CustomError(
-          "You already have a pending moderation request",
+          ErrorMessages.PENDING_MOD_REQUEST,
           StatusCode.BAD_REQUEST
         );
       }
@@ -993,20 +1083,26 @@ export class ChainCastService implements IChainCastService {
 
       return {
         success: true,
-        message: "Moderation request submitted successfully",
+        message: SuccessMessages.MOD_REQUEST_SUBMITTED,
       };
     } catch (error) {
-      logger.error("Request moderation error:", error);
+      logger.error(LoggerMessages.REQUEST_MODERATION_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to request moderation",
+        ErrorMessages.FAILED_REQUEST_MODERATION,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Retrieves moderation requests.
+   * @param {string} adminId - Admin ID.
+   * @param {string} chainCastId - ChainCast ID.
+   * @returns {Promise<ChainCastModerationRequestsListResponseDto>} List of requests.
+   */
   async getModerationRequests(
     adminId: string,
     chainCastId: string
@@ -1015,7 +1111,7 @@ export class ChainCastService implements IChainCastService {
       const chainCast =
         await this._chainCastRepository.findChainCastById(chainCastId);
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Verify ownership
@@ -1026,7 +1122,7 @@ export class ChainCastService implements IChainCastService {
 
       if (adminIdFromCast !== adminId) {
         throw new CustomError(
-          "You are not authorized to view moderation requests",
+          ErrorMessages.UNAUTHORIZED_MODERATION,
           StatusCode.FORBIDDEN
         );
       }
@@ -1060,17 +1156,23 @@ export class ChainCastService implements IChainCastService {
         pendingCount
       );
     } catch (error) {
-      logger.error("Get moderation requests error:", error);
+      logger.error(LoggerMessages.GET_MODERATION_REQUESTS_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to get moderation requests",
+        ErrorMessages.FAILED_GET_MODERATION_REQUESTS,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Reviews a moderation request.
+   * @param {string} adminId - Admin ID.
+   * @param {ReviewModerationRequestDto} data - Review data.
+   * @returns {Promise<{ success: boolean; message: string }>} Result.
+   */
   async reviewModerationRequest(
     adminId: string,
     data: ReviewModerationRequestDto
@@ -1081,7 +1183,7 @@ export class ChainCastService implements IChainCastService {
       );
       if (!request) {
         throw new CustomError(
-          "Moderation request not found",
+          ErrorMessages.MOD_REQUEST_NOT_FOUND,
           StatusCode.NOT_FOUND
         );
       }
@@ -1090,7 +1192,7 @@ export class ChainCastService implements IChainCastService {
         request.chainCastId.toString()
       );
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Verify ownership
@@ -1101,14 +1203,14 @@ export class ChainCastService implements IChainCastService {
 
       if (adminIdFromCast !== adminId) {
         throw new CustomError(
-          "You are not authorized to review this request",
+          ErrorMessages.UNAUTHORIZED_MODERATION,
           StatusCode.FORBIDDEN
         );
       }
 
       if (request.status !== "pending") {
         throw new CustomError(
-          "Request has already been reviewed",
+          ErrorMessages.MOD_REQUEST_REVIEWED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -1145,18 +1247,24 @@ export class ChainCastService implements IChainCastService {
         message: `Moderation request ${data.status} successfully`,
       };
     } catch (error) {
-      logger.error("Review moderation request error:", error);
+      logger.error(LoggerMessages.REVIEW_MODERATION_REQUEST_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to review moderation request",
+        ErrorMessages.FAILED_REVIEW_MODERATION,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
   // Reactions
+  /**
+   * Adds a reaction to a ChainCast.
+   * @param {string} userId - User ID.
+   * @param {AddReactionDto} data - Reaction data.
+   * @returns {Promise<{ success: boolean; message: string }>} Result.
+   */
   async addReaction(
     userId: string,
     data: AddReactionDto
@@ -1166,19 +1274,19 @@ export class ChainCastService implements IChainCastService {
         data.chainCastId
       );
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       if (chainCast.status !== "live") {
         throw new CustomError(
-          "ChainCast is not currently live",
+          ErrorMessages.CHAINCAST_NOT_LIVE,
           StatusCode.BAD_REQUEST
         );
       }
 
       if (!chainCast.settings.allowReactions) {
         throw new CustomError(
-          "Reactions are not allowed in this ChainCast",
+          ErrorMessages.REACTIONS_DISABLED,
           StatusCode.FORBIDDEN
         );
       }
@@ -1197,20 +1305,26 @@ export class ChainCastService implements IChainCastService {
 
       return {
         success: true,
-        message: "Reaction added successfully",
+        message: SuccessMessages.REACTION_ADDED,
       };
     } catch (error) {
-      logger.error("Add reaction error:", error);
+      logger.error(LoggerMessages.ADD_REACTION_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to add reaction",
+        ErrorMessages.FAILED_ADD_REACTION,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Retrieves reactions for a ChainCast.
+   * @param {string} chainCastId - ChainCast ID.
+   * @param {GetReactionsQueryDto} query - Query parameters.
+   * @returns {Promise<ChainCastReactionsListResponseDto>} List of reactions.
+   */
   async getReactions(
     chainCastId: string,
     query: GetReactionsQueryDto
@@ -1219,7 +1333,7 @@ export class ChainCastService implements IChainCastService {
       const chainCast =
         await this._chainCastRepository.findChainCastById(chainCastId);
       if (!chainCast) {
-        throw new CustomError("ChainCast not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       const limit = Math.min(query.limit || 50, 100);
@@ -1254,24 +1368,30 @@ export class ChainCastService implements IChainCastService {
         nextCursor
       );
     } catch (error) {
-      logger.error("Get reactions error:", error);
+      logger.error(LoggerMessages.GET_REACTIONS_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to get reactions",
+        ErrorMessages.FAILED_GET_REACTIONS,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
   // Analytics
+  /**
+   * Retrieves analytics for ChainCasts.
+   * @param {string} adminId - Admin ID.
+   * @param {string} [period] - Time period.
+   * @returns {Promise<any>} Analytics data.
+   */
   async getChainCastAnalytics(adminId: string, period?: string): Promise<any> {
     try {
       const admin = await this._adminRepository.findById(adminId);
       if (!admin || !admin.communityId) {
         throw new CustomError(
-          "Community admin not found",
+          ErrorMessages.ADMIN_NOT_FOUND,
           StatusCode.NOT_FOUND
         );
       }
@@ -1306,18 +1426,24 @@ export class ChainCastService implements IChainCastService {
         data: analytics,
       };
     } catch (error) {
-      logger.error("Get ChainCast analytics error:", error);
+      logger.error(LoggerMessages.GET_CHAINCAST_ANALYTICS_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to get analytics",
+        ErrorMessages.FAILED_GET_ANALYTICS,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
   // Utility methods
+  /**
+   * Checks if a user can join a ChainCast.
+   * @param {string} userId - User ID.
+   * @param {string} chainCastId - ChainCast ID.
+   * @returns {Promise<{ canJoin: boolean; reason?: string }>} Check result.
+   */
   async canUserJoinChainCast(
     userId: string,
     chainCastId: string
@@ -1343,7 +1469,7 @@ export class ChainCastService implements IChainCastService {
       // Liberal join policy - allow users to join
       return { canJoin: true };
     } catch (error) {
-      logger.error("Can user join ChainCast error:", error);
+      logger.error(LoggerMessages.CAN_USER_JOIN_CHAINCAST_ERROR, error);
       return { canJoin: false, reason: "Error checking permissions" };
     }
   }

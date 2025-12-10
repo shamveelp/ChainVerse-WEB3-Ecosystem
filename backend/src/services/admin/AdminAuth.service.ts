@@ -14,8 +14,15 @@ export class AdminAuthService implements IAdminAuthService {
   constructor(
     @inject(TYPES.IAdminRepository) private _adminRepository: IAdminRepository,
     @inject(TYPES.IJwtService) private _jwtService: IJwtService
-  ) {}
+  ) { }
 
+  /**
+   * Authenticates an admin user.
+   * @param {string} email - Admin email.
+   * @param {string} password - Admin password.
+   * @returns {Promise<any>} Containing admin details and tokens.
+   * @throws {CustomError} If authentication fails.
+   */
   async login(email: string, password: string) {
     const admin = await this._adminRepository.findByEmail(email);
     if (!admin) {
@@ -32,8 +39,8 @@ export class AdminAuthService implements IAdminAuthService {
     }
 
     // Update last login
-    await this._adminRepository.updateById(admin._id.toString(), { 
-      lastLogin: new Date() 
+    await this._adminRepository.updateById(admin._id.toString(), {
+      lastLogin: new Date()
     });
 
     const adminId = admin._id.toString();
@@ -54,10 +61,22 @@ export class AdminAuthService implements IAdminAuthService {
     };
   }
 
+  /**
+   * Retrieves an admin by ID.
+   * @param {string} id - Admin ID.
+   * @returns {Promise<IAdmin | null>} The admin object or null.
+   */
   async getAdminById(id: string): Promise<IAdmin | null> {
     return await this._adminRepository.findById(id);
   }
 
+  /**
+   * Resets an admin's password (forgot password flow).
+   * @param {string} email - Admin email.
+   * @param {string} password - New password.
+   * @returns {Promise<void>}
+   * @throws {CustomError} If admin is not found.
+   */
   async resetPassword(email: string, password: string): Promise<void> {
     const admin = await this._adminRepository.findByEmail(email);
     if (!admin) {
@@ -71,6 +90,14 @@ export class AdminAuthService implements IAdminAuthService {
     });
   }
 
+  /**
+   * Changes an admin's password (authenticated flow).
+   * @param {string} adminId - Admin ID.
+   * @param {string} currentPassword - Current password.
+   * @param {string} newPassword - New password.
+   * @returns {Promise<void>}
+   * @throws {CustomError} If admin not found or current password incorrect.
+   */
   async changePassword(adminId: string, currentPassword: string, newPassword: string): Promise<void> {
     const admin = await this._adminRepository.findById(adminId);
     if (!admin) {
@@ -79,7 +106,7 @@ export class AdminAuthService implements IAdminAuthService {
 
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, admin.password);
     if (!isCurrentPasswordValid) {
-      throw new CustomError("Current password is incorrect", StatusCode.BAD_REQUEST);
+      throw new CustomError(ErrorMessages.INVALID_CURRENT_PASSWORD, StatusCode.BAD_REQUEST);
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
@@ -89,8 +116,12 @@ export class AdminAuthService implements IAdminAuthService {
     });
   }
 
+  /**
+   * Increments the token version for an admin (invalidating tokens).
+   * @param {string} adminId - Admin ID.
+   * @returns {Promise<void>}
+   */
   async incrementTokenVersion(adminId: string): Promise<void> {
-    
     await this._adminRepository.incrementTokenVersion(adminId);
   }
 }

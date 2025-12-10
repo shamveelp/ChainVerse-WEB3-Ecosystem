@@ -12,14 +12,24 @@ import {
 } from "../../dtos/aiTrading/AiTrading.dto";
 import logger from "../../utils/logger";
 import axios from 'axios';
+import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class AITradingService implements IAITradingService {
     constructor(
-        @inject(TYPES.IAIChatHistoryRepository) private _chatHistoryRepository: IAIChatHistoryRepository,     
+        @inject(TYPES.IAIChatHistoryRepository) private _chatHistoryRepository: IAIChatHistoryRepository,
         @inject(TYPES.IDexRepository) private _dexRepository: IDexRepository
-    ) {}
+    ) { }
 
+    /**
+     * Processes a user message for AI trading chat.
+     * @param {string} message - User message.
+     * @param {string} sessionId - Session ID.
+     * @param {string} [userId] - User ID.
+     * @param {string} [walletAddress] - Wallet address.
+     * @param {any} [context] - Additional context.
+     * @returns {Promise<AIChatResponseDto>} AI response.
+     */
     async processMessage(
         message: string,
         sessionId: string,
@@ -57,8 +67,8 @@ export class AITradingService implements IAITradingService {
                 // Check if wallet connection required 
                 if (!walletAddress && (intent.action === 'buy' || intent.action === 'sell' || intent.action === 'swap')) {
                     actionRequired = {
-                        type: 'connect_wallet',        
-                        message: 'Please connect your wallet to execute trades',
+                        type: 'connect_wallet',
+                        message: ErrorMessages.CONNECT_WALLET_MSG,
                         data: { intent }
                     };
                 }
@@ -68,9 +78,9 @@ export class AITradingService implements IAITradingService {
                 aiResponse = await this.handleGeneralQuery(message, context, walletAddress);
                 suggestions = [
                     "What tokens are available to trade? 📊",
-                    "Show me current prices 💰",     
+                    "Show me current prices 💰",
                     "How do I swap ETH for CoinA? 🔄",
-                    "Calculate swap for 0.01 ETH ⚡"  
+                    "Calculate swap for 0.01 ETH ⚡"
                 ];
             }
 
@@ -84,12 +94,20 @@ export class AITradingService implements IAITradingService {
 
             return new AIChatResponseDto(aiResponse, sessionId, suggestions, actionRequired);
         } catch (error) {
-            logger.error('Error processing AI message:', error);
-            const fallbackResponse = "I'm having trouble processing your request right now. Please try again! 🤖";
+            logger.error(LoggerMessages.AI_PROCESSING_ERROR, error);
+            const fallbackResponse = ErrorMessages.AI_PROCESSING_FALLBACK;
             return new AIChatResponseDto(fallbackResponse, sessionId);
         }
     }
 
+    /**
+     * Analyzes a potential trade.
+     * @param {string} fromToken - Source token symbol.
+     * @param {string} toToken - Target token symbol.
+     * @param {string} amount - Amount to trade.
+     * @param {string} [walletAddress] - Wallet address.
+     * @returns {Promise<TradeAnalysisDto>} Trade analysis.
+     */
     async analyzeTradeOpportunity(
         fromToken: string,
         toToken: string,
@@ -112,29 +130,33 @@ export class AITradingService implements IAITradingService {
             );
 
             // Calculate risk level based on amount and price impact
-            const riskLevel = this.calculateRiskLevel( 
+            const riskLevel = this.calculateRiskLevel(
                 parseFloat(amount),
-                parseFloat(swapEstimate.priceImpact)   
+                parseFloat(swapEstimate.priceImpact)
             );
 
             return new TradeAnalysisDto({
                 analysis,
                 estimatedOutput: swapEstimate.estimatedOutput,
-                priceImpact: swapEstimate.priceImpact, 
+                priceImpact: swapEstimate.priceImpact,
                 gasFee: swapEstimate.gasFee,
-                recommendation: this.getTradeRecommendation(riskLevel, parseFloat(swapEstimate.priceImpact)), 
+                recommendation: this.getTradeRecommendation(riskLevel, parseFloat(swapEstimate.priceImpact)),
                 riskLevel
             });
         } catch (error) {
-            logger.error('Error analyzing trade opportunity:', error);
+            logger.error(LoggerMessages.ANALYZE_TRADE_ERROR, error);
             throw error;
         }
     }
 
+    /**
+     * Retrieves available tokens and their prices.
+     * @returns {Promise<TokenPriceInfoDto[]>} List of tokens.
+     */
     async getAvailableTokens(): Promise<TokenPriceInfoDto[]> {
         try {
             const realPrices = await this.getCurrentTokenPrices();
-            
+
             const tokens = [
                 {
                     symbol: 'ETH',
@@ -164,11 +186,18 @@ export class AITradingService implements IAITradingService {
 
             return tokens.map(token => new TokenPriceInfoDto(token));
         } catch (error) {
-            logger.error('Error getting available tokens:', error);
+            logger.error(LoggerMessages.GET_AVAILABLE_TOKENS_ERROR, error);
             throw error;
         }
     }
 
+    /**
+     * Calculates swap details.
+     * @param {string} fromToken - Source token.
+     * @param {string} toToken - Target token.
+     * @param {string} amount - Amount to swap.
+     * @returns {Promise<Object>} Swap estimates.
+     */
     async calculateSwapEstimate(
         fromToken: string,
         toToken: string,
@@ -180,7 +209,7 @@ export class AITradingService implements IAITradingService {
         gasFee: string;
     }> {
         try {
-            const inputAmount = parseFloat(amount);    
+            const inputAmount = parseFloat(amount);
             let exchangeRate = 1;
 
             // Get real-time prices for better estimates
@@ -212,34 +241,45 @@ export class AITradingService implements IAITradingService {
 
             return {
                 estimatedOutput: estimatedOutput.toFixed(6),
-                priceImpact: priceImpact.toFixed(2),   
+                priceImpact: priceImpact.toFixed(2),
                 minimumReceived: minimumReceived.toFixed(6),
                 gasFee
             };
         } catch (error) {
-            logger.error('Error calculating swap estimate:', error);
+            logger.error(LoggerMessages.CALCULATE_SWAP_ERROR, error);
             throw error;
         }
     }
 
+    /**
+     * Retrieves chat history for a session.
+     * @param {string} sessionId - Session ID.
+     * @param {number} [limit=20] - Number of messages.
+     * @returns {Promise<ChatHistoryResponseDto>} Chat history.
+     */
     async getChatHistory(
         sessionId: string,
         limit: number = 20
     ): Promise<ChatHistoryResponseDto> {
         try {
-            const chatHistory = await this._chatHistoryRepository.getSessionHistory(sessionId, limit);        
+            const chatHistory = await this._chatHistoryRepository.getSessionHistory(sessionId, limit);
 
             if (!chatHistory) {
-                throw new Error('Chat session not found');
+                throw new Error(ErrorMessages.CHAT_SESSION_NOT_FOUND);
             }
 
             return new ChatHistoryResponseDto(chatHistory);
         } catch (error) {
-            logger.error('Error getting chat history:', error);
+            logger.error(LoggerMessages.GET_CHAT_HISTORY_ERROR, error);
             throw error;
         }
     }
 
+    /**
+     * Detects trading intent from a message.
+     * @param {string} message - User message.
+     * @returns {Promise<Object>} Detected intent.
+     */
     async detectTradingIntent(message: string): Promise<{
         isTradeIntent: boolean;
         fromToken?: string;
@@ -247,19 +287,19 @@ export class AITradingService implements IAITradingService {
         amount?: string;
         action: 'buy' | 'sell' | 'swap' | 'info' | 'general';
     }> {
-        const lowerMessage = message.toLowerCase();    
+        const lowerMessage = message.toLowerCase();
 
         // Detect tokens - improved detection
-        const tokens = ['eth', 'ethereum', 'coina', 'coinb', 'coin a', 'coin b'];      
+        const tokens = ['eth', 'ethereum', 'coina', 'coinb', 'coin a', 'coin b'];
         const foundTokens = tokens.filter(token => lowerMessage.includes(token));
 
         // Detect amounts - improved regex
-        const amountRegex = /\b(\d+(?:\.\d+)?)\b/g;      
+        const amountRegex = /\b(\d+(?:\.\d+)?)\b/g;
         const amounts = lowerMessage.match(amountRegex);
 
         // Detect trading keywords
         const buyKeywords = ['buy', 'purchase', 'get', 'acquire'];
-        const sellKeywords = ['sell', 'dispose', 'liquidate'];      
+        const sellKeywords = ['sell', 'dispose', 'liquidate'];
         const swapKeywords = ['swap', 'exchange', 'trade', 'convert', 'change'];
         const infoKeywords = ['price', 'cost', 'worth', 'value', 'how much', 'current', 'rate'];
 
@@ -293,6 +333,12 @@ export class AITradingService implements IAITradingService {
         };
     }
 
+    /**
+     * Generates smart suggestions based on user message.
+     * @param {string} message - User message.
+     * @param {any} [context] - Context.
+     * @returns {Promise<string[]>} Suggestions.
+     */
     async generateSmartSuggestions(
         message: string,
         context?: any
@@ -303,8 +349,8 @@ export class AITradingService implements IAITradingService {
             return this.generateTradingSuggestions(intent, context);
         } else {
             return [
-                "What tokens can I trade? 📊",       
-                "Show current token prices 💰",      
+                "What tokens can I trade? 📊",
+                "Show current token prices 💰",
                 "How to swap 0.01 ETH for CoinA? 🔄",
                 "What's the best trading strategy? 🎯"
             ];
@@ -318,9 +364,9 @@ export class AITradingService implements IAITradingService {
         walletAddress?: string
     ): Promise<string> {
         const aiContext = {
-            walletConnected: !!walletAddress, 
+            walletConnected: !!walletAddress,
             tokenPrices: await this.getCurrentTokenPrices(),
-            userBalances: context?.userBalances,       
+            userBalances: context?.userBalances,
             recentTransaction: context?.recentTransaction
         };
 
@@ -341,14 +387,14 @@ export class AITradingService implements IAITradingService {
     }
 
     private async handleGeneralQuery(
-        message: string, 
-        context?: any, 
+        message: string,
+        context?: any,
         walletAddress?: string
     ): Promise<string> {
         const aiContext = {
-            walletConnected: !!walletAddress, 
+            walletConnected: !!walletAddress,
             tokenPrices: await this.getCurrentTokenPrices(),
-            userBalances: context?.userBalances        
+            userBalances: context?.userBalances
         };
 
         return await langChainConfig.generateResponse(message, aiContext);
@@ -358,9 +404,9 @@ export class AITradingService implements IAITradingService {
         try {
             const estimate = await this.calculateSwapEstimate(fromToken, toToken, '1');
             const tokenPrices = await this.getCurrentTokenPrices();
-            
-            return `💰 **Current ${fromToken}/${toToken} Trading Information**
 
+            return `💰 **Current ${fromToken}/${toToken} Trading Information**
+            
 **Exchange Rate:**
 • 1 ${fromToken} = ${estimate.estimatedOutput} ${toToken}
 
@@ -376,7 +422,8 @@ export class AITradingService implements IAITradingService {
 Ready to make a trade? Just tell me the amount you want to swap! 🚀`;
 
         } catch (error) {
-            logger.error('Error generating price info:', error);
+            logger.error(LoggerMessages.GENERATE_PRICE_INFO_ERROR, error);
+            // Fallback
             return `I'm having trouble fetching the current price for ${fromToken}/${toToken}. Please try again! 📊`;
         }
     }
@@ -389,7 +436,7 @@ Ready to make a trade? Just tell me the amount you want to swap! 🚀`;
     ): Promise<string> {
         try {
             const estimate = await this.calculateSwapEstimate(fromToken, toToken, amount);
-            
+
             return `🔄 **Swap Proposal Ready!**
 
 **Trade Details:**
@@ -410,8 +457,8 @@ Ready to proceed? Type "**execute trade**" or click the trade button! ✨
 *Note: Always verify transaction details before confirming!* ⚠️`;
 
         } catch (error) {
-            logger.error('Error generating swap proposal:', error);
-            return `I encountered an error calculating your swap. Please check the token symbols and amount, then try again! 🤖`;
+            logger.error(LoggerMessages.GENERATE_SWAP_PROPOSAL_ERROR, error);
+            return ErrorMessages.AI_SWAP_ERROR;
         }
     }
 
@@ -420,7 +467,7 @@ Ready to proceed? Type "**execute trade**" or click the trade button! ✨
 
         if (intent.action === 'info') {
             suggestions.push(
-                "Check current ETH/CoinA price 📈",  
+                "Check current ETH/CoinA price 📈",
                 "Calculate swap for different amount 🔢",
                 "View 24h price changes 📊"
             );
@@ -428,11 +475,11 @@ Ready to proceed? Type "**execute trade**" or click the trade button! ✨
             suggestions.push(
                 "Execute this trade 🚀",
                 "Analyze price impact ⚠️",
-                "Check slippage settings ⚙️"        
+                "Check slippage settings ⚙️"
             );
         }
 
-        suggestions.push("View trading guide 📚");   
+        suggestions.push("View trading guide 📚");
 
         return suggestions;
     }
@@ -449,44 +496,44 @@ Ready to proceed? Type "**execute trade**" or click the trade button! ✨
                     ethPriceUSD = response.data.ethereum.usd;
                 }
             } catch (apiError) {
-                logger.warn('Failed to fetch real ETH price, using default:', apiError);
+                logger.warn(LoggerMessages.FETCH_ETH_PRICE_WARNING, apiError);
             }
 
             // Calculate derived prices for test tokens
             const coinAExchangeRate = 1180.5; // 1 ETH = 1180.5 CoinA
             const coinBExchangeRate = 810.2;  // 1 ETH = 810.2 CoinB
-            
+
             const coinAPriceUSD = ethPriceUSD / coinAExchangeRate;
             const coinBPriceUSD = ethPriceUSD / coinBExchangeRate;
 
             return {
-                ETH: { 
-                    price: ethPriceUSD, 
+                ETH: {
+                    price: ethPriceUSD,
                     priceInUSD: ethPriceUSD.toFixed(2),
                     priceInETH: '1.0',
                     change24h: '+2.5%',
                     exchangeRate: 1
-                },      
-                CoinA: { 
-                    price: coinAPriceUSD, 
+                },
+                CoinA: {
+                    price: coinAPriceUSD,
                     priceInUSD: coinAPriceUSD.toFixed(2),
-                    priceInETH: (1 / coinAExchangeRate).toFixed(6), 
+                    priceInETH: (1 / coinAExchangeRate).toFixed(6),
                     change24h: '+5.2%',
                     exchangeRate: coinAExchangeRate
                 },
-                CoinB: { 
-                    price: coinBPriceUSD, 
+                CoinB: {
+                    price: coinBPriceUSD,
                     priceInUSD: coinBPriceUSD.toFixed(2),
-                    priceInETH: (1 / coinBExchangeRate).toFixed(6), 
+                    priceInETH: (1 / coinBExchangeRate).toFixed(6),
                     change24h: '-1.8%',
                     exchangeRate: coinBExchangeRate
                 }
             };
         } catch (error) {
-            logger.error('Error fetching current token prices:', error);
+            logger.error(LoggerMessages.FETCH_TOKEN_PRICES_ERROR, error);
             // Return fallback prices
             return {
-                ETH: { price: 2800, priceInUSD: '2800.00', priceInETH: '1.0', change24h: '+2.5%', exchangeRate: 1 },      
+                ETH: { price: 2800, priceInUSD: '2800.00', priceInETH: '1.0', change24h: '+2.5%', exchangeRate: 1 },
                 CoinA: { price: 2.37, priceInUSD: '2.37', priceInETH: '0.000847', change24h: '+5.2%', exchangeRate: 1180.5 },
                 CoinB: { price: 3.45, priceInUSD: '3.45', priceInETH: '0.001234', change24h: '-1.8%', exchangeRate: 810.2 }
             };

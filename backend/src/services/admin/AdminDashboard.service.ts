@@ -11,6 +11,10 @@ export class AdminDashboardService implements IAdminDashboardService {
         @inject(TYPES.IDexRepository) private _dexRepository: IDexRepository
     ) { }
 
+    /**
+     * Retrieves dashboard statistics including user count and wallet count.
+     * @returns {Promise<{ usersCount: number; walletsCount: number; }>} Dashboard stats.
+     */
     async getDashboardStats(): Promise<{
         usersCount: number;
         walletsCount: number;

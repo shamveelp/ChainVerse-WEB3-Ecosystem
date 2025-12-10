@@ -9,16 +9,23 @@ import { ITransaction } from "../../models/transactions.model";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
+import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class AdminWalletService implements IAdminWalletService {
   constructor(
     @inject(TYPES.IDexRepository) private _dexRepository: IDexRepository
-  ) {}
+  ) { }
 
   private etherscanService = new EtherscanService();
   private blockchainService = new BlockchainService();
 
+  /**
+   * Retrieves all wallets with pagination.
+   * @param {number} [page=1] - Page number.
+   * @param {number} [limit=20] - Items per page.
+   * @returns {Promise<any>} Paginated wallets.
+   */
   async getAllWallets(page: number = 1, limit: number = 20): Promise<{
     wallets: IWallet[];
     total: number;
@@ -38,11 +45,16 @@ export class AdminWalletService implements IAdminWalletService {
         totalPages,
       };
     } catch (error) {
-      logger.error("Error getting all wallets:", error);
-      throw new CustomError("Failed to get wallets", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_ALL_WALLETS_ERROR, error);
+      throw new CustomError(ErrorMessages.FAILED_GET_WALLETS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves wallet details by address.
+   * @param {string} address - Wallet address.
+   * @returns {Promise<IWallet | null>} Wallet details.
+   */
   async getWalletDetails(address: string): Promise<IWallet | null> {
     try {
       const wallet = await this._dexRepository.findWalletByAddress(address);
@@ -61,20 +73,31 @@ export class AdminWalletService implements IAdminWalletService {
 
       return wallet;
     } catch (error) {
-      logger.error("Error getting wallet details:", error);
-      throw new CustomError("Failed to get wallet details", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_WALLET_DETAILS_ERROR, error);
+      throw new CustomError(ErrorMessages.FAILED_GET_WALLET_DETAILS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves wallet statistics.
+   * @returns {Promise<WalletStatsResponse>} Wallet stats.
+   */
   async getWalletStats(): Promise<WalletStatsResponse> {
     try {
       return await this._dexRepository.getWalletStats();
     } catch (error) {
-      logger.error("Error getting wallet stats:", error);
-      throw new CustomError("Failed to get wallet statistics", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_WALLET_STATS_ERROR, error);
+      throw new CustomError(ErrorMessages.FAILED_GET_WALLET_STATS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves transactions for a wallet.
+   * @param {string} address - Wallet address.
+   * @param {number} [page=1] - Page number.
+   * @param {number} [limit=20] - Items per page.
+   * @returns {Promise<any>} List of transactions.
+   */
   async getWalletTransactions(address: string, page: number = 1, limit: number = 20): Promise<{
     transactions: ITransaction[];
     total: number;
@@ -82,11 +105,18 @@ export class AdminWalletService implements IAdminWalletService {
     try {
       return await this._dexRepository.getTransactionsByWallet(address, page, limit);
     } catch (error) {
-      logger.error("Error getting wallet transactions:", error);
-      throw new CustomError("Failed to get wallet transactions", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_WALLET_TRANSACTIONS_ERROR, error);
+      throw new CustomError(ErrorMessages.FAILED_GET_WALLET_TRANSACTIONS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves blockchain transactions for a wallet.
+   * @param {string} address - Wallet address.
+   * @param {number} [page=1] - Page number.
+   * @param {number} [limit=20] - Items per page.
+   * @returns {Promise<any>} Blockchain transactions.
+   */
   async getWalletBlockchainTransactions(address: string, page: number = 1, limit: number = 20): Promise<{
     transactions: BlockchainTransaction[];
     total: number;
@@ -97,50 +127,73 @@ export class AdminWalletService implements IAdminWalletService {
     try {
       return await this.blockchainService.getWalletTransactions(address, page, limit);
     } catch (error) {
-      logger.error("Error getting wallet blockchain transactions:", error);
+      logger.error(LoggerMessages.GET_WALLET_BLOCKCHAIN_TRANSACTIONS_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
-      throw new CustomError("Failed to get blockchain transactions", StatusCode.INTERNAL_SERVER_ERROR);
+      throw new CustomError(ErrorMessages.FAILED_GET_BLOCKCHAIN_TRANSACTIONS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves contract interactions for a wallet.
+   * @param {string} address - Wallet address.
+   * @returns {Promise<ContractInteraction[]>} List of interactions.
+   */
   async getWalletContractInteractions(address: string): Promise<ContractInteraction[]> {
     try {
       return await this.blockchainService.getContractInteractions(address);
     } catch (error) {
-      logger.error("Error getting wallet contract interactions:", error);
+      logger.error(LoggerMessages.GET_WALLET_CONTRACT_INTERACTIONS_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
-      throw new CustomError("Failed to get contract interactions", StatusCode.INTERNAL_SERVER_ERROR);
+      throw new CustomError(ErrorMessages.FAILED_GET_CONTRACT_INTERACTIONS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves wallet history from Etherscan.
+   * @param {string} address - Wallet address.
+   * @param {number} [page=1] - Page number.
+   * @param {number} [limit=20] - Items per page.
+   * @returns {Promise<WalletHistoryResponse>} Etherscan history.
+   */
   async getWalletHistoryFromEtherscan(address: string, page: number = 1, limit: number = 20): Promise<WalletHistoryResponse> {
     try {
       return await this.etherscanService.getWalletTransactions(address, page, limit, false);
     } catch (error) {
-      logger.error("Error getting wallet history from Etherscan:", error);
+      logger.error(LoggerMessages.GET_WALLET_ETHERSCAN_HISTORY_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
-      throw new CustomError("Failed to get wallet history from Etherscan", StatusCode.INTERNAL_SERVER_ERROR);
+      throw new CustomError(ErrorMessages.FAILED_GET_WALLET_ETHERSCAN_HISTORY, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves wallet app history.
+   * @param {string} address - Wallet address.
+   * @param {number} [page=1] - Page number.
+   * @param {number} [limit=20] - Items per page.
+   * @returns {Promise<WalletHistoryResponse>} App history.
+   */
   async getWalletAppHistory(address: string, page: number = 1, limit: number = 20): Promise<WalletHistoryResponse> {
     try {
       return await this.etherscanService.getWalletTransactions(address, page, limit, true);
     } catch (error) {
-      logger.error("Error getting wallet app history from Etherscan:", error);
+      logger.error(LoggerMessages.GET_WALLET_APP_HISTORY_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
-      throw new CustomError("Failed to get wallet app history from Etherscan", StatusCode.INTERNAL_SERVER_ERROR);
+      throw new CustomError(ErrorMessages.FAILED_GET_WALLET_APP_HISTORY, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Exports wallet data.
+   * @returns {Promise<any[]>} Exported data.
+   */
   async exportWalletData(): Promise<any[]> {
     try {
       const { wallets } = await this._dexRepository.getAllWallets();
@@ -183,16 +236,22 @@ export class AdminWalletService implements IAdminWalletService {
 
       return exportData;
     } catch (error) {
-      logger.error("Error exporting wallet data:", error);
-      throw new CustomError("Failed to export wallet data", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.EXPORT_WALLET_DATA_ERROR, error);
+      throw new CustomError(ErrorMessages.FAILED_EXPORT_WALLET_DATA, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Refreshes wallet data.
+   * @param {string} address - Wallet address.
+   * @returns {Promise<IWallet | null>} Updated wallet.
+   * @throws {CustomError} If wallet not found or refresh fails.
+   */
   async refreshWalletData(address: string): Promise<IWallet | null> {
     try {
       const wallet = await this._dexRepository.findWalletByAddress(address);
       if (!wallet) {
-        throw new CustomError("Wallet not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.WALLET_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Update last connected time
@@ -203,11 +262,11 @@ export class AdminWalletService implements IAdminWalletService {
 
       return updatedWallet;
     } catch (error) {
-      logger.error("Error refreshing wallet data:", error);
+      logger.error(LoggerMessages.REFRESH_WALLET_DATA_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
-      throw new CustomError("Failed to refresh wallet data", StatusCode.INTERNAL_SERVER_ERROR);
+      throw new CustomError(ErrorMessages.FAILED_REFRESH_WALLET_DATA, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 

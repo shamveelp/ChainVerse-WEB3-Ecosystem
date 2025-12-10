@@ -2,6 +2,7 @@ import { injectable } from "inversify";
 import nodemailer from "nodemailer";
 import { IMailService } from "../core/interfaces/services/IMail.service";
 import logger from "../utils/logger";
+import { ErrorMessages, LoggerMessages } from "../enums/messages.enum";
 
 @injectable()
 export class MailService implements IMailService {
@@ -44,6 +45,14 @@ export class MailService implements IMailService {
     }
   }
 
+  /**
+   * Sends an OTP email for verification or password reset.
+   * @param {string} email - The recipient's email address.
+   * @param {string} otp - The One-Time Password to send.
+   * @param {'verification' | 'forgotPassword'} type - The type of OTP (verification or password reset).
+   * @returns {Promise<void>}
+   * @throws {Error} If sending the email fails (except in development mode).
+   */
   async sendOtp(email: string, otp: string, type: 'verification' | 'forgotPassword'): Promise<void> {
     try {
       const subject = type === 'verification' ? 'Email Verification OTP' : 'Password Reset OTP';
@@ -89,17 +98,23 @@ export class MailService implements IMailService {
 
       logger.info(`Email sent successfully to: ${email}`);
     } catch (error) {
-      logger.error("Error sending email:", error);
+      logger.error(LoggerMessages.SEND_EMAIL_ERROR, error);
       // In development, don't throw error for email sending issues if we were trying to send real email
       if (process.env.NODE_ENV === 'development') {
         // Maybe user has wrong credentials?
         logger.warn("Failed to send email in development. Please check your SMTP credentials.");
       } else {
-        throw new Error("Failed to send verification email");
+        throw new Error(ErrorMessages.FAILED_SEND_EMAIL);
       }
     }
   }
 
+  /**
+   * Sends a community approval email to the user.
+   * @param {string} email - The recipient's email address.
+   * @param {string} communityName - The name of the approved community.
+   * @returns {Promise<void>}
+   */
   async sendCommunityApprovalEmail(email: string, communityName: string): Promise<void> {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -128,6 +143,13 @@ export class MailService implements IMailService {
     logger.info(`Community approval email sent to: ${email}`);
   }
 
+  /**
+   * Sends a community rejection email to the user.
+   * @param {string} email - The recipient's email address.
+   * @param {string} communityName - The name of the rejected community.
+   * @param {string} reason - The reason for rejection.
+   * @returns {Promise<void>}
+   */
   async sendCommunityRejectionEmail(email: string, communityName: string, reason: string): Promise<void> {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -158,6 +180,11 @@ export class MailService implements IMailService {
     logger.info(`Community rejection email sent to: ${email}`);
   }
 
+  /**
+   * Sends a password reset confirmation email.
+   * @param {string} email - The recipient's email address.
+   * @returns {Promise<void>}
+   */
   async sendPasswordResetConfirmation(email: string): Promise<void> {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

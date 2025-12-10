@@ -11,8 +11,15 @@ import { ErrorMessages } from '../../enums/messages.enum';
 export class AdminUserService implements IAdminUserService {
   constructor(
     @inject(TYPES.IUserRepository) private _userRepository: IUserRepository,
-  ) {}
+  ) { }
 
+  /**
+   * Retrieves all users with pagination.
+   * @param {number} page - Page number.
+   * @param {number} limit - Items per page.
+   * @param {string} search - Search query.
+   * @returns {Promise<any>} Paginated users.
+   */
   async getAllUsers(page: number, limit: number, search: string) {
     const skip = (page - 1) * limit;
     const users = await this._userRepository.findAllWithPagination(skip, limit, search);
@@ -28,10 +35,22 @@ export class AdminUserService implements IAdminUserService {
     };
   }
 
+  /**
+   * Retrieves a user by ID.
+   * @param {string} id - User ID.
+   * @returns {Promise<IUser | null>} User object.
+   */
   async getUserById(id: string): Promise<IUser | null> {
     return await this._userRepository.findById(id);
   }
 
+  /**
+   * Updates user status.
+   * @param {string} id - User ID.
+   * @param {Partial<IUser>} updateData - Data to update.
+   * @returns {Promise<IUser | null>} Updated user.
+   * @throws {CustomError} If user not found.
+   */
   async updateUserStatus(id: string, updateData: Partial<IUser>): Promise<IUser | null> {
     const user = await this._userRepository.findById(id);
     if (!user) {
@@ -41,6 +60,12 @@ export class AdminUserService implements IAdminUserService {
     return await this._userRepository.update(id, updateData);
   }
 
+  /**
+   * Deletes a user.
+   * @param {string} id - User ID.
+   * @returns {Promise<boolean>} True if successful.
+   * @throws {CustomError} If user not found.
+   */
   async deleteUser(id: string): Promise<boolean> {
     const user = await this._userRepository.findById(id);
     if (!user) {

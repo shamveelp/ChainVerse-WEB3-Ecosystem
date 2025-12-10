@@ -2,6 +2,7 @@ import { injectable } from "inversify";
 import { IMailService } from "./ITempMail";
 import { MailUtil } from "../utils/mail.util";
 import logger from "../utils/logger";
+import { ErrorMessages, LoggerMessages, SuccessMessages } from "../enums/messages.enum";
 
 @injectable()
 export class MailService implements IMailService {
@@ -11,46 +12,69 @@ export class MailService implements IMailService {
     this.mailUtil = new MailUtil();
   }
 
+  /**
+   * Sends a general email.
+   * @param {string} to - The recipient's email address.
+   * @param {string} subject - The subject of the email.
+   * @param {string} html - The HTML content of the email.
+   * @returns {Promise<void>}
+   * @throws {Error} If sending the email fails.
+   */
   async sendMail(to: string, subject: string, html: string): Promise<void> {
     try {
       await this.mailUtil.send(to, subject, html);
-      logger.info(`Email sent successfully to: ${to}`);
+      logger.info(`${SuccessMessages.MESSAGE_SENT} to: ${to}`);
     } catch (error) {
-      logger.error(`Failed to send email to ${to}:`, error);
-      throw new Error(`Failed to send email: ${error}`);
+      logger.error(LoggerMessages.SEND_EMAIL_ERROR, error);
+      throw new Error(`${ErrorMessages.FAILED_SEND_EMAIL}: ${error}`);
     }
   }
 
+  /**
+   * Sends an OTP email.
+   * @param {string} email - The recipient's email address.
+   * @param {string} otp - The One-Time Password.
+   * @param {'registration' | 'forgotPassword'} type - The type of OTP.
+   * @returns {Promise<void>}
+   * @throws {Error} If sending the OTP email fails.
+   */
   async sendOTP(email: string, otp: string, type: 'registration' | 'forgotPassword' = 'registration'): Promise<void> {
     try {
-      const subject = type === 'registration' 
-        ? 'ChainVerse - Email Verification' 
+      const subject = type === 'registration'
+        ? 'ChainVerse - Email Verification'
         : 'ChainVerse - Password Reset';
-      
+
       const html = this.getOTPEmailTemplate(otp, type);
-      
+
       await this.sendMail(email, subject, html);
     } catch (error) {
-      logger.error(`Failed to send OTP email:`, error);
-      throw new Error(`Failed to send OTP email`);
+      logger.error(LoggerMessages.SEND_EMAIL_ERROR, error);
+      throw new Error(ErrorMessages.FAILED_SEND_EMAIL);
     }
   }
 
+  /**
+   * Sends a welcome email to a new user.
+   * @param {string} email - The recipient's email address.
+   * @param {string} name - The name of the user.
+   * @returns {Promise<void>}
+   * @throws {Error} If sending the welcome email fails.
+   */
   async sendWelcomeEmail(email: string, name: string): Promise<void> {
     try {
       const subject = 'Welcome to ChainVerse!';
       const html = this.getWelcomeEmailTemplate(name);
-      
+
       await this.sendMail(email, subject, html);
     } catch (error) {
-      logger.error(`Failed to send welcome email:`, error);
-      throw new Error(`Failed to send welcome email`);
+      logger.error(LoggerMessages.SEND_EMAIL_ERROR, error);
+      throw new Error(ErrorMessages.FAILED_SEND_EMAIL);
     }
   }
 
   private getOTPEmailTemplate(otp: string, type: 'registration' | 'forgotPassword'): string {
     const title = type === 'registration' ? 'Email Verification' : 'Password Reset';
-    const message = type === 'registration' 
+    const message = type === 'registration'
       ? 'Please verify your email address with the OTP below:'
       : 'Use the OTP below to reset your password:';
 

@@ -5,6 +5,7 @@ import { ICommunityRepository } from "../../core/interfaces/repositories/ICommun
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { ErrorMessages, SuccessMessages, LoggerMessages } from "../../enums/messages.enum";
 import {
   SendMessageResponseDto,
   ConversationListResponseDto,
@@ -21,8 +22,15 @@ export class ChatService implements IChatService {
     @inject(TYPES.IChatRepository) private _chatRepository: IChatRepository,
     @inject(TYPES.ICommunityRepository)
     private _communityRepository: ICommunityRepository
-  ) {}
+  ) { }
 
+  /**
+   * Sends a message to a user.
+   * @param {string} senderId - Sender ID.
+   * @param {string} receiverUsername - Receiver username.
+   * @param {string} content - Message content.
+   * @returns {Promise<SendMessageResponseDto>} Message response.
+   */
   async sendMessage(
     senderId: string,
     receiverUsername: string,
@@ -31,7 +39,7 @@ export class ChatService implements IChatService {
     try {
       if (!senderId || !receiverUsername || !content?.trim()) {
         throw new CustomError(
-          "Sender ID, receiver username, and content are required",
+          ErrorMessages.CONTENT_RECEIVER_REQUIRED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -41,7 +49,7 @@ export class ChatService implements IChatService {
         receiverUsername.trim()
       );
       if (!receiver) {
-        throw new CustomError("Receiver not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.USER_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Safely get receiver ID
@@ -50,7 +58,7 @@ export class ChatService implements IChatService {
         : receiver.id?.toString();
       if (!receiverId) {
         throw new CustomError(
-          "Invalid receiver user data",
+          ErrorMessages.USER_PROFILE_NOT_FOUND,
           StatusCode.INTERNAL_SERVER_ERROR
         );
       }
@@ -58,7 +66,7 @@ export class ChatService implements IChatService {
       // Check if sender is trying to message themselves
       if (senderId === receiverId) {
         throw new CustomError(
-          "You cannot send a message to yourself",
+          ErrorMessages.SELF_MESSAGE_ERROR,
           StatusCode.BAD_REQUEST
         );
       }
@@ -143,16 +151,25 @@ export class ChatService implements IChatService {
         conversation: conversationResponse,
       };
     } catch (error) {
+      logger.error(LoggerMessages.SEND_MESSAGE_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to send message",
+        ErrorMessages.FAILED_SEND_MESSAGE,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Retrieves user conversations.
+   * @param {string} userId - User ID.
+   * @param {string} [cursor] - Cursor for pagination.
+   * @param {number} [limit=20] - Limit.
+   * @param {string} [search] - Search query.
+   * @returns {Promise<ConversationListResponseDto>} List of conversations.
+   */
   async getUserConversations(
     userId: string,
     cursor?: string,
@@ -161,7 +178,7 @@ export class ChatService implements IChatService {
   ): Promise<ConversationListResponseDto> {
     try {
       if (!userId) {
-        throw new CustomError("User ID is required", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.USER_ID_REQUIRED, StatusCode.BAD_REQUEST);
       }
 
       return await this._chatRepository.getUserConversations(
@@ -171,16 +188,25 @@ export class ChatService implements IChatService {
         search
       );
     } catch (error) {
+      logger.error(LoggerMessages.GET_USER_CONVERSATIONS_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to get conversations",
+        ErrorMessages.FAILED_GET_CONVERSATIONS,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Retrieves messages for a conversation.
+   * @param {string} conversationId - Conversation ID.
+   * @param {string} userId - User ID.
+   * @param {string} [cursor] - Cursor.
+   * @param {number} [limit=20] - Limit.
+   * @returns {Promise<MessageListResponseDto>} List of messages.
+   */
   async getConversationMessages(
     conversationId: string,
     userId: string,
@@ -190,7 +216,7 @@ export class ChatService implements IChatService {
     try {
       if (!conversationId || !userId) {
         throw new CustomError(
-          "Conversation ID and user ID are required",
+          ErrorMessages.CONVERSATION_USER_ID_REQUIRED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -202,7 +228,7 @@ export class ChatService implements IChatService {
       );
       if (!hasAccess) {
         throw new CustomError(
-          "You don't have access to this conversation",
+          ErrorMessages.CONVERSATION_ACCESS_DENIED,
           StatusCode.FORBIDDEN
         );
       }
@@ -214,16 +240,24 @@ export class ChatService implements IChatService {
         limit
       );
     } catch (error) {
+      logger.error(LoggerMessages.GET_CONVERSATION_MESSAGES_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to get messages",
+        ErrorMessages.FAILED_GET_MESSAGES,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Edits a message.
+   * @param {string} messageId - Message ID.
+   * @param {string} userId - User ID.
+   * @param {string} content - New content.
+   * @returns {Promise<MessageResponseDto>} Edited message.
+   */
   async editMessage(
     messageId: string,
     userId: string,
@@ -232,7 +266,7 @@ export class ChatService implements IChatService {
     try {
       if (!messageId || !userId || !content?.trim()) {
         throw new CustomError(
-          "Message ID, user ID, and content are required",
+          ErrorMessages.MESSAGE_ID_CONTENT_REQUIRED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -240,7 +274,7 @@ export class ChatService implements IChatService {
       // Find the message
       const message = await this._chatRepository.findMessageById(messageId);
       if (!message) {
-        throw new CustomError("Message not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.MESSAGE_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Check if user is the sender - safely get sender ID
@@ -249,7 +283,7 @@ export class ChatService implements IChatService {
         : (message.sender as any).id?.toString();
       if (senderId !== userId) {
         throw new CustomError(
-          "You can only edit your own messages",
+          ErrorMessages.EDIT_OTHERS_MESSAGE_ERROR,
           StatusCode.FORBIDDEN
         );
       }
@@ -259,7 +293,7 @@ export class ChatService implements IChatService {
       const maxEditTime = 24 * 60 * 60 * 1000; // 24 hours
       if (messageAge > maxEditTime) {
         throw new CustomError(
-          "Message is too old to edit",
+          ErrorMessages.MESSAGE_TOO_OLD,
           StatusCode.BAD_REQUEST
         );
       }
@@ -270,7 +304,7 @@ export class ChatService implements IChatService {
       );
       if (!editedMessage) {
         throw new CustomError(
-          "Failed to edit message",
+          ErrorMessages.FAILED_EDIT_MESSAGE,
           StatusCode.INTERNAL_SERVER_ERROR
         );
       }
@@ -302,16 +336,23 @@ export class ChatService implements IChatService {
         isOwnMessage: true,
       };
     } catch (error) {
+      logger.error(LoggerMessages.EDIT_MESSAGE_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to edit message",
+        ErrorMessages.FAILED_EDIT_MESSAGE,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Deletes a message.
+   * @param {string} messageId - Message ID.
+   * @param {string} userId - User ID.
+   * @returns {Promise<{ success: boolean; message: string }>} Result.
+   */
   async deleteMessage(
     messageId: string,
     userId: string
@@ -319,7 +360,7 @@ export class ChatService implements IChatService {
     try {
       if (!messageId || !userId) {
         throw new CustomError(
-          "Message ID and user ID are required",
+          ErrorMessages.MESSAGE_ID_REQUIRED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -327,7 +368,7 @@ export class ChatService implements IChatService {
       // Find the message
       const message = await this._chatRepository.findMessageById(messageId);
       if (!message) {
-        throw new CustomError("Message not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.MESSAGE_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Check if user is the sender - safely get sender ID
@@ -336,7 +377,7 @@ export class ChatService implements IChatService {
         : (message.sender as any).id?.toString();
       if (senderId !== userId) {
         throw new CustomError(
-          "You can only delete your own messages",
+          ErrorMessages.DELETE_OTHERS_MESSAGE_ERROR,
           StatusCode.FORBIDDEN
         );
       }
@@ -344,26 +385,33 @@ export class ChatService implements IChatService {
       const deleted = await this._chatRepository.deleteMessage(messageId);
       if (!deleted) {
         throw new CustomError(
-          "Failed to delete message",
+          ErrorMessages.FAILED_DELETE_MESSAGE,
           StatusCode.INTERNAL_SERVER_ERROR
         );
       }
 
       return {
         success: true,
-        message: "Message deleted successfully",
+        message: SuccessMessages.MESSAGE_DELETED_SUCCESS,
       };
     } catch (error) {
+      logger.error(LoggerMessages.DELETE_MESSAGE_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to delete message",
+        ErrorMessages.FAILED_DELETE_MESSAGE,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Marks messages as read in a conversation.
+   * @param {string} conversationId - Conversation ID.
+   * @param {string} userId - User ID.
+   * @returns {Promise<{ success: boolean; message: string }>} Result.
+   */
   async markMessagesAsRead(
     conversationId: string,
     userId: string
@@ -371,7 +419,7 @@ export class ChatService implements IChatService {
     try {
       if (!conversationId || !userId) {
         throw new CustomError(
-          "Conversation ID and user ID are required",
+          ErrorMessages.CONVERSATION_USER_ID_REQUIRED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -383,7 +431,7 @@ export class ChatService implements IChatService {
       );
       if (!hasAccess) {
         throw new CustomError(
-          "You don't have access to this conversation",
+          ErrorMessages.CONVERSATION_ACCESS_DENIED,
           StatusCode.FORBIDDEN
         );
       }
@@ -392,19 +440,26 @@ export class ChatService implements IChatService {
 
       return {
         success: true,
-        message: "Messages marked as read",
+        message: SuccessMessages.MESSAGES_READ_SUCCESS,
       };
     } catch (error) {
+      logger.error(LoggerMessages.MARK_MESSAGES_READ_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to mark messages as read",
+        ErrorMessages.FAILED_MARK_READ,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Retrieves or creates a conversation between two users.
+   * @param {string} userId - User ID.
+   * @param {string} otherUsername - Other user's username.
+   * @returns {Promise<ConversationResponseDto>} Conversation details.
+   */
   async getOrCreateConversation(
     userId: string,
     otherUsername: string
@@ -412,7 +467,7 @@ export class ChatService implements IChatService {
     try {
       if (!userId || !otherUsername) {
         throw new CustomError(
-          "User ID and other username are required",
+          ErrorMessages.CONTENT_RECEIVER_REQUIRED, // Reusing existing or need specific
           StatusCode.BAD_REQUEST
         );
       }
@@ -423,7 +478,7 @@ export class ChatService implements IChatService {
       );
 
       if (!otherUser) {
-        throw new CustomError("User not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.USER_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       logger.info("ChatService: Found user:", {
@@ -439,7 +494,7 @@ export class ChatService implements IChatService {
 
       if (!otherUserId) {
         throw new CustomError(
-          "Invalid user data - missing ID",
+          ErrorMessages.USER_PROFILE_NOT_FOUND,
           StatusCode.INTERNAL_SERVER_ERROR
         );
       }
@@ -447,7 +502,7 @@ export class ChatService implements IChatService {
       // Check if trying to create conversation with self
       if (userId === otherUserId) {
         throw new CustomError(
-          "You cannot create a conversation with yourself",
+          ErrorMessages.SELF_CONVERSATION_ERROR,
           StatusCode.BAD_REQUEST
         );
       }
@@ -491,30 +546,30 @@ export class ChatService implements IChatService {
         ],
         lastMessage: conversation.lastMessage
           ? {
-              _id: (conversation.lastMessage as any)._id.toString(),
-              conversationId: conversationId,
-              sender: {
-                _id: (conversation.lastMessage as any).sender._id.toString(),
-                username:
-                  (conversation.lastMessage as any).sender.username || "",
-                name: (conversation.lastMessage as any).sender.name || "",
-                profilePic:
-                  (conversation.lastMessage as any).sender.profilePic || "",
-                isVerified:
-                  (conversation.lastMessage as any).sender.community
-                    ?.isVerified || false,
-              },
-              content: (conversation.lastMessage as any).content,
-              messageType: (conversation.lastMessage as any).messageType,
-              readBy: (conversation.lastMessage as any).readBy || [],
-              editedAt: (conversation.lastMessage as any).editedAt,
-              isDeleted: (conversation.lastMessage as any).isDeleted,
-              createdAt: (conversation.lastMessage as any).createdAt,
-              updatedAt: (conversation.lastMessage as any).updatedAt,
-              isOwnMessage:
-                (conversation.lastMessage as any).sender._id.toString() ===
-                userId,
-            }
+            _id: (conversation.lastMessage as any)._id.toString(),
+            conversationId: conversationId,
+            sender: {
+              _id: (conversation.lastMessage as any).sender._id.toString(),
+              username:
+                (conversation.lastMessage as any).sender.username || "",
+              name: (conversation.lastMessage as any).sender.name || "",
+              profilePic:
+                (conversation.lastMessage as any).sender.profilePic || "",
+              isVerified:
+                (conversation.lastMessage as any).sender.community
+                  ?.isVerified || false,
+            },
+            content: (conversation.lastMessage as any).content,
+            messageType: (conversation.lastMessage as any).messageType,
+            readBy: (conversation.lastMessage as any).readBy || [],
+            editedAt: (conversation.lastMessage as any).editedAt,
+            isDeleted: (conversation.lastMessage as any).isDeleted,
+            createdAt: (conversation.lastMessage as any).createdAt,
+            updatedAt: (conversation.lastMessage as any).updatedAt,
+            isOwnMessage:
+              (conversation.lastMessage as any).sender._id.toString() ===
+              userId,
+          }
           : undefined,
         lastActivity: conversation.lastActivity,
         unreadCount,
@@ -524,11 +579,12 @@ export class ChatService implements IChatService {
 
       return response;
     } catch (error) {
+      logger.error(LoggerMessages.GET_CREATE_CONVERSATION_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to get or create conversation",
+        ErrorMessages.FAILED_GET_CREATE_CONVERSATION,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }

@@ -6,13 +6,22 @@ import { ICoin } from "../../models/coins.model";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
+import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()
 export class AdminMarketService implements IAdminMarketService {
   constructor(
     @inject(TYPES.IDexRepository) private _dexRepository: IDexRepository
-  ) {}
+  ) { }
 
+  /**
+   * Retrieves coins from the market.
+   * @param {number} [page=1] - Page number.
+   * @param {number} [limit=10] - Items per page.
+   * @param {string} [search] - Search text.
+   * @param {boolean} [includeUnlisted=true] - Whether to include unlisted coins.
+   * @returns {Promise<AdminCoinListResult>} List of coins.
+   */
   async getCoins(
     page: number = 1,
     limit: number = 10,
@@ -37,14 +46,21 @@ export class AdminMarketService implements IAdminMarketService {
         totalPages,
       };
     } catch (error) {
-      logger.error("Error getting coins for admin market:", error);
+      logger.error(LoggerMessages.GET_MARKET_COINS_ERROR, error);
       throw new CustomError(
-        "Failed to get market coins",
+        ErrorMessages.FAILED_FETCH_MARKET_COINS,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Toggles the listing status of a coin.
+   * @param {string} contractAddress - Coin contract address.
+   * @param {boolean} isListed - New listing status.
+   * @returns {Promise<ICoin>} Updated coin.
+   * @throws {CustomError} If coin not found or update fails.
+   */
   async toggleCoinListing(
     contractAddress: string,
     isListed: boolean
@@ -57,7 +73,7 @@ export class AdminMarketService implements IAdminMarketService {
 
       if (!updated) {
         throw new CustomError(
-          "Coin not found",
+          ErrorMessages.COIN_NOT_FOUND,
           StatusCode.NOT_FOUND
         );
       }
@@ -68,14 +84,20 @@ export class AdminMarketService implements IAdminMarketService {
         throw error;
       }
 
-      logger.error("Error toggling coin listing:", error);
+      logger.error(LoggerMessages.UPDATE_COIN_LISTING_ERROR, error);
       throw new CustomError(
-        "Failed to update coin listing status",
+        ErrorMessages.FAILED_UPDATE_COIN_LISTING,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Creates a coin entry from external data.
+   * @param {Object} data - Coin data.
+   * @param {string} adminId - Admin ID.
+   * @returns {Promise<ICoin>} Created or updated coin.
+   */
   async createCoinFromExternal(
     data: {
       symbol: string;
@@ -96,7 +118,7 @@ export class AdminMarketService implements IAdminMarketService {
           true
         );
         if (!updated) {
-          throw new CustomError("Failed to update existing coin", StatusCode.INTERNAL_SERVER_ERROR);
+          throw new CustomError(ErrorMessages.FAILED_UPDATE_COIN_LISTING, StatusCode.INTERNAL_SERVER_ERROR);
         }
         return updated;
       }
@@ -124,30 +146,36 @@ export class AdminMarketService implements IAdminMarketService {
 
       return await this._dexRepository.createCoin(coin);
     } catch (error) {
-      logger.error("Error creating coin from external data:", error);
+      logger.error(LoggerMessages.CREATE_COIN_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to add coin to market",
+        ErrorMessages.FAILED_ADD_COIN_MARKET,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Deletes a coin.
+   * @param {string} contractAddress - Coin contract address.
+   * @returns {Promise<void>}
+   * @throws {CustomError} If coin not found or deletion fails.
+   */
   async deleteCoin(contractAddress: string): Promise<void> {
     try {
       const deleted = await this._dexRepository.deleteCoin(contractAddress);
       if (!deleted) {
-        throw new CustomError("Coin not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.COIN_NOT_FOUND, StatusCode.NOT_FOUND);
       }
     } catch (error) {
-      logger.error("Error deleting coin:", error);
+      logger.error(LoggerMessages.DELETE_COIN_ERROR, error);
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError(
-        "Failed to delete coin",
+        ErrorMessages.FAILED_DELETE_COIN,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
