@@ -23,7 +23,7 @@ export class UserCommunityChatService implements IUserCommunityChatService {
         @inject(TYPES.ICommunityMessageRepository) private _messageRepository: ICommunityMessageRepository,
         @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository,
         @inject(TYPES.ICommunityAdminRepository) private _adminRepository: ICommunityAdminRepository
-    ) {}
+    ) { }
 
     // Community Channel Methods
     async getChannelMessages(userId: string, communityUsername: string, cursor?: string, limit: number = 20): Promise<CommunityMessagesListResponseDto> {
@@ -145,8 +145,18 @@ export class UserCommunityChatService implements IUserCommunityChatService {
 
             // Check if user is a member and group chat is enabled
             const memberStatus = await this._communityRepository.checkCommunityMembership(userId, community._id.toString());
-            if (!memberStatus.isMember) {
-                throw new CustomError("You must be a member to send messages", StatusCode.FORBIDDEN);
+            let isAuthorized = memberStatus.isMember;
+
+            if (!isAuthorized) {
+                // Check if user is community admin
+                const admin = await this._adminRepository.findById(userId);
+                if (admin && admin.communityId.toString() === community._id.toString()) {
+                    isAuthorized = true;
+                }
+            }
+
+            if (!isAuthorized) {
+                throw new CustomError("You must be a member or admin to send messages", StatusCode.FORBIDDEN);
             }
 
             if (!community.settings?.allowGroupChat) {
@@ -183,7 +193,7 @@ export class UserCommunityChatService implements IUserCommunityChatService {
             // Check if user is a member or admin
             let hasAccess = false;
             const memberStatus = await this._communityRepository.checkCommunityMembership(userId, community._id.toString());
-            
+
             if (memberStatus.isMember) {
                 hasAccess = true;
             } else {
@@ -261,7 +271,7 @@ export class UserCommunityChatService implements IUserCommunityChatService {
 
             // Check if user is the sender or admin
             let canDelete = false;
-            
+
             if (message.senderId.toString() === userId) {
                 canDelete = true;
             } else {

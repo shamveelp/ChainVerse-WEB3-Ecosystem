@@ -22,116 +22,77 @@ const userSocketMap = new Map<string, string>(); // userId -> socketId
 
 export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
   const communityNamespace = io.of('/community');
-  
+
   // Simplified Authentication middleware for testing
   communityNamespace.use(async (socket: AuthenticatedSocket, next) => {
     try {
       const token = socket.handshake.auth.token ||
-                   socket.handshake.headers.authorization?.split(' ')[1] ||
-                   socket.handshake.query.token;
+        socket.handshake.headers.authorization?.split(' ')[1] ||
+        socket.handshake.query.token;
 
       if (!token) {
         logger.warn('Community socket connection attempted without token', {
           socketId: socket.id
         });
-        // For testing: allow connection without token but mark as guest
-        socket.userId = 'guest-' + Date.now();
-        socket.username = 'Guest User';
-        socket.userType = 'user';
-        return next();
+        return next(new Error('Authentication failed: No token provided'));
       }
 
-      // Simplified token validation - more lenient for testing
+      // Strict Token Verification
+      let decoded;
       try {
-        if (typeof token !== 'string') {
-          throw new Error('Invalid token format');
-        }
-
-        // Skip expiration check for testing
-        let decoded;
-        try {
-          decoded = JwtService.verifySocketToken(token) as { id: string; role: string };
-        } catch (verifyError: any) {
-          logger.warn('Token verification failed, allowing guest access for testing', {
-            socketId: socket.id,
-            error: verifyError.message
-          });
-          // Allow as guest for testing
-          socket.userId = 'guest-' + Date.now();
-          socket.username = 'Guest User';
-          socket.userType = 'user';
-          return next();
-        }
-
-        if (!decoded || !decoded.id) {
-          // Allow as guest for testing
-          socket.userId = 'guest-' + Date.now();
-          socket.username = 'Guest User';
-          socket.userType = 'user';
-          return next();
-        }
-
-        // Check if user or community admin - with fallback
-        let user = null;
-        let communityAdmin = null;
-        
-        try {
-          if (decoded.role === 'communityAdmin') {
-            communityAdmin = await CommunityAdminModel.findById(decoded.id)
-              .select('_id name email communityId isActive')
-              .lean()
-              .exec();
-            
-            if (communityAdmin) {
-              socket.userId = communityAdmin._id.toString();
-              socket.username = communityAdmin.name;
-              socket.userType = 'communityAdmin';
-              socket.communityId = communityAdmin.communityId.toString();
-            } else {
-              // Fallback to guest
-              socket.userId = 'admin-guest-' + Date.now();
-              socket.username = 'Admin Guest';
-              socket.userType = 'communityAdmin';
-              socket.communityId = 'test-community';
-            }
-          } else {
-            user = await UserModel.findById(decoded.id)
-              .select('_id username name isBlocked isBanned')
-              .lean()
-              .exec();
-            
-            if (user) {
-              socket.userId = user._id.toString();
-              socket.username = user.username;
-              socket.userType = 'user';
-            } else {
-              // Fallback to guest
-              socket.userId = 'user-guest-' + Date.now();
-              socket.username = 'User Guest';
-              socket.userType = 'user';
-            }
-          }
-        } catch (dbError) {
-          logger.error('Database error during socket authentication, using guest access', {
-            socketId: socket.id,
-            userId: decoded.id,
-            error: (dbError as Error).message
-          });
-          // Allow as guest for testing
-          socket.userId = 'db-guest-' + Date.now();
-          socket.username = 'DB Guest';
-          socket.userType = 'user';
-        }
-
-      } catch (tokenError) {
-        logger.warn('Token processing failed, allowing guest access for testing', {
+        decoded = JwtService.verifySocketToken(token) as { id: string; role: string };
+      } catch (error: any) {
+        logger.error('Token verification failed', {
           socketId: socket.id,
-          error: (tokenError as Error).message
+          error: error.message
         });
-        // Allow as guest for testing
-        socket.userId = 'token-guest-' + Date.now();
-        socket.username = 'Token Guest';
-        socket.userType = 'user';
+        return next(new Error('Authentication failed: Invalid token'));
+      }
+
+      if (!decoded || !decoded.id) {
+        return next(new Error('Authentication failed: Invalid token payload'));
+      }
+
+      // Check User or Community Admin
+      try {
+        if (decoded.role === 'communityAdmin') {
+          const communityAdmin = await CommunityAdminModel.findById(decoded.id)
+            .select('_id name email communityId isActive')
+            .lean()
+            .exec();
+
+          if (!communityAdmin) {
+            return next(new Error('Authentication failed: Admin not found'));
+          }
+
+          socket.userId = communityAdmin._id.toString();
+          socket.username = communityAdmin.name;
+          socket.userType = 'communityAdmin';
+          socket.communityId = communityAdmin.communityId.toString();
+        } else {
+          const user = await UserModel.findById(decoded.id)
+            .select('_id username name isBlocked isBanned')
+            .lean()
+            .exec();
+
+          if (!user) {
+            return next(new Error('Authentication failed: User not found'));
+          }
+
+          if (user.isBlocked || user.isBanned) {
+            return next(new Error('Authentication failed: User is blocked or banned'));
+          }
+
+          socket.userId = user._id.toString();
+          socket.username = user.username;
+          socket.userType = 'user';
+        }
+      } catch (dbError: any) {
+        logger.error('Database error during socket authentication', {
+          socketId: socket.id,
+          error: dbError.message
+        });
+        return next(new Error('Authentication failed: Database error'));
       }
 
       logger.info('Community socket authentication completed', {
@@ -143,15 +104,10 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
       });
       next();
     } catch (error: any) {
-      logger.error('Community socket authentication error, allowing guest access for testing', {
-        socketId: socket.id,
+      logger.error('Socket authentication unexpected error', {
         error: error.message
       });
-      // Allow as guest for testing
-      socket.userId = 'error-guest-' + Date.now();
-      socket.username = 'Error Guest';
-      socket.userType = 'user';
-      next();
+      next(new Error('Authentication failed'));
     }
   });
 
@@ -273,44 +229,20 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           return;
         }
 
-        // For testing: create mock message if service fails
         let message;
-        try {
-          if (socket.userType === 'communityAdmin') {
-            const communityService = container.get<ICommunityAdminCommunityService>(TYPES.ICommunityAdminCommunityService);
-            message = await communityService.sendMessage(socket.userId!, {
-              content: data.content?.trim() || '',
-              mediaFiles: data.mediaFiles || [],
-              messageType: data.messageType
-            });
-          } else {
-            throw new Error('Only admins can send channel messages');
-          }
-        } catch (serviceError) {
-          logger.warn('Service error, creating mock message for testing', { error: serviceError });
-          // Create mock message for testing
-          message = {
-            _id: 'mock-' + Date.now(),
-            communityId: socket.communityId || 'test-community',
-            admin: {
-              _id: socket.userId || 'mock-admin',
-              name: socket.username || 'Mock Admin',
-              profilePicture: ''
-            },
+        if (socket.userType === 'communityAdmin') {
+          const communityService = container.get<ICommunityAdminCommunityService>(TYPES.ICommunityAdminCommunityService);
+          message = await communityService.sendMessage(socket.userId!, {
             content: data.content?.trim() || '',
             mediaFiles: data.mediaFiles || [],
-            messageType: data.messageType || 'text',
-            isPinned: false,
-            reactions: [],
-            totalReactions: 0,
-            isEdited: false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
+            messageType: data.messageType
+          });
+        } else {
+          throw new Error('Only admins can send channel messages');
         }
 
         const channelRoom = socket.communityId ? `community:${socket.communityId}:channel` : 'community:test:channel';
-        
+
         // Emit to all community members in channel room (including the admin)
         communityNamespace.to(channelRoom).emit('new_channel_message', {
           message
@@ -368,7 +300,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
         // Find which community this message belongs to
         const communityId = socketCommunityMap.get(socket.id) || socket.communityId || 'test-community';
         const channelRoom = `community:${communityId}:channel`;
-        
+
         communityNamespace.to(channelRoom).emit('message_reaction_updated', {
           messageId: data.messageId,
           reactions: result.reactions
@@ -402,36 +334,15 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           return;
         }
 
-        // For testing: create mock message if service fails
         let message;
-        try {
-          const chatService = container.get<IUserCommunityChatService>(TYPES.IUserCommunityChatService);
-          message = await chatService.sendGroupMessage(socket.userId!, {
-            communityUsername: data.communityUsername,
-            content: data.content.trim()
-          });
-        } catch (serviceError) {
-          logger.warn('Service error, creating mock message for testing', { error: serviceError });
-          // Create mock message for testing
-          message = {
-            _id: 'mock-group-' + Date.now(),
-            communityId: socket.communityId || 'test-community',
-            sender: {
-              _id: socket.userId || 'mock-sender',
-              username: socket.username || 'mock_user',
-              name: socket.username || 'Mock User',
-              profilePic: ''
-            },
-            content: data.content.trim(),
-            isEdited: false,
-            isCurrentUser: false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-        }
+        const chatService = container.get<IUserCommunityChatService>(TYPES.IUserCommunityChatService);
+        message = await chatService.sendGroupMessage(socket.userId!, {
+          communityUsername: data.communityUsername,
+          content: data.content.trim()
+        });
 
         const chatRoom = `community:${message.communityId}:chat`;
-        
+
         // Emit to all community members in chat room (including admins)
         communityNamespace.to(chatRoom).emit('new_group_message', {
           message
@@ -494,7 +405,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
         }
 
         const chatRoom = `community:${message.communityId}:chat`;
-        
+
         // Emit to all community members in chat room
         communityNamespace.to(chatRoom).emit('group_message_edited', {
           message
@@ -537,7 +448,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
 
         const communityId = data.communityId || socket.communityId || 'test-community';
         const chatRoom = `community:${communityId}:chat`;
-        
+
         communityNamespace.to(chatRoom).emit('group_message_deleted', {
           messageId: data.messageId
         });
@@ -581,7 +492,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
 
         const communityId = data.communityId || socket.communityId || 'test-community';
         const chatRoom = `community:${communityId}:chat`;
-        
+
         communityNamespace.to(chatRoom).emit('group_message_deleted', {
           messageId: data.messageId
         });
@@ -607,7 +518,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
       try {
         const communityId = data.communityId || socket.communityId || 'test-community';
         const chatRoom = `community:${communityId}:chat`;
-        
+
         socket.to(chatRoom).emit('user_typing_start_group', {
           userId: socket.userId,
           username: socket.username,
@@ -622,7 +533,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
       try {
         const communityId = data.communityId || socket.communityId || 'test-community';
         const chatRoom = `community:${communityId}:chat`;
-        
+
         socket.to(chatRoom).emit('user_typing_stop_group', {
           userId: socket.userId,
           username: socket.username,
@@ -646,7 +557,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
       try {
         if (socket.userId) {
           userSocketMap.delete(socket.userId);
-          
+
           // Clean up community connections
           const communityId = socketCommunityMap.get(socket.id);
           if (communityId) {
@@ -669,7 +580,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
         userId: socket.userId,
         error: error.message || error
       });
-      
+
       // Don't disconnect on error - just log it
       socket.emit('error', { message: 'Socket error occurred' });
     });
