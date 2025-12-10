@@ -1,5 +1,6 @@
 import Link from "next/link";
 import React from "react";
+import { COMMON_ROUTES } from "@/routes";
 
 interface BreadcrumbProps {
   pageTitle: string;
@@ -19,7 +20,7 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle }) => {
           <li>
             <Link
               className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
-              href="/"
+              href={COMMON_ROUTES.HOME}
             >
               Home
               <svg

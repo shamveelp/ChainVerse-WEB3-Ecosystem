@@ -1,5 +1,6 @@
 "use client";
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
+import { COMMON_ROUTES } from "@/routes";
 import NotificationDropdown from "@/components/admin/header/NotificationDropdown";
 import UserDropdown from "@/components/admin/header/UserDropdown";
 import { useSidebar } from "@/context/admin/SidebarContext";
@@ -50,7 +51,7 @@ const AppHeader: React.FC = () => {
             aria-label="Toggle Sidebar"
           >
             {isMobileOpen ? (
-              
+
               <svg
                 width="24"
                 height="24"
@@ -84,7 +85,7 @@ const AppHeader: React.FC = () => {
             {/* Cross Icon */}
           </button>
 
-          <Link href="/" className="lg:hidden">
+          <Link href={COMMON_ROUTES.HOME} className="lg:hidden">
             <span
               className={`
       text-2xl font-semibold tracking-wide
@@ -151,9 +152,8 @@ const AppHeader: React.FC = () => {
           </div>
         </div>
         <div
-          className={`${
-            isApplicationMenuOpen ? "flex" : "hidden"
-          } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
+          className={`${isApplicationMenuOpen ? "flex" : "hidden"
+            } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
           <div className="flex items-center gap-2 2xsm:gap-3">
             {/* <!-- Dark Mode Toggler --> */}

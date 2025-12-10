@@ -411,13 +411,13 @@ export function RegisterForm() {
             />
             <label htmlFor="terms" className="text-gray-300 leading-relaxed">
               I agree to the{" "}
-              <a href="#terms" className="text-blue-400 hover:text-blue-300 transition-colors underline">
+              <Link href={COMMON_ROUTES.TERMS} className="text-blue-400 hover:text-blue-300 transition-colors underline">
                 Terms of Service
-              </a>{" "}
+              </Link>{" "}
               and{" "}
-              <a href="#privacy" className="text-blue-400 hover:text-blue-300 transition-colors underline">
+              <Link href={COMMON_ROUTES.PRIVACY} className="text-blue-400 hover:text-blue-300 transition-colors underline">
                 Privacy Policy
-              </a>
+              </Link>
             </label>
           </div>
 

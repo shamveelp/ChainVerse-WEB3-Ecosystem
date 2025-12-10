@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import { ADMIN_ROUTES } from "@/routes";
 import Link from "next/link";
 import Image, { StaticImageData } from "next/image";
 import { usePathname } from "next/navigation";
@@ -47,31 +48,31 @@ const navItems: NavItem[] = [
   {
     icon: <Home />,
     name: "Dashboard",
-    path: "/admin",
+    path: ADMIN_ROUTES.DASHBOARD,
   },
   {
     icon: <Users />,
     name: "Customers",
     subItems: [
-      { name: "Users", path: "/admin/user-management", pro: false },
-      { name: "Wallets", path: "/admin/wallet-management", pro: false },
-      { name: "Points", path: "/admin/points-conversion", pro: false },
-      { name: "CVC Management", path: "/management", pro: false },
+      { name: "Users", path: ADMIN_ROUTES.USER_MANAGEMENT, pro: false },
+      { name: "Wallets", path: ADMIN_ROUTES.WALLET_MANAGEMENT, pro: false },
+      { name: "Points", path: ADMIN_ROUTES.POINTS_CONVERSION, pro: false },
+      { name: "CVC Management", path: ADMIN_ROUTES.CVC_MANAGEMENT, pro: false },
     ],
   },
   {
     icon: <LineChart />,
     name: "Market",
-    path: "/admin/market-management",
+    path: ADMIN_ROUTES.MARKET_MANAGEMENT,
   },
   {
     icon: <Repeat />,
     name: "Decentralised Exchange",
     subItems: [
-      { name: "Dex Management", path: "/admin/dex-management", pro: false },
+      { name: "Dex Management", path: ADMIN_ROUTES.DEX_MANAGEMENT, pro: false },
       {
         name: "Buy Crypto Requests",
-        path: "/admin/buy-crypto-management",
+        path: ADMIN_ROUTES.BUY_CRYPTO_MANAGEMENT,
         pro: false,
       },
     ],
@@ -79,15 +80,15 @@ const navItems: NavItem[] = [
   {
     icon: <Palette />,
     name: "NFT Marketplace",
-    path: "/nft-marketplace-management",
+    path: ADMIN_ROUTES.NFT_MARKETPLACE_MANAGEMENT,
   },
   {
     icon: <Globe />,
     name: "Community",
     subItems: [
-      { name: "Community Requests", path: "/admin/community-requests", pro: false },
-      { name: "Community Management", path: "/admin/community-management", pro: false },
-      { name: "Community Posts", path: "/admin/community-posts", pro: false },
+      { name: "Community Requests", path: ADMIN_ROUTES.COMMUNITY_REQUESTS, pro: false },
+      { name: "Community Management", path: ADMIN_ROUTES.COMMUNITY_MANAGEMENT, pro: false },
+      { name: "Community Posts", path: ADMIN_ROUTES.COMMUNITY_POSTS, pro: false },
 
     ],
   },
@@ -174,22 +175,19 @@ const AppSidebar: React.FC = () => {
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group  ${
-                openSubmenu?.type === menuType && openSubmenu?.index === index
+              className={`menu-item group  ${openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-active"
                   : "menu-item-inactive"
-              } cursor-pointer ${
-                !isExpanded && !isHovered
+                } cursor-pointer ${!isExpanded && !isHovered
                   ? "lg:justify-center"
                   : "lg:justify-start"
-              }`}
+                }`}
             >
               <span
-                className={` ${
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
+                className={` ${openSubmenu?.type === menuType && openSubmenu?.index === index
                     ? "menu-item-icon-active"
                     : "menu-item-icon-inactive"
-                }`}
+                  }`}
               >
                 {nav.icon}
               </span>
@@ -198,12 +196,11 @@ const AppSidebar: React.FC = () => {
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
                 <ChevronDown
-                  className={`ml-auto w-5 h-5 transition-transform duration-200  ${
-                    openSubmenu?.type === menuType &&
-                    openSubmenu?.index === index
+                  className={`ml-auto w-5 h-5 transition-transform duration-200  ${openSubmenu?.type === menuType &&
+                      openSubmenu?.index === index
                       ? "rotate-180 text-brand-500"
                       : ""
-                  }`}
+                    }`}
                 />
               )}
             </button>
@@ -211,16 +208,14 @@ const AppSidebar: React.FC = () => {
             nav.path && (
               <Link
                 href={nav.path}
-                className={`menu-item group ${
-                  isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-                }`}
+                className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
+                  }`}
               >
                 <span
-                  className={`${
-                    isActive(nav.path)
+                  className={`${isActive(nav.path)
                       ? "menu-item-icon-active"
                       : "menu-item-icon-inactive"
-                  }`}
+                    }`}
                 >
                   {nav.icon}
                 </span>
@@ -248,32 +243,29 @@ const AppSidebar: React.FC = () => {
                   <li key={subItem.name}>
                     <Link
                       href={subItem.path}
-                      className={`menu-dropdown-item ${
-                        isActive(subItem.path)
+                      className={`menu-dropdown-item ${isActive(subItem.path)
                           ? "menu-dropdown-item-active"
                           : "menu-dropdown-item-inactive"
-                      }`}
+                        }`}
                     >
                       {subItem.name}
                       <span className="flex items-center gap-1 ml-auto">
                         {subItem.new && (
                           <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
+                            className={`ml-auto ${isActive(subItem.path)
                                 ? "menu-dropdown-badge-active"
                                 : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge `}
+                              } menu-dropdown-badge `}
                           >
                             new
                           </span>
                         )}
                         {subItem.pro && (
                           <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
+                            className={`ml-auto ${isActive(subItem.path)
                                 ? "menu-dropdown-badge-active"
                                 : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge `}
+                              } menu-dropdown-badge `}
                           >
                             pro
                           </span>
@@ -357,10 +349,9 @@ const AppSidebar: React.FC = () => {
   return (
     <aside
       className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
-        ${
-          isExpanded || isMobileOpen
-            ? "w-[290px]"
-            : isHovered
+        ${isExpanded || isMobileOpen
+          ? "w-[290px]"
+          : isHovered
             ? "w-[290px]"
             : "w-[90px]"
         }
@@ -370,11 +361,10 @@ const AppSidebar: React.FC = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex  ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-        }`}
+        className={`py-8 flex  ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+          }`}
       >
-        <Link href="/admin">
+        <Link href={ADMIN_ROUTES.DASHBOARD}>
           <span
             className={`
       font-semibold tracking-wide
@@ -395,18 +385,17 @@ const AppSidebar: React.FC = () => {
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
+                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
                     ? "lg:justify-center"
                     : "justify-start"
-                }`}
+                  }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
                   "Menu"
                 ) : (
                   <MoreHorizontal
-  className="w-4 h-4 text-gray-500 dark:text-gray-300"
-/>
+                    className="w-4 h-4 text-gray-500 dark:text-gray-300"
+                  />
                 )}
               </h2>
               {renderMenuItems(navItems, "main")}
@@ -414,18 +403,17 @@ const AppSidebar: React.FC = () => {
 
             <div className="">
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
+                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
                     ? "lg:justify-center"
                     : "justify-start"
-                }`}
+                  }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
                   "Others"
                 ) : (
                   <MoreHorizontal
-  className="w-4 h-4 text-gray-500 dark:text-gray-300"
-/>
+                    className="w-4 h-4 text-gray-500 dark:text-gray-300"
+                  />
                 )}
               </h2>
               {renderMenuItems(othersItems, "others")}

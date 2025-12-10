@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { COMMON_ROUTES } from "@/routes"
 import { Button } from "@/components/ui/button"
 import FloatingShapes from "./floating-shapes"
 import SwapBox from "./swap-box"
@@ -68,7 +69,7 @@ export default function HeroSection() {
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg px-8 py-6 rounded-full shadow-lg transition-all duration-300 hover:scale-105 animate-fade-in-up"
                   style={{ animationDelay: "0.4s" }}
                 >
-                  <Link href="/get-started">Get Started</Link>
+                  <Link href={COMMON_ROUTES.GET_STARTED}>Get Started</Link>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Start your Web3 journey</TooltipContent>
@@ -98,7 +99,7 @@ export default function HeroSection() {
           </div>
         </div>
         {/* Moving Messages */}
-        
+
       </section>
     </TooltipProvider>
   )

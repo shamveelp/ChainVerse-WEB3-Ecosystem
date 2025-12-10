@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts"
 import { ArrowUpRight, ArrowDownRight } from "lucide-react"
 import Link from "next/link"
+import { COMMON_ROUTES } from "@/routes"
 
 const mockChartData = [
   { name: "Mon", btc: 65000, eth: 3500, matic: 0.7 },
@@ -102,14 +103,14 @@ export default function MarketSection() {
             asChild
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg px-8 py-6 rounded-full shadow-lg transition-all duration-300 hover:scale-105"
           >
-            <Link href="/market">Go to Market</Link>
+            <Link href={COMMON_ROUTES.MARKET}>Go to Market</Link>
           </Button>
           <Button
             asChild
             variant="outline"
             className="text-primary border-primary hover:bg-primary/10 text-lg px-8 py-6 rounded-full shadow-lg transition-all duration-300 hover:scale-105 bg-transparent"
           >
-            <Link href="/trade/swap">Trade Now</Link>
+            <Link href={COMMON_ROUTES.SWAP}>Trade Now</Link>
           </Button>
         </div>
       </div>

@@ -34,7 +34,7 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link href="/trade/nfts-marketplace" className="flex items-center space-x-3">
+            <Link href={USER_ROUTES.NFT_MARKET} className="flex items-center space-x-3">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-sm">N</span>
               </div>
@@ -50,9 +50,8 @@ export function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`relative px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === item.href.pathname ? 'text-primary' : 'text-muted-foreground'
-                }`}
+                className={`relative px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${pathname === item.href.pathname ? 'text-primary' : 'text-muted-foreground'
+                  }`}
               >
                 {item.name}
                 {pathname === item.href.pathname && (
@@ -118,9 +117,8 @@ export function Header() {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                        pathname === item.href.pathname ? 'text-primary' : 'text-muted-foreground'
-                      }`}
+                      className={`px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${pathname === item.href.pathname ? 'text-primary' : 'text-muted-foreground'
+                        }`}
                     >
                       {item.name}
                     </Link>

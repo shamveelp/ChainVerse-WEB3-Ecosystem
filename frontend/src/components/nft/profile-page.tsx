@@ -14,6 +14,7 @@ import { useNFTContract } from '@/hooks/nft/useNFTContract';
 import { useActiveAccount } from 'thirdweb/react';
 import { NFTWithMetadata } from '../../types/types-nft';
 import { toast } from 'sonner';
+import { USER_ROUTES } from '@/routes';
 
 export default function ProfilePage() {
   const [ownedNFTs, setOwnedNFTs] = useState<NFTWithMetadata[]>([]);
@@ -56,24 +57,24 @@ export default function ProfilePage() {
 
     try {
       setLoading(true);
-      
+
       // Get all NFTs and filter by current user
       const allNFTs = await getAllNFTs();
-      
-      
+
+
       if (allNFTs.length > 0) {
         // Filter NFTs that belong to the current user (owned or created by them)
-        const userNFTs = allNFTs.filter(nft => 
+        const userNFTs = allNFTs.filter(nft =>
           nft.owner.toLowerCase() === account.address.toLowerCase() ||
           nft.seller.toLowerCase() === account.address.toLowerCase() ||
           nft.creator.toLowerCase() === account.address.toLowerCase()
         );
-        
-        
+
+
 
         if (userNFTs.length > 0) {
           const enriched = await enrichNFTsWithMetadata(userNFTs);
-          
+
 
           // Separate owned vs listed NFTs
           const owned = enriched.filter(nft => {
@@ -81,15 +82,15 @@ export default function ProfilePage() {
             const isNotListed = !nft.currentlyListed;
             return isOwner && isNotListed;
           });
-          
+
           const listed = enriched.filter(nft => {
             const isSeller = nft.seller.toLowerCase() === account.address.toLowerCase();
             const isListed = nft.currentlyListed;
             return isSeller && isListed;
           });
 
-          
-          
+
+
 
           setOwnedNFTs(owned);
           setListedNFTs(listed);
@@ -266,10 +267,10 @@ export default function ProfilePage() {
                   </p>
                   <div className="flex gap-4 justify-center">
                     <Button asChild>
-                      <a href="/trade/nfts-marketplace/create">Create NFT</a>
+                      <a href={USER_ROUTES.NFT_CREATE}>Create NFT</a>
                     </Button>
                     <Button variant="outline" asChild>
-                      <a href="/trade/nfts-marketplace/explore">Explore NFTs</a>
+                      <a href={USER_ROUTES.NFT_EXPLORE}>Explore NFTs</a>
                     </Button>
                   </div>
                 </div>

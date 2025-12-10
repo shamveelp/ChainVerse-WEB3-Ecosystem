@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Github, Twitter, DiscIcon as Discord, TextIcon as Telegram } from "lucide-react"
+import { COMMON_ROUTES, USER_ROUTES } from "@/routes"
 
 export default function Footer() {
   return (
@@ -9,7 +10,7 @@ export default function Footer() {
           {/* Logo and Description */}
           <div className="md:col-span-1">
             <Link
-              href="/"
+              href={COMMON_ROUTES.HOME}
               className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
             >
               ChainVerse
@@ -38,22 +39,22 @@ export default function Footer() {
             <h3 className="text-gray-200 font-semibold mb-4">Products</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/swap" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={COMMON_ROUTES.SWAP} className="text-gray-400 hover:text-blue-400 transition-colors">
                   Swap
                 </Link>
               </li>
               <li>
-                <Link href="/bridge" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={COMMON_ROUTES.BRIDGE} className="text-gray-400 hover:text-blue-400 transition-colors">
                   Bridge
                 </Link>
               </li>
               <li>
-                <Link href="/nft" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={USER_ROUTES.NFT_MARKET} className="text-gray-400 hover:text-blue-400 transition-colors">
                   NFT Marketplace
                 </Link>
               </li>
               <li>
-                <Link href="/quests" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={USER_ROUTES.QUESTS} className="text-gray-400 hover:text-blue-400 transition-colors">
                   Quests
                 </Link>
               </li>
@@ -65,22 +66,22 @@ export default function Footer() {
             <h3 className="text-gray-200 font-semibold mb-4">Community</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/community" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={USER_ROUTES.COMMUNITY} className="text-gray-400 hover:text-blue-400 transition-colors">
                   Discord
                 </Link>
               </li>
               <li>
-                <Link href="/community" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={USER_ROUTES.COMMUNITY} className="text-gray-400 hover:text-blue-400 transition-colors">
                   Telegram
                 </Link>
               </li>
               <li>
-                <Link href="/community" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={USER_ROUTES.COMMUNITY} className="text-gray-400 hover:text-blue-400 transition-colors">
                   Twitter
                 </Link>
               </li>
               <li>
-                <Link href="/community" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={COMMON_ROUTES.BLOG} className="text-gray-400 hover:text-blue-400 transition-colors">
                   Blog
                 </Link>
               </li>
@@ -92,22 +93,22 @@ export default function Footer() {
             <h3 className="text-gray-200 font-semibold mb-4">Support</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/help" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={COMMON_ROUTES.HELP} className="text-gray-400 hover:text-blue-400 transition-colors">
                   Help Center
                 </Link>
               </li>
               <li>
-                <Link href="/docs" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={COMMON_ROUTES.DOCS} className="text-gray-400 hover:text-blue-400 transition-colors">
                   Documentation
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={COMMON_ROUTES.CONTACT} className="text-gray-400 hover:text-blue-400 transition-colors">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/status" className="text-gray-400 hover:text-blue-400 transition-colors">
+                <Link href={COMMON_ROUTES.STATUS} className="text-gray-400 hover:text-blue-400 transition-colors">
                   Status
                 </Link>
               </li>
@@ -118,10 +119,10 @@ export default function Footer() {
         <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">© 2024 ChainVerse. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="/privacy" className="text-gray-400 hover:text-blue-400 text-sm transition-colors">
+            <Link href={COMMON_ROUTES.PRIVACY} className="text-gray-400 hover:text-blue-400 text-sm transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="text-gray-400 hover:text-blue-400 text-sm transition-colors">
+            <Link href={COMMON_ROUTES.TERMS} className="text-gray-400 hover:text-blue-400 text-sm transition-colors">
               Terms of Service
             </Link>
           </div>

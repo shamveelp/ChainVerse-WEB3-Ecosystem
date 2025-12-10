@@ -6,11 +6,12 @@ import { useActiveAccount } from 'thirdweb/react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/redux/store';
 import Link from 'next/link';
+import { COMMON_ROUTES } from '@/routes';
 
 export default function BuyCryptoInterface() {
   const account = useActiveAccount();
   const { user } = useSelector((state: RootState) => state.userAuth);
-  
+
   const [buyForm, setBuyForm] = useState({
     fiatCurrency: 'INR',
     fiatAmount: '',
@@ -191,8 +192,8 @@ export default function BuyCryptoInterface() {
           )}
 
           {/* Buy Button */}
-          <Link 
-            href="/trade/buy"
+          <Link
+            href={COMMON_ROUTES.BUY}
             className="block w-full"
           >
             <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white py-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 transform hover:scale-[1.02]">

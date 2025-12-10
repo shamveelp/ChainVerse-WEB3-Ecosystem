@@ -100,13 +100,13 @@ export default function Navbar() {
                   NFTs
                 </Link>
                 <Link
-                  href="/user/quests"
+                  href={USER_ROUTES.QUESTS}
                   className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
                 >
                   Quests
                 </Link>
                 <Link
-                  href="/about-us"
+                  href={COMMON_ROUTES.ABOUT}
                   className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
                 >
                   About Us
@@ -117,7 +117,7 @@ export default function Navbar() {
             <div className="hidden md:flex items-center space-x-4">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link href={'/my-profile/points'}>
+                  <Link href={USER_ROUTES.PROFILE_POINTS}>
                     <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
                       <CircleDollarSign className="h-5 w-5" />
                       <span className="sr-only">Daily Check-in</span>
@@ -243,10 +243,10 @@ export default function Navbar() {
                     >
                       Community
                     </Link>
-                    <Link href="/quests" className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium">
+                    <Link href={USER_ROUTES.QUESTS} className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium">
                       Quests
                     </Link>
-                    <Link href="/about-us" className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium">
+                    <Link href={COMMON_ROUTES.ABOUT} className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium">
                       About Us
                     </Link>
                     {/* Mobile Auth Section */}

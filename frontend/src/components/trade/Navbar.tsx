@@ -9,6 +9,7 @@ import { MintNFTModal } from './MintNFTModal';
 import { Badge } from '@/components/ui/badge';
 import { Palette, Store, User, Plus, BarChart3 } from 'lucide-react';
 import { useMarketplace } from '@/hooks/useMarketplace';
+import { USER_ROUTES } from '@/routes';
 
 export function NavbarT() {
   const [mintModalOpen, setMintModalOpen] = useState(false);
@@ -20,7 +21,7 @@ export function NavbarT() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link href="/trade/nfts-marketplace" className="flex items-center space-x-3">
+            <Link href={USER_ROUTES.NFT_MARKET} className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
                 <Palette className="w-5 h-5 text-white" />
               </div>
@@ -54,15 +55,15 @@ export function NavbarT() {
 
             {/* Navigation Links */}
             <div className="hidden md:flex items-center space-x-6">
-              <Link 
-                href="/trade/nfts-marketplace" 
+              <Link
+                href={USER_ROUTES.NFT_MARKET}
                 className="text-gray-300 hover:text-white transition-colors duration-200 flex items-center gap-2"
               >
                 <Store className="w-4 h-4" />
                 Marketplace
               </Link>
-              <Link 
-                href="/trade/nfts-marketplace/profile" 
+              <Link
+                href={USER_ROUTES.NFT_PROFILE}
                 className="text-gray-300 hover:text-white transition-colors duration-200 flex items-center gap-2"
               >
                 <User className="w-4 h-4" />
@@ -87,9 +88,9 @@ export function NavbarT() {
         </div>
       </nav>
 
-      <MintNFTModal 
-        open={mintModalOpen} 
-        onOpenChange={setMintModalOpen} 
+      <MintNFTModal
+        open={mintModalOpen}
+        onOpenChange={setMintModalOpen}
       />
     </>
   );

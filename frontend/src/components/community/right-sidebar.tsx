@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Users, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { COMMUNITY_ADMIN_ROUTES, USER_ROUTES } from "@/routes";
 import { communityExploreApiService, type Community } from "@/services/userCommunityServices/communityExploreApiService";
 import { useCommunityExplore } from "@/hooks/useCommunityExplore";
 import { toast } from "sonner";
@@ -89,7 +90,7 @@ export default function RightSidebar() {
                       key={community._id}
                       className="flex items-center gap-2 hover:bg-slate-800/30 rounded-md p-2 transition-colors"
                     >
-                      <Link href={`/user/community/c/${community.username}`} className="flex items-center gap-2 flex-1 min-w-0">
+                      <Link href={`${USER_ROUTES.COMMUNITY}/c/${community.username}`} className="flex items-center gap-2 flex-1 min-w-0">
                         <Avatar className="w-8 h-8 border border-slate-700">
                           <AvatarImage src={community.logo} alt={community.communityName} />
                           <AvatarFallback className="bg-slate-800 text-slate-200 text-xs">
@@ -149,7 +150,7 @@ export default function RightSidebar() {
                 space for everyone.
               </p>
 
-              <Link href="/comms-admin/get-started" passHref>
+              <Link href={COMMUNITY_ADMIN_ROUTES.GET_STARTED} passHref>
                 <motion.button
                   whileHover={{
                     scale: 1.05,

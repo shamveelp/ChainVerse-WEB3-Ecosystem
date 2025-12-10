@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSelector } from "react-redux"
 import type { RootState } from "@/redux/store"
+import { ADMIN_ROUTES } from "@/routes"
 
 type Props = {
   children: React.ReactNode
@@ -16,7 +17,7 @@ export const AdminProtectedRoute = ({ children }: Props) => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/admin/login")
+      router.push(ADMIN_ROUTES.LOGIN)
     }
   }, [isAuthenticated, router])
 
@@ -31,7 +32,7 @@ export const AdminPreventLoggedIn = ({ children }: Props) => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/admin")
+      router.push(ADMIN_ROUTES.DASHBOARD)
     }
   }, [isAuthenticated, router])
 

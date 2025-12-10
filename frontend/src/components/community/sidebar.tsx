@@ -12,14 +12,15 @@ import { RootState } from '@/redux/store'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { communityApiService } from '@/services/communityApiService'
 import { logout } from '@/redux/slices/userAuthSlice'
+import { COMMON_ROUTES, USER_ROUTES } from '@/routes'
 
 const navigationItems = [
-  { id: 'home', label: 'Home', icon: Home, path: '/user/community' },
-  { id: 'explore', label: 'Explore', icon: Search, path: '/user/community/explore' },
-  { id: 'notifications', label: 'Notifications', icon: Bell, path: '/user/community/notifications' },
-  { id: 'communities', label: 'My Communities', icon: Users, path: '/user/community/communities' },
-  { id: 'messages', label: 'Messages', icon: MessageCircle, path: '/user/community/messages' },
-  // { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark, path: '/user/community/bookmarks' },
+  { id: 'home', label: 'Home', icon: Home, path: USER_ROUTES.COMMUNITY },
+  { id: 'explore', label: 'Explore', icon: Search, path: USER_ROUTES.COMMUNITY_EXPLORE },
+  { id: 'notifications', label: 'Notifications', icon: Bell, path: USER_ROUTES.COMMUNITY_NOTIFICATIONS },
+  { id: 'communities', label: 'My Communities', icon: Users, path: USER_ROUTES.COMMUNITY_MY_COMMUNITIES },
+  { id: 'messages', label: 'Messages', icon: MessageCircle, path: USER_ROUTES.COMMUNITY_MESSAGES },
+  // { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark, path: USER_ROUTES.COMMUNITY_BOOKMARKS },
 ]
 
 export default function Sidebar() {
@@ -35,7 +36,7 @@ export default function Sidebar() {
   // Fetch profile on mount and when user changes
   useEffect(() => {
     if (currentUser && (!profile || profile.username !== currentUser.username)) {
-      
+
       fetchCommunityProfile(true) // Force refresh to ensure we get the latest data
     }
   }, [currentUser?._id, currentUser?.username, fetchCommunityProfile])
@@ -43,7 +44,7 @@ export default function Sidebar() {
   const handleLogout = () => {
     clearProfileData() // Clear profile data on logout
     dispatch(logout())
-    router.push('/')
+    router.push(COMMON_ROUTES.HOME)
     setIsMobileMenuOpen(false)
   }
 
@@ -54,7 +55,7 @@ export default function Sidebar() {
 
   const handleProfileClick = () => {
     if (currentUser?.username) {
-      handleNavigation(`/user/community/${currentUser.username}`)
+      handleNavigation(`${USER_ROUTES.COMMUNITY}/${currentUser.username}`)
     }
   }
 
@@ -177,7 +178,7 @@ export default function Sidebar() {
             variant="ghost"
             className={cn(
               "w-full justify-start text-left p-3 h-auto group transition-all duration-200 relative",
-              pathname === `/user/community/${currentUser.username}`
+              pathname === `${USER_ROUTES.COMMUNITY}/${currentUser.username}`
                 ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/50"
             )}
@@ -185,7 +186,7 @@ export default function Sidebar() {
           >
             <User className={cn(
               "h-5 w-5 mr-3 transition-colors",
-              pathname === `/user/community/${currentUser.username}` ? "text-cyan-400" : "group-hover:text-cyan-400"
+              pathname === `${USER_ROUTES.COMMUNITY}/${currentUser.username}` ? "text-cyan-400" : "group-hover:text-cyan-400"
             )} />
             <span className="text-base font-medium">Profile</span>
           </Button>
@@ -202,7 +203,7 @@ export default function Sidebar() {
           <Button
             variant="ghost"
             className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800/50 text-sm"
-            onClick={() => handleNavigation('/user/community/settings')}
+            onClick={() => handleNavigation(USER_ROUTES.COMMUNITY_SETTINGS)}
           >
             <Settings className="h-4 w-4 mr-2" />
             Settings & Privacy
