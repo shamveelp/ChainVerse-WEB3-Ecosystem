@@ -3,6 +3,7 @@ import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
+import { ErrorMessages, SuccessMessages, LoggerMessages } from "../../enums/messages.enum";
 import { ICommunityAdminDashboardService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminDashboard.service";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunity.repository";
@@ -24,15 +25,19 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
         @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository,
         @inject(TYPES.IPostRepository) private _postRepository: IPostRepository,
         @inject(TYPES.ICommunityRequestRepository) private _communityRequestRepository: ICommunityRequestRepository
-    ) {}
+    ) { }
 
+    /**
+     * Retrieves dashboard data (stats, overview, activity).
+     * @param {string} adminId - Admin ID.
+     * @param {string} [period='week'] - Period for stats.
+     * @returns {Promise<CommunityAdminDashboardResponseDto>} Dashboard DTO.
+     */
     async getDashboardData(adminId: string, period: string = 'week'): Promise<CommunityAdminDashboardResponseDto> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const [communityOverview, stats, recentActivity, topMembers] = await Promise.all([
@@ -42,28 +47,31 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
                 this._getTopMembers(admin.communityId.toString())
             ]);
 
-            
             return new CommunityAdminDashboardResponseDto(communityOverview, stats, recentActivity, topMembers);
         } catch (error) {
+            logger.error(LoggerMessages.GET_COMMUNITY_DASHBOARD_DATA_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to fetch dashboard data", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_GET_DASHBOARD_DATA, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves overview information about the community.
+     * @param {string} adminId - Admin ID.
+     * @returns {Promise<CommunityOverviewDto>} Community overview.
+     */
     async getCommunityOverview(adminId: string): Promise<CommunityOverviewDto> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const community = await this._communityRequestRepository.findCommunityById(admin.communityId.toString());
             if (!community) {
-                throw new CustomError("Community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Get member counts
@@ -78,9 +86,9 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
 
             // Transform social links
             const socialLinks = community.socialLinks?.map((link: any) => ({
-    platform: Object.keys(link)[0] as string,
-    url: String(Object.values(link)[0])  // Force string conversion
-})) || [];
+                platform: Object.keys(link)[0] as string,
+                url: String(Object.values(link)[0])  // Force string conversion
+            })) || [];
 
             const overview: CommunityOverviewDto = {
                 _id: community._id.toString(),
@@ -99,20 +107,25 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
 
             return overview;
         } catch (error) {
+            logger.error(LoggerMessages.GET_COMMUNITY_OVERVIEW_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to fetch community overview", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_GET_COMMUNITY_OVERVIEW, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves statistics for the community.
+     * @param {string} adminId - Admin ID.
+     * @param {string} [period='week'] - Period.
+     * @returns {Promise<CommunityStatsDto>} Community stats.
+     */
     async getCommunityStats(adminId: string, period: string = 'week'): Promise<CommunityStatsDto> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const communityId = admin.communityId.toString();
@@ -170,8 +183,8 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
                 joinedAt: { $gte: previousPeriodStart, $lt: startDate }
             });
 
-            const growthRate = previousMembers > 0 
-                ? ((newMembersThisWeek - previousMembers) / previousMembers) * 100 
+            const growthRate = previousMembers > 0
+                ? ((newMembersThisWeek - previousMembers) / previousMembers) * 100
                 : newMembersThisWeek > 0 ? 100 : 0;
 
             // Calculate engagement rate
@@ -192,24 +205,30 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
 
             return stats;
         } catch (error) {
+            logger.error(LoggerMessages.GET_COMMUNITY_STATS_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to fetch community stats", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_GET_COMMUNITY_STATS, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves recent activity in the community.
+     * @param {string} communityId - Community ID.
+     * @returns {Promise<RecentActivityDto[]>} Recent activity.
+     */
     private async _getRecentActivity(communityId: string): Promise<RecentActivityDto[]> {
         try {
             // Get recent member joins (last 50)
-            const recentMembers = await CommunityMemberModel.find({ 
-                communityId, 
-                joinedAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } 
+            const recentMembers = await CommunityMemberModel.find({
+                communityId,
+                joinedAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
             })
-            .populate('userId', 'username name profilePic')
-            .sort({ joinedAt: -1 })
-            .limit(20)
-            .lean();
+                .populate('userId', 'username name profilePic')
+                .sort({ joinedAt: -1 })
+                .limit(20)
+                .lean();
 
             const activities: RecentActivityDto[] = recentMembers.map(member => ({
                 id: member._id.toString(),
@@ -231,6 +250,11 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
         }
     }
 
+    /**
+     * Retrieves top members in the community.
+     * @param {string} communityId - Community ID.
+     * @returns {Promise<TopMemberDto[]>} Top members.
+     */
     private async _getTopMembers(communityId: string): Promise<TopMemberDto[]> {
         try {
             const topMembers = await CommunityMemberModel.find({ communityId, isActive: true })
@@ -258,12 +282,22 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
         }
     }
 
+    /**
+     * Calculates total likes for a list of users.
+     * @param {string[]} userIds - List of User IDs.
+     * @returns {Promise<number>} Total likes.
+     */
     private async _getTotalLikes(userIds: string[]): Promise<number> {
         // This would need to be implemented based on your likes model
         // For now, return 0 as placeholder
         return 0;
     }
 
+    /**
+     * Calculates total comments for a list of users.
+     * @param {string[]} userIds - List of User IDs.
+     * @returns {Promise<number>} Total comments.
+     */
     private async _getTotalComments(userIds: string[]): Promise<number> {
         // This would need to be implemented based on your comments model
         // For now, return 0 as placeholder

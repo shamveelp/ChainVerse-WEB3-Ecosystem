@@ -3,6 +3,7 @@ import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
+import { ErrorMessages, SuccessMessages, CommunityAdminMembersMessages } from "../../enums/messages.enum";
 import { ICommunityAdminMembersService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminMembers.service";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
@@ -24,15 +25,19 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
     constructor(
         @inject(TYPES.ICommunityAdminRepository) private _adminRepository: ICommunityAdminRepository,
         @inject(TYPES.IUserRepository) private _userRepository: IUserRepository
-    ) {}
+    ) { }
 
+    /**
+     * Retrieves a paginated list of community members based on filters.
+     * @param {string} adminId - The ID of the admin requesting the members.
+     * @param {GetCommunityMembersDto} filters - Filters to apply (role, status, search, sort).
+     * @returns {Promise<CommunityMembersListResponseDto>} List of members with metadata.
+     */
     async getCommunityMembers(adminId: string, filters: GetCommunityMembersDto): Promise<CommunityMembersListResponseDto> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const communityId = admin.communityId.toString();
@@ -101,8 +106,8 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 filteredMembers = membersList.filter((member: any) => {
                     const user = member.userId;
                     return user.username.toLowerCase().includes(searchTerm) ||
-                           user.name?.toLowerCase().includes(searchTerm) ||
-                           user.email.toLowerCase().includes(searchTerm);
+                        user.name?.toLowerCase().includes(searchTerm) ||
+                        user.email.toLowerCase().includes(searchTerm);
                 });
             }
 
@@ -119,8 +124,6 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 ? membersList[membersList.length - 1]._id.toString()
                 : undefined;
 
-            
-
             return new CommunityMembersListResponseDto(
                 transformedMembers,
                 hasMore,
@@ -129,54 +132,63 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 summary
             );
         } catch (error) {
-            console.error("CommunityAdminMembersService: Get community members error:", error);
+            logger.error(CommunityAdminMembersMessages.LOG_GET_MEMBERS, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to fetch community members", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(CommunityAdminMembersMessages.FAILED_FETCH_MEMBERS, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves detailed information about a specific member.
+     * @param {string} adminId - The ID of the admin requesting the details.
+     * @param {string} memberId - The ID of the member to retrieve.
+     * @returns {Promise<MemberDetailResponseDto>} Detailed member information.
+     */
     async getMemberDetails(adminId: string, memberId: string): Promise<MemberDetailResponseDto> {
         try {
-            
+
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const member = await CommunityMemberModel.findOne({
                 _id: memberId,
                 communityId: admin.communityId
             })
-            .populate('userId', 'username name email profilePic')
-            .populate('bannedBy', 'name')
-            .lean();
+                .populate('userId', 'username name email profilePic')
+                .populate('bannedBy', 'name')
+                .lean();
 
             if (!member) {
-                throw new CustomError("Member not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.MEMBER_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
-            
             const memberDetailDto = new CommunityMemberDetailDto(member, (member as any).userId);
             return new MemberDetailResponseDto(memberDetailDto);
         } catch (error) {
-            console.error("CommunityAdminMembersService: Get member details error:", error);
+            logger.error(CommunityAdminMembersMessages.LOG_GET_MEMBER_DETAILS, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to fetch member details", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(CommunityAdminMembersMessages.FAILED_FETCH_MEMBER_DETAILS, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Updates the role of a community member.
+     * @param {string} adminId - The ID of the admin performing the update.
+     * @param {UpdateMemberRoleDto} data - Data containing member ID and new role.
+     * @returns {Promise<MemberActionResponseDto>} Result of the update action.
+     */
     async updateMemberRole(adminId: string, data: UpdateMemberRoleDto): Promise<MemberActionResponseDto> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const member = await CommunityMemberModel.findOne({
@@ -185,38 +197,40 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }).populate('userId', 'username name email profilePic');
 
             if (!member) {
-                throw new CustomError("Member not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.MEMBER_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Prevent changing role of other admins
             if (member.role === 'admin' && member.role !== 'admin') {
-                throw new CustomError("Cannot change role of community admin", StatusCode.FORBIDDEN);
+                throw new CustomError(ErrorMessages.CANNOT_CHANGE_ADMIN_ROLE, StatusCode.FORBIDDEN);
             }
 
             // Update member role
             member.role = data.role;
             await member.save();
 
-            
-
             const updatedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
-            return new MemberActionResponseDto(updatedMemberDto, "Member role updated successfully");
+            return new MemberActionResponseDto(updatedMemberDto, SuccessMessages.MEMBER_ROLE_UPDATED);
         } catch (error) {
-            console.error("CommunityAdminMembersService: Update member role error:", error);
+            logger.error(CommunityAdminMembersMessages.LOG_UPDATE_ROLE, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to update member role", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(CommunityAdminMembersMessages.FAILED_UPDATE_ROLE, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Bans a member from the community.
+     * @param {string} adminId - The ID of the admin performing the ban.
+     * @param {BanMemberDto} data - Data containing member ID, reason, and duration.
+     * @returns {Promise<MemberActionResponseDto>} Result of the ban action.
+     */
     async banMember(adminId: string, data: BanMemberDto): Promise<MemberActionResponseDto> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const member = await CommunityMemberModel.findOne({
@@ -225,12 +239,12 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }).populate('userId', 'username name email profilePic');
 
             if (!member) {
-                throw new CustomError("Member not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.MEMBER_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Prevent banning other admins or moderators
             if (member.role === 'admin' || member.role === 'moderator') {
-                throw new CustomError("Cannot ban community admin or moderator", StatusCode.FORBIDDEN);
+                throw new CustomError(ErrorMessages.CANNOT_BAN_ADMIN_OR_MOD, StatusCode.FORBIDDEN);
             }
 
             // Set ban details
@@ -244,26 +258,28 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
             await member.save();
 
-            
-
             const bannedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
-            return new MemberActionResponseDto(bannedMemberDto, "Member banned successfully");
+            return new MemberActionResponseDto(bannedMemberDto, SuccessMessages.MEMBER_BANNED);
         } catch (error) {
-            console.error("CommunityAdminMembersService: Ban member error:", error);
+            logger.error(CommunityAdminMembersMessages.LOG_BAN_MEMBER, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to ban member", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(CommunityAdminMembersMessages.FAILED_BAN_MEMBER, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Unbans a member from the community.
+     * @param {string} adminId - The ID of the admin performing the unban.
+     * @param {string} memberId - The ID of the member to unban.
+     * @returns {Promise<MemberActionResponseDto>} Result of the unban action.
+     */
     async unbanMember(adminId: string, memberId: string): Promise<MemberActionResponseDto> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const member = await CommunityMemberModel.findOne({
@@ -272,7 +288,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }).populate('userId', 'username name email profilePic');
 
             if (!member) {
-                throw new CustomError("Member not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.MEMBER_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Unban member
@@ -283,26 +299,29 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
             await member.save();
 
-            
-
             const unbannedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
-            return new MemberActionResponseDto(unbannedMemberDto, "Member unbanned successfully");
+            return new MemberActionResponseDto(unbannedMemberDto, SuccessMessages.MEMBER_UNBANNED);
         } catch (error) {
-            console.error("CommunityAdminMembersService: Unban member error:", error);
+            logger.error(CommunityAdminMembersMessages.LOG_UNBAN_MEMBER, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to unban member", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(CommunityAdminMembersMessages.FAILED_UNBAN_MEMBER, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Removes a member from the community.
+     * @param {string} adminId - The ID of the admin performing the removal.
+     * @param {string} memberId - The ID of the member to remove.
+     * @param {string} [reason] - Reason for removal.
+     * @returns {Promise<any>} Result of the removal action.
+     */
     async removeMember(adminId: string, memberId: string, reason?: string): Promise<any> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const member = await CommunityMemberModel.findOne({
@@ -311,42 +330,45 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }).populate('userId', 'username name email profilePic');
 
             if (!member) {
-                throw new CustomError("Member not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.MEMBER_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Prevent removing other admins or moderators
             if (member.role === 'admin' || member.role === 'moderator') {
-                throw new CustomError("Cannot remove community admin or moderator", StatusCode.FORBIDDEN);
+                throw new CustomError(ErrorMessages.CANNOT_REMOVE_ADMIN_OR_MOD, StatusCode.FORBIDDEN);
             }
 
             // Remove member from community
             await CommunityMemberModel.findByIdAndDelete(memberId);
-
-            
 
             return {
                 success: true,
                 memberId,
                 removedBy: adminId,
                 reason: reason || "Removed by community admin",
-                message: "Member removed from community successfully"
+                message: CommunityAdminMembersMessages.MEMBER_REMOVED_SUCCESS
             };
         } catch (error) {
-            console.error("CommunityAdminMembersService: Remove member error:", error);
+            logger.error(CommunityAdminMembersMessages.LOG_REMOVE_MEMBER, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to remove member", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(CommunityAdminMembersMessages.FAILED_REMOVE_MEMBER, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves activity statistics for a member.
+     * @param {string} adminId - The ID of the admin requesting the activity.
+     * @param {string} memberId - The ID of the member.
+     * @param {string} [period='week'] - Time period for activity stats (today, week, month).
+     * @returns {Promise<any>} Activity data.
+     */
     async getMemberActivity(adminId: string, memberId: string, period: string = 'week'): Promise<any> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const member = await CommunityMemberModel.findOne({
@@ -355,7 +377,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }).populate('userId', 'username name profilePic');
 
             if (!member) {
-                throw new CustomError("Member not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.MEMBER_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Calculate date range
@@ -393,24 +415,27 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 timeline: [] // TODO: Implement activity timeline
             };
 
-            
             return activityData;
         } catch (error) {
-            console.error("CommunityAdminMembersService: Get member activity error:", error);
+            logger.error(CommunityAdminMembersMessages.LOG_MEMBER_ACTIVITY, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to fetch member activity", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(CommunityAdminMembersMessages.FAILED_FETCH_ACTIVITY, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Performs bulk actions on multiple members.
+     * @param {string} adminId - The ID of the admin performing the actions.
+     * @param {any} data - Data containing member IDs, action type, and reason.
+     * @returns {Promise<any>} Summary of the bulk operation.
+     */
     async bulkUpdateMembers(adminId: string, data: any): Promise<any> {
         try {
-            
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const { memberIds, action, reason } = data;
@@ -456,8 +481,6 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 }
             }
 
-            
-
             return {
                 success: true,
                 totalProcessed: memberIds.length,
@@ -468,14 +491,19 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 message: `Bulk ${action} completed. ${results.length} successful, ${errors.length} failed.`
             };
         } catch (error) {
-            console.error("CommunityAdminMembersService: Bulk update members error:", error);
+            logger.error(CommunityAdminMembersMessages.LOG_BULK_UPDATE, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to perform bulk action", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(CommunityAdminMembersMessages.FAILED_BULK_UPDATE, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves a summary of member statistics for the community.
+     * @param {string} communityId - The ID of the community.
+     * @returns {Promise<any>} Summary statistics.
+     */
     private async _getMembersSummary(communityId: string): Promise<any> {
         const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 

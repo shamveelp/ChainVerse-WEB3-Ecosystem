@@ -14,6 +14,7 @@ import CommunityMemberModel from "../../models/communityMember.model";
 import logger from "../../utils/logger";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { ErrorMessages, SuccessMessages, LoggerMessages } from "../../enums/messages.enum";
 import { Response, Request } from "express";
 import {
   CreateCommunityDto,
@@ -42,8 +43,14 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
     @inject(TYPES.IJwtService) private jwtService: IJwtService,
     @inject(TYPES.IOtpService) private otpService: IOTPService,
     @inject(TYPES.IMailService) private mailService: IMailService
-  ) {}
+  ) { }
 
+  /**
+   * Checks if an email is already registered or has a pending application.
+   * @param {string} email - The email to check.
+   * @returns {Promise<CheckExistenceResponseDto>} Existence status.
+   * @throws {CustomError} If the check fails.
+   */
   async checkEmailExists(email: string): Promise<CheckExistenceResponseDto> {
     try {
       const [existingRequest, existingAdmin] = await Promise.all([
@@ -52,16 +59,22 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       ]);
 
       const exists = !!(existingRequest || existingAdmin);
-      return new CheckExistenceResponseDto(exists, "Email check completed");
+      return new CheckExistenceResponseDto(exists, SuccessMessages.EMAIL_CHECK_COMPLETED);
     } catch (error) {
-      logger.error("Error checking email existence:", error);
+      logger.error(LoggerMessages.CHECK_EMAIL_EXISTS_ERROR, error);
       throw new CustomError(
-        "Failed to check email availability",
+        ErrorMessages.FAILED_CHECK_EMAIL,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Checks if a username is already taken.
+   * @param {string} username - The username to check.
+   * @returns {Promise<CheckExistenceResponseDto>} Existence status.
+   * @throws {CustomError} If the check fails.
+   */
   async checkUsernameExists(
     username: string
   ): Promise<CheckExistenceResponseDto> {
@@ -74,16 +87,22 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         ]);
 
       const exists = !!(existingRequest || existingUser || existingCommunity);
-      return new CheckExistenceResponseDto(exists, "Username check completed");
+      return new CheckExistenceResponseDto(exists, SuccessMessages.USERNAME_CHECK_COMPLETED);
     } catch (error) {
-      logger.error("Error checking username existence:", error);
+      logger.error(LoggerMessages.CHECK_USERNAME_EXISTS_ERROR, error);
       throw new CustomError(
-        "Failed to check username availability",
+        ErrorMessages.FAILED_CHECK_USERNAME,
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
   }
 
+  /**
+   * Creates a new community application.
+   * @param {CreateCommunityDto} dto - Application data.
+   * @returns {Promise<CreateCommunityResponseDto>} Result message.
+   * @throws {CustomError} If validation fails or creation errors.
+   */
   async createCommunityApplication(
     dto: CreateCommunityDto
   ): Promise<CreateCommunityResponseDto> {
@@ -91,7 +110,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       // Validate DTO
       if (!dto.email || !dto.communityName || !dto.username) {
         throw new CustomError(
-          "Required fields missing",
+          ErrorMessages.REQUIRED_FIELDS_MISSING,
           StatusCode.BAD_REQUEST
         );
       }
@@ -100,7 +119,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       const emailCheck = await this.checkEmailExists(dto.email);
       if (emailCheck.exists) {
         throw new CustomError(
-          "Application already exists for this email",
+          ErrorMessages.APPLICATION_ALREADY_EXISTS,
           StatusCode.BAD_REQUEST
         );
       }
@@ -109,7 +128,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       const usernameCheck = await this.checkUsernameExists(dto.username);
       if (usernameCheck.exists) {
         throw new CustomError(
-          "Username is already taken",
+          ErrorMessages.USERNAME_TAKEN,
           StatusCode.BAD_REQUEST
         );
       }
@@ -145,23 +164,28 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       return new CreateCommunityResponseDto(
         communityRequest._id.toString(),
-        "Community application submitted successfully"
+        SuccessMessages.APPLICATION_SUBMITTED_SUCCESS
       );
     } catch (error: any) {
-      logger.error("Error creating community application:", error);
+      logger.error(LoggerMessages.CREATE_APPLICATION_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message || "Failed to create application", StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || ErrorMessages.FAILED_SUBMIT_APPLICATION, StatusCode.BAD_REQUEST);
     }
   }
 
+  /**
+   * Sets the password for a community admin.
+   * @param {SetPasswordDto} dto - Password data.
+   * @returns {Promise<{ success: boolean; message: string }>} Success message.
+   */
   async setPassword(
     dto: SetPasswordDto
   ): Promise<{ success: boolean; message: string }> {
     try {
       if (!dto.email || !dto.password) {
         throw new CustomError(
-          "Email and password are required",
+          ErrorMessages.EMAIL_PASSWORD_REQUIRED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -172,7 +196,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       );
       if (!communityRequest) {
         throw new CustomError(
-          "No application found for this email",
+          ErrorMessages.APPLICATION_NOT_FOUND,
           StatusCode.NOT_FOUND
         );
       }
@@ -183,7 +207,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       );
       if (existingAdmin) {
         throw new CustomError(
-          "Account already exists for this email",
+          ErrorMessages.ACCOUNT_ALREADY_EXISTS,
           StatusCode.BAD_REQUEST
         );
       }
@@ -202,50 +226,60 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       return {
         success: true,
         message:
-          "Password set successfully. OTP sent to your email for verification.",
+          SuccessMessages.PASSWORD_SET_OTP_SENT,
       };
     } catch (error: any) {
-      logger.error("Error setting password:", error);
+      logger.error(LoggerMessages.SET_PASSWORD_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message || "Failed to set password", StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || ErrorMessages.FAILED_SET_PASSWORD, StatusCode.BAD_REQUEST);
     }
   }
 
+  /**
+   * Verifies the OTP for a community admin.
+   * @param {VerifyOtpDto} dto - OTP data.
+   * @returns {Promise<{ success: boolean; message: string }>} Verification success.
+   */
   async verifyOtp(
     dto: VerifyOtpDto
   ): Promise<{ success: boolean; message: string }> {
     try {
       if (!dto.email || !dto.otp) {
         throw new CustomError(
-          "Email and OTP are required",
+          ErrorMessages.EMAIL_OTP_REQUIRED,
           StatusCode.BAD_REQUEST
         );
       }
 
       const isValid = await this.otpService.verifyOtp(dto.email, dto.otp);
       if (!isValid) {
-        throw new CustomError("Invalid or expired OTP", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.INVALID_OTP, StatusCode.BAD_REQUEST);
       }
 
       return {
         success: true,
-        message: "OTP verified successfully. Your application is under review.",
+        message: SuccessMessages.OTP_VERIFIED_APPLICATION_REVIEW,
       };
     } catch (error: any) {
-      logger.error("Error verifying OTP:", error);
+      logger.error(LoggerMessages.VERIFY_OTP_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message || "OTP verification failed", StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || ErrorMessages.FAILED_OTP_VERIFICATION, StatusCode.BAD_REQUEST);
     }
   }
 
+  /**
+   * Resends the OTP.
+   * @param {{ email: string }} dto - Email data.
+   * @returns {Promise<{ success: boolean; message: string }>} Success message.
+   */
   async resendOtp(dto: {
     email: string;
   }): Promise<{ success: boolean; message: string }> {
     try {
       if (!dto.email) {
-        throw new CustomError("Email is required", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.EMAIL_REQUIRED, StatusCode.BAD_REQUEST);
       }
 
       // Check if community admin exists
@@ -254,7 +288,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       );
       if (!communityAdmin) {
         throw new CustomError(
-          "No account found for this email",
+          ErrorMessages.ACCOUNT_NOT_FOUND,
           StatusCode.NOT_FOUND
         );
       }
@@ -264,16 +298,22 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       return {
         success: true,
-        message: "OTP resent successfully",
+        message: SuccessMessages.OTP_RESENT_SUCCESS,
       };
     } catch (error: any) {
-      logger.error("Error resending OTP:", error);
+      logger.error(LoggerMessages.RESEND_OTP_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message || "Failed to resend OTP", StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || ErrorMessages.FAILED_RESEND_OTP, StatusCode.BAD_REQUEST);
     }
   }
 
+  /**
+   * Logs in a community admin.
+   * @param {CommunityAdminLoginDto} dto - Login credentials.
+   * @param {Response} res - Express response object.
+   * @returns {Promise<CommunityAdminLoginResponseDto>} Login response.
+   */
   async loginCommunityAdmin(
     dto: CommunityAdminLoginDto,
     res: Response
@@ -281,7 +321,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
     try {
       if (!dto.email || !dto.password) {
         throw new CustomError(
-          "Email and password are required",
+          ErrorMessages.EMAIL_PASSWORD_REQUIRED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -290,33 +330,33 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         dto.email
       );
       if (!communityAdmin) {
-        throw new CustomError("Invalid credentials", StatusCode.UNAUTHORIZED);
+        throw new CustomError(ErrorMessages.INVALID_CREDENTIALS, StatusCode.UNAUTHORIZED);
       }
 
       const communityRequest = await this.communityRequestRepo.findByEmail(
         dto.email
       );
       if (!communityRequest) {
-        throw new CustomError("No application found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.APPLICATION_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       if (communityRequest.status === "pending") {
         throw new CustomError(
-          "Your application is still under review",
+          ErrorMessages.APPLICATION_UNDER_REVIEW,
           StatusCode.FORBIDDEN
         );
       }
 
       if (communityRequest.status === "rejected") {
         throw new CustomError(
-          "Your application has been rejected. Please reapply.",
+          ErrorMessages.APPLICATION_REJECTED,
           StatusCode.FORBIDDEN
         );
       }
 
       if (!communityAdmin.isActive) {
         throw new CustomError(
-          "Account has been deactivated",
+          ErrorMessages.ACCOUNT_DEACTIVATED,
           StatusCode.FORBIDDEN
         );
       }
@@ -326,7 +366,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         communityAdmin.password
       );
       if (!isPasswordValid) {
-        throw new CustomError("Invalid credentials", StatusCode.UNAUTHORIZED);
+        throw new CustomError(ErrorMessages.INVALID_CREDENTIALS, StatusCode.UNAUTHORIZED);
       }
 
       // Update last login
@@ -355,19 +395,24 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       return responseDto;
     } catch (error: any) {
-      logger.error("Error in community admin login:", error);
+      logger.error(LoggerMessages.COMMUNITY_ADMIN_LOGIN_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message || "Login failed", StatusCode.UNAUTHORIZED);
+        : new CustomError(error.message || ErrorMessages.FAILED_LOGIN, StatusCode.UNAUTHORIZED);
     }
   }
 
+  /**
+   * Initiates forgot password flow.
+   * @param {ForgotPasswordDto} dto - Forgot password data.
+   * @returns {Promise<{ success: boolean; message: string }>} Result message.
+   */
   async forgotPassword(
     dto: ForgotPasswordDto
   ): Promise<{ success: boolean; message: string }> {
     try {
       if (!dto.email) {
-        throw new CustomError("Email is required", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.EMAIL_REQUIRED, StatusCode.BAD_REQUEST);
       }
 
       // Check if community admin exists
@@ -378,7 +423,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         return {
           success: true,
           message:
-            "If an account exists with this email, you'll receive a password reset code",
+            SuccessMessages.PASSWORD_RESET_CODE_SENT,
         };
       }
 
@@ -389,51 +434,61 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       return {
         success: true,
-        message: "Password reset code sent to your email",
+        message: SuccessMessages.PASSWORD_RESET_CODE_SENT,
       };
     } catch (error: any) {
-      logger.error("Error in forgot password:", error);
+      logger.error(LoggerMessages.FORGOT_PASSWORD_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message || "Failed to process request", StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || ErrorMessages.FAILED_PROCESS_REQUEST, StatusCode.BAD_REQUEST);
     }
   }
 
+  /**
+   * Verifies forgot password OTP.
+   * @param {AdminVerifyOtpDto} dto - OTP data.
+   * @returns {Promise<{ success: boolean; message: string }>} Verification success.
+   */
   async verifyForgotPasswordOtp(
     dto: AdminVerifyOtpDto
   ): Promise<{ success: boolean; message: string }> {
     try {
       if (!dto.email || !dto.otp) {
         throw new CustomError(
-          "Email and OTP are required",
+          ErrorMessages.EMAIL_OTP_REQUIRED,
           StatusCode.BAD_REQUEST
         );
       }
 
       const isValid = await this.otpService.verifyOtp(dto.email, dto.otp);
       if (!isValid) {
-        throw new CustomError("Invalid or expired OTP", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.INVALID_OTP, StatusCode.BAD_REQUEST);
       }
 
       return {
         success: true,
-        message: "OTP verified. You can now reset your password.",
+        message: SuccessMessages.OTP_VERIFIED_RESET_PASSWORD
       };
     } catch (error: any) {
-      logger.error("Error verifying forgot password OTP:", error);
+      logger.error(LoggerMessages.VERIFY_FORGOT_PASSWORD_OTP_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message || "OTP verification failed", StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || ErrorMessages.FAILED_OTP_VERIFICATION, StatusCode.BAD_REQUEST);
     }
   }
 
+  /**
+   * Resets password.
+   * @param {ResetPasswordDto} dto - Reset password data.
+   * @returns {Promise<{ success: boolean; message: string }>} Success message.
+   */
   async resetPassword(
     dto: ResetPasswordDto
   ): Promise<{ success: boolean; message: string }> {
     try {
       if (!dto.email || !dto.password) {
         throw new CustomError(
-          "Email and password are required",
+          ErrorMessages.EMAIL_PASSWORD_REQUIRED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -443,7 +498,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         dto.email
       );
       if (!communityAdmin) {
-        throw new CustomError("Account not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.ACCOUNT_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       const hashedPassword = await bcrypt.hash(dto.password, 12);
@@ -459,16 +514,22 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       return {
         success: true,
-        message: "Password reset successfully",
+        message: SuccessMessages.PASSWORD_RESET,
       };
     } catch (error: any) {
-      logger.error("Error resetting password:", error);
+      logger.error(LoggerMessages.RESET_PASSWORD_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message || "Password reset failed", StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || ErrorMessages.FAILED_RESET_PASSWORD, StatusCode.BAD_REQUEST);
     }
   }
 
+  /**
+   * Refreshes the access token.
+   * @param {Request} req - Express request.
+   * @param {Response} res - Express response.
+   * @returns {Promise<{ success: boolean; accessToken: string; message: string }>} Refresh result.
+   */
   async refreshToken(
     req: Request,
     res: Response
@@ -491,7 +552,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         !communityAdmin ||
         communityAdmin.tokenVersion !== decoded.tokenVersion
       ) {
-        throw new CustomError("Invalid refresh token", StatusCode.UNAUTHORIZED);
+        throw new CustomError(ErrorMessages.INVALID_REFRESH_TOKEN, StatusCode.UNAUTHORIZED);
       }
 
       const newAccessToken = this.jwtService.generateAccessToken(
@@ -505,27 +566,37 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       return {
         success: true,
         accessToken: newAccessToken,
-        message: "Token refreshed successfully",
+        message: SuccessMessages.TOKEN_REFRESHED,
       };
     } catch (error: any) {
-      logger.error("Error refreshing token:", error);
+      logger.error(LoggerMessages.REFRESH_TOKEN_ERROR, error);
       throw error instanceof CustomError
         ? error
         : new CustomError(
-            "Invalid or expired refresh token",
-            StatusCode.UNAUTHORIZED
-          );
+          ErrorMessages.INVALID_REFRESH_TOKEN,
+          StatusCode.UNAUTHORIZED
+        );
     }
   }
 
+  /**
+   * Logs out a community admin.
+   * @param {Response} res - Express response.
+   * @returns {Promise<{ success: boolean; message: string }>} Logout result.
+   */
   async logout(res: Response): Promise<{ success: boolean; message: string }> {
     this.jwtService.clearTokens(res);
     return {
       success: true,
-      message: "Logged out successfully",
+      message: SuccessMessages.ADMIN_LOGGED_OUT,
     };
   }
 
+  /**
+   * Retrieves community admin profile.
+   * @param {string} communityAdminId - Admin ID.
+   * @returns {Promise<{ success: boolean; communityAdmin: CommunityAdminResponseDto }>} Profile.
+   */
   async getProfile(
     communityAdminId: string
   ): Promise<{ success: boolean; communityAdmin: CommunityAdminResponseDto }> {
@@ -535,7 +606,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       if (!communityAdmin) {
         throw new CustomError(
-          "Community admin not found",
+          ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND,
           StatusCode.NOT_FOUND
         );
       }
@@ -547,16 +618,21 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         communityAdmin: responseDto,
       };
     } catch (error: any) {
-      logger.error("Error getting profile:", error);
+      logger.error(LoggerMessages.GET_PROFILE_ERROR, error);
       throw error instanceof CustomError
         ? error
         : new CustomError(
-            "Failed to get profile",
-            StatusCode.INTERNAL_SERVER_ERROR
-          );
+          ErrorMessages.FAILED_GET_PROFILE,
+          StatusCode.INTERNAL_SERVER_ERROR
+        );
     }
   }
 
+  /**
+   * Retrieves community details for the admin.
+   * @param {string} communityAdminId - Admin ID.
+   * @returns {Promise<any>} Community details.
+   */
   async getCommunityDetails(communityAdminId: string): Promise<any> {
     try {
       const communityAdmin =
@@ -564,14 +640,14 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       if (!communityAdmin) {
         throw new CustomError(
-          "Community admin not found",
+          ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND,
           StatusCode.NOT_FOUND
         );
       }
 
       if (!communityAdmin.communityId) {
         throw new CustomError(
-          "No community associated with this admin",
+          ErrorMessages.NO_COMMUNITY_ASSOCIATED,
           StatusCode.NOT_FOUND
         );
       }
@@ -581,7 +657,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       ).lean();
 
       if (!community) {
-        throw new CustomError("Community not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.COMMUNITY_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       const communityPayload = await this._buildCommunityResponse(community);
@@ -591,16 +667,22 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         community: communityPayload,
       };
     } catch (error: any) {
-      logger.error("Error getting community details:", error);
+      logger.error(LoggerMessages.GET_COMMUNITY_DETAILS_ERROR, error);
       throw error instanceof CustomError
         ? error
         : new CustomError(
-            "Failed to get community details",
-            StatusCode.INTERNAL_SERVER_ERROR
-          );
+          ErrorMessages.FAILED_GET_COMMUNITY_DETAILS,
+          StatusCode.INTERNAL_SERVER_ERROR
+        );
     }
   }
 
+  /**
+   * Updates community details.
+   * @param {string} communityAdminId - Community Admin ID.
+   * @param {any} updateData - Data to update.
+   * @returns {Promise<any>} Updated community details.
+   */
   async updateCommunity(
     communityAdminId: string,
     updateData: any
@@ -611,14 +693,14 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       if (!communityAdmin) {
         throw new CustomError(
-          "Community admin not found",
+          ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND,
           StatusCode.NOT_FOUND
         );
       }
 
       if (!communityAdmin.communityId) {
         throw new CustomError(
-          "No community associated with this admin",
+          ErrorMessages.NO_COMMUNITY_ASSOCIATED,
           StatusCode.NOT_FOUND
         );
       }
@@ -630,24 +712,29 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       );
 
       if (!community) {
-        throw new CustomError("Community not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.COMMUNITY_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       const communityPayload = await this._buildCommunityResponse(community);
 
       return {
         success: true,
-        message: "Community updated successfully",
+        message: SuccessMessages.COMMUNITY_UPDATED_SUCCESS,
         community: communityPayload,
       };
     } catch (error: any) {
-      logger.error("Error updating community:", error);
+      logger.error(LoggerMessages.UPDATE_COMMUNITY_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError("Failed to update community", StatusCode.BAD_REQUEST);
+        : new CustomError(ErrorMessages.FAILED_UPDATE_COMMUNITY, StatusCode.BAD_REQUEST);
     }
   }
 
+  /**
+   * Reapplies for a rejected community application.
+   * @param {CreateCommunityDto} dto - Application data.
+   * @returns {Promise<CreateCommunityResponseDto>} Result message.
+   */
   async reapplyApplication(
     dto: CreateCommunityDto
   ): Promise<CreateCommunityResponseDto> {
@@ -655,7 +742,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       // Validate DTO
       if (!dto.email || !dto.communityName || !dto.username) {
         throw new CustomError(
-          "Email, community name, and username are required",
+          ErrorMessages.EMAIL_COMMUNITY_USERNAME_REQUIRED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -665,7 +752,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       );
       if (!existingRequest || existingRequest.status !== "rejected") {
         throw new CustomError(
-          "No rejected application found for reapply",
+          ErrorMessages.NO_REJECTED_APPLICATION,
           StatusCode.BAD_REQUEST
         );
       }
@@ -711,13 +798,13 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       return new CreateCommunityResponseDto(
         updatedRequest!._id.toString(),
-        "Community application resubmitted successfully"
+        SuccessMessages.APPLICATION_RESUBMITTED_SUCCESS
       );
     } catch (error: any) {
-      logger.error("Error reapplying application:", error);
+      logger.error(LoggerMessages.REAPPLY_APPLICATION_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError(error.message || "Failed to reapply", StatusCode.BAD_REQUEST);
+        : new CustomError(error.message || ErrorMessages.FAILED_REAPPLY, StatusCode.BAD_REQUEST);
     }
   }
 
@@ -731,7 +818,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       );
       if (existingAdmin) {
         throw new CustomError(
-          "Community admin already exists with this email",
+          ErrorMessages.COMMUNITY_ADMIN_EXISTS,
           StatusCode.BAD_REQUEST
         );
       }
@@ -749,10 +836,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         communityAdminData
       );
     } catch (error: any) {
-      logger.error("Error registering community admin:", error);
+      logger.error(LoggerMessages.REGISTER_COMMUNITY_ADMIN_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError("Failed to register admin", StatusCode.BAD_REQUEST);
+        : new CustomError(ErrorMessages.FAILED_REGISTER_ADMIN, StatusCode.BAD_REQUEST);
     }
   }
 
@@ -762,7 +849,7 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         lastLogin: new Date(),
       });
     } catch (error: any) {
-      logger.error("Error updating last login:", error);
+      logger.error(LoggerMessages.UPDATE_LAST_LOGIN_ERROR, error);
       // Don't throw error as this is not critical for login flow
     }
   }
@@ -831,11 +918,16 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       await this.mailService.sendMail(email, subject, content);
     } catch (error) {
-      logger.error("Failed to send application email:", error);
+      logger.error(LoggerMessages.SEND_EMAIL_ERROR, error);
       // Don't throw error to not break the main flow
     }
   }
 
+  /**
+   * Normalizes rules array.
+   * @param {any} rules - Rules input.
+   * @returns {string[]} Normalized rules.
+   */
   private _normalizeRules(rules?: any): string[] {
     if (!Array.isArray(rules)) {
       return [];
@@ -853,6 +945,11 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
     return normalized;
   }
 
+  /**
+   * Normalizes social links object.
+   * @param {any} socialLinks - Social links input.
+   * @returns {Record<string, string>} Normalized social links.
+   */
   private _normalizeSocialLinks(socialLinks?: any): Record<string, string> {
     if (Array.isArray(socialLinks) && socialLinks.length > 0) {
       return socialLinks[0];
@@ -865,6 +962,11 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
     return {};
   }
 
+  /**
+   * Builds community response payload.
+   * @param {any} community - Community object.
+   * @returns {Promise<any>} Community payload.
+   */
   private async _buildCommunityResponse(community: any) {
     const memberCount = await CommunityMemberModel.countDocuments({
       communityId: community._id,
@@ -892,19 +994,24 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
     };
   }
 
+  /**
+   * Creates a community from an approved request.
+   * @param {string} requestId - Request ID.
+   * @returns {Promise<void>}
+   */
   async createCommunityFromRequest(requestId: string): Promise<void> {
     try {
       const request = await this.communityRequestRepo.findById(requestId);
       if (!request) {
         throw new CustomError(
-          "Community request not found",
+          ErrorMessages.COMMUNITY_REQUEST_NOT_FOUND,
           StatusCode.NOT_FOUND
         );
       }
 
       if (request.status !== "approved") {
         throw new CustomError(
-          "Community request is not approved",
+          ErrorMessages.COMMUNITY_REQUEST_NOT_APPROVED,
           StatusCode.BAD_REQUEST
         );
       }
@@ -958,28 +1065,33 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
       logger.info(`Community created from request: ${requestId}`);
     } catch (error: any) {
-      logger.error("Error creating community from request:", error);
+      logger.error(LoggerMessages.CREATE_COMMUNITY_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError("Failed to create community", StatusCode.BAD_REQUEST);
+        : new CustomError(ErrorMessages.FAILED_CREATE_COMMUNITY, StatusCode.BAD_REQUEST);
     }
   }
 
+  /**
+   * Increments token version for a community admin.
+   * @param {string} id - Admin ID.
+   * @returns {Promise<void>}
+   */
   async incrementTokenVersion(id: string): Promise<void> {
     try {
       const communityAdmin = await this.communityAdminRepo.findById(id);
       if (!communityAdmin) {
-        throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       await this.communityAdminRepo.updateCommunityAdmin(id, {
         tokenVersion: (communityAdmin.tokenVersion ?? 0) + 1,
       });
     } catch (error: any) {
-      logger.error("Error incrementing token version:", error);
+      logger.error(LoggerMessages.INCREMENT_TOKEN_VERSION_ERROR, error);
       throw error instanceof CustomError
         ? error
-        : new CustomError("Failed to update token version", StatusCode.BAD_REQUEST);
+        : new CustomError(ErrorMessages.FAILED_UPDATE_TOKEN_VERSION, StatusCode.BAD_REQUEST);
     }
   }
 }

@@ -7,6 +7,8 @@ import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import cloudinary from "../../config/cloudinary";
+import { ErrorMessages, SuccessMessages, LoggerMessages } from "../../enums/messages.enum";
+import logger from "../../utils/logger";
 import {
     CreateCommunityMessageDto,
     UpdateCommunityMessageDto,
@@ -24,13 +26,19 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
         @inject(TYPES.ICommunityMessageRepository) private _messageRepository: ICommunityMessageRepository,
         @inject(TYPES.ICommunityAdminRepository) private _adminRepository: ICommunityAdminRepository,
         @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository
-    ) {}
+    ) { }
 
+    /**
+     * Sends a message to the community.
+     * @param {string} adminId - Admin ID.
+     * @param {CreateCommunityMessageDto} data - Message data.
+     * @returns {Promise<CommunityMessageResponseDto>} Created message.
+     */
     async sendMessage(adminId: string, data: CreateCommunityMessageDto): Promise<CommunityMessageResponseDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
-                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Determine message type
@@ -55,23 +63,31 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
 
             const populatedMessage = await this._messageRepository.getMessageById(message._id.toString());
             if (!populatedMessage) {
-                throw new CustomError("Failed to retrieve created message", StatusCode.INTERNAL_SERVER_ERROR);
+                throw new CustomError(ErrorMessages.FAILED_SEND_MESSAGE, StatusCode.INTERNAL_SERVER_ERROR);
             }
 
             return this.transformToDTO(populatedMessage, adminId);
         } catch (error) {
+            logger.error(LoggerMessages.SEND_COMMUNITY_MESSAGE_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to send message", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_SEND_MESSAGE, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Gets community messages.
+     * @param {string} adminId - Admin ID.
+     * @param {string} [cursor] - Pagination cursor.
+     * @param {number} [limit=20] - Page limit.
+     * @returns {Promise<CommunityMessagesListResponseDto>} List of messages.
+     */
     async getMessages(adminId: string, cursor?: string, limit: number = 20): Promise<CommunityMessagesListResponseDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
-                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const result = await this._messageRepository.getMessages(
@@ -89,24 +105,31 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
                 totalCount: result.totalCount
             };
         } catch (error) {
+            logger.error(LoggerMessages.GET_COMMUNITY_MESSAGES_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to get messages", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_GET_MESSAGES, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
-    // Get group messages for admin view
+    /**
+     * Gets group messages.
+     * @param {string} adminId - Admin ID.
+     * @param {string} [cursor] - Pagination cursor.
+     * @param {number} [limit=50] - Page limit.
+     * @returns {Promise<CommunityGroupMessagesListResponseDto>} List of group messages.
+     */
     async getGroupMessages(adminId: string, cursor?: string, limit: number = 50): Promise<CommunityGroupMessagesListResponseDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
-                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const community = await this._communityRepository.findById(admin.communityId.toString());
             if (!community) {
-                throw new CustomError("Community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const result = await this._messageRepository.getGroupMessages(
@@ -124,22 +147,30 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
                 totalCount: result.totalCount
             };
         } catch (error) {
+            logger.error(LoggerMessages.GET_GROUP_MESSAGES_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to get group messages", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_GET_GROUP_MESSAGES, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Updates a message.
+     * @param {string} adminId - Admin ID.
+     * @param {string} messageId - Message ID.
+     * @param {UpdateCommunityMessageDto} data - Update data.
+     * @returns {Promise<CommunityMessageResponseDto>} Updated message.
+     */
     async updateMessage(adminId: string, messageId: string, data: UpdateCommunityMessageDto): Promise<CommunityMessageResponseDto> {
         try {
             const message = await this._messageRepository.getMessageById(messageId);
             if (!message) {
-                throw new CustomError("Message not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.MESSAGE_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             if (message.adminId.toString() !== adminId) {
-                throw new CustomError("Unauthorized to edit this message", StatusCode.FORBIDDEN);
+                throw new CustomError(ErrorMessages.UNAUTHORIZED, StatusCode.FORBIDDEN);
             }
 
             const updatedMessage = await this._messageRepository.updateMessage(messageId, {
@@ -147,108 +178,136 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
             });
 
             if (!updatedMessage) {
-                throw new CustomError("Failed to update message", StatusCode.INTERNAL_SERVER_ERROR);
+                throw new CustomError(ErrorMessages.FAILED_UPDATE_MESSAGE, StatusCode.INTERNAL_SERVER_ERROR);
             }
 
             return this.transformToDTO(updatedMessage, adminId);
         } catch (error) {
+            logger.error(LoggerMessages.UPDATE_COMMUNITY_MESSAGE_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to update message", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_UPDATE_MESSAGE, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Deletes a message.
+     * @param {string} adminId - Admin ID.
+     * @param {string} messageId - Message ID.
+     * @returns {Promise<{ success: boolean; message: string }>} Success message.
+     */
     async deleteMessage(adminId: string, messageId: string): Promise<{ success: boolean; message: string }> {
         try {
             const message = await this._messageRepository.getMessageById(messageId);
             if (!message) {
-                throw new CustomError("Message not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.MESSAGE_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             if (message.adminId.toString() !== adminId) {
-                throw new CustomError("Unauthorized to delete this message", StatusCode.FORBIDDEN);
+                throw new CustomError(ErrorMessages.UNAUTHORIZED, StatusCode.FORBIDDEN);
             }
 
             const deleted = await this._messageRepository.deleteMessage(messageId);
             if (!deleted) {
-                throw new CustomError("Failed to delete message", StatusCode.INTERNAL_SERVER_ERROR);
+                throw new CustomError(ErrorMessages.FAILED_DELETE_MESSAGE, StatusCode.INTERNAL_SERVER_ERROR);
             }
 
             return {
                 success: true,
-                message: "Message deleted successfully"
+                message: SuccessMessages.MESSAGE_DELETED
             };
         } catch (error) {
+            logger.error(LoggerMessages.DELETE_COMMUNITY_MESSAGE_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to delete message", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_DELETE_MESSAGE, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Pins a message.
+     * @param {string} adminId - Admin ID.
+     * @param {string} messageId - Message ID.
+     * @returns {Promise<{ success: boolean; message: string }>} Success message.
+     */
     async pinMessage(adminId: string, messageId: string): Promise<{ success: boolean; message: string }> {
         try {
             const message = await this._messageRepository.getMessageById(messageId);
             if (!message) {
-                throw new CustomError("Message not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.MESSAGE_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || admin.communityId.toString() !== message.communityId.toString()) {
-                throw new CustomError("Unauthorized to pin this message", StatusCode.FORBIDDEN);
+                throw new CustomError(ErrorMessages.UNAUTHORIZED, StatusCode.FORBIDDEN);
             }
 
             await this._messageRepository.updateMessage(messageId, { isPinned: true });
 
             return {
                 success: true,
-                message: "Message pinned successfully"
+                message: SuccessMessages.MESSAGE_PINNED
             };
         } catch (error) {
+            logger.error(LoggerMessages.PIN_COMMUNITY_MESSAGE_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to pin message", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_PIN_MESSAGE, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Unpins a message.
+     * @param {string} adminId - Admin ID.
+     * @param {string} messageId - Message ID.
+     * @returns {Promise<{ success: boolean; message: string }>} Success message.
+     */
     async unpinMessage(adminId: string, messageId: string): Promise<{ success: boolean; message: string }> {
         try {
             const message = await this._messageRepository.getMessageById(messageId);
             if (!message) {
-                throw new CustomError("Message not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.MESSAGE_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || admin.communityId.toString() !== message.communityId.toString()) {
-                throw new CustomError("Unauthorized to unpin this message", StatusCode.FORBIDDEN);
+                throw new CustomError(ErrorMessages.UNAUTHORIZED, StatusCode.FORBIDDEN);
             }
 
             await this._messageRepository.updateMessage(messageId, { isPinned: false });
 
             return {
                 success: true,
-                message: "Message unpinned successfully"
+                message: SuccessMessages.MESSAGE_UNPINNED
             };
         } catch (error) {
+            logger.error(LoggerMessages.UNPIN_COMMUNITY_MESSAGE_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to unpin message", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_UNPIN_MESSAGE, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Gets message reactions.
+     * @param {string} adminId - Admin ID.
+     * @param {string} messageId - Message ID.
+     * @returns {Promise<any>} Message reactions.
+     */
     async getMessageReactions(adminId: string, messageId: string): Promise<any> {
         try {
             const message = await this._messageRepository.getMessageById(messageId);
             if (!message) {
-                throw new CustomError("Message not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.MESSAGE_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || admin.communityId.toString() !== message.communityId.toString()) {
-                throw new CustomError("Unauthorized to view reactions", StatusCode.FORBIDDEN);
+                throw new CustomError(ErrorMessages.UNAUTHORIZED, StatusCode.FORBIDDEN);
             }
 
             return {
@@ -257,18 +316,25 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
                 totalReactions: message.totalReactions
             };
         } catch (error) {
+            logger.error(LoggerMessages.GET_MESSAGE_REACTIONS_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to get message reactions", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_GET_MESSAGE_REACTIONS, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Uploads media files.
+     * @param {string} adminId - Admin ID.
+     * @param {Express.Multer.File[]} files - Files to upload.
+     * @returns {Promise<{ mediaFiles: any[] }>} Uploaded media.
+     */
     async uploadMedia(adminId: string, files: Express.Multer.File[]): Promise<{ mediaFiles: any[] }> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
-                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const mediaFiles = [];
@@ -306,13 +372,20 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
 
             return { mediaFiles };
         } catch (error) {
+            logger.error(LoggerMessages.COMMUNITY_UPLOAD_MEDIA_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to upload media", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_UPLOAD_MEDIA, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Transforms message to DTO.
+     * @param {any} message - Message object.
+     * @param {string} [viewerId] - Viewer ID.
+     * @returns {CommunityMessageResponseDto} DTO.
+     */
     private transformToDTO(message: any, viewerId?: string): CommunityMessageResponseDto {
         return {
             _id: message._id.toString(),
@@ -339,6 +412,12 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
         };
     }
 
+    /**
+     * Transforms group message to DTO.
+     * @param {any} message - Message object.
+     * @param {string} [viewerId] - Viewer ID.
+     * @returns {CommunityGroupMessageResponseDto} DTO.
+     */
     private transformGroupMessageToDTO(message: any, viewerId?: string): CommunityGroupMessageResponseDto {
         return {
             _id: message._id.toString(),

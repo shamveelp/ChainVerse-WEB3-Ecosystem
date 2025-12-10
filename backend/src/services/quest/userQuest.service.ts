@@ -16,6 +16,7 @@ import {
 } from "../../dtos/quest/UserQuest.dto";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { ErrorMessages, SuccessMessages, LoggerMessages, ValidationMessages } from "../../enums/messages.enum";
 import logger from "../../utils/logger";
 import cloudinary from "../../config/cloudinary";
 import mongoose from "mongoose";
@@ -27,6 +28,12 @@ export class UserQuestService implements IUserQuestService {
     @inject(TYPES.IUserRepository) private _userRepository: IUserRepository
   ) { }
 
+  /**
+   * Retrieves available quests based on filters.
+   * @param {string} userId - ID of the user (optional).
+   * @param {GetAvailableQuestsDto} query - Query parameters.
+   * @returns {Promise<{ quests: QuestResponseDto[]; total: number; pages: number }>} List of available quests.
+   */
   async getAvailableQuests(userId: string, query: GetAvailableQuestsDto): Promise<{ quests: QuestResponseDto[]; total: number; pages: number }> {
     try {
       const { page = 1, limit = 12, status = 'active', search, communityId, sortBy = 'createdAt', sortOrder = 'desc', rewardType } = query;
@@ -66,16 +73,22 @@ export class UserQuestService implements IUserQuestService {
       const pages = Math.ceil(total / limit);
       return { quests: questResponses, total, pages };
     } catch (error) {
-      logger.error("Get available quests error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to get available quests", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_QUESTS_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_GET_AVAILABLE_QUESTS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves a quest by its ID.
+   * @param {string} questId - ID of the quest.
+   * @param {string} userId - ID of the user (optional).
+   * @returns {Promise<QuestResponseDto>} Quest details.
+   */
   async getQuestById(questId: string, userId?: string): Promise<QuestResponseDto> {
     try {
       const quest = await this._questRepository.findQuestById(questId);
       if (!quest) {
-        throw new CustomError("Quest not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.QUEST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Get quest tasks
@@ -97,11 +110,17 @@ export class UserQuestService implements IUserQuestService {
 
       return questResponse;
     } catch (error) {
-      logger.error("Get quest by ID error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to get quest", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_QUEST_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_GET_QUEST, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves quests that the user is participating in.
+   * @param {string} userId - ID of the user.
+   * @param {GetMyQuestsDto} query - Query parameters.
+   * @returns {Promise<{ quests: MyQuestResponseDto[]; total: number; pages: number }>} List of user's quests.
+   */
   async getMyQuests(userId: string, query: GetMyQuestsDto): Promise<{ quests: MyQuestResponseDto[]; total: number; pages: number }> {
     try {
       const { page = 1, limit = 12, status, search } = query;
@@ -113,8 +132,8 @@ export class UserQuestService implements IUserQuestService {
       const pages = Math.ceil(total / limit);
       return { quests: questResponses, total, pages };
     } catch (error) {
-      logger.error("Get my quests error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to get my quests", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_MY_QUESTS_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_GET_MY_QUESTS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -122,20 +141,20 @@ export class UserQuestService implements IUserQuestService {
     try {
       const user = await this._userRepository.findById(userId);
       if (!user) {
-        throw new CustomError("User not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.USER_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       const quest = await this._questRepository.findQuestById(joinDto.questId);
       if (!quest) {
-        throw new CustomError("Quest not found", StatusCode.NOT_FOUND);
+        throw new CustomError(ErrorMessages.QUEST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
       // Enhanced validation
       if (quest.status !== 'active') {
-        let message = "Quest is not available for joining";
-        if (quest.status === 'ended') message = "This quest has already ended";
-        if (quest.status === 'draft') message = "This quest is still in draft mode";
-        if (quest.status === 'cancelled') message = "This quest has been cancelled";
+        let message = ErrorMessages.QUEST_NOT_AVAILABLE_JOIN;
+        if (quest.status === 'ended') message = ErrorMessages.QUEST_ALREADY_ENDED;
+        if (quest.status === 'draft') message = ErrorMessages.QUEST_IS_DRAFT;
+        if (quest.status === 'cancelled') message = ErrorMessages.QUEST_CANCELLED;
         throw new CustomError(message, StatusCode.BAD_REQUEST);
       }
 
@@ -145,21 +164,21 @@ export class UserQuestService implements IUserQuestService {
       const endDate = new Date(quest.endDate);
 
       if (startDate > now) {
-        throw new CustomError("Quest hasn't started yet", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.QUEST_NOT_STARTED, StatusCode.BAD_REQUEST);
       }
 
       if (endDate <= now) {
-        throw new CustomError("Quest has already ended", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.QUEST_ALREADY_ENDED, StatusCode.BAD_REQUEST);
       }
 
       if (quest.totalParticipants >= quest.participantLimit) {
-        throw new CustomError("Quest is full - maximum participants reached", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.QUEST_FULL, StatusCode.BAD_REQUEST);
       }
 
       // Check if user is already participating
       const existingParticipation = await this._questRepository.findParticipantByUserAndQuest(userId, joinDto.questId);
       if (existingParticipation) {
-        throw new CustomError("You are already participating in this quest", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.ALREADY_PARTICIPATING, StatusCode.BAD_REQUEST);
       }
 
       // Create participation record
@@ -179,14 +198,14 @@ export class UserQuestService implements IUserQuestService {
       await this._questRepository.createParticipant(participantData);
       await this._questRepository.incrementQuestParticipants(joinDto.questId);
 
-      logger.info(`User joined quest successfully`, { userId, questId: joinDto.questId });
-      return { 
-        success: true, 
-        message: `Successfully joined "${quest.title}"! You can now start completing tasks to earn rewards.` 
+      logger.info(SuccessMessages.QUEST_JOINED, { userId, questId: joinDto.questId });
+      return {
+        success: true,
+        message: `Successfully joined "${quest.title}"! You can now start completing tasks to earn rewards.`
       };
     } catch (error) {
-      logger.error("Join quest error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to join quest", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.JOIN_QUEST_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_JOIN_QUEST, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -195,35 +214,35 @@ export class UserQuestService implements IUserQuestService {
       // Verify user participation
       const participation = await this._questRepository.findParticipantByUserAndQuest(userId, submitDto.questId);
       if (!participation) {
-        throw new CustomError("You are not participating in this quest", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.NOT_PARTICIPATING, StatusCode.BAD_REQUEST);
       }
 
       if (participation.status === 'disqualified') {
-        throw new CustomError("You have been disqualified from this quest", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.PARTICIPANT_DISQUALIFIED_ERROR, StatusCode.BAD_REQUEST);
       }
 
       // Check if task already submitted
       const existingSubmission = await this._questRepository.findSubmissionByUserTaskQuest(userId, submitDto.taskId, submitDto.questId);
       if (existingSubmission) {
-        throw new CustomError("You have already submitted this task", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.TASK_ALREADY_SUBMITTED, StatusCode.BAD_REQUEST);
       }
 
       // Validate submission data based on task type
       const validationResult = await this._questRepository.validateTaskSubmission(submitDto.taskId, submitDto.submissionData);
       if (!validationResult.valid) {
-        throw new CustomError(validationResult.message || "Invalid submission data", StatusCode.BAD_REQUEST);
+        throw new CustomError(validationResult.message || ErrorMessages.INVALID_SUBMISSION_DATA, StatusCode.BAD_REQUEST);
       }
 
       // Get quest to check if it's still active
       const quest = await this._questRepository.findQuestById(submitDto.questId);
       if (!quest || quest.status !== 'active') {
-        throw new CustomError("Quest is not active for task submissions", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.QUEST_NOT_ACTIVE, StatusCode.BAD_REQUEST);
       }
 
       // Check if quest has ended
       const now = new Date();
       if (new Date(quest.endDate) <= now) {
-        throw new CustomError("Quest has ended - no more submissions allowed", StatusCode.BAD_REQUEST);
+        throw new CustomError(ErrorMessages.QUEST_ENDED_NO_SUBMISSIONS, StatusCode.BAD_REQUEST);
       }
 
       // Create submission
@@ -264,19 +283,18 @@ export class UserQuestService implements IUserQuestService {
       const tasks = await this._questRepository.findTasksByQuest(submitDto.questId);
       const completedTask = tasks.find(t => t._id.toString() === submitDto.taskId);
 
-      logger.info(`Task submitted successfully`, { userId, questId: submitDto.questId, taskId: submitDto.taskId });
-      
+      logger.info(SuccessMessages.TASK_SUBMITTED, { userId, questId: submitDto.questId, taskId: submitDto.taskId });
+
       const response = new TaskSubmissionResponseDto(submission);
-      response.message = `Task "${completedTask?.title}" submitted successfully! ${
-        updateData.status === 'completed' 
-          ? "🎉 Congratulations! You've completed all tasks in this quest."
-          : `Progress: ${updatedTasksCompleted}/${totalTasks.length} tasks completed.`
-      }`;
-      
+      response.message = `Task "${completedTask?.title}" submitted successfully! ${updateData.status === 'completed'
+        ? "🎉 Congratulations! You've completed all tasks in this quest."
+        : `Progress: ${updatedTasksCompleted}/${totalTasks.length} tasks completed.`
+        }`;
+
       return response;
     } catch (error) {
-      logger.error("Submit task error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to submit task", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.SUBMIT_TASK_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_SUBMIT_TASK, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -291,7 +309,7 @@ export class UserQuestService implements IUserQuestService {
           const subTaskId = (sub.taskId as any)._id || sub.taskId;
           return subTaskId.toString() === task._id.toString();
         });
-        
+
         return {
           ...task,
           isCompleted: !!submission,
@@ -302,18 +320,24 @@ export class UserQuestService implements IUserQuestService {
 
       return tasksWithStatus;
     } catch (error) {
-      logger.error("Get quest tasks error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to get quest tasks", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_QUEST_TASKS_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_GET_QUEST_TASKS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves user's submissions for a quest.
+   * @param {string} userId - ID of the user.
+   * @param {string} questId - ID of the quest.
+   * @returns {Promise<any[]>} List of submissions.
+   */
   async getMySubmissions(userId: string, questId: string): Promise<any[]> {
     try {
       const submissions = await this._questRepository.findSubmissionsByUserAndQuest(userId, questId);
       return submissions;
     } catch (error) {
-      logger.error("Get my submissions error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to get submissions", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_SUBMISSIONS_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_GET_SUBMISSIONS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -321,35 +345,46 @@ export class UserQuestService implements IUserQuestService {
     try {
       const stats = await this._questRepository.getQuestParticipantStats(questId);
       const taskStats = await this._questRepository.getTaskCompletionStats(questId);
-      
+
       return {
         ...stats,
         taskCompletionStats: taskStats
       };
     } catch (error) {
-      logger.error("Get quest stats error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to get quest stats", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_QUEST_STATS_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_GET_QUEST_STATS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves top quests.
+   * @param {number} limit - Number of quests to retrieve.
+   * @returns {Promise<QuestResponseDto[]>} List of top quests.
+   */
   async getTopQuests(limit: number = 10): Promise<QuestResponseDto[]> {
     try {
       const quests = await this._questRepository.findTopQuests(limit);
       return quests.map(quest => new QuestResponseDto(quest));
     } catch (error) {
-      logger.error("Get top quests error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to get top quests", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_TOP_QUESTS_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_GET_TOP_QUESTS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Checks participation status of a user in a quest.
+   * @param {string} userId - ID of the user.
+   * @param {string} questId - ID of the quest.
+   * @returns {Promise<any>} Participation status.
+   */
   async checkParticipationStatus(userId: string, questId: string): Promise<any> {
     try {
       const participation = await this._questRepository.findParticipantByUserAndQuest(userId, questId);
       if (!participation) {
-        return { 
+        return {
           isParticipating: false,
           canJoin: true,
-          message: "You haven't joined this quest yet" 
+          message: SuccessMessages.QUEST_NOT_JOINED_MSG
         };
       }
 
@@ -372,11 +407,17 @@ export class UserQuestService implements IUserQuestService {
         rank: rank
       };
     } catch (error) {
-      logger.error("Check participation status error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to check participation status", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.CHECK_PARTICIPATION_STATUS_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_CHECK_PARTICIPATION_STATUS, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Retrieves leaderboard for a quest.
+   * @param {string} questId - ID of the quest.
+   * @param {GetLeaderboardDto} query - Query parameters.
+   * @returns {Promise<LeaderboardResponseDto>} Leaderboard data.
+   */
   async getQuestLeaderboard(questId: string, query: GetLeaderboardDto): Promise<LeaderboardResponseDto> {
     try {
       const { page = 1, limit = 10 } = query;
@@ -387,22 +428,28 @@ export class UserQuestService implements IUserQuestService {
         return new LeaderboardResponseDto({
           participants: [],
           pagination: { page, limit, total: 0, pages: 0 },
-          message: "This quest doesn't use leaderboard-based selection"
+          message: SuccessMessages.NO_LEADERBOARD_MSG
         });
       }
 
       const { participants, total, pages } = await this._questRepository.getQuestLeaderboard(questId, page, limit);
-      
+
       return new LeaderboardResponseDto({
         participants,
         pagination: { page, limit, total, pages }
       });
     } catch (error) {
-      logger.error("Get quest leaderboard error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to get quest leaderboard", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.GET_QUEST_LEADERBOARD_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_GET_QUEST_LEADERBOARD, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
+  /**
+   * Uploads media for a task submission.
+   * @param {Express.Multer.File} file - Media file.
+   * @param {string} userId - ID of the user.
+   * @returns {Promise<{ mediaUrl: string }>} Uploaded media URL.
+   */
   async uploadTaskMedia(file: Express.Multer.File, userId: string): Promise<{ mediaUrl: string }> {
     try {
       const uploadResult = await cloudinary.uploader.upload(
@@ -420,8 +467,8 @@ export class UserQuestService implements IUserQuestService {
 
       return { mediaUrl: uploadResult.secure_url };
     } catch (error) {
-      logger.error("Upload task media error:", error);
-      throw error instanceof CustomError ? error : new CustomError("Failed to upload media", StatusCode.INTERNAL_SERVER_ERROR);
+      logger.error(LoggerMessages.UPLOAD_TASK_MEDIA_ERROR, error);
+      throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_UPLOAD_MEDIA, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 }

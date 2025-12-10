@@ -3,6 +3,7 @@ import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
+import { ErrorMessages, SuccessMessages, LoggerMessages, ValidationMessages } from "../../enums/messages.enum";
 import { ICommunityAdminProfileService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminProfile.service";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunity.repository";
@@ -26,13 +27,18 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
         @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository,
         @inject(TYPES.IPostRepository) private _postRepository: IPostRepository,
         @inject(TYPES.ICommunityAdminPostRepository) private _adminPostRepository: ICommunityAdminPostRepository
-    ) {}
+    ) { }
 
+    /**
+     * Retrieves the profile of a community admin.
+     * @param {string} adminId - Admin ID.
+     * @returns {Promise<CommunityAdminProfileResponseDto>} Profile DTO.
+     */
     async getProfile(adminId: string): Promise<CommunityAdminProfileResponseDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
-                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             let community = null;
@@ -78,26 +84,32 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
 
             return profileResponse;
         } catch (error) {
-            console.error("CommunityAdminProfileService: Get profile error:", error);
+            logger.error(LoggerMessages.GET_PROFILE_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to fetch profile", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_GET_PROFILE, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Updates the profile of a community admin.
+     * @param {string} adminId - Admin ID.
+     * @param {UpdateCommunityAdminProfileDto} data - Update data (bio, location, etc.).
+     * @returns {Promise<CommunityAdminProfileResponseDto>} Updated profile DTO.
+     */
     async updateProfile(adminId: string, data: UpdateCommunityAdminProfileDto): Promise<CommunityAdminProfileResponseDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
-                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Validate website URL if provided
             if (data.website && data.website.trim() !== "") {
                 const websiteRegex = /^https?:\/\/.+/;
                 if (!websiteRegex.test(data.website)) {
-                    throw new CustomError("Website must be a valid URL starting with http:// or https://", StatusCode.BAD_REQUEST);
+                    throw new CustomError(ValidationMessages.INVALID_WEBSITE_URL, StatusCode.BAD_REQUEST);
                 }
             }
 
@@ -113,24 +125,30 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
 
             const updatedAdmin = await this._adminRepository.updateCommunityAdmin(adminId, updateData as any);
             if (!updatedAdmin) {
-                throw new CustomError("Failed to update profile", StatusCode.INTERNAL_SERVER_ERROR);
+                throw new CustomError(ErrorMessages.FAILED_UPDATE_PROFILE, StatusCode.INTERNAL_SERVER_ERROR);
             }
 
             return await this.getProfile(adminId);
         } catch (error) {
-            console.error("CommunityAdminProfileService: Update profile error:", error);
+            logger.error(LoggerMessages.UPDATE_PROFILE_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to update profile", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_UPDATE_PROFILE, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves community statistics for a given period.
+     * @param {string} adminId - Admin ID.
+     * @param {string} [period='week'] - Period (today, week, month).
+     * @returns {Promise<CommunityStatsDto>} Statistics DTO.
+     */
     async getCommunityStats(adminId: string, period: string = 'week'): Promise<CommunityStatsDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const communityId = admin.communityId.toString();
@@ -180,14 +198,19 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
 
             return new CommunityStatsDto(statsData);
         } catch (error) {
-            console.error("CommunityAdminProfileService: Get community stats error:", error);
+            logger.error(LoggerMessages.GET_COMMUNITY_STATS_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to fetch community stats", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_GET_COMMUNITY_STATS, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves member statistics.
+     * @param {string} communityId - Community ID.
+     * @returns {Promise<any>} Member stats (total, active, premium).
+     */
     private async _getMemberStats(communityId: string): Promise<any> {
         const totalMembers = await CommunityMemberModel.countDocuments({ communityId, isActive: true });
         const activeMembers = await CommunityMemberModel.countDocuments({
@@ -208,6 +231,12 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
         };
     }
 
+    /**
+     * Retrieves member statistics filtered by period.
+     * @param {string} communityId - Community ID.
+     * @param {Date} startDate - Start date of the period.
+     * @returns {Promise<any>} Member stats with new members count.
+     */
     private async _getMemberStatsWithPeriod(communityId: string, startDate: Date): Promise<any> {
         const totalMembers = await CommunityMemberModel.countDocuments({ communityId, isActive: true });
         const activeMembers = await CommunityMemberModel.countDocuments({
@@ -233,6 +262,11 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
         };
     }
 
+    /**
+     * Retrieves post statistics.
+     * @param {string} communityId - Community ID.
+     * @returns {Promise<any>} Post stats (total, engagement rate).
+     */
     private async _getPostStats(communityId: string): Promise<any> {
         // Get community members
         const members = await CommunityMemberModel.find({ communityId, isActive: true }).select('userId');
@@ -251,6 +285,12 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
         };
     }
 
+    /**
+     * Retrieves post statistics filtered by period.
+     * @param {string} communityId - Community ID.
+     * @param {Date} startDate - Start date of the period.
+     * @returns {Promise<any>} Post stats with new posts count.
+     */
     private async _getPostStatsWithPeriod(communityId: string, startDate: Date): Promise<any> {
         // Get community members
         const members = await CommunityMemberModel.find({ communityId, isActive: true }).select('userId');
@@ -274,6 +314,11 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
         };
     }
 
+    /**
+     * Retrieves top active members based on posts and likes.
+     * @param {string} communityId - Community ID.
+     * @returns {Promise<any[]>} List of top members with stats.
+     */
     private async _getTopActiveMembers(communityId: string): Promise<any[]> {
         const topMembers = await CommunityMemberModel.find({ communityId, isActive: true })
             .populate('userId', 'username name profilePic')
@@ -291,6 +336,11 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
         }));
     }
 
+    /**
+     * Retrieves statistics for admin's own posts.
+     * @param {string} adminId - Admin ID.
+     * @returns {Promise<any>} Admin post stats (posts, likes, comments).
+     */
     private async _getAdminPostStats(adminId: string): Promise<any> {
         const [postsCount, likesCount, commentsCount] = await Promise.all([
             CommunityAdminPostModel.countDocuments({ author: adminId, isDeleted: false }),

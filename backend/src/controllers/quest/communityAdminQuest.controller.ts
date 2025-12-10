@@ -125,7 +125,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_GET_QUESTS;
 
-      logger.error(LoggerMessages.GET_QUESTS_ERROR_LOG, {
+      logger.error(LoggerMessages.GET_QUESTS_ERROR, {
         message,
         stack: err.stack,
         adminId: (req as any).user?.id,

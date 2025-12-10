@@ -3,6 +3,7 @@ import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
+import { ErrorMessages, SuccessMessages, LoggerMessages } from "../../enums/messages.enum";
 import { ICommunityAdminFeedService } from "../../core/interfaces/services/communityAdmin/ICommnityAdminFeed.service";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { IPostRepository } from "../../core/interfaces/repositories/posts/IPost.repository";
@@ -26,13 +27,19 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
         @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository
     ) { }
 
+    /**
+     * Retrieves the community feed based on type.
+     * @param {string} adminId - Admin ID.
+     * @param {string} [cursor] - Pagination cursor.
+     * @param {number} [limit=10] - Number of items.
+     * @param {string} [type='all'] - Type of feed.
+     * @returns {Promise<CommunityFeedResponseDto>} Feed response.
+     */
     async getCommunityFeed(adminId: string, cursor?: string, limit: number = 10, type: string = 'all'): Promise<CommunityFeedResponseDto> {
         try {
-
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const communityId = admin.communityId.toString();
@@ -66,8 +73,6 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
             const communityStats = await this._getCommunityStats(communityId);
 
-
-
             return new CommunityFeedResponseDto(
                 transformedPosts,
                 postsResult.hasMore,
@@ -76,27 +81,31 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 communityStats
             );
         } catch (error) {
-            console.error("CommunityAdminFeedService: Get community feed error:", error);
+            logger.error(LoggerMessages.GET_COMMUNITY_FEED_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to fetch community feed", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_GET_COMMUNITY_FEED, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Toggles like status on a post.
+     * @param {string} adminId - Admin ID.
+     * @param {string} postId - Post ID.
+     * @returns {Promise<LikeResponseDto>} Like response.
+     */
     async togglePostLike(adminId: string, postId: string): Promise<LikeResponseDto> {
         try {
-
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
-                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Check if post exists
             const post = await this._postRepository.findPostById(postId);
             if (!post) {
-                throw new CustomError("Post not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.POST_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Check if already liked
@@ -111,16 +120,14 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 await this._postRepository.unlikePost(adminId, postId);
                 newLikesCount = Math.max(0, post.likesCount - 1);
                 isNowLiked = false;
-                message = "Post unliked successfully";
+                message = SuccessMessages.POST_UNLIKED_SUCCESS;
             } else {
                 // Like the post
                 await this._postRepository.likePost(adminId, postId);
                 newLikesCount = post.likesCount + 1;
                 isNowLiked = true;
-                message = "Post liked successfully";
+                message = SuccessMessages.POST_LIKED_SUCCESS;
             }
-
-
 
             return {
                 success: true,
@@ -129,34 +136,38 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 message
             };
         } catch (error) {
-            console.error("CommunityAdminFeedService: Toggle post like error:", error);
+            logger.error(LoggerMessages.TOGGLE_POST_LIKE_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to toggle post like", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_TOGGLE_POST_LIKE, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Creates a comment on a post.
+     * @param {string} adminId - Admin ID.
+     * @param {CreateCommentDto} data - Comment data.
+     * @returns {Promise<any>} Created comment.
+     */
     async createComment(adminId: string, data: CreateCommentDto): Promise<any> {
         try {
-
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
-                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Verify post exists
             const post = await this._postRepository.findPostById(data.postId || '');
             if (!post) {
-                throw new CustomError("Post not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.POST_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Verify parent comment exists if provided
             if (data.parentCommentId) {
                 const parentComment = await this._postRepository.findCommentById(data.parentCommentId);
                 if (!parentComment) {
-                    throw new CustomError("Parent comment not found", StatusCode.NOT_FOUND);
+                    throw new CustomError(ErrorMessages.COMMENT_NOT_FOUND, StatusCode.NOT_FOUND);
                 }
                 if (parentComment.post.toString() !== data.postId) {
                     throw new CustomError("Parent comment belongs to a different post", StatusCode.BAD_REQUEST);
@@ -173,30 +184,34 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 admin.communityId.toString() // Community ID
             );
 
-
             return this._transformCommentForAdmin(comment, adminId);
         } catch (error) {
-            console.error("CommunityAdminFeedService: Create comment error:", error);
+            logger.error(LoggerMessages.CREATE_COMMENT_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to create comment", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_CREATE_COMMENT, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Shares a post.
+     * @param {string} adminId - Admin ID.
+     * @param {string} postId - Post ID.
+     * @param {string} [shareText] - Optional share text.
+     * @returns {Promise<ShareResponseDto>} Share response.
+     */
     async sharePost(adminId: string, postId: string, shareText?: string): Promise<ShareResponseDto> {
         try {
-
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
-                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Verify post exists
             const post = await this._postRepository.findPostById(postId);
             if (!post) {
-                throw new CustomError("Post not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.POST_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Update share count
@@ -209,24 +224,28 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 success: true,
                 shareUrl,
                 sharesCount: post.sharesCount + 1,
-                message: "Post shared successfully"
+                message: SuccessMessages.POST_SHARED_SUCCESS
             };
         } catch (error) {
-            console.error("CommunityAdminFeedService: Share post error:", error);
+            logger.error(LoggerMessages.SHARE_POST_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to share post", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_SHARE_POST, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves engagement statistics.
+     * @param {string} adminId - Admin ID.
+     * @param {string} [period='week'] - Period.
+     * @returns {Promise<CommunityEngagementStatsDto>} Engagement stats.
+     */
     async getEngagementStats(adminId: string, period: string = 'week'): Promise<CommunityEngagementStatsDto> {
         try {
-
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const communityId = admin.communityId.toString();
@@ -286,14 +305,13 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 memberActivity
             };
 
-
             return new CommunityEngagementStatsDto(engagementData);
         } catch (error) {
-            console.error("CommunityAdminFeedService: Get engagement stats error:", error);
+            logger.error(LoggerMessages.GET_ENGAGEMENT_STATS_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to fetch engagement stats", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_GET_ENGAGEMENT_STATS, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -342,31 +360,45 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
         }
     }
 
+    /**
+     * Retrieves a post by its ID.
+     * @param {string} adminId - Admin ID.
+     * @param {string} postId - Post ID.
+     * @returns {Promise<any>} Post object.
+     */
     async getPostById(adminId: string, postId: string): Promise<any> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
-                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const post = await this._postRepository.findPostById(postId);
             if (!post) {
-                throw new CustomError("Post not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.POST_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             return this._transformPostForAdmin(post, adminId);
         } catch (error) {
-            console.error("CommunityAdminFeedService: Get post error:", error);
+            logger.error(LoggerMessages.GET_POST_BY_ID_ERROR, error);
             if (error instanceof CustomError) throw error;
-            throw new CustomError("Failed to fetch post", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_FETCH_POST, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves comments for a post.
+     * @param {string} adminId - Admin ID.
+     * @param {string} postId - Post ID.
+     * @param {string} [cursor] - Pagination cursor.
+     * @param {number} [limit=10] - Number of items.
+     * @returns {Promise<any>} Comments data.
+     */
     async getPostComments(adminId: string, postId: string, cursor?: string, limit: number = 10): Promise<any> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
-                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             const result = await this._postRepository.getPostComments(postId, cursor, limit);
@@ -381,25 +413,30 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 nextCursor: result.nextCursor
             };
         } catch (error) {
-            console.error("CommunityAdminFeedService: Get comments error:", error);
+            logger.error(LoggerMessages.GET_POST_COMMENTS_ERROR, error);
             if (error instanceof CustomError) throw error;
-            throw new CustomError("Failed to fetch comments", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_FETCH_POST_COMMENTS, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Deletes a post.
+     * @param {string} adminId - Admin ID.
+     * @param {string} postId - Post ID.
+     * @param {string} [reason] - Reason for deletion.
+     * @returns {Promise<any>} Deletion response.
+     */
     async deletePost(adminId: string, postId: string, reason?: string): Promise<any> {
         try {
-
-
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
-                throw new CustomError("Community admin or community not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.COMMUNITY_ADMIN_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Check if post exists and belongs to community
             const post = await this._postRepository.findPostById(postId);
             if (!post) {
-                throw new CustomError("Post not found", StatusCode.NOT_FOUND);
+                throw new CustomError(ErrorMessages.POST_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
             // Verify the post author is a community member
@@ -410,33 +447,36 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
             });
 
             if (!member) {
-                throw new CustomError("Post does not belong to your community", StatusCode.FORBIDDEN);
+                throw new CustomError(ErrorMessages.POST_NOT_FOUND_OR_UNAUTHORIZED, StatusCode.FORBIDDEN);
             }
 
             // Delete the post (admin has authority to delete any post in their community)
             const success = await this._postRepository.deletePostByAdmin(postId, adminId, reason);
             if (!success) {
-                throw new CustomError("Failed to delete post", StatusCode.INTERNAL_SERVER_ERROR);
+                throw new CustomError(ErrorMessages.FAILED_DELETE_POST, StatusCode.INTERNAL_SERVER_ERROR);
             }
-
-
 
             return {
                 success: true,
                 postId,
                 deletedBy: adminId,
                 reason: reason || "Deleted by community admin",
-                message: "Post deleted successfully"
+                message: SuccessMessages.POST_DELETED_SUCCESS
             };
         } catch (error) {
-            console.error("CommunityAdminFeedService: Delete post error:", error);
+            logger.error(LoggerMessages.DELETE_POST_ERROR, error);
             if (error instanceof CustomError) {
                 throw error;
             }
-            throw new CustomError("Failed to delete post", StatusCode.INTERNAL_SERVER_ERROR);
+            throw new CustomError(ErrorMessages.FAILED_DELETE_POST, StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Retrieves internal community stats.
+     * @param {string} communityId - Community ID.
+     * @returns {Promise<any>} Stats object.
+     */
     private async _getCommunityStats(communityId: string): Promise<any> {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -466,6 +506,12 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
         };
     }
 
+    /**
+     * Transforms post for admin view.
+     * @param {any} post - Post object.
+     * @param {string} adminId - Admin ID.
+     * @returns {Promise<any>} Transformed post.
+     */
     private async _transformPostForAdmin(post: any, adminId: string): Promise<any> {
         // Check if admin liked the post
         const isLiked = await this._postRepository.checkIfLiked(adminId, post._id.toString());
@@ -482,6 +528,12 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
         };
     }
 
+    /**
+     * Transforms comment for admin view.
+     * @param {any} comment - Comment object.
+     * @param {string} adminId - Admin ID.
+     * @returns {Promise<any>} Transformed comment.
+     */
     private async _transformCommentForAdmin(comment: any, adminId: string): Promise<any> {
         // Check if admin liked the comment
         const isLiked = await this._postRepository.checkIfCommentLiked(adminId, comment._id.toString());
@@ -494,6 +546,12 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
         };
     }
 
+    /**
+     * Calculates engagement stats for member list.
+     * @param {string[]} memberIds - Member IDs.
+     * @param {Date} startDate - Start date.
+     * @returns {Promise<any>} Engagement stats.
+     */
     private async _getEngagementStatsForMembers(memberIds: string[], startDate: Date): Promise<any> {
         const postStats = await this._postRepository.getPostStats();
         const postsAfterDate = await this._postRepository.getPostCountByUsersAfterDate(memberIds, startDate);
@@ -511,6 +569,13 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
         };
     }
 
+    /**
+     * Retrieves member activity data.
+     * @param {string} communityId - Community ID.
+     * @param {Date} startDate - Start date.
+     * @param {string} period - Period string.
+     * @returns {Promise<any[]>} Activity data array.
+     */
     private async _getMemberActivityData(communityId: string, startDate: Date, period: string): Promise<any[]> {
         // This would generate activity data over time
         // For now, return empty array - implement based on your requirements
