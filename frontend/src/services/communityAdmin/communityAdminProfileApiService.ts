@@ -1,4 +1,5 @@
 import api from "@/lib/api-client";
+import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
 // Types
 interface CommunityStats {
@@ -47,12 +48,12 @@ interface ApiResponse<T = any> {
 }
 
 class CommunityAdminProfileApiService {
-  private readonly baseUrl = '/api/community-admin';
+  // private readonly baseUrl = '/api/community-admin';
 
   // Get profile
   async getProfile(): Promise<ApiResponse<CommunityAdminProfile>> {
     try {
-      const response = await api.get(`${this.baseUrl}/profile`);
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.PROFILE);
       return {
         success: true,
         data: response.data.data,
@@ -63,9 +64,9 @@ class CommunityAdminProfileApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get profile",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get profile",
       };
     }
   }
@@ -81,7 +82,7 @@ class CommunityAdminProfileApiService {
         website: profileData.website?.trim() || ""
       };
 
-      const response = await api.put(`${this.baseUrl}/profile`, cleanData);
+      const response = await api.put(COMMUNITY_ADMIN_API_ROUTES.PROFILE, cleanData);
       return {
         success: true,
         data: response.data.data,
@@ -92,9 +93,9 @@ class CommunityAdminProfileApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to update profile",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to update profile",
       };
     }
   }
@@ -105,7 +106,7 @@ class CommunityAdminProfileApiService {
       const formData = new FormData();
       formData.append('profilePicture', file);
 
-      const response = await api.post(`${this.baseUrl}/profile/upload-picture`, formData, {
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.PROFILE_UPLOAD_PICTURE, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -122,9 +123,9 @@ class CommunityAdminProfileApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to upload profile picture",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to upload profile picture",
       };
     }
   }
@@ -135,7 +136,7 @@ class CommunityAdminProfileApiService {
       const formData = new FormData();
       formData.append('bannerImage', file);
 
-      const response = await api.post(`${this.baseUrl}/profile/upload-banner`, formData, {
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.PROFILE_UPLOAD_BANNER, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -152,9 +153,9 @@ class CommunityAdminProfileApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to upload banner image",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to upload banner image",
       };
     }
   }
@@ -162,7 +163,7 @@ class CommunityAdminProfileApiService {
   // Get community stats
   async getCommunityStats(period: string = 'week'): Promise<ApiResponse> {
     try {
-      const response = await api.get(`${this.baseUrl}/community-stats?period=${period}`);
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.COMMUNITY_STATS}?period=${period}`);
       return {
         success: true,
         data: response.data.data,
@@ -172,9 +173,9 @@ class CommunityAdminProfileApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get community stats",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get community stats",
       };
     }
   }

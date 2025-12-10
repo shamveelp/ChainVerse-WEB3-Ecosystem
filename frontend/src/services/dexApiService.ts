@@ -1,16 +1,17 @@
 import axios from 'axios';
 import API from "@/lib/api-client";
+import { USER_API_ROUTES, ADMIN_API_ROUTES } from "@/routes";
 
 export const dexApiService = {
   // Get ETH price
   getEthPrice: async () => {
-    const response = await API.get('/api/user/dex/eth-price');
+    const response = await API.get(USER_API_ROUTES.DEX_ETH_PRICE);
     return response.data;
   },
 
   // Calculate estimate
   calculateEstimate: async (amount: number, currency: string = 'INR') => {
-    const response = await API.post('/api/user/dex/calculate-estimate', {
+    const response = await API.post(USER_API_ROUTES.DEX_CALCULATE_ESTIMATE, {
       amount,
       currency
     });
@@ -25,7 +26,7 @@ export const dexApiService = {
     estimatedEth: number;
     ethPriceAtTime: number;
   }) => {
-    const response = await API.post('/api/user/dex/create-order', orderData);
+    const response = await API.post(USER_API_ROUTES.DEX_CREATE_ORDER, orderData);
     return response.data;
   },
 
@@ -35,13 +36,13 @@ export const dexApiService = {
     razorpayPaymentId: string;
     razorpaySignature: string;
   }) => {
-    const response = await API.post('/api/user/dex/verify-payment', paymentData);
+    const response = await API.post(USER_API_ROUTES.DEX_VERIFY_PAYMENT, paymentData);
     return response.data;
   },
 
   // Get user payments
   getUserPayments: async (page: number = 1, limit: number = 10) => {
-    const response = await API.get(`/api/user/dex/payments?page=${page}&limit=${limit}`);
+    const response = await API.get(`${USER_API_ROUTES.DEX_PAYMENTS}?page=${page}&limit=${limit}`);
     return response.data;
   },
 };
@@ -49,14 +50,14 @@ export const dexApiService = {
 export const adminDexApiService = {
   // Get all payments
   getAllPayments: async (page: number = 1, limit: number = 10, status?: string) => {
-    const url = `/api/admin/dex/payments?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`;
+    const url = `${ADMIN_API_ROUTES.DEX_PAYMENTS}?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`;
     const response = await API.get(url);
     return response.data;
   },
 
   // Approve payment (deprecated - use fulfillPayment instead)
   approvePayment: async (paymentId: string, adminNote?: string, transactionHash?: string) => {
-    const response = await API.post('/api/admin/dex/approve-payment', {
+    const response = await API.post(ADMIN_API_ROUTES.DEX_APPROVE_PAYMENT, {
       paymentId,
       adminNote,
       transactionHash
@@ -66,7 +67,7 @@ export const adminDexApiService = {
 
   // Reject payment
   rejectPayment: async (paymentId: string, reason: string) => {
-    const response = await API.post('/api/admin/dex/reject-payment', {
+    const response = await API.post(ADMIN_API_ROUTES.DEX_REJECT_PAYMENT, {
       paymentId,
       reason
     });
@@ -75,7 +76,7 @@ export const adminDexApiService = {
 
   // Fulfill payment (this is what should be used for approval)
   fulfillPayment: async (paymentId: string, transactionHash: string, adminNote?: string) => {
-    const response = await API.post('/api/admin/dex/fulfill-payment', {
+    const response = await API.post(ADMIN_API_ROUTES.DEX_FULFILL_PAYMENT, {
       paymentId,
       transactionHash,
       adminNote
@@ -85,13 +86,13 @@ export const adminDexApiService = {
 
   // Get payment stats
   getPaymentStats: async () => {
-    const response = await API.get('/api/admin/dex/stats');
+    const response = await API.get(ADMIN_API_ROUTES.DEX_STATS);
     return response.data;
   },
 
   // Get pending payments
   getPendingPayments: async () => {
-    const response = await API.get('/api/admin/dex/pending');
+    const response = await API.get(ADMIN_API_ROUTES.DEX_PENDING);
     return response.data;
   },
 };

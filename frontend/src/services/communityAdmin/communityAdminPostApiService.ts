@@ -1,4 +1,5 @@
 import api from "@/lib/api-client";
+import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
 // Types
 interface PostAuthor {
@@ -97,12 +98,12 @@ interface ApiResponse<T = any> {
 }
 
 class CommunityAdminPostApiService {
-    private readonly baseUrl = '/api/community-admin';
+    // private readonly baseUrl = '/api/community-admin';
 
     // Post CRUD operations
     async createPost(postData: CreatePostData): Promise<ApiResponse<CommunityAdminPost>> {
         try {
-            const response = await api.post(`${this.baseUrl}/posts/create`, postData);
+            const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.POSTS_CREATE, postData);
             return {
                 success: true,
                 data: response.data.data,
@@ -113,16 +114,16 @@ class CommunityAdminPostApiService {
             return {
                 success: false,
                 error: error.response?.data?.error ||
-                       error.response?.data?.message ||
-                       error.message ||
-                       "Failed to create post",
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Failed to create post",
             };
         }
     }
 
     async getPostById(postId: string): Promise<ApiResponse<CommunityAdminPost>> {
         try {
-            const response = await api.get(`${this.baseUrl}/posts/${postId}`);
+            const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.POST_BY_ID(postId));
             return {
                 success: true,
                 data: response.data.data,
@@ -132,16 +133,16 @@ class CommunityAdminPostApiService {
             return {
                 success: false,
                 error: error.response?.data?.error ||
-                       error.response?.data?.message ||
-                       error.message ||
-                       "Failed to get post",
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Failed to get post",
             };
         }
     }
 
     async updatePost(postId: string, postData: { content: string; mediaUrls?: string[] }): Promise<ApiResponse<CommunityAdminPost>> {
         try {
-            const response = await api.put(`${this.baseUrl}/posts/${postId}`, postData);
+            const response = await api.put(COMMUNITY_ADMIN_API_ROUTES.POST_BY_ID(postId), postData);
             return {
                 success: true,
                 data: response.data.data,
@@ -152,16 +153,16 @@ class CommunityAdminPostApiService {
             return {
                 success: false,
                 error: error.response?.data?.error ||
-                       error.response?.data?.message ||
-                       error.message ||
-                       "Failed to update post",
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Failed to update post",
             };
         }
     }
 
     async deletePost(postId: string): Promise<ApiResponse> {
         try {
-            const response = await api.delete(`${this.baseUrl}/posts/${postId}`);
+            const response = await api.delete(COMMUNITY_ADMIN_API_ROUTES.POST_BY_ID(postId));
             return {
                 success: true,
                 message: response.data.message
@@ -171,9 +172,9 @@ class CommunityAdminPostApiService {
             return {
                 success: false,
                 error: error.response?.data?.error ||
-                       error.response?.data?.message ||
-                       error.message ||
-                       "Failed to delete post",
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Failed to delete post",
             };
         }
     }
@@ -185,7 +186,7 @@ class CommunityAdminPostApiService {
             params.append('limit', limit.toString());
             params.append('type', type);
 
-            const response = await api.get(`${this.baseUrl}/posts?${params.toString()}`);
+            const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.POSTS}?${params.toString()}`);
             return {
                 success: true,
                 data: response.data.data,
@@ -195,9 +196,9 @@ class CommunityAdminPostApiService {
             return {
                 success: false,
                 error: error.response?.data?.error ||
-                       error.response?.data?.message ||
-                       error.message ||
-                       "Failed to get posts",
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Failed to get posts",
             };
         }
     }
@@ -205,7 +206,7 @@ class CommunityAdminPostApiService {
     // Like operations
     async togglePostLike(postId: string): Promise<ApiResponse<LikeResponse>> {
         try {
-            const response = await api.post(`${this.baseUrl}/posts/${postId}/like`);
+            const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.POST_LIKE(postId));
             return {
                 success: true,
                 data: response.data.data,
@@ -216,9 +217,9 @@ class CommunityAdminPostApiService {
             return {
                 success: false,
                 error: error.response?.data?.error ||
-                       error.response?.data?.message ||
-                       error.message ||
-                       "Failed to toggle post like",
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Failed to toggle post like",
             };
         }
     }
@@ -226,7 +227,7 @@ class CommunityAdminPostApiService {
     // Comment operations
     async createComment(commentData: CreateCommentData): Promise<ApiResponse<CommunityAdminComment>> {
         try {
-            const response = await api.post(`${this.baseUrl}/posts/comments/create`, commentData);
+            const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.POST_COMMENTS_CREATE, commentData);
             return {
                 success: true,
                 data: response.data.data,
@@ -237,9 +238,9 @@ class CommunityAdminPostApiService {
             return {
                 success: false,
                 error: error.response?.data?.error ||
-                       error.response?.data?.message ||
-                       error.message ||
-                       "Failed to create comment",
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Failed to create comment",
             };
         }
     }
@@ -250,7 +251,7 @@ class CommunityAdminPostApiService {
             if (cursor) params.append('cursor', cursor);
             params.append('limit', limit.toString());
 
-            const response = await api.get(`${this.baseUrl}/posts/${postId}/comments?${params.toString()}`);
+            const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.POST_COMMENTS(postId)}?${params.toString()}`);
             return {
                 success: true,
                 data: response.data.data,
@@ -260,16 +261,16 @@ class CommunityAdminPostApiService {
             return {
                 success: false,
                 error: error.response?.data?.error ||
-                       error.response?.data?.message ||
-                       error.message ||
-                       "Failed to get comments",
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Failed to get comments",
             };
         }
     }
 
     async toggleCommentLike(commentId: string): Promise<ApiResponse<LikeResponse>> {
         try {
-            const response = await api.post(`${this.baseUrl}/posts/comments/${commentId}/like`);
+            const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.POST_COMMENT_LIKE(commentId));
             return {
                 success: true,
                 data: response.data.data,
@@ -280,9 +281,9 @@ class CommunityAdminPostApiService {
             return {
                 success: false,
                 error: error.response?.data?.error ||
-                       error.response?.data?.message ||
-                       error.message ||
-                       "Failed to toggle comment like",
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Failed to toggle comment like",
             };
         }
     }
@@ -293,7 +294,7 @@ class CommunityAdminPostApiService {
             const formData = new FormData();
             formData.append('media', file);
 
-            const response = await api.post(`${this.baseUrl}/posts/upload-media`, formData, {
+            const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.POST_UPLOAD_MEDIA, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -305,9 +306,9 @@ class CommunityAdminPostApiService {
             return {
                 success: false,
                 error: error.response?.data?.error ||
-                       error.response?.data?.message ||
-                       error.message ||
-                       "Failed to upload media",
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Failed to upload media",
             };
         }
     }
@@ -319,7 +320,7 @@ class CommunityAdminPostApiService {
             if (cursor) params.append('cursor', cursor);
             params.append('limit', limit.toString());
 
-            const response = await api.get(`${this.baseUrl}/feed/members?${params.toString()}`);
+            const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.FEED_MEMBERS}?${params.toString()}`);
             return {
                 success: true,
                 data: response.data.data,
@@ -329,9 +330,9 @@ class CommunityAdminPostApiService {
             return {
                 success: false,
                 error: error.response?.data?.error ||
-                       error.response?.data?.message ||
-                       error.message ||
-                       "Failed to get community members feed",
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Failed to get community members feed",
             };
         }
     }

@@ -1,4 +1,5 @@
 import api from "@/lib/api-client"
+import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes"
 
 // Types
 interface CommunityApplicationData {
@@ -68,12 +69,12 @@ interface CheckExistenceResponse {
 }
 
 class CommunityAdminApiService {
-  private readonly baseUrl = '/api/community-admin'
+  // private readonly baseUrl = '/api/community-admin'
 
   // Live validation endpoints
   async checkEmailExists(email: string): Promise<CheckExistenceResponse> {
     try {
-      const response = await api.get(`${this.baseUrl}/check-email?email=${encodeURIComponent(email)}`)
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.CHECK_EMAIL}?email=${encodeURIComponent(email)}`)
       return {
         exists: response.data.exists,
         success: true,
@@ -87,7 +88,7 @@ class CommunityAdminApiService {
 
   async checkUsernameExists(username: string): Promise<CheckExistenceResponse> {
     try {
-      const response = await api.get(`${this.baseUrl}/check-username?username=${encodeURIComponent(username)}`)
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.CHECK_USERNAME}?username=${encodeURIComponent(username)}`)
       return {
         exists: response.data.exists,
         success: true,
@@ -103,7 +104,7 @@ class CommunityAdminApiService {
   async submitCommunityApplication(applicationData: CommunityApplicationData): Promise<ApiResponse> {
     try {
       const formData = new FormData()
-      
+
       // Add text fields - trim all strings
       formData.append('communityName', applicationData.communityName.trim())
       formData.append('email', applicationData.email.trim().toLowerCase())
@@ -112,14 +113,14 @@ class CommunityAdminApiService {
       formData.append('description', applicationData.description.trim())
       formData.append('category', applicationData.category.trim())
       formData.append('whyChooseUs', applicationData.whyChooseUs.trim())
-      
+
       // Handle arrays and objects properly
       const cleanRules = applicationData.rules
         .filter(rule => rule.trim() !== '')
         .map(rule => rule.trim())
-      
+
       formData.append('rules', JSON.stringify(cleanRules))
-      
+
       // Clean social links
       const cleanSocialLinks = {
         twitter: applicationData.socialLinks.twitter.trim(),
@@ -127,14 +128,14 @@ class CommunityAdminApiService {
         telegram: applicationData.socialLinks.telegram.trim(),
         website: applicationData.socialLinks.website.trim()
       }
-      
+
       formData.append('socialLinks', JSON.stringify(cleanSocialLinks))
 
       // Handle file uploads
       if (applicationData.logo instanceof File) {
         formData.append('logo', applicationData.logo)
       }
-      
+
       if (applicationData.banner instanceof File) {
         formData.append('banner', applicationData.banner)
       }
@@ -153,13 +154,13 @@ class CommunityAdminApiService {
         hasBanner: !!applicationData.banner
       })
 
-      const response = await api.post(`${this.baseUrl}/apply`, formData, {
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.APPLY, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
         timeout: 30000, // 30 seconds timeout
       })
-      
+
       return {
         success: true,
         data: {
@@ -174,13 +175,13 @@ class CommunityAdminApiService {
         response: error.response?.data,
         status: error.response?.status
       })
-      
+
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Application submission failed",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Application submission failed",
       }
     }
   }
@@ -188,7 +189,7 @@ class CommunityAdminApiService {
   async reapplyApplication(applicationData: CommunityApplicationData): Promise<ApiResponse> {
     try {
       const formData = new FormData()
-      
+
       // Add text fields - trim all strings
       formData.append('communityName', applicationData.communityName.trim())
       formData.append('email', applicationData.email.trim().toLowerCase())
@@ -197,14 +198,14 @@ class CommunityAdminApiService {
       formData.append('description', applicationData.description.trim())
       formData.append('category', applicationData.category.trim())
       formData.append('whyChooseUs', applicationData.whyChooseUs.trim())
-      
+
       // Handle arrays and objects properly
       const cleanRules = applicationData.rules
         .filter(rule => rule.trim() !== '')
         .map(rule => rule.trim())
-      
+
       formData.append('rules', JSON.stringify(cleanRules))
-      
+
       // Clean social links
       const cleanSocialLinks = {
         twitter: applicationData.socialLinks.twitter.trim(),
@@ -212,25 +213,25 @@ class CommunityAdminApiService {
         telegram: applicationData.socialLinks.telegram.trim(),
         website: applicationData.socialLinks.website.trim()
       }
-      
+
       formData.append('socialLinks', JSON.stringify(cleanSocialLinks))
 
       // Handle file uploads
       if (applicationData.logo instanceof File) {
         formData.append('logo', applicationData.logo)
       }
-      
+
       if (applicationData.banner instanceof File) {
         formData.append('banner', applicationData.banner)
       }
 
-      const response = await api.post(`${this.baseUrl}/reapply`, formData, {
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.REAPPLY, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
         timeout: 30000, // 30 seconds timeout
       })
-      
+
       return {
         success: true,
         data: {
@@ -243,19 +244,19 @@ class CommunityAdminApiService {
       console.error("Reapply application error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Application resubmission failed",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Application resubmission failed",
       }
     }
   }
 
   async setPassword(email: string, password: string): Promise<ApiResponse> {
     try {
-      const response = await api.post(`${this.baseUrl}/set-password`, { 
-        email: email.trim().toLowerCase(), 
-        password 
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.SET_PASSWORD, {
+        email: email.trim().toLowerCase(),
+        password
       })
       return {
         success: true,
@@ -265,19 +266,19 @@ class CommunityAdminApiService {
       console.error("Set password error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Password setting failed",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Password setting failed",
       }
     }
   }
 
   async verifyOtp(email: string, otp: string): Promise<ApiResponse> {
     try {
-      const response = await api.post(`${this.baseUrl}/verify-otp`, { 
-        email: email.trim().toLowerCase(), 
-        otp: otp.trim() 
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.VERIFY_OTP, {
+        email: email.trim().toLowerCase(),
+        otp: otp.trim()
       })
       return {
         success: true,
@@ -287,18 +288,18 @@ class CommunityAdminApiService {
       console.error("Verify OTP error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "OTP verification failed",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "OTP verification failed",
       }
     }
   }
 
   async resendOtp(email: string): Promise<ApiResponse> {
     try {
-      const response = await api.post(`${this.baseUrl}/resend-otp`, { 
-        email: email.trim().toLowerCase() 
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.RESEND_OTP, {
+        email: email.trim().toLowerCase()
       })
       return {
         success: true,
@@ -308,10 +309,10 @@ class CommunityAdminApiService {
       console.error("Resend OTP error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to resend OTP",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to resend OTP",
       }
     }
   }
@@ -319,9 +320,9 @@ class CommunityAdminApiService {
   // Authentication
   async login(email: string, password: string): Promise<ApiResponse> {
     try {
-      const response = await api.post(`${this.baseUrl}/login`, { 
-        email: email.trim().toLowerCase(), 
-        password 
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.LOGIN, {
+        email: email.trim().toLowerCase(),
+        password
       })
       return {
         success: true,
@@ -335,33 +336,33 @@ class CommunityAdminApiService {
       console.error("Community admin login error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Login failed",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Login failed",
       }
     }
   }
 
   async logout(): Promise<ApiResponse> {
     try {
-      await api.post(`${this.baseUrl}/logout`)
+      await api.post(COMMUNITY_ADMIN_API_ROUTES.LOGOUT)
       return { success: true }
     } catch (error: any) {
       console.error("Community admin logout error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Logout failed",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Logout failed",
       }
     }
   }
 
   async refreshToken(): Promise<ApiResponse> {
     try {
-      const response = await api.post(`${this.baseUrl}/refresh-token`)
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.REFRESH_TOKEN)
       return {
         success: true,
         data: {
@@ -372,10 +373,10 @@ class CommunityAdminApiService {
       console.error("Refresh token error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Token refresh failed",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Token refresh failed",
       }
     }
   }
@@ -383,8 +384,8 @@ class CommunityAdminApiService {
   // Forgot Password Flow
   async forgotPassword(email: string): Promise<ApiResponse> {
     try {
-      const response = await api.post(`${this.baseUrl}/forgot-password`, { 
-        email: email.trim().toLowerCase() 
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.FORGOT_PASSWORD, {
+        email: email.trim().toLowerCase()
       })
       return {
         success: true,
@@ -394,19 +395,19 @@ class CommunityAdminApiService {
       console.error("Forgot password error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to send reset code",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to send reset code",
       }
     }
   }
 
   async verifyForgotPasswordOtp(email: string, otp: string): Promise<ApiResponse> {
     try {
-      const response = await api.post(`${this.baseUrl}/verify-forgot-password-otp`, { 
-        email: email.trim().toLowerCase(), 
-        otp: otp.trim() 
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.VERIFY_FORGOT_PASSWORD_OTP, {
+        email: email.trim().toLowerCase(),
+        otp: otp.trim()
       })
       return {
         success: true,
@@ -416,19 +417,19 @@ class CommunityAdminApiService {
       console.error("Verify forgot password OTP error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Invalid OTP",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Invalid OTP",
       }
     }
   }
 
   async resetPassword(email: string, password: string): Promise<ApiResponse> {
     try {
-      const response = await api.post(`${this.baseUrl}/reset-password`, { 
-        email: email.trim().toLowerCase(), 
-        password 
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.RESET_PASSWORD, {
+        email: email.trim().toLowerCase(),
+        password
       })
       return {
         success: true,
@@ -438,10 +439,10 @@ class CommunityAdminApiService {
       console.error("Reset password error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Password reset failed",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Password reset failed",
       }
     }
   }
@@ -449,7 +450,7 @@ class CommunityAdminApiService {
   // Profile
   async getProfile(): Promise<ApiResponse> {
     try {
-      const response = await api.get(`${this.baseUrl}/profile`)
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.PROFILE)
       return {
         success: true,
         data: {
@@ -460,10 +461,10 @@ class CommunityAdminApiService {
       console.error("Get profile error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to get profile",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get profile",
       }
     }
   }
@@ -471,7 +472,7 @@ class CommunityAdminApiService {
   // Community Management
   async getCommunityDetails(): Promise<ApiResponse<{ community: CommunityDetails }>> {
     try {
-      const response = await api.get(`${this.baseUrl}/community`)
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.COMMUNITY)
       return {
         success: true,
         data: response.data,
@@ -480,17 +481,17 @@ class CommunityAdminApiService {
       console.error("Get community details error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to get community details",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get community details",
       }
     }
   }
 
   async updateCommunity(formData: FormData): Promise<ApiResponse> {
     try {
-      const response = await api.put(`${this.baseUrl}/community`, formData, {
+      const response = await api.put(COMMUNITY_ADMIN_API_ROUTES.COMMUNITY, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -504,17 +505,17 @@ class CommunityAdminApiService {
       console.error("Update community error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to update community",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to update community",
       }
     }
   }
 
   async getCommunityMembers(page: number = 1, limit: number = 20): Promise<ApiResponse> {
     try {
-      const response = await api.get(`${this.baseUrl}/community/members?page=${page}&limit=${limit}`)
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.COMMUNITY_MEMBERS}?page=${page}&limit=${limit}`)
       return {
         success: true,
         data: response.data,
@@ -523,10 +524,10 @@ class CommunityAdminApiService {
       console.error("Get community members error:", error.response?.data || error.message)
       return {
         success: false,
-        error: error.response?.data?.error || 
-               error.response?.data?.message || 
-               error.message || 
-               "Failed to get community members",
+        error: error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get community members",
       }
     }
   }

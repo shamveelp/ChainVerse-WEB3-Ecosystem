@@ -1,4 +1,5 @@
 import API from "@/lib/api-client";
+import { USER_API_ROUTES } from "@/routes";
 
 export interface CommunityProfile {
   _id: string;
@@ -227,16 +228,16 @@ export const communityApiService = {
   // Get own community profile
   getCommunityProfile: async (): Promise<{ data: CommunityProfile }> => {
     try {
-      
-      const response = await API.get("/api/user/community/profile");
-      
+
+      const response = await API.get(USER_API_ROUTES.COMMUNITY_PROFILE);
+
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformProfileData(response.data.data);
-        
+
         return { data: transformedData };
       }
-      
+
       throw new Error(response.data?.error || response.data?.message || "No profile data received");
     } catch (error: any) {
       console.error('API: Get community profile failed:', error);
@@ -253,17 +254,17 @@ export const communityApiService = {
 
     try {
       const cleanUsername = username.trim();
-      
-      
-      const response = await API.get(`/api/user/community/profile/username/${encodeURIComponent(cleanUsername)}`);
-      
-      
+
+
+      const response = await API.get(USER_API_ROUTES.COMMUNITY_PROFILE_BY_USERNAME(cleanUsername));
+
+
       if (response.data?.success && response.data?.data) {
         const transformedData = transformProfileData(response.data.data);
-        
+
         return { data: transformedData };
       }
-      
+
       throw new Error(response.data?.error || response.data?.message || "Profile not found");
     } catch (error: any) {
       console.error(`API: Get profile by username failed for ${username}:`, error);
@@ -280,15 +281,15 @@ export const communityApiService = {
 
     try {
       const cleanUsername = username.trim();
-      
-      
-      const response = await API.post("/api/user/community/follow", { username: cleanUsername });
-      
-      
+
+
+      const response = await API.post(USER_API_ROUTES.COMMUNITY_FOLLOW, { username: cleanUsername });
+
+
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      
+
       throw new Error(response.data?.error || response.data?.message || "Failed to follow user");
     } catch (error: any) {
       console.error(`API: Follow user failed for ${username}:`, error);
@@ -305,15 +306,15 @@ export const communityApiService = {
 
     try {
       const cleanUsername = username.trim();
-      
-      
-      const response = await API.post("/api/user/community/unfollow", { username: cleanUsername });
-      
-      
+
+
+      const response = await API.post(USER_API_ROUTES.COMMUNITY_UNFOLLOW, { username: cleanUsername });
+
+
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      
+
       throw new Error(response.data?.error || response.data?.message || "Failed to unfollow user");
     } catch (error: any) {
       console.error(`API: Unfollow user failed for ${username}:`, error);
@@ -329,13 +330,13 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      const response = await API.get(`/api/user/community/followers?${params.toString()}`);
-      
-      
+      const response = await API.get(`${USER_API_ROUTES.COMMUNITY_FOLLOWERS}?${params.toString()}`);
+
+
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      
+
       throw new Error(response.data?.error || response.data?.message || "Failed to get followers");
     } catch (error: any) {
       console.error('API: Get followers failed:', error);
@@ -351,13 +352,13 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      const response = await API.get(`/api/user/community/following?${params.toString()}`);
-      
-      
+      const response = await API.get(`${USER_API_ROUTES.COMMUNITY_FOLLOWING}?${params.toString()}`);
+
+
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      
+
       throw new Error(response.data?.error || response.data?.message || "Failed to get following");
     } catch (error: any) {
       console.error('API: Get following failed:', error);
@@ -377,14 +378,14 @@ export const communityApiService = {
       const params = new URLSearchParams();
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
-      
-      const response = await API.get(`/api/user/community/user/${encodeURIComponent(cleanUsername)}/followers?${params.toString()}`);
-      
-      
+
+      const response = await API.get(`${USER_API_ROUTES.COMMUNITY_USER_FOLLOWERS(cleanUsername)}?${params.toString()}`);
+
+
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      
+
       throw new Error(response.data?.error || response.data?.message || "Failed to get user followers");
     } catch (error: any) {
       console.error(`API: Get user followers failed for ${username}:`, error);
@@ -404,14 +405,14 @@ export const communityApiService = {
       const params = new URLSearchParams();
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
-      
-      const response = await API.get(`/api/user/community/user/${encodeURIComponent(cleanUsername)}/following?${params.toString()}`);
-      
-      
+
+      const response = await API.get(`${USER_API_ROUTES.COMMUNITY_USER_FOLLOWING(cleanUsername)}?${params.toString()}`);
+
+
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      
+
       throw new Error(response.data?.error || response.data?.message || "Failed to get user following");
     } catch (error: any) {
       console.error(`API: Get user following failed for ${username}:`, error);
@@ -428,15 +429,15 @@ export const communityApiService = {
 
     try {
       const cleanUsername = username.trim();
-      
-      
-      const response = await API.get(`/api/user/community/follow-status/${encodeURIComponent(cleanUsername)}`);
-      
-      
+
+
+      const response = await API.get(USER_API_ROUTES.COMMUNITY_FOLLOW_STATUS(cleanUsername));
+
+
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
-      
+
       throw new Error(response.data?.error || response.data?.message || "Failed to get follow status");
     } catch (error: any) {
       console.error(`API: Get follow status failed for ${username}:`, error);
@@ -457,10 +458,10 @@ export const communityApiService = {
     }
 
     try {
-      
-      const response = await API.put("/api/user/community/profile", profileData);
-      
-      
+
+      const response = await API.put(USER_API_ROUTES.COMMUNITY_PROFILE, profileData);
+
+
       if (response.data?.success && response.data?.data) {
         const transformedData = transformProfileData(response.data.data);
         return {
@@ -469,10 +470,10 @@ export const communityApiService = {
           message: response.data.message || "Community profile updated successfully",
         };
       }
-      
-      return { 
-        success: false, 
-        error: response.data?.error || response.data?.message || "Failed to update community profile" 
+
+      return {
+        success: false,
+        error: response.data?.error || response.data?.message || "Failed to update community profile"
       };
     } catch (error: any) {
       console.error('API: Update community profile failed:', error);
@@ -495,16 +496,16 @@ export const communityApiService = {
     }
 
     try {
-      
+
       const formData = new FormData();
       formData.append("bannerImage", file);
 
-      const response = await API.post("/api/user/community/upload-banner-image", formData, {
+      const response = await API.post(USER_API_ROUTES.COMMUNITY_UPLOAD_BANNER, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      
+
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformProfileData(response.data.data);
@@ -514,10 +515,10 @@ export const communityApiService = {
           message: response.data.message || "Banner image uploaded successfully",
         };
       }
-      
-      return { 
-        success: false, 
-        error: response.data?.error || response.data?.message || "Failed to upload banner image" 
+
+      return {
+        success: false,
+        error: response.data?.error || response.data?.message || "Failed to upload banner image"
       };
     } catch (error: any) {
       console.error('API: Upload banner image failed:', error);
@@ -536,12 +537,12 @@ export const communityApiService = {
     }
 
     try {
-      
-      const response = await API.post("/api/user/chat/send", {
+
+      const response = await API.post(USER_API_ROUTES.CHAT_SEND, {
         receiverUsername: receiverUsername.trim(),
         content: content.trim()
       });
-      
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -563,8 +564,8 @@ export const communityApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       if (search && search.trim()) params.append('search', search.trim());
 
-      const response = await API.get(`/api/user/chat/conversations?${params.toString()}`);
-      
+      const response = await API.get(`${USER_API_ROUTES.CHAT_CONVERSATIONS}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -589,9 +590,9 @@ export const communityApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-      
-      const response = await API.get(`/api/user/chat/conversations/${encodeURIComponent(conversationId)}/messages?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.CHAT_CONVERSATION_MESSAGES(conversationId)}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -613,10 +614,10 @@ export const communityApiService = {
 
     try {
       const cleanUsername = username.trim();
-      
-      
-      const response = await API.get(`/api/user/chat/conversation/${encodeURIComponent(cleanUsername)}`);
-      
+
+
+      const response = await API.get(USER_API_ROUTES.CHAT_CONVERSATION_BY_USERNAME(cleanUsername));
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -637,11 +638,11 @@ export const communityApiService = {
     }
 
     try {
-      
-      const response = await API.put(`/api/user/chat/messages/${encodeURIComponent(messageId)}`, {
+
+      const response = await API.put(USER_API_ROUTES.CHAT_MESSAGE_BY_ID(messageId), {
         content: content.trim()
       });
-      
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -662,9 +663,9 @@ export const communityApiService = {
     }
 
     try {
-      
-      const response = await API.delete(`/api/user/chat/messages/${encodeURIComponent(messageId)}`);
-      
+
+      const response = await API.delete(USER_API_ROUTES.CHAT_MESSAGE_BY_ID(messageId));
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -685,11 +686,11 @@ export const communityApiService = {
     }
 
     try {
-      
-      const response = await API.post("/api/user/chat/messages/read", {
+
+      const response = await API.post(USER_API_ROUTES.CHAT_MESSAGES_READ, {
         conversationId: conversationId.trim()
       });
-      
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;

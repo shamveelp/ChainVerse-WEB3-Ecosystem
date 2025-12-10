@@ -1,4 +1,5 @@
 import api from "@/lib/api-client";
+import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
 interface Subscription {
   communityId: string;
@@ -37,11 +38,11 @@ interface ApiResponse<T = any> {
 }
 
 class CommunityAdminSubscriptionApiService {
-  private readonly baseUrl = '/api/community-admin';
+  // private readonly baseUrl = '/api/community-admin';
 
   async createOrder(communityId: string): Promise<ApiResponse<RazorpayOrder>> {
     try {
-      const response = await api.post(`${this.baseUrl}/subscription/create-order`, { communityId });
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.SUBSCRIPTION_CREATE_ORDER, { communityId });
       return {
         success: true,
         data: response.data.data,
@@ -52,16 +53,16 @@ class CommunityAdminSubscriptionApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to create subscription order",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to create subscription order",
       };
     }
   }
 
   async verifyPayment(paymentData: VerifyPaymentData): Promise<ApiResponse<Subscription>> {
     try {
-      const response = await api.post(`${this.baseUrl}/subscription/verify-payment`, paymentData);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.SUBSCRIPTION_VERIFY_PAYMENT, paymentData);
       return {
         success: true,
         data: response.data.data,
@@ -72,16 +73,16 @@ class CommunityAdminSubscriptionApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to verify payment",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to verify payment",
       };
     }
   }
 
   async getSubscription(): Promise<ApiResponse<Subscription>> {
     try {
-      const response = await api.get(`${this.baseUrl}/subscription`);
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.SUBSCRIPTION);
       return {
         success: true,
         data: response.data.data,
@@ -100,16 +101,16 @@ class CommunityAdminSubscriptionApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to fetch subscription",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch subscription",
       };
     }
   }
 
   async retryPayment(): Promise<ApiResponse<RazorpayOrder>> {
     try {
-      const response = await api.post(`${this.baseUrl}/subscription/retry-payment`);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.SUBSCRIPTION_RETRY_PAYMENT);
       return {
         success: true,
         data: response.data.data,
@@ -120,16 +121,16 @@ class CommunityAdminSubscriptionApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to retry payment",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to retry payment",
       };
     }
   }
 
   async getTimeRemaining(): Promise<ApiResponse<{ minutes: number; seconds: number }>> {
     try {
-      const response = await api.get(`${this.baseUrl}/subscription/time-remaining`);
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.SUBSCRIPTION_TIME_REMAINING);
       return {
         success: true,
         data: response.data.data,
@@ -140,16 +141,16 @@ class CommunityAdminSubscriptionApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get time remaining",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get time remaining",
       };
     }
   }
 
   async checkChainCastAccess(): Promise<ApiResponse<{ hasAccess: boolean; subscription?: Subscription }>> {
     try {
-      const response = await api.get(`${this.baseUrl}/subscription/chaincast-access`);
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.SUBSCRIPTION_CHAINCAST_ACCESS);
       return {
         success: true,
         data: response.data.data,
@@ -161,9 +162,9 @@ class CommunityAdminSubscriptionApiService {
         success: false,
         data: { hasAccess: false },
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to check ChainCast access",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to check ChainCast access",
       };
     }
   }

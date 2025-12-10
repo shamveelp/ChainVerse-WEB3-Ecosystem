@@ -1,4 +1,5 @@
 import API from "@/lib/api-client"
+import { USER_API_ROUTES, ADMIN_API_ROUTES } from "@/routes"
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -42,7 +43,7 @@ interface GenerateUsernameResponse {
 
 export const login = async (email: string, password: string) => {
   try {
-    const response = await API.post<LoginResponse>("/api/user/login", { email, password })
+    const response = await API.post<LoginResponse>(USER_API_ROUTES.LOGIN, { email, password })
     return {
       success: true,
       user: response.data.user,
@@ -69,7 +70,7 @@ export const register = async (username: string, email: string, password: string
 
 
 
-    const response = await API.post<RegisterResponse>("/api/user/register", payload)
+    const response = await API.post<RegisterResponse>(USER_API_ROUTES.REGISTER, payload)
     return {
       success: true,
       message: response.data.message || "Registration successful, OTP sent",
@@ -100,7 +101,7 @@ export const signup = async (username: string, email: string, password: string, 
 
 
 
-    const response = await API.post<LoginResponse>("/api/user/verify-otp", payload)
+    const response = await API.post<LoginResponse>(USER_API_ROUTES.VERIFY_OTP, payload)
     return {
       success: true,
       user: response.data.user,
@@ -118,7 +119,7 @@ export const signup = async (username: string, email: string, password: string, 
 
 export const checkUsername = async (username: string) => {
   try {
-    const response = await API.post<UsernameCheckResponse>("/api/user/check-username", { username })
+    const response = await API.post<UsernameCheckResponse>(USER_API_ROUTES.CHECK_USERNAME, { username })
     return {
       success: true,
       available: response.data.available,
@@ -135,7 +136,7 @@ export const checkUsername = async (username: string) => {
 
 export const generateUsername = async () => {
   try {
-    const response = await API.get<GenerateUsernameResponse>("/api/user/generate-username")
+    const response = await API.get<GenerateUsernameResponse>(USER_API_ROUTES.GENERATE_USERNAME)
     return {
       success: true,
       username: response.data.username,
@@ -151,7 +152,7 @@ export const generateUsername = async () => {
 
 export const requestOtp = async (email: string) => {
   try {
-    const response = await API.post<ApiResponse>("/api/user/request-otp", { email })
+    const response = await API.post<ApiResponse>(USER_API_ROUTES.REQUEST_OTP, { email })
     return {
       success: response.data.success || true,
       message: response.data.message,
@@ -167,7 +168,7 @@ export const requestOtp = async (email: string) => {
 
 export const forgotPassword = async (email: string) => {
   try {
-    const response = await API.post<ApiResponse>("/api/user/forgot-password", { email })
+    const response = await API.post<ApiResponse>(USER_API_ROUTES.FORGOT_PASSWORD, { email })
     return {
       success: true,
       message: response.data.message,
@@ -183,7 +184,7 @@ export const forgotPassword = async (email: string) => {
 
 export const verifyForgotPasswordOtp = async (email: string, otp: string) => {
   try {
-    const response = await API.post<ApiResponse>("/api/user/verify-forgot-password-otp", { email, otp })
+    const response = await API.post<ApiResponse>(USER_API_ROUTES.VERIFY_FORGOT_PASSWORD_OTP, { email, otp })
     return {
       success: true,
       message: response.data.message,
@@ -199,7 +200,7 @@ export const verifyForgotPasswordOtp = async (email: string, otp: string) => {
 
 export const resetPassword = async (email: string, newPassword: string) => {
   try {
-    const response = await API.post<ApiResponse>("/api/user/reset-password", { email, newPassword })
+    const response = await API.post<ApiResponse>(USER_API_ROUTES.RESET_PASSWORD, { email, newPassword })
     return {
       success: true,
       message: response.data.message,
@@ -215,7 +216,7 @@ export const resetPassword = async (email: string, newPassword: string) => {
 
 export const logout = async () => {
   try {
-    await API.post("/api/user/logout")
+    await API.post(USER_API_ROUTES.LOGOUT)
     return { success: true }
   } catch (error: any) {
     console.error("Logout error:", error.response?.data || error.message)
@@ -232,7 +233,7 @@ export const googleLogin = async (credential: string, referralCode?: string) => 
     if (referralCode && referralCode.trim()) {
       payload.referralCode = referralCode.trim().toUpperCase()
     }
-    const response = await API.post<LoginResponse>("/api/user/google-login", payload)
+    const response = await API.post<LoginResponse>(USER_API_ROUTES.GOOGLE_LOGIN, payload)
     return {
       success: true,
       user: response.data.user,
@@ -250,7 +251,7 @@ export const googleLogin = async (credential: string, referralCode?: string) => 
 
 export const adminLogin = async (email: string, password: string) => {
   try {
-    const response = await API.post("/api/admin/login", { email, password });
+    const response = await API.post(ADMIN_API_ROUTES.LOGIN, { email, password });
     return {
       success: true,
       admin: response.data.admin,
@@ -269,7 +270,7 @@ export const adminLogin = async (email: string, password: string) => {
 
 export const adminLogout = async () => {
   try {
-    await API.post("/api/admin/logout")
+    await API.post(ADMIN_API_ROUTES.LOGOUT)
     return { success: true }
   } catch (error: any) {
     console.error("Admin logout error:", error.response?.data || error.message)

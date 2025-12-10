@@ -1,9 +1,10 @@
 import API from "@/lib/api-client";
+import { ADMIN_API_ROUTES } from "@/routes";
 
 // Auth Services
 export const adminLogin = async (email: string, password: string) => {
   try {
-    const response = await API.post("/api/admin/login", { email, password });
+    const response = await API.post(ADMIN_API_ROUTES.LOGIN, { email, password });
     return {
       success: true,
       admin: response.data.admin,
@@ -22,7 +23,7 @@ export const adminLogin = async (email: string, password: string) => {
 
 export const forgotPassword = async (email: string) => {
   try {
-    const response = await API.post("/api/admin/forgot-password", { email });
+    const response = await API.post(ADMIN_API_ROUTES.FORGOT_PASSWORD, { email });
     return {
       success: true,
       message: response.data.message,
@@ -38,7 +39,7 @@ export const forgotPassword = async (email: string) => {
 
 export const verifyResetOtp = async (email: string, otp: string) => {
   try {
-    const response = await API.post("/api/admin/verify-forgot-password-otp", { email, otp });
+    const response = await API.post(ADMIN_API_ROUTES.VERIFY_RESET_OTP, { email, otp });
     return {
       success: true,
       message: response.data.message,
@@ -54,7 +55,7 @@ export const verifyResetOtp = async (email: string, otp: string) => {
 
 export const resetPassword = async (email: string, password: string) => {
   try {
-    const response = await API.post("/api/admin/reset-password", { email, password });
+    const response = await API.post(ADMIN_API_ROUTES.RESET_PASSWORD, { email, password });
     return {
       success: true,
       message: response.data.message,
@@ -70,7 +71,7 @@ export const resetPassword = async (email: string, password: string) => {
 
 export const getAdminProfile = async () => {
   try {
-    const response = await API.get("/api/admin/profile");
+    const response = await API.get(ADMIN_API_ROUTES.PROFILE);
     return {
       success: true,
       admin: response.data.admin,
@@ -86,7 +87,7 @@ export const getAdminProfile = async () => {
 
 export const changeAdminPassword = async (currentPassword: string, newPassword: string) => {
   try {
-    const response = await API.post("/api/admin/change-password", { currentPassword, newPassword });
+    const response = await API.post(ADMIN_API_ROUTES.CHANGE_PASSWORD, { currentPassword, newPassword });
     return {
       success: true,
       message: response.data.message,
@@ -108,7 +109,7 @@ export const getUsers = async (page: number, limit: number = 10, search: string 
       limit: limit.toString(),
       search: search,
     });
-    const response = await API.get(`/api/admin/users?${params.toString()}`);
+    const response = await API.get(`${ADMIN_API_ROUTES.USERS}?${params.toString()}`);
     return {
       success: true,
       data: response.data.data || response.data.users || [],
@@ -129,7 +130,7 @@ export const getUsers = async (page: number, limit: number = 10, search: string 
 
 export const getUserById = async (id: string) => {
   try {
-    const response = await API.get(`/api/admin/users/${id}`);
+    const response = await API.get(ADMIN_API_ROUTES.USER_BY_ID(id));
     return response.data.user || response.data;
   } catch (error: any) {
     console.error("Get user by id error:", error.response?.data || error.message);
@@ -139,7 +140,7 @@ export const getUserById = async (id: string) => {
 
 export const toggleUserBan = async (userId: string, isBanned: boolean) => {
   try {
-    const response = await API.patch(`/api/admin/users/${userId}/ban`, { isBanned });
+    const response = await API.patch(ADMIN_API_ROUTES.USER_BAN(userId), { isBanned });
     return response.data.user || response.data;
   } catch (error: any) {
     console.error("Toggle user ban error:", error.response?.data || error.message);
@@ -149,8 +150,8 @@ export const toggleUserBan = async (userId: string, isBanned: boolean) => {
 
 export const toggleUserBlock = async (userId: string, isBlocked: boolean) => {
   try {
-    await API.patch(`/api/admin/users/${userId}`, { isBlocked });
-    const response = await API.get(`/api/admin/users/${userId}`);
+    await API.patch(ADMIN_API_ROUTES.USER_BY_ID(userId), { isBlocked });
+    const response = await API.get(ADMIN_API_ROUTES.USER_BY_ID(userId));
     return response.data.user || response.data;
   } catch (error: any) {
     console.error("Toggle user block error:", error.response?.data || error.message);
@@ -166,9 +167,9 @@ export const getAllCommunityRequests = async (page: number = 1, limit: number = 
       limit: limit.toString(),
       search: search,
     });
-    
-    const response = await API.get(`/api/admin/community-requests?${params.toString()}`);
-    
+
+    const response = await API.get(`${ADMIN_API_ROUTES.COMMUNITY_REQUESTS}?${params.toString()}`);
+
     return {
       success: true,
       data: response.data.data || response.data,
@@ -194,8 +195,8 @@ export const getAllCommunityRequests = async (page: number = 1, limit: number = 
 
 export const getCommunityRequestById = async (requestId: string) => {
   try {
-    const response = await API.get(`/api/admin/community-requests/${requestId}`);
-    
+    const response = await API.get(ADMIN_API_ROUTES.COMMUNITY_REQUEST_BY_ID(requestId));
+
     return {
       success: true,
       data: response.data.request || response.data.data,
@@ -212,7 +213,7 @@ export const getCommunityRequestById = async (requestId: string) => {
 
 export const approveCommunityRequest = async (requestId: string) => {
   try {
-    const response = await API.patch(`/api/admin/community-requests/${requestId}/approve`);
+    const response = await API.patch(ADMIN_API_ROUTES.APPROVE_COMMUNITY_REQUEST(requestId));
     return {
       success: true,
       message: response.data.message || "Community request approved successfully",
@@ -229,7 +230,7 @@ export const approveCommunityRequest = async (requestId: string) => {
 
 export const rejectCommunityRequest = async (requestId: string, reason: string) => {
   try {
-    const response = await API.patch(`/api/admin/community-requests/${requestId}/reject`, { reason });
+    const response = await API.patch(ADMIN_API_ROUTES.REJECT_COMMUNITY_REQUEST(requestId), { reason });
     return {
       success: true,
       message: response.data.message || "Community request rejected successfully",
@@ -246,7 +247,7 @@ export const rejectCommunityRequest = async (requestId: string, reason: string) 
 
 export const exportCommunityRequests = async () => {
   try {
-    const response = await API.get("/api/admin/community-requests/export");
+    const response = await API.get(ADMIN_API_ROUTES.EXPORT_COMMUNITY_REQUESTS);
     return {
       success: true,
       data: response.data.data || [],
@@ -268,7 +269,7 @@ export const getAllWallets = async (page: number = 1, limit: number = 20, search
       page: page.toString(),
       limit: limit.toString(),
     });
-    const response = await API.get(`/api/admin/wallets?${params.toString()}`);
+    const response = await API.get(`${ADMIN_API_ROUTES.WALLETS}?${params.toString()}`);
     return {
       success: true,
       data: response.data.data || {},
@@ -285,7 +286,7 @@ export const getAllWallets = async (page: number = 1, limit: number = 20, search
 
 export const getWalletDetails = async (address: string) => {
   try {
-    const response = await API.get(`/api/admin/wallets/${address}`);
+    const response = await API.get(ADMIN_API_ROUTES.WALLET_BY_ADDRESS(address));
     return {
       success: true,
       data: response.data.data || {},
@@ -302,7 +303,7 @@ export const getWalletDetails = async (address: string) => {
 
 export const getWalletStats = async () => {
   try {
-    const response = await API.get("/api/admin/wallets/stats");
+    const response = await API.get(ADMIN_API_ROUTES.WALLET_STATS);
     return {
       success: true,
       data: response.data.data || {},
@@ -323,7 +324,7 @@ export const getWalletTransactions = async (address: string, page: number = 1, l
       page: page.toString(),
       limit: limit.toString(),
     });
-    const response = await API.get(`/api/admin/wallets/${address}/transactions?${params.toString()}`);
+    const response = await API.get(`${ADMIN_API_ROUTES.WALLET_TRANSACTIONS(address)}?${params.toString()}`);
     return {
       success: true,
       data: response.data.data || {},
@@ -344,7 +345,7 @@ export const getWalletHistoryFromEtherscan = async (address: string, page: numbe
       page: page.toString(),
       limit: limit.toString(),
     });
-    const response = await API.get(`/api/admin/wallets/${address}/history?${params.toString()}`);
+    const response = await API.get(`${ADMIN_API_ROUTES.WALLET_HISTORY(address)}?${params.toString()}`);
     return {
       success: true,
       data: response.data.data || {},
@@ -365,7 +366,7 @@ export const getWalletAppHistory = async (address: string, page: number = 1, lim
       page: page.toString(),
       limit: limit.toString(),
     });
-    const response = await API.get(`/api/admin/wallets/${address}/app-history?${params.toString()}`);
+    const response = await API.get(`${ADMIN_API_ROUTES.WALLET_APP_HISTORY(address)}?${params.toString()}`);
     return {
       success: true,
       data: response.data.data || {},
@@ -382,7 +383,7 @@ export const getWalletAppHistory = async (address: string, page: number = 1, lim
 
 export const exportWalletData = async () => {
   try {
-    const response = await API.get("/api/admin/wallets/export");
+    const response = await API.get(ADMIN_API_ROUTES.EXPORT_WALLETS);
     return {
       success: true,
       data: response.data.data || [],
@@ -399,7 +400,7 @@ export const exportWalletData = async () => {
 
 export const refreshWalletData = async (address: string) => {
   try {
-    const response = await API.post(`/api/admin/wallets/${address}/refresh`);
+    const response = await API.post(ADMIN_API_ROUTES.REFRESH_WALLET(address));
     return {
       success: true,
       data: response.data.data || {},
@@ -420,7 +421,7 @@ export const getWalletBlockchainTransactions = async (address: string, page?: nu
     if (page) params.append('page', page.toString());
     if (limit) params.append('limit', limit.toString());
 
-    const response = await API.get(`/api/admin/wallets/${address}/blockchain-transactions?${params.toString()}`);
+    const response = await API.get(`${ADMIN_API_ROUTES.WALLET_BLOCKCHAIN_TRANSACTIONS(address)}?${params.toString()}`);
     return response.data;
   } catch (error: any) {
     console.error('Error fetching blockchain transactions:', error);
@@ -433,7 +434,7 @@ export const getWalletBlockchainTransactions = async (address: string, page?: nu
 
 export const getWalletContractInteractions = async (address: string) => {
   try {
-    const response = await API.get(`/api/admin/wallets/${address}/contract-interactions`);
+    const response = await API.get(ADMIN_API_ROUTES.WALLET_CONTRACT_INTERACTIONS(address));
     return response.data;
   } catch (error: any) {
     console.error('Error fetching contract interactions:', error);

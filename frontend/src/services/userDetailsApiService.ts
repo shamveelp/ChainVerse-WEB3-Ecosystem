@@ -1,4 +1,5 @@
 import API from "@/lib/api-client";
+import { ADMIN_API_ROUTES } from "@/routes";
 
 export const getUserReferrals = async (userId: string, page: number = 1, limit: number = 10) => {
   try {
@@ -6,7 +7,7 @@ export const getUserReferrals = async (userId: string, page: number = 1, limit: 
       page: page.toString(),
       limit: limit.toString(),
     });
-    const response = await API.get(`/api/admin/users/${userId}/referrals?${params.toString()}`);
+    const response = await API.get(`${ADMIN_API_ROUTES.USER_REFERRALS(userId)}?${params.toString()}`);
     return {
       success: true,
       data: response.data.referrals || [],
@@ -31,7 +32,7 @@ export const getUserPointsHistory = async (userId: string, page: number = 1, lim
       page: page.toString(),
       limit: limit.toString(),
     });
-    const response = await API.get(`/api/admin/users/${userId}/points-history?${params.toString()}`);
+    const response = await API.get(`${ADMIN_API_ROUTES.USER_POINTS_HISTORY(userId)}?${params.toString()}`);
     return {
       success: true,
       data: response.data.history || [],
@@ -56,7 +57,7 @@ export const getUserCheckInHistory = async (userId: string, page: number = 1, li
       page: page.toString(),
       limit: limit.toString(),
     });
-    const response = await API.get(`/api/admin/users/${userId}/checkin-history?${params.toString()}`);
+    const response = await API.get(`${ADMIN_API_ROUTES.USER_CHECKIN_HISTORY(userId)}?${params.toString()}`);
     return {
       success: true,
       data: response.data.checkIns || [],
@@ -77,7 +78,7 @@ export const getUserCheckInHistory = async (userId: string, page: number = 1, li
 
 export const getUserStats = async (userId: string) => {
   try {
-    const response = await API.get(`/api/admin/users/${userId}/stats`);
+    const response = await API.get(ADMIN_API_ROUTES.USER_STATS(userId));
     return {
       success: true,
       data: response.data.stats || {},

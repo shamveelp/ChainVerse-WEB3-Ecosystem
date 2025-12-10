@@ -1,4 +1,5 @@
 import api from "@/lib/api-client";
+import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
 // Types
 interface PostAuthor {
@@ -92,7 +93,7 @@ interface ApiResponse<T = any> {
 }
 
 class CommunityAdminFeedApiService {
-  private readonly baseUrl = '/api/community-admin';
+  // private readonly baseUrl = '/api/community-admin';
 
   // Get community feed
   async getCommunityFeed(
@@ -106,7 +107,7 @@ class CommunityAdminFeedApiService {
       params.append('limit', limit.toString());
       params.append('type', type);
 
-      const response = await api.get(`${this.baseUrl}/feed?${params.toString()}`);
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.FEED}?${params.toString()}`);
       return {
         success: true,
         data: response.data.data,
@@ -116,9 +117,9 @@ class CommunityAdminFeedApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get community feed",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get community feed",
       };
     }
   }
@@ -126,7 +127,7 @@ class CommunityAdminFeedApiService {
   // Toggle post like
   async togglePostLike(postId: string): Promise<ApiResponse<LikeResponse>> {
     try {
-      const response = await api.post(`${this.baseUrl}/feed/posts/${postId}/like`);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_LIKE(postId));
       return {
         success: true,
         data: response.data.data,
@@ -137,9 +138,9 @@ class CommunityAdminFeedApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to toggle post like",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to toggle post like",
       };
     }
   }
@@ -147,7 +148,7 @@ class CommunityAdminFeedApiService {
   // Create comment
   async createComment(commentData: CreateCommentData): Promise<ApiResponse> {
     try {
-      const response = await api.post(`${this.baseUrl}/feed/comments`, commentData);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.FEED_COMMENTS, commentData);
       return {
         success: true,
         data: response.data.data,
@@ -158,9 +159,9 @@ class CommunityAdminFeedApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message || 
-               "Failed to create comment",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to create comment",
       };
     }
   }
@@ -168,7 +169,7 @@ class CommunityAdminFeedApiService {
   // Share post
   async sharePost(postId: string, shareData?: SharePostData): Promise<ApiResponse<ShareResponse>> {
     try {
-      const response = await api.post(`${this.baseUrl}/feed/posts/${postId}/share`, shareData || {});
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_SHARE(postId), shareData || {});
       return {
         success: true,
         data: response.data.data,
@@ -179,9 +180,9 @@ class CommunityAdminFeedApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to share post",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to share post",
       };
     }
   }
@@ -189,7 +190,7 @@ class CommunityAdminFeedApiService {
   // Pin post
   async pinPost(postId: string): Promise<ApiResponse> {
     try {
-      const response = await api.post(`${this.baseUrl}/feed/posts/${postId}/pin`);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_PIN(postId));
       return {
         success: true,
         data: response.data.data,
@@ -200,9 +201,9 @@ class CommunityAdminFeedApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to pin post",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to pin post",
       };
     }
   }
@@ -210,7 +211,7 @@ class CommunityAdminFeedApiService {
   // Delete post
   async deletePost(postId: string, reason?: string): Promise<ApiResponse> {
     try {
-      const response = await api.delete(`${this.baseUrl}/feed/posts/${postId}`, {
+      const response = await api.delete(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_BY_ID(postId), {
         data: { reason }
       });
       return {
@@ -223,9 +224,9 @@ class CommunityAdminFeedApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to delete post",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to delete post",
       };
     }
   }
@@ -233,7 +234,7 @@ class CommunityAdminFeedApiService {
   // Get engagement stats
   async getEngagementStats(period: 'today' | 'week' | 'month' = 'week'): Promise<ApiResponse<EngagementStats>> {
     try {
-      const response = await api.get(`${this.baseUrl}/engagement-stats?period=${period}`);
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.ENGAGEMENT_STATS}?period=${period}`);
       return {
         success: true,
         data: response.data.data,
@@ -243,9 +244,9 @@ class CommunityAdminFeedApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get engagement stats",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get engagement stats",
       };
     }
   }

@@ -1,4 +1,5 @@
 import api from "@/lib/api-client";
+import { USER_API_ROUTES } from "@/routes";
 
 export interface MarketCoin {
   _id: string;
@@ -18,7 +19,7 @@ export interface MarketCoin {
 }
 
 export const getUserListedCoins = async (): Promise<MarketCoin[]> => {
-  const response = await api.get("/api/user/market/coins/public");
+  const response = await api.get(USER_API_ROUTES.MARKET_COINS);
   return response.data.coins || [];
 };
 

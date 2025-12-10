@@ -1,4 +1,5 @@
 import api from "@/lib/api-client";
+import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
 // Types
 interface CommunityOverview {
@@ -81,12 +82,12 @@ interface ApiResponse<T = any> {
 }
 
 class CommunityAdminDashboardApiService {
-  private readonly baseUrl = '/api/community-admin';
+  // private readonly baseUrl = '/api/community-admin';
 
   // Get complete dashboard data
   async getDashboardData(period: string = 'week'): Promise<ApiResponse<DashboardData>> {
     try {
-      const response = await api.get(`${this.baseUrl}/dashboard?period=${period}`);
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.DASHBOARD}?period=${period}`);
       return {
         success: true,
         data: response.data.data,
@@ -96,9 +97,9 @@ class CommunityAdminDashboardApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get dashboard data",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get dashboard data",
       };
     }
   }
@@ -106,7 +107,7 @@ class CommunityAdminDashboardApiService {
   // Get community overview
   async getCommunityOverview(): Promise<ApiResponse<CommunityOverview>> {
     try {
-      const response = await api.get(`${this.baseUrl}/dashboard/overview`);
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.DASHBOARD_OVERVIEW);
       return {
         success: true,
         data: response.data.data,
@@ -116,9 +117,9 @@ class CommunityAdminDashboardApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get community overview",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get community overview",
       };
     }
   }
@@ -126,7 +127,7 @@ class CommunityAdminDashboardApiService {
   // Get community stats
   async getCommunityStats(period: string = 'week'): Promise<ApiResponse<CommunityStats>> {
     try {
-      const response = await api.get(`${this.baseUrl}/dashboard/stats?period=${period}`);
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.DASHBOARD_STATS}?period=${period}`);
       return {
         success: true,
         data: response.data.data,
@@ -136,9 +137,9 @@ class CommunityAdminDashboardApiService {
       return {
         success: false,
         error: error.response?.data?.error ||
-               error.response?.data?.message ||
-               error.message ||
-               "Failed to get community stats",
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to get community stats",
       };
     }
   }

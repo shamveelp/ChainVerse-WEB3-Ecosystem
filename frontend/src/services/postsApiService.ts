@@ -1,4 +1,5 @@
 import API from "@/lib/api-client";
+import { USER_API_ROUTES } from "@/routes";
 
 // Post interfaces
 export interface PostAuthor {
@@ -228,9 +229,9 @@ export const postsApiService = {
   // Create post
   createPost: async (postData: CreatePostData): Promise<{ data: Post }> => {
     try {
-      
-      const response = await API.post("/api/user/posts/create", postData);
-      
+
+      const response = await API.post(USER_API_ROUTES.POSTS_CREATE, postData);
+
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformPostData(response.data.data);
@@ -248,9 +249,9 @@ export const postsApiService = {
   // Get post by ID
   getPostById: async (postId: string): Promise<{ data: PostDetailResponse }> => {
     try {
-      
-      const response = await API.get(`/api/user/posts/${postId}`);
-      
+
+      const response = await API.get(USER_API_ROUTES.POST_BY_ID(postId));
+
 
       if (response.data?.success && response.data?.data) {
         const transformedPost = transformPostData(response.data.data.post);
@@ -278,12 +279,12 @@ export const postsApiService = {
   // Update post
   updatePost: async (postId: string, content: string, mediaUrls?: string[]): Promise<{ data: Post }> => {
     try {
-      
-      const response = await API.put(`/api/user/posts/${postId}`, {
+
+      const response = await API.put(USER_API_ROUTES.POST_BY_ID(postId), {
         content,
         mediaUrls: mediaUrls || []
       });
-      
+
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformPostData(response.data.data);
@@ -301,9 +302,9 @@ export const postsApiService = {
   // Delete post
   deletePost: async (postId: string): Promise<{ success: boolean; message: string }> => {
     try {
-      
-      const response = await API.delete(`/api/user/posts/${postId}`);
-      
+
+      const response = await API.delete(USER_API_ROUTES.POST_BY_ID(postId));
+
 
       if (response.data?.success) {
         return response.data.data;
@@ -324,9 +325,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      
-      const response = await API.get(`/api/user/posts/feed/all?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.POSTS_FEED}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         const transformedPosts = response.data.data.posts.map(transformPostData);
@@ -353,9 +354,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      
-      const response = await API.get(`/api/user/posts/user/${userId}/all?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.POSTS_USER(userId)}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         const transformedPosts = response.data.data.posts.map(transformPostData);
@@ -382,9 +383,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      
-      const response = await API.get(`/api/user/posts/user/${userId}/liked?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.POSTS_LIKED(userId)}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         const transformedPosts = response.data.data.posts.map(transformPostData);
@@ -411,9 +412,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      
-      const response = await API.get(`/api/user/posts/trending/all?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.POSTS_TRENDING}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         const transformedPosts = response.data.data.posts.map(transformPostData);
@@ -441,9 +442,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-      
-      const response = await API.get(`/api/user/posts/search/all?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.POSTS_SEARCH}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         const transformedPosts = response.data.data.posts.map(transformPostData);
@@ -466,9 +467,9 @@ export const postsApiService = {
   // Toggle post like
   togglePostLike: async (postId: string): Promise<LikeResponse> => {
     try {
-      
-      const response = await API.post(`/api/user/posts/${postId}/like`);
-      
+
+      const response = await API.post(USER_API_ROUTES.POST_LIKE(postId));
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -485,9 +486,9 @@ export const postsApiService = {
   // Create comment
   createComment: async (commentData: CreateCommentData): Promise<{ data: Comment }> => {
     try {
-      
-      const response = await API.post("/api/user/posts/comments/create", commentData);
-      
+
+      const response = await API.post(USER_API_ROUTES.POST_COMMENTS_CREATE, commentData);
+
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformCommentData(response.data.data);
@@ -505,9 +506,9 @@ export const postsApiService = {
   // Update comment
   updateComment: async (commentId: string, content: string): Promise<{ data: Comment }> => {
     try {
-      
-      const response = await API.put(`/api/user/posts/comments/${commentId}`, { content });
-      
+
+      const response = await API.put(USER_API_ROUTES.POST_COMMENT_UPDATE(commentId), { content });
+
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformCommentData(response.data.data);
@@ -525,9 +526,9 @@ export const postsApiService = {
   // Delete comment
   deleteComment: async (commentId: string): Promise<{ success: boolean; message: string }> => {
     try {
-      
-      const response = await API.delete(`/api/user/posts/comments/${commentId}`);
-      
+
+      const response = await API.delete(USER_API_ROUTES.POST_COMMENT_DELETE(commentId));
+
 
       if (response.data?.success) {
         return response.data.data;
@@ -548,9 +549,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      
-      const response = await API.get(`/api/user/posts/${postId}/comments?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.POST_COMMENTS(postId)}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         const transformedComments = response.data.data.comments.map(transformCommentData);
@@ -577,9 +578,9 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-    
-      const response = await API.get(`/api/user/posts/comments/${commentId}/replies?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.POST_COMMENT_REPLIES(commentId)}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         const transformedComments = response.data.data.comments.map(transformCommentData);
@@ -602,9 +603,9 @@ export const postsApiService = {
   // Toggle comment like
   toggleCommentLike: async (commentId: string): Promise<LikeResponse> => {
     try {
-      
-      const response = await API.post(`/api/user/posts/comments/${commentId}/like`);
-      
+
+      const response = await API.post(USER_API_ROUTES.POST_COMMENT_LIKE(commentId));
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -621,16 +622,16 @@ export const postsApiService = {
   // Upload media
   uploadMedia: async (file: File): Promise<MediaUploadResponse> => {
     try {
-      
+
       const formData = new FormData();
       formData.append('media', file);
 
-      const response = await API.post("/api/user/posts/upload-media", formData, {
+      const response = await API.post(USER_API_ROUTES.POST_UPLOAD_MEDIA, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -647,9 +648,9 @@ export const postsApiService = {
   // Share post
   sharePost: async (postId: string, shareText?: string): Promise<ShareResponse> => {
     try {
-      
-      const response = await API.post("/api/user/posts/share", { postId, shareText });
-      
+
+      const response = await API.post(USER_API_ROUTES.POST_SHARE, { postId, shareText });
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -669,9 +670,9 @@ export const postsApiService = {
       const params = new URLSearchParams();
       if (userId) params.append('userId', userId);
 
-      
-      const response = await API.get(`/api/user/posts/stats/analytics?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.POST_STATS}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -691,9 +692,9 @@ export const postsApiService = {
       const params = new URLSearchParams();
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-    
-      const response = await API.get(`/api/user/posts/hashtags/popular?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.POST_HASHTAGS_POPULAR}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data.hashtags || [];
@@ -763,7 +764,7 @@ export const postsApiService = {
       params.append('q', query.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      const response = await API.get(`/api/user/community/search-users?${params.toString()}`);
+      const response = await API.get(`${USER_API_ROUTES.COMMUNITY_SEARCH_USERS}?${params.toString()}`);
 
       if (response.data?.success) {
         return {

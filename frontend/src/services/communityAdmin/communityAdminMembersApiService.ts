@@ -1,4 +1,5 @@
 import api from "@/lib/api-client";
+import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
 // Types
 interface CommunityMember {
@@ -74,7 +75,7 @@ interface ApiResponse<T = any> {
 }
 
 class CommunityAdminMembersApiService {
-  private readonly baseUrl = '/api/community-admin/members';
+  // private readonly baseUrl = '/api/community-admin/members';
 
   // Get community members
   async getCommunityMembers(filters: MemberFilters = {}): Promise<ApiResponse<MembersListResponse>> {
@@ -87,7 +88,7 @@ class CommunityAdminMembersApiService {
       if (filters.status) params.append('status', filters.status);
       if (filters.sortBy) params.append('sortBy', filters.sortBy);
 
-      const response = await api.get(`${this.baseUrl}?${params.toString()}`);
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.MEMBERS}?${params.toString()}`);
       return {
         success: true,
         data: response.data.data,
@@ -107,7 +108,7 @@ class CommunityAdminMembersApiService {
   // Get member details
   async getMemberDetails(memberId: string): Promise<ApiResponse<CommunityMember>> {
     try {
-      const response = await api.get(`${this.baseUrl}/${memberId}`);
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.MEMBER_BY_ID(memberId));
       return {
         success: true,
         data: response.data.data,
@@ -127,7 +128,7 @@ class CommunityAdminMembersApiService {
   // Update member role
   async updateMemberRole(data: UpdateMemberRoleData): Promise<ApiResponse<{ member: CommunityMember }>> {
     try {
-      const response = await api.put(`${this.baseUrl}/role`, data);
+      const response = await api.put(COMMUNITY_ADMIN_API_ROUTES.MEMBER_ROLE, data);
       return {
         success: true,
         data: { member: response.data.member },
@@ -148,7 +149,7 @@ class CommunityAdminMembersApiService {
   // Ban member
   async banMember(data: BanMemberData): Promise<ApiResponse<{ member: CommunityMember }>> {
     try {
-      const response = await api.post(`${this.baseUrl}/ban`, data);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.MEMBER_BAN_ACTION, data);
       return {
         success: true,
         data: { member: response.data.member },
@@ -169,7 +170,7 @@ class CommunityAdminMembersApiService {
   // Unban member
   async unbanMember(memberId: string): Promise<ApiResponse<{ member: CommunityMember }>> {
     try {
-      const response = await api.post(`${this.baseUrl}/${memberId}/unban`);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.MEMBER_UNBAN(memberId));
       return {
         success: true,
         data: { member: response.data.member },
@@ -190,7 +191,7 @@ class CommunityAdminMembersApiService {
   // Remove member
   async removeMember(memberId: string, reason?: string): Promise<ApiResponse> {
     try {
-      const response = await api.delete(`${this.baseUrl}/${memberId}`, {
+      const response = await api.delete(COMMUNITY_ADMIN_API_ROUTES.MEMBER_BY_ID(memberId), {
         data: { reason }
       });
       return {
@@ -213,7 +214,7 @@ class CommunityAdminMembersApiService {
   // Get member activity
   async getMemberActivity(memberId: string, period: string = 'week'): Promise<ApiResponse> {
     try {
-      const response = await api.get(`${this.baseUrl}/${memberId}/activity?period=${period}`);
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.MEMBER_ACTIVITY(memberId)}?period=${period}`);
       return {
         success: true,
         data: response.data.data,
@@ -233,7 +234,7 @@ class CommunityAdminMembersApiService {
   // Bulk update members
   async bulkUpdateMembers(data: BulkUpdateData): Promise<ApiResponse> {
     try {
-      const response = await api.post(`${this.baseUrl}/bulk-update`, data);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.MEMBERS_BULK_UPDATE, data);
       return {
         success: true,
         data: response.data.data,

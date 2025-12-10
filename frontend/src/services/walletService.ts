@@ -1,4 +1,5 @@
 import API from "@/lib/axios"
+import { USER_API_ROUTES } from "@/routes"
 
 // Simple wallet connection
 export const connectWallet = async () => {
@@ -20,7 +21,7 @@ export const connectWallet = async () => {
     const walletAddress = accounts[0]
 
     // Save to database
-    await API.post('/api/wallet', { walletAddress })
+    await API.post(USER_API_ROUTES.WALLET, { walletAddress })
 
     return {
       success: true,

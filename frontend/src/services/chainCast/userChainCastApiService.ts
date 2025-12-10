@@ -1,4 +1,5 @@
 import API from "@/lib/api-client";
+import { USER_API_ROUTES } from "@/routes";
 
 // Re-export types from communityAdminChainCastApiService
 export type {
@@ -116,9 +117,9 @@ export const userChainCastApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       params.append('sortBy', sortBy);
 
-      
 
-      const response = await API.get(`/api/user/community/${encodeURIComponent(communityId.trim())}/chaincasts?${params.toString()}`);
+
+      const response = await API.get(`${USER_API_ROUTES.CHAINCAST_COMMUNITY(communityId.trim())}?${params.toString()}`);
 
       console.log('API: Community ChainCasts fetched successfully:', {
         chainCastCount: response.data?.data?.chainCasts?.length,
@@ -144,9 +145,9 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      
 
-      const response = await API.get(`/api/user/chaincast/${encodeURIComponent(chainCastId.trim())}`);
+
+      const response = await API.get(USER_API_ROUTES.CHAINCAST_BY_ID(chainCastId.trim()));
 
       console.log('API: ChainCast fetched successfully:', {
         chainCastId: response.data?.data?._id,
@@ -173,9 +174,9 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      
 
-      const response = await API.get(`/api/user/chaincast/${encodeURIComponent(chainCastId.trim())}/can-join`);
+
+      const response = await API.get(USER_API_ROUTES.CHAINCAST_CAN_JOIN(chainCastId.trim()));
 
       console.log('API: Can join check completed:', {
         chainCastId,
@@ -206,7 +207,7 @@ export const userChainCastApiService = {
         quality: data.quality
       });
 
-      const response = await API.post('/api/user/chaincast/join', {
+      const response = await API.post(USER_API_ROUTES.CHAINCAST_JOIN, {
         chainCastId: data.chainCastId.trim(),
         quality: data.quality || 'medium'
       });
@@ -235,9 +236,9 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      
 
-      const response = await API.post(`/api/user/chaincast/${encodeURIComponent(chainCastId.trim())}/leave`);
+
+      const response = await API.post(USER_API_ROUTES.CHAINCAST_LEAVE(chainCastId.trim()));
 
       console.log('API: ChainCast left successfully:', {
         chainCastId,
@@ -262,9 +263,9 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      
 
-      const response = await API.put(`/api/user/chaincast/${encodeURIComponent(chainCastId.trim())}/participant`, data);
+
+      const response = await API.put(USER_API_ROUTES.CHAINCAST_PARTICIPANT(chainCastId.trim()), data);
 
       console.log('API: Participant updated successfully:', {
         chainCastId,
@@ -296,7 +297,7 @@ export const userChainCastApiService = {
         hasMessage: !!data.message
       });
 
-      const response = await API.post('/api/user/chaincast/request-moderation', {
+      const response = await API.post(USER_API_ROUTES.CHAINCAST_REQUEST_MODERATION, {
         chainCastId: data.chainCastId.trim(),
         requestedPermissions: data.requestedPermissions,
         message: data.message
@@ -331,7 +332,7 @@ export const userChainCastApiService = {
         emoji: data.emoji
       });
 
-      const response = await API.post('/api/user/chaincast/reaction', {
+      const response = await API.post(USER_API_ROUTES.CHAINCAST_REACTION, {
         chainCastId: data.chainCastId.trim(),
         emoji: data.emoji.trim()
       });
@@ -368,9 +369,9 @@ export const userChainCastApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-      
 
-      const response = await API.get(`/api/user/chaincast/${encodeURIComponent(chainCastId.trim())}/reactions?${params.toString()}`);
+
+      const response = await API.get(`${USER_API_ROUTES.CHAINCAST_REACTIONS(chainCastId.trim())}?${params.toString()}`);
 
       console.log('API: Reactions fetched successfully:', {
         reactionCount: response.data?.data?.reactions?.length,

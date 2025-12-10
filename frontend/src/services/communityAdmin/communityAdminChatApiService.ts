@@ -1,4 +1,5 @@
 import API from "@/lib/api-client";
+import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
 // Community Channel Message interfaces
 export interface CommunityMessage {
@@ -121,13 +122,13 @@ export const communityAdminChatApiService = {
   // Send message to community channel
   sendChannelMessage: async (data: CreateChannelMessageRequest): Promise<CommunityMessage> => {
     try {
-      console.log('API: Sending channel message:', { 
+      console.log('API: Sending channel message:', {
         contentLength: data.content?.length,
         hasMediaFiles: !!data.mediaFiles?.length,
-        messageType: data.messageType 
+        messageType: data.messageType
       });
 
-      const response = await API.post('/api/community-admin/community/channel/send', data);
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHANNEL_SEND, data);
 
       console.log('API: Channel message sent successfully:', {
         messageId: response.data?.data?._id,
@@ -153,9 +154,9 @@ export const communityAdminChatApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      
 
-      const response = await API.get(`/api/community-admin/community/channel/messages?${params.toString()}`);
+
+      const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.CHANNEL_MESSAGES}?${params.toString()}`);
 
       console.log('API: Channel messages fetched successfully:', {
         messageCount: response.data?.data?.messages?.length,
@@ -182,9 +183,9 @@ export const communityAdminChatApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-      
 
-      const response = await API.get(`/api/community-admin/community/group-chat/messages?${params.toString()}`);
+
+      const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.GROUP_MESSAGES}?${params.toString()}`);
 
       console.log('API: Group messages fetched successfully:', {
         messageCount: response.data?.data?.messages?.length,
@@ -211,9 +212,9 @@ export const communityAdminChatApiService = {
         throw new Error("Message ID is required");
       }
 
-      
 
-      const response = await API.delete(`/api/community-admin/community/group-chat/messages/${encodeURIComponent(messageId)}`);
+
+      const response = await API.delete(COMMUNITY_ADMIN_API_ROUTES.GROUP_MESSAGE_BY_ID(encodeURIComponent(messageId)));
 
       console.log('API: Group message deleted successfully by admin:', {
         messageId,
@@ -239,9 +240,9 @@ export const communityAdminChatApiService = {
         throw new Error("Message ID and content are required");
       }
 
-      
 
-      const response = await API.put(`/api/community-admin/community/channel/messages/${encodeURIComponent(messageId)}`, {
+
+      const response = await API.put(COMMUNITY_ADMIN_API_ROUTES.CHANNEL_MESSAGE_BY_ID(encodeURIComponent(messageId)), {
         content: content.trim()
       });
 
@@ -269,9 +270,9 @@ export const communityAdminChatApiService = {
         throw new Error("Message ID is required");
       }
 
-      
 
-      const response = await API.delete(`/api/community-admin/community/channel/messages/${encodeURIComponent(messageId)}`);
+
+      const response = await API.delete(COMMUNITY_ADMIN_API_ROUTES.CHANNEL_MESSAGE_BY_ID(encodeURIComponent(messageId)));
 
       console.log('API: Channel message deleted successfully:', {
         messageId,
@@ -297,9 +298,9 @@ export const communityAdminChatApiService = {
         throw new Error("Message ID is required");
       }
 
-      
 
-      const response = await API.post(`/api/community-admin/community/channel/messages/${encodeURIComponent(messageId)}/pin`);
+
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHANNEL_MESSAGE_PIN(encodeURIComponent(messageId)));
 
       console.log('API: Channel message pinned successfully:', {
         messageId,
@@ -324,10 +325,7 @@ export const communityAdminChatApiService = {
       if (!messageId) {
         throw new Error("Message ID is required");
       }
-
-      
-
-      const response = await API.post(`/api/community-admin/community/channel/messages/${encodeURIComponent(messageId)}/unpin`);
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHANNEL_MESSAGE_UNPIN(encodeURIComponent(messageId)));
 
       console.log('API: Channel message unpinned successfully:', {
         messageId,
@@ -353,14 +351,14 @@ export const communityAdminChatApiService = {
         throw new Error("No files provided");
       }
 
-      
+
 
       const formData = new FormData();
       files.forEach((file, index) => {
         formData.append('media', file);
       });
 
-      const response = await API.post('/api/community-admin/community/channel/upload-media', formData, {
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHANNEL_UPLOAD_MEDIA, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
@@ -389,9 +387,9 @@ export const communityAdminChatApiService = {
         throw new Error("Message ID is required");
       }
 
-      
 
-      const response = await API.get(`/api/community-admin/community/channel/messages/${encodeURIComponent(messageId)}/reactions`);
+
+      const response = await API.get(COMMUNITY_ADMIN_API_ROUTES.CHANNEL_MESSAGE_REACTIONS(encodeURIComponent(messageId)));
 
       console.log('API: Message reactions fetched successfully:', {
         messageId,

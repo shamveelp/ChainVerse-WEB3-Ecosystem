@@ -1,4 +1,5 @@
 import API from "@/lib/api-client";
+import { USER_API_ROUTES } from "@/routes";
 
 export interface UserProfile {
   _id: string;
@@ -56,10 +57,10 @@ export interface ApiResponse<T> {
 export const userApiService = {
   getProfile: async (): Promise<{ data: UserProfile }> => {
     try {
-      
-      const response = await API.get("/api/user/get-profile");
-      
-      
+
+      const response = await API.get(USER_API_ROUTES.GET_PROFILE);
+
+
       if (response.data.success && response.data.data) {
         const data = response.data.data;
         return {
@@ -94,11 +95,11 @@ export const userApiService = {
     } catch (error: any) {
       console.error("Get profile error:", error.response?.data || error.message);
       const errorMessage = error.response?.data?.error || error.message || "Failed to fetch profile";
-      
+
       if (error.response?.status === 401) {
         throw new Error("User not authenticated");
       }
-      
+
       throw new Error(errorMessage);
     }
   },
@@ -110,10 +111,10 @@ export const userApiService = {
     profilePic?: string;
   }): Promise<{ success: boolean; data?: any; error?: string; message?: string }> => {
     try {
-      
-      const response = await API.put("/api/user/profile", profileData);
-      
-      
+
+      const response = await API.put(USER_API_ROUTES.UPDATE_PROFILE, profileData);
+
+
       if (response.data.success && response.data.data) {
         const data = response.data.data;
         return {
@@ -131,9 +132,9 @@ export const userApiService = {
           message: response.data.message || "Profile updated successfully",
         };
       }
-      return { 
-        success: false, 
-        error: response.data.error || "Failed to update profile" 
+      return {
+        success: false,
+        error: response.data.error || "Failed to update profile"
       };
     } catch (error: any) {
       console.error("Update profile error:", error.response?.data || error.message);
@@ -153,11 +154,11 @@ export const userApiService = {
       if (!username || username.trim() === "") {
         return { success: false, available: false, error: "Username cannot be empty" };
       }
-      
-      
-      const response = await API.post("/api/user/check-username", { username });
-      
-      
+
+
+      const response = await API.post(USER_API_ROUTES.CHECK_USERNAME, { username });
+
+
       return {
         success: true,
         available: response.data.available,
@@ -181,13 +182,13 @@ export const userApiService = {
       const formData = new FormData();
       formData.append("profileImage", file);
 
-      
-      const response = await API.post("/api/user/upload-profile-image", formData, {
+
+      const response = await API.post(USER_API_ROUTES.UPLOAD_PROFILE_IMAGE, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      
+
 
       if (response.data.success && response.data.data) {
         return {
@@ -198,9 +199,9 @@ export const userApiService = {
           },
         };
       }
-      return { 
-        success: false, 
-        error: response.data.error || "Failed to upload image" 
+      return {
+        success: false,
+        error: response.data.error || "Failed to upload image"
       };
     } catch (error: any) {
       console.error("Upload image error:", error.response?.data || error.message);
@@ -214,10 +215,10 @@ export const userApiService = {
   // Referral API methods
   getReferralStats: async (): Promise<{ success: boolean; data?: ReferralStats; error?: string }> => {
     try {
-      
-      const response = await API.get("/api/user/referrals/stats");
-      
-      
+
+      const response = await API.get(USER_API_ROUTES.REFERRALS_STATS);
+
+
       if (response.data.success) {
         return {
           success: true,
@@ -240,10 +241,10 @@ export const userApiService = {
     error?: string;
   }> => {
     try {
-      
-      const response = await API.get(`/api/user/referrals/history?page=${page}&limit=${limit}`);
-      
-      
+
+      const response = await API.get(`${USER_API_ROUTES.REFERRALS_HISTORY}?page=${page}&limit=${limit}`);
+
+
       if (response.data.success) {
         return {
           success: true,
@@ -263,10 +264,10 @@ export const userApiService = {
   // Points API methods
   performDailyCheckIn: async (): Promise<{ success: boolean; data?: DailyCheckInResult; error?: string }> => {
     try {
-      
-      const response = await API.post("/api/user/points/daily-checkin");
-      
-      
+
+      const response = await API.post(USER_API_ROUTES.POINTS_DAILY_CHECKIN);
+
+
       if (response.data.success) {
         return {
           success: true,
@@ -285,10 +286,10 @@ export const userApiService = {
 
   getCheckInStatus: async (): Promise<{ success: boolean; data?: CheckInStatus; error?: string }> => {
     try {
-      
-      const response = await API.get("/api/user/points/checkin-status");
-      
-      
+
+      const response = await API.get(USER_API_ROUTES.POINTS_CHECKIN_STATUS);
+
+
       if (response.data.success) {
         return {
           success: true,
@@ -311,10 +312,10 @@ export const userApiService = {
     error?: string;
   }> => {
     try {
-      
-      const response = await API.get(`/api/user/points/checkin-calendar?month=${month}&year=${year}`);
-      
-      
+
+      const response = await API.get(`${USER_API_ROUTES.POINTS_CHECKIN_CALENDAR}?month=${month}&year=${year}`);
+
+
       if (response.data.success) {
         return {
           success: true,
@@ -337,10 +338,10 @@ export const userApiService = {
     error?: string;
   }> => {
     try {
-      
-      const response = await API.get(`/api/user/points/history?page=${page}&limit=${limit}`);
-      
-      
+
+      const response = await API.get(`${USER_API_ROUTES.POINTS_HISTORY}?page=${page}&limit=${limit}`);
+
+
       if (response.data.success) {
         return {
           success: true,
