@@ -425,7 +425,7 @@ function ChainCastPageContent() {
         ) : (
           <>
             {chainCasts.map((chainCast) => (
-              <Card key={chainCast._id} className="bg-black/60 backdrop-blur-xl border-red-800/30 hover:border-red-700/50 transition-all duration-300">  
+              <Card key={chainCast._id} className="bg-black/60 backdrop-blur-xl border-red-800/30 hover:border-red-700/50 transition-all duration-300">
 
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -659,20 +659,7 @@ function ChainCastPageContent() {
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="moderationRequired" className="text-white">Moderation Required</Label>
-                  <p className="text-sm text-slate-400">Require approval for participants to stream</p>
-                </div>
-                <Switch
-                  id="moderationRequired"
-                  checked={formData.settings?.moderationRequired}
-                  onCheckedChange={(checked) => setFormData({
-                    ...formData,
-                    settings: { ...formData.settings, moderationRequired: checked }
-                  })}
-                />
-              </div>
+
             </div>
           </div>
 

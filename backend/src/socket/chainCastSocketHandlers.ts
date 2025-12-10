@@ -1,5 +1,6 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import logger from '../utils/logger';
+import jwt from 'jsonwebtoken';
 
 interface AuthenticatedChainCastSocket extends Socket {
   userId?: string;
@@ -9,178 +10,141 @@ interface AuthenticatedChainCastSocket extends Socket {
   chainCastId?: string;
 }
 
-// Store socket mappings for ChainCast - Liberal approach
+// Store socket mappings for ChainCast
 const chainCastSocketMap = new Map<string, Set<string>>(); // chainCastId -> Set<socketId>
 const socketChainCastMap = new Map<string, string>(); // socketId -> chainCastId
-const participantSocketMap = new Map<string, string>(); // participantId -> socketId
-const socketUserMap = new Map<string, { userId: string; username: string; userType: string }>(); // socketId -> user info
+const participantSocketMap = new Map<string, string>(); // userId -> socketId (Most recent socket for user)
 
 export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
   const chainCastNamespace = io.of('/chaincast');
 
-  // Liberal authentication middleware
+  // --- 1. Liberal Authentication Middleware (The "Test Mode" Implementation) ---
   chainCastNamespace.use(async (socket: AuthenticatedChainCastSocket, next) => {
     try {
       const token = socket.handshake.auth.token ||
-                   socket.handshake.headers.authorization?.split(' ')[1] ||
-                   socket.handshake.query.token;
+        socket.handshake.headers.authorization?.split(' ')[1] ||
+        socket.handshake.query.token;
 
-      // Liberal token checking - accept any token for testing
       if (!token) {
-        logger.warn('ChainCast socket: No token provided, using default', { socketId: socket.id });
-        // Set default user info for liberal testing
-        socket.userId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        socket.username = `User-${socket.id.substr(0, 6)}`;
+        // Guest/Anonymous fallback
+        socket.userId = `guest-${Date.now()}`;
+        socket.username = `Guest-${socket.id.substring(0, 4)}`;
         socket.userType = 'user';
-      } else {
-        // Liberal token parsing
-        try {
-          if (token === 'liberal-token' || token.includes('admin')) {
-            socket.userId = `admin-${Date.now()}`;
-            socket.username = `Admin-${socket.id.substr(0, 6)}`;
-            socket.userType = 'communityAdmin';
-            socket.communityId = 'default-community';
-          } else {
-            socket.userId = `user-${Date.now()}`;
-            socket.username = `User-${socket.id.substr(0, 6)}`;
-            socket.userType = 'user';
-          }
-        } catch (error) {
-          logger.warn('Liberal auth fallback', { socketId: socket.id });
-          socket.userId = `user-${Date.now()}`;
-          socket.username = `User-${socket.id.substr(0, 6)}`;
-          socket.userType = 'user';
-        }
+        return next();
       }
 
-      const userInfo = { 
-        userId: socket.userId, 
-        username: socket.username, 
-        userType: socket.userType 
-      };
-      
-      socketUserMap.set(socket.id, userInfo);
-      logger.info('ChainCast socket authenticated (liberal)', {
+      // "Liberal" Token Handling: Just decode, don't verify signature.
+      // This trusts the client's claim about who they are.
+      const decoded = jwt.decode(token) as any;
+
+      if (decoded && decoded.id) {
+        socket.userId = decoded.id;
+        // Map 'role' to userType
+        if (decoded.role === 'communityAdmin') {
+          socket.userType = 'communityAdmin';
+          socket.username = decoded.name || 'Admin';
+          // Try to extract communityId if present (might need to fetch if critical, but for now loose)
+          socket.communityId = decoded.communityId || 'default-community';
+        } else {
+          socket.userType = 'user';
+          socket.username = decoded.username || decoded.name || 'User';
+        }
+      } else {
+        // Token garbage? Fallback to guest.
+        socket.userId = `guest-${Date.now()}`;
+        socket.username = `Guest-${socket.id.substring(0, 4)}`;
+        socket.userType = 'user';
+      }
+
+      logger.info('ChainCast Liberal Auth:', {
         socketId: socket.id,
         userId: socket.userId,
-        userType: socket.userType,
-        username: socket.username
+        userType: socket.userType
       });
+
       next();
     } catch (error) {
-      const err = error as Error;
-      logger.error('ChainCast socket auth error (liberal fallback)', { error: err.message });
-      
-      // Liberal fallback - always allow connection
-      socket.userId = `guest-${Date.now()}`;
-      socket.username = `Guest-${socket.id.substr(0, 6)}`;
-      socket.userType = 'user';
-      socketUserMap.set(socket.id, { 
-        userId: socket.userId, 
-        username: socket.username, 
-        userType: socket.userType 
-      });
-      next();
+      logger.error('Auth Error:', error);
+      next(); // Don't block, just let them in as guest if logic failed (Liberal!)
     }
   });
 
   chainCastNamespace.on('connection', (socket: AuthenticatedChainCastSocket) => {
-    if (!socket.userId) {
-      logger.warn('Socket connected without userId, disconnecting', { socketId: socket.id });
-      socket.disconnect(true);
-      return;
-    }
+    // Ensure we have at least some ID
+    if (!socket.userId) socket.userId = `guest-${socket.id}`;
 
     logger.info('ChainCast socket connected', {
       socketId: socket.id,
-      userId: socket.userId,
-      userType: socket.userType,
-      username: socket.username
+      userId: socket.userId
     });
 
-    // Store participant socket mapping
+    // Track user socket
     participantSocketMap.set(socket.userId, socket.id);
 
-    // Join ChainCast room - Liberal approach
-    socket.on('join_chaincast', async (data: { chainCastId: string }) => {
-      try {
-        if (!data.chainCastId) {
-          logger.warn('Join chaincast: Missing chainCastId', { socketId: socket.id });
-          socket.emit('join_error', { error: 'ChainCast ID is required' });
-          return;
-        }
 
-        const chainCastRoom = `chaincast:${data.chainCastId}`;
-        
-        // Leave any existing room first
-        if (socket.chainCastId) {
-          const oldRoom = `chaincast:${socket.chainCastId}`;
-          socket.leave(oldRoom);
-          cleanupSocketFromRoom(socket, socket.chainCastId);
-        }
+    // --- Join ChainCast ---
+    socket.on('join_chaincast', (data: { chainCastId: string }) => {
+      const { chainCastId } = data;
+      if (!chainCastId) return;
 
-        // Join new room
-        socket.join(chainCastRoom);
-        socket.chainCastId = data.chainCastId;
+      socket.chainCastId = chainCastId;
+      const roomName = `chaincast:${chainCastId}`;
 
-        // Track ChainCast connections
-        if (!chainCastSocketMap.has(data.chainCastId)) {
-          chainCastSocketMap.set(data.chainCastId, new Set());
-        }
-        chainCastSocketMap.get(data.chainCastId)!.add(socket.id);
-        socketChainCastMap.set(socket.id, data.chainCastId);
+      socket.join(roomName);
 
-        const participantCount = chainCastSocketMap.get(data.chainCastId)?.size || 0;
-
-        // Notify others about new participant
-        // Only communityAdmin can have video/audio enabled
-        // Regular users can only listen (receive audio), not send
-        socket.to(chainCastRoom).emit('participant_joined', {
-          userId: socket.userId,
-          username: socket.username,
-          userType: socket.userType,
-          hasVideo: socket.userType === 'communityAdmin',
-          hasAudio: socket.userType === 'communityAdmin', // Only admin can send audio
-          isMuted: socket.userType !== 'communityAdmin', // Regular users are muted
-          isVideoOff: socket.userType !== 'communityAdmin' // Regular users have video off
-        });
-
-        // Confirm join to the user
-        socket.emit('joined_chaincast', {
-          chainCastId: data.chainCastId,
-          participantCount,
-          userRole: socket.userType === 'communityAdmin' ? 'admin' : 'viewer'
-        });
-
-        logger.info('User joined ChainCast', {
-          socketId: socket.id,
-          userId: socket.userId,
-          username: socket.username,
-          chainCastId: data.chainCastId,
-          participantCount,
-          userType: socket.userType
-        });
-
-      } catch (error: any) {
-        logger.error('Join ChainCast error', {
-          socketId: socket.id,
-          userId: socket.userId,
-          error: error.message
-        });
-        socket.emit('join_error', { error: 'Failed to join ChainCast' });
+      // Update Mappings
+      if (!chainCastSocketMap.has(chainCastId)) {
+        chainCastSocketMap.set(chainCastId, new Set());
       }
+      chainCastSocketMap.get(chainCastId)!.add(socket.id);
+      socketChainCastMap.set(socket.id, chainCastId);
+
+      // Determine initial streaming permission
+      // STRICT: Only Admins are allowed to stream.
+      const canStream = socket.userType === 'communityAdmin';
+
+      // Notify others
+      socket.to(roomName).emit('participant_joined', {
+        userId: socket.userId,
+        username: socket.username,
+        userType: socket.userType,
+        hasVideo: false, // Start with everything off
+        hasAudio: false,
+        isMuted: true,
+        isVideoOff: true,
+        canStream: canStream // Tell frontend if this user is a streamer (admin)
+      });
+
+      // Gather current participants
+      const currentParticipants: any[] = [];
+      const roomSocketIds = chainCastSocketMap.get(chainCastId);
+      if (roomSocketIds) {
+        for (const sId of roomSocketIds) {
+          const s = chainCastNamespace.sockets.get(sId) as AuthenticatedChainCastSocket;
+          if (s) {
+            currentParticipants.push({
+              userId: s.userId,
+              username: s.username,
+              userType: s.userType,
+              // We could track state here if we had it stored, but for now defaults
+              hasVideo: false,
+              hasAudio: false
+            });
+          }
+        }
+      }
+
+      // Ack to joiner
+      socket.emit('joined_chaincast', {
+        chainCastId,
+        participantCount: roomSocketIds?.size || 0,
+        userRole: socket.userType === 'communityAdmin' ? 'admin' : 'viewer',
+        canStream,
+        participants: currentParticipants
+      });
     });
 
-    // Leave ChainCast room
-    socket.on('leave_chaincast', (data: { chainCastId: string }) => {
-      if (data.chainCastId) {
-        leaveChainCastRoom(socket, data.chainCastId);
-      } else if (socket.chainCastId) {
-        leaveChainCastRoom(socket, socket.chainCastId);
-      }
-    });
-
-    // Handle stream updates - Only allow communityAdmin to control streaming
+    // --- Stream Updates (Camera/Mic Toggles) --- 
     socket.on('stream_update', (data: {
       chainCastId: string;
       hasVideo: boolean;
@@ -188,492 +152,93 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
       isMuted: boolean;
       isVideoOff: boolean;
     }) => {
-      try {
-        if (!data.chainCastId) {
-          logger.warn('Stream update: Missing chainCastId', { socketId: socket.id });
-          return;
-        }
+      const { chainCastId } = data;
+      if (!chainCastId) return;
 
-        // Only allow communityAdmin to send stream updates
-        if (socket.userType !== 'communityAdmin') {
-          logger.warn('Stream update: Unauthorized - only communityAdmin can control streaming', {
-            socketId: socket.id,
-            userId: socket.userId,
-            userType: socket.userType
-          });
-          socket.emit('stream_update_error', {
-            error: 'Only community admin can control video and audio streaming'
-          });
-          return;
-        }
+      // STRICT: Only explicitly communityAdmin can stream
+      const isAdmin = socket.userType === 'communityAdmin';
 
-        const chainCastRoom = `chaincast:${data.chainCastId}`;
-
-        // Broadcast stream update to all participants in room (excluding sender)
-        socket.to(chainCastRoom).emit('participant_stream_update', {
-          userId: socket.userId,
-          username: socket.username,
-          userType: socket.userType,
-          hasVideo: data.hasVideo,
-          hasAudio: data.hasAudio,
-          isMuted: data.isMuted,
-          isVideoOff: data.isVideoOff
-        });
-
-        logger.info('Stream update broadcast', {
-          socketId: socket.id,
-          userId: socket.userId,
-          chainCastId: data.chainCastId,
-          hasVideo: data.hasVideo,
-          hasAudio: data.hasAudio,
-          participantCount: chainCastSocketMap.get(data.chainCastId)?.size || 0
-        });
-      } catch (error: any) {
-        logger.error('Stream update error', { 
-          socketId: socket.id, 
-          userId: socket.userId, 
-          error: error.message 
-        });
+      if (!isAdmin) {
+        socket.emit('stream_update_error', { error: 'Only Community Admins can stream.' });
+        return;
       }
-    });
 
-    // Handle reactions - Liberal approach
-    socket.on('add_reaction', async (data: { chainCastId: string; emoji: string }) => {
-      try {
-        if (!data.chainCastId || !data.emoji) {
-          logger.warn('Add reaction: Missing data', { 
-            socketId: socket.id,
-            chainCastId: data.chainCastId,
-            hasEmoji: !!data.emoji
-          });
-          return;
-        }
-
-        const chainCastRoom = `chaincast:${data.chainCastId}`;
-
-        // Broadcast reaction to all participants including sender
-        const reactionData = {
-          userId: socket.userId,
-          username: socket.username,
-          emoji: data.emoji,
-          timestamp: new Date()
-        };
-
-        chainCastNamespace.to(chainCastRoom).emit('new_reaction', reactionData);
-
-        logger.info('Reaction broadcast', {
-          socketId: socket.id,
-          userId: socket.userId,
-          username: socket.username,
-          chainCastId: data.chainCastId,
-          emoji: data.emoji,
-          roomSize: chainCastSocketMap.get(data.chainCastId)?.size || 0
-        });
-
-      } catch (error: any) {
-        logger.error('Add reaction error', { 
-          socketId: socket.id, 
-          userId: socket.userId, 
-          error: error.message 
-        });
-      }
-    });
-
-    // Handle moderation requests (for users) - Liberal approach
-    socket.on('request_moderation', async (data: {
-      chainCastId: string;
-      requestedPermissions: { video: boolean; audio: boolean };
-      message?: string;
-    }) => {
-      try {
-        if (!data.chainCastId) {
-          logger.warn('Request moderation: Missing chainCastId', { socketId: socket.id });
-          return;
-        }
-
-        const chainCastRoom = `chaincast:${data.chainCastId}`;
-
-        // Notify all participants about moderation request (liberal - let admins see it)
-        socket.to(chainCastRoom).emit('moderation_request', {
-          userId: socket.userId,
-          username: socket.username,
-          userType: socket.userType,
-          requestedPermissions: data.requestedPermissions,
-          message: data.message,
-          timestamp: new Date()
-        });
-
-        // Confirm request sent
-        socket.emit('moderation_requested', { message: 'Moderation request sent to admin' });
-
-        logger.info('Moderation requested', {
-          socketId: socket.id,
-          userId: socket.userId,
-          username: socket.username,
-          chainCastId: data.chainCastId,
-          requestedPermissions: data.requestedPermissions
-        });
-
-      } catch (error: any) {
-        logger.error('Request moderation error', { 
-          socketId: socket.id, 
-          userId: socket.userId, 
-          error: error.message 
-        });
-      }
-    });
-
-    // Handle chat messages - Broadcast to all except sender to prevent duplicates
-    socket.on('send_message', (data: { chainCastId: string; message: string }) => {
-      try {
-        if (!data.chainCastId || !data.message?.trim()) {
-          logger.warn('Send message: Invalid data', { 
-            socketId: socket.id,
-            hasChainCastId: !!data.chainCastId,
-            hasMessage: !!data.message?.trim()
-          });
-          return;
-        }
-
-        const chainCastRoom = `chaincast:${data.chainCastId}`;
-        const messageId = `${Date.now()}-${socket.userId}-${Math.random().toString(36).substr(2, 9)}`;
-        
-        const messageData = {
-          id: messageId,
-          userId: socket.userId,
-          username: socket.username,
-          message: data.message.trim(),
-          timestamp: new Date()
-        };
-
-        // Broadcast to all participants EXCEPT the sender to prevent duplicate messages
-        // The sender already added the message locally in the frontend
-        socket.to(chainCastRoom).emit('new_message', messageData);
-
-        // Send confirmation to sender with the message data so they can update their local message with the server ID
-        socket.emit('message_sent', messageData);
-
-        logger.info('Chat message broadcast', {
-          socketId: socket.id,
-          userId: socket.userId,
-          username: socket.username,
-          chainCastId: data.chainCastId,
-          messageId,
-          messageLength: data.message.trim().length,
-          roomSize: chainCastSocketMap.get(data.chainCastId)?.size || 0
-        });
-
-      } catch (error: any) {
-        logger.error('Send message error', { 
-          socketId: socket.id, 
-          userId: socket.userId, 
-          error: error.message 
-        });
-      }
-    });
-
-    // Handle admin actions - Liberal approach
-    socket.on('admin_action', async (data: {
-      action: 'start' | 'end' | 'remove_participant' | 'approve_moderation' | 'reject_moderation';
-      chainCastId: string;
-      targetUserId?: string;
-      requestId?: string;
-      reason?: string;
-    }) => {
-      try {
-        if (!data.chainCastId || !data.action) {
-          logger.warn('Admin action: Missing data', { socketId: socket.id });
-          return;
-        }
-
-        const chainCastRoom = `chaincast:${data.chainCastId}`;
-
-        switch (data.action) {
-          case 'start':
-            chainCastNamespace.to(chainCastRoom).emit('chaincast_started', {
-              adminId: socket.userId,
-              adminName: socket.username,
-              timestamp: new Date()
-            });
-            break;
-
-          case 'end':
-            chainCastNamespace.to(chainCastRoom).emit('chaincast_ended', {
-              adminId: socket.userId,
-              adminName: socket.username,
-              timestamp: new Date()
-            });
-            break;
-
-          case 'remove_participant':
-            if (data.targetUserId) {
-              const targetSocket = participantSocketMap.get(data.targetUserId);
-              if (targetSocket) {
-                chainCastNamespace.to(targetSocket).emit('removed_from_chaincast', {
-                  adminName: socket.username,
-                  reason: data.reason,
-                  timestamp: new Date()
-                });
-              }
-            }
-            break;
-
-          case 'approve_moderation':
-          case 'reject_moderation':
-            chainCastNamespace.to(chainCastRoom).emit('moderation_reviewed', {
-              requestId: data.requestId,
-              status: data.action === 'approve_moderation' ? 'approved' : 'rejected',
-              adminName: socket.username,
-              timestamp: new Date()
-            });
-            break;
-        }
-
-        socket.emit('admin_action_success', {
-          action: data.action,
-          message: `${data.action} completed successfully`
-        });
-
-        logger.info('Admin action completed', {
-          socketId: socket.id,
-          userId: socket.userId,
-          action: data.action,
-          chainCastId: data.chainCastId
-        });
-
-      } catch (error: any) {
-        logger.error('Admin action error', { 
-          socketId: socket.id, 
-          userId: socket.userId, 
-          error: error.message 
-        });
-        socket.emit('admin_error', { error: 'Failed to perform admin action' });
-      }
-    });
-
-    // Handle WebRTC signaling - Offer
-    socket.on('webrtc_offer', (data: {
-      chainCastId: string;
-      toUserId: string;
-      offer: RTCSessionDescriptionInit;
-    }) => {
-      try {
-        if (!data.chainCastId || !data.toUserId || !data.offer) {
-          logger.warn('WebRTC offer: Missing data', { socketId: socket.id });
-          return;
-        }
-
-        const targetSocketId = participantSocketMap.get(data.toUserId);
-        if (targetSocketId) {
-          chainCastNamespace.to(targetSocketId).emit('webrtc_offer', {
-            fromUserId: socket.userId,
-            offer: data.offer
-          });
-          logger.info('WebRTC offer forwarded', {
-            from: socket.userId,
-            to: data.toUserId,
-            chainCastId: data.chainCastId
-          });
-        } else {
-          logger.warn('WebRTC offer: Target user not found', { toUserId: data.toUserId });
-        }
-      } catch (error: any) {
-        logger.error('WebRTC offer error', { error: error.message });
-      }
-    });
-
-    // Handle WebRTC signaling - Answer
-    socket.on('webrtc_answer', (data: {
-      chainCastId: string;
-      toUserId: string;
-      answer: RTCSessionDescriptionInit;
-    }) => {
-      try {
-        if (!data.chainCastId || !data.toUserId || !data.answer) {
-          logger.warn('WebRTC answer: Missing data', { socketId: socket.id });
-          return;
-        }
-
-        const targetSocketId = participantSocketMap.get(data.toUserId);
-        if (targetSocketId) {
-          chainCastNamespace.to(targetSocketId).emit('webrtc_answer', {
-            fromUserId: socket.userId,
-            answer: data.answer
-          });
-          logger.info('WebRTC answer forwarded', {
-            from: socket.userId,
-            to: data.toUserId,
-            chainCastId: data.chainCastId
-          });
-        } else {
-          logger.warn('WebRTC answer: Target user not found', { toUserId: data.toUserId });
-        }
-      } catch (error: any) {
-        logger.error('WebRTC answer error', { error: error.message });
-      }
-    });
-
-    // Handle WebRTC signaling - ICE Candidate
-    socket.on('webrtc_ice_candidate', (data: {
-      chainCastId: string;
-      toUserId: string;
-      candidate: RTCIceCandidateInit;
-    }) => {
-      try {
-        if (!data.chainCastId || !data.toUserId || !data.candidate) {
-          logger.warn('WebRTC ICE candidate: Missing data', { socketId: socket.id });
-          return;
-        }
-
-        const targetSocketId = participantSocketMap.get(data.toUserId);
-        if (targetSocketId) {
-          chainCastNamespace.to(targetSocketId).emit('webrtc_ice_candidate', {
-            fromUserId: socket.userId,
-            candidate: data.candidate
-          });
-          logger.debug('WebRTC ICE candidate forwarded', {
-            from: socket.userId,
-            to: data.toUserId
-          });
-        } else {
-          logger.warn('WebRTC ICE candidate: Target user not found', { toUserId: data.toUserId });
-        }
-      } catch (error: any) {
-        logger.error('WebRTC ICE candidate error', { error: error.message });
-      }
-    });
-
-    // Handle disconnect - Liberal cleanup
-    socket.on('disconnect', (reason) => {
-      logger.info('ChainCast socket disconnected', {
-        socketId: socket.id,
+      // Broadcast to room (excluding sender)
+      socket.to(`chaincast:${chainCastId}`).emit('participant_stream_update', {
         userId: socket.userId,
         username: socket.username,
-        reason,
-        chainCastId: socket.chainCastId
+        userType: socket.userType,
+        hasVideo: data.hasVideo,
+        hasAudio: data.hasAudio,
+        isMuted: data.isMuted,
+        isVideoOff: data.isVideoOff
       });
-
-      cleanup(socket);
     });
 
-    // Handle errors liberally
-    socket.on('error', (error) => {
-      logger.error('ChainCast socket error', {
-        socketId: socket.id,
+
+    // --- WebRTC Signaling (Relay) ---
+    // Simple relay mechanism for P2P connection
+    const relaySignal = (event: string, data: any) => {
+      const { toUserId, chainCastId } = data;
+      const targetSocketId = participantSocketMap.get(toUserId);
+      if (targetSocketId) {
+        chainCastNamespace.to(targetSocketId).emit(event, {
+          ...data,
+          fromUserId: socket.userId
+        });
+      }
+    };
+
+    socket.on('webrtc_offer', (data) => relaySignal('webrtc_offer', data));
+    socket.on('webrtc_answer', (data) => relaySignal('webrtc_answer', data));
+    socket.on('webrtc_ice_candidate', (data) => relaySignal('webrtc_ice_candidate', data));
+
+    // --- Chat & Reactions ---
+    socket.on('send_message', (data: { chainCastId: string, message: string }) => {
+      socket.to(`chaincast:${data.chainCastId}`).emit('new_message', {
+        id: Date.now().toString(),
         userId: socket.userId,
-        error: error.message || error
+        username: socket.username,
+        message: data.message,
+        timestamp: new Date()
       });
+    });
+
+    socket.on('add_reaction', (data: { chainCastId: string, emoji: string }) => {
+      io.of('/chaincast').to(`chaincast:${data.chainCastId}`).emit('new_reaction', {
+        userId: socket.userId,
+        username: socket.username,
+        emoji: data.emoji
+      });
+    });
+
+    // --- Disconnect & Cleanup ---
+    socket.on('leave_chaincast', (data: { chainCastId: string }) => leaveRoom(socket, data.chainCastId));
+
+    socket.on('disconnect', () => {
+      if (socket.chainCastId) {
+        leaveRoom(socket, socket.chainCastId);
+      }
+      if (socket.userId) {
+        // Note: We don't delete from participantSocketMap immediately regarding memory?
+        // Actually, probably fine to delete.
+        participantSocketMap.delete(socket.userId);
+      }
     });
   });
 
-  // Helper functions with liberal approach
-  function leaveChainCastRoom(socket: AuthenticatedChainCastSocket, chainCastId: string) {
-    const chainCastRoom = `chaincast:${chainCastId}`;
-    socket.leave(chainCastRoom);
-
-    // Notify others about participant leaving
-    socket.to(chainCastRoom).emit('participant_left', {
-      userId: socket.userId,
-      username: socket.username,
-      userType: socket.userType
-    });
-
-    cleanupSocketFromRoom(socket, chainCastId);
-
-    const participantCount = chainCastSocketMap.get(chainCastId)?.size || 0;
-    
-    // Send leave confirmation
-    socket.emit('left_chaincast', {
-      chainCastId,
-      participantCount
-    });
-
-    logger.info('User left ChainCast', {
-      socketId: socket.id,
-      userId: socket.userId,
-      username: socket.username,
-      chainCastId,
-      participantCount
-    });
-  }
-
-  function cleanupSocketFromRoom(socket: AuthenticatedChainCastSocket, chainCastId: string) {
-    // Remove from tracking
-    chainCastSocketMap.get(chainCastId)?.delete(socket.id);
-    if (chainCastSocketMap.get(chainCastId)?.size === 0) {
-      chainCastSocketMap.delete(chainCastId);
+  const leaveRoom = (socket: AuthenticatedChainCastSocket, chainCastId: string) => {
+    socket.leave(`chaincast:${chainCastId}`);
+    if (chainCastSocketMap.has(chainCastId)) {
+      chainCastSocketMap.get(chainCastId)?.delete(socket.id);
     }
-    socketChainCastMap.delete(socket.id);
     socket.chainCastId = undefined;
-  }
 
-  function cleanup(socket: AuthenticatedChainCastSocket) {
-    if (socket.userId) {
-      participantSocketMap.delete(socket.userId);
-      socketUserMap.delete(socket.id);
-
-      // Clean up ChainCast connections
-      const chainCastId = socketChainCastMap.get(socket.id);
-      if (chainCastId) {
-        leaveChainCastRoom(socket, chainCastId);
-      }
-    }
-  }
-
-  return { chainCastSocketMap, participantSocketMap };
-};
-
-// Helper functions for external use - Liberal approach
-export const emitToChainCast = (io: SocketIOServer, chainCastId: string, event: string, data: any) => {
-  try {
-    const chainCastNamespace = io.of('/chaincast');
-    const roomName = `chaincast:${chainCastId}`;
-    chainCastNamespace.to(roomName).emit(event, data);
-    
-    logger.info('Broadcast to ChainCast', {
-      chainCastId,
-      event,
-      roomName,
-      participantCount: chainCastSocketMap.get(chainCastId)?.size || 0
+    // Notify
+    socket.to(`chaincast:${chainCastId}`).emit('participant_left', {
+      userId: socket.userId
     });
-  } catch (error: any) {
-    logger.error('Emit to ChainCast error', { 
-      chainCastId, 
-      event, 
-      error: error.message 
-    });
-  }
-};
-
-export const getChainCastConnections = (chainCastId: string): number => {
-  return chainCastSocketMap.get(chainCastId)?.size || 0;
-};
-
-export const notifyParticipant = (io: SocketIOServer, userId: string, event: string, data: any) => {
-  try {
-    const chainCastNamespace = io.of('/chaincast');
-    const socketId = participantSocketMap.get(userId);
-    if (socketId) {
-      chainCastNamespace.to(socketId).emit(event, data);
-      logger.info('Notified participant', { userId, event, socketId });
-    } else {
-      logger.warn('Participant socket not found', { userId, event });
-    }
-  } catch (error: any) {
-    logger.error('Notify participant error', { 
-      userId, 
-      event, 
-      error: error.message 
-    });
-  }
-};
-
-// Export socket maps for debugging
-export const getSocketMaps = () => {
-  return {
-    chainCastSocketMap: Object.fromEntries(chainCastSocketMap.entries()),
-    socketChainCastMap: Object.fromEntries(socketChainCastMap.entries()),
-    participantSocketMap: Object.fromEntries(participantSocketMap.entries()),
-    socketUserMap: Object.fromEntries(socketUserMap.entries())
   };
+
+  return { chainCastSocketMap };
 };

@@ -123,10 +123,11 @@ class CommunitySocketService {
       });
 
       const timeout = setTimeout(() => {
-        console.error("❌ Community socket connection timeout");
-        this.cleanupConnection();
-        reject(new Error("Community socket connection timeout"));
-      }, 25000); // Longer timeout for testing
+        console.warn("⚠️ Community socket connection timeout - continuing in offline mode");
+        this.isConnecting = false;
+        // Don't reject, allow app to continue
+        resolve();
+      }, 30000); // 30s timeout
 
       this.socket.on("connect", () => {
         clearTimeout(timeout);
@@ -150,7 +151,7 @@ class CommunitySocketService {
         // For testing: don't immediately reject, try to continue
         this.isConnecting = false;
         this.connectionPromise = null;
-        
+
         // Still resolve for testing purposes
         resolve();
       });
@@ -171,7 +172,7 @@ class CommunitySocketService {
   private clearAllTimeouts(): void {
     this.messageTimeouts.forEach(timeout => clearTimeout(timeout));
     this.messageTimeouts.clear();
-    
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
@@ -258,7 +259,7 @@ class CommunitySocketService {
   joinCommunity(communityId: string): void {
     console.log("🏠 Joining community:", communityId);
     this.communityId = communityId;
-    
+
     if (this.socket?.connected) {
       this.socket.emit("join_community", { communityId });
     } else {
@@ -276,7 +277,7 @@ class CommunitySocketService {
 
   leaveCommunity(communityId: string): void {
     console.log("🚪 Leaving community:", communityId);
-    
+
     if (this.socket?.connected) {
       this.socket.emit("leave_community", { communityId });
       if (this.communityId === communityId) {
@@ -297,12 +298,12 @@ class CommunitySocketService {
 
     if (this.socket?.connected) {
       this.socket.emit("send_channel_message", data);
-      
+
       // Set timeout for message confirmation
       const timeoutId = setTimeout(() => {
         console.warn("Channel message send timeout - continuing anyway");
       }, 10000);
-      
+
       this.messageTimeouts.set(`channel_${Date.now()}`, timeoutId);
     } else {
       console.warn("Cannot send channel message - socket not connected");
@@ -313,7 +314,7 @@ class CommunitySocketService {
 
   reactToChannelMessage(data: ReactionData): void {
     console.log("👍 Reacting to channel message:", data.messageId, data.emoji);
-    
+
     if (this.socket?.connected) {
       this.socket.emit("react_to_channel_message", data);
     } else {
@@ -330,12 +331,12 @@ class CommunitySocketService {
 
     if (this.socket?.connected) {
       this.socket.emit("send_group_message", data);
-      
+
       // Set timeout for message confirmation
       const timeoutId = setTimeout(() => {
         console.warn("Group message send timeout - continuing anyway");
       }, 10000);
-      
+
       this.messageTimeouts.set(`group_${Date.now()}`, timeoutId);
     } else {
       console.warn("Cannot send group message - socket not connected");
@@ -346,7 +347,7 @@ class CommunitySocketService {
 
   editGroupMessage(messageId: string, content: string): void {
     console.log("✏️ Editing group message:", messageId);
-    
+
     if (this.socket?.connected) {
       this.socket.emit("edit_group_message", { messageId, content });
     } else {
@@ -356,7 +357,7 @@ class CommunitySocketService {
 
   deleteGroupMessage(messageId: string, communityId: string): void {
     console.log("🗑️ Deleting group message:", messageId);
-    
+
     if (this.socket?.connected) {
       this.socket.emit("delete_group_message", { messageId, communityId });
     } else {
@@ -366,7 +367,7 @@ class CommunitySocketService {
 
   adminDeleteGroupMessage(messageId: string, communityId: string): void {
     console.log("🗑️ Admin deleting group message:", messageId);
-    
+
     if (this.socket?.connected) {
       this.socket.emit("admin_delete_group_message", { messageId, communityId });
     } else {

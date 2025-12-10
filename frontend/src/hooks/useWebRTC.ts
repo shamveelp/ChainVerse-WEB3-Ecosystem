@@ -33,7 +33,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
     try {
       setIsConnecting(true)
       console.log('🎥 Initializing media stream:', { video, audio })
-      
+
       // Stop existing stream if any
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => {
@@ -65,7 +65,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
 
       console.log('🎬 Requesting user media with constraints:', constraints)
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
-      
+
       console.log('✅ Media stream obtained:', {
         id: stream.id,
         videoTracks: stream.getVideoTracks().length,
@@ -76,26 +76,31 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
       // Store stream reference
       streamRef.current = stream
       setLocalStream(stream)
-      
+
       // Set video element source
-      if (localVideoRef.current && stream) {
+      if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream
-        console.log('📺 Video element source set')
+        try {
+          await localVideoRef.current.play()
+        } catch (e) {
+          console.error('Auto-play failed:', e)
+        }
+        console.log('📺 Video element source set and playing')
       }
 
       // Set initial states based on actual tracks
       const videoTracks = stream.getVideoTracks()
       const audioTracks = stream.getAudioTracks()
-      
+
       const videoEnabled = video && videoTracks.length > 0 && videoTracks[0].enabled
       const audioEnabled = audio && audioTracks.length > 0 && audioTracks[0].enabled
-      
+
       setIsVideoEnabled(videoEnabled)
       setIsAudioEnabled(audioEnabled)
       setIsConnected(true)
 
-      console.log('🎯 Media state initialized:', { 
-        videoEnabled, 
+      console.log('🎯 Media state initialized:', {
+        videoEnabled,
         audioEnabled,
         videoTrackEnabled: videoTracks[0]?.enabled,
         audioTrackEnabled: audioTracks[0]?.enabled
@@ -105,10 +110,10 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
 
     } catch (error: any) {
       console.error('❌ Failed to get user media:', error)
-      
+
       let errorMessage = 'Failed to access camera/microphone'
       let showToast = true
-      
+
       switch (error.name) {
         case 'NotAllowedError':
           errorMessage = 'Camera/Microphone access denied. Please enable permissions and refresh.'
@@ -126,11 +131,11 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
           showToast = false // Don't show toast for abort errors
           break
       }
-      
+
       if (showToast) {
         toast.error(errorMessage)
       }
-      
+
       // Liberal fallback - still set connected for audio-only or view-only mode
       if (error.name === 'NotAllowedError' && !video) {
         console.log('🔊 Falling back to view-only mode')
@@ -139,13 +144,22 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
         setIsAudioEnabled(false)
         return null
       }
-      
+
       setIsConnected(false)
       throw error
     } finally {
       setIsConnecting(false)
     }
   }, [])
+
+  // Sync stream to video element whenever they change
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      console.log('🔄 Syncing stream to video element via effect')
+      localVideoRef.current.srcObject = localStream
+      localVideoRef.current.play().catch(e => console.error('Play error:', e))
+    }
+  }, [localStream])
 
   // Liberal toggle video
   const toggleVideo = useCallback(() => {
@@ -166,14 +180,14 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
     videoTracks.forEach(track => {
       track.enabled = newEnabled
     })
-    
+
     setIsVideoEnabled(newEnabled)
-    console.log('🎥 Video toggled:', { 
-      enabled: newEnabled, 
+    console.log('🎥 Video toggled:', {
+      enabled: newEnabled,
       trackEnabled: videoTracks[0].enabled,
       trackCount: videoTracks.length
     })
-    
+
     return newEnabled
   }, [])
 
@@ -196,21 +210,21 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
     audioTracks.forEach(track => {
       track.enabled = newEnabled
     })
-    
+
     setIsAudioEnabled(newEnabled)
-    console.log('🎤 Audio toggled:', { 
-      enabled: newEnabled, 
+    console.log('🎤 Audio toggled:', {
+      enabled: newEnabled,
       trackEnabled: audioTracks[0].enabled,
       trackCount: audioTracks.length
     })
-    
+
     return newEnabled
   }, [])
 
   // Add participant with liberal checking
   const addParticipant = useCallback((participant: Participant) => {
     console.log('👤 Adding participant:', participant)
-    
+
     setParticipants(prev => {
       const exists = prev.find(p => p.userId === participant.userId)
       if (exists) {
@@ -231,7 +245,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
   // Remove participant
   const removeParticipant = useCallback((userId: string) => {
     console.log('👤 Removing participant:', userId)
-    
+
     setParticipants(prev => {
       const newList = prev.filter(p => p.userId !== userId)
       console.log('👥 Participants after removal:', newList.length)
@@ -246,8 +260,8 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
   // Update participant
   const updateParticipant = useCallback((userId: string, updates: Partial<Participant>) => {
     console.log('👤 Updating participant:', userId, updates)
-    
-    setParticipants(prev => prev.map(p => 
+
+    setParticipants(prev => prev.map(p =>
       p.userId === userId ? { ...p, ...updates } : p
     ))
   }, [])
@@ -255,7 +269,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
   // Liberal cleanup
   const cleanup = useCallback(() => {
     console.log('🧹 Cleaning up WebRTC resources')
-    
+
     // Stop local stream tracks
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
@@ -277,7 +291,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
     setIsVideoEnabled(false)
     setIsAudioEnabled(false)
     setIsConnecting(false)
-    
+
     console.log('✅ WebRTC cleanup completed')
   }, [])
 

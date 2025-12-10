@@ -4,7 +4,10 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
-import { communityAdminChainCastApiService } from '@/services/chainCast/communityAdminChainCastApiService'
+import {
+  communityAdminChainCastApiService,
+  type ChainCast
+} from '@/services/chainCast/communityAdminChainCastApiService'
 import ChainCastRoom from '@/components/chainCast/chainCastRoom'
 import { toast } from 'sonner'
 import { Loader2, AlertCircle } from 'lucide-react'
@@ -23,7 +26,7 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
   const currentAdmin = useSelector((state: RootState) => state.communityAdminAuth?.communityAdmin)
   const isAuthenticated = useSelector((state: RootState) => state.communityAdminAuth?.isAuthenticated)
 
-  const [chainCast, setChainCast] = useState(null)
+  const [chainCast, setChainCast] = useState<ChainCast | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,7 +43,7 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
         setError(null)
 
         const chainCastData = await communityAdminChainCastApiService.getChainCast(chainCastId)
-        
+
         // Convert to match ChainCast interface expected by ChainCastRoom
         const adaptedChainCast = {
           ...chainCastData,
@@ -63,7 +66,7 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
             isVideoOff: false
           }
         }
-        
+
         setChainCast(adaptedChainCast as any)
 
       } catch (err: any) {
@@ -88,7 +91,7 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
         await communityAdminChainCastApiService.endChainCast(chainCastId)
         toast.success('ChainCast ended successfully')
       }
-      
+
       router.push('/comms-admin/chaincast')
     } catch (error: any) {
       console.error('Failed to end ChainCast:', error)

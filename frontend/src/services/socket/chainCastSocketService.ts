@@ -78,7 +78,7 @@ class ChainCastSocketService {
       this.socket.on("connect_error", (error) => {
         console.warn("⚠️ ChainCast socket connection error:", error.message);
         this.reconnectAttempts++;
-        
+
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
           clearTimeout(timeout);
           this.cleanup();
@@ -90,7 +90,7 @@ class ChainCastSocketService {
       this.socket.on("disconnect", (reason) => {
         console.log("❌ ChainCast socket disconnected:", reason);
         this.isConnecting = false;
-        
+
         // Auto-reconnect for liberal connection
         if (reason === 'io server disconnect') {
           setTimeout(() => this.connect(token), 1000);
@@ -114,7 +114,7 @@ class ChainCastSocketService {
 
     // Remove existing listeners to prevent duplicates
     this.socket.removeAllListeners();
-    
+
     // Re-add connection event handlers
     this.socket.on("disconnect", (reason) => {
       console.log("❌ ChainCast socket disconnected:", reason);
@@ -143,13 +143,13 @@ class ChainCastSocketService {
   // ChainCast room management with liberal approach
   async joinChainCast(chainCastId: string): Promise<void> {
     console.log('🚀 Joining ChainCast:', chainCastId);
-    
+
     if (!this.socket) {
       await this.connect();
     }
 
     this.currentChainCastId = chainCastId;
-    
+
     if (this.socket?.connected) {
       this.socket.emit("join_chaincast", { chainCastId });
     } else {
@@ -187,10 +187,10 @@ class ChainCastSocketService {
   // Chat with retry mechanism
   sendMessage(chainCastId: string, message: string): void {
     if (!message.trim()) return;
-    
+
     const messageData = { chainCastId, message: message.trim() };
     console.log('💬 Sending message:', messageData);
-    
+
     if (this.socket?.connected) {
       this.socket.emit("send_message", messageData);
     } else {
@@ -207,7 +207,7 @@ class ChainCastSocketService {
   addReaction(chainCastId: string, emoji: string): void {
     const reactionData = { chainCastId, emoji };
     console.log('😀 Adding reaction:', reactionData);
-    
+
     if (this.socket?.connected) {
       this.socket.emit("add_reaction", reactionData);
     } else {
@@ -227,9 +227,21 @@ class ChainCastSocketService {
     message?: string;
   }): void {
     console.log("🛡️ Requesting moderation:", data);
-    
+
     if (this.socket?.connected) {
       this.socket.emit("request_moderation", data);
+    }
+  }
+
+  // Admin: Approve Moderation
+  approveModeration(chainCastId: string, targetUserId: string): void {
+    console.log('👑 Approving moderation:', { chainCastId, targetUserId });
+    if (this.socket?.connected) {
+      this.socket.emit('admin_action', {
+        action: 'approve_moderation',
+        chainCastId,
+        targetUserId
+      });
     }
   }
 
@@ -366,6 +378,18 @@ class ChainCastSocketService {
   }) => void): void {
     if (this.socket) {
       this.socket.on("moderation_reviewed", callback);
+    }
+  }
+
+  onModerationApproved(callback: (data: { approvedBy: string }) => void): void {
+    if (this.socket) {
+      this.socket.on("moderation_approved", callback);
+    }
+  }
+
+  onModerationRejected(callback: (data: { rejectedBy: string }) => void): void {
+    if (this.socket) {
+      this.socket.on("moderation_rejected", callback);
     }
   }
 

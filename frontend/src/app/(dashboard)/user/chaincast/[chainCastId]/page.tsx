@@ -72,7 +72,7 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
           isParticipant: chainCastData.isParticipant || false,
           // User permissions - limited by default
           permissions: {
-            canStream: false, // Users need to request this
+            canStream: false, // Users NEVER stream
             canModerate: false,
             canReact: true,
             canChat: true
@@ -256,10 +256,10 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-2xl font-bold text-white">{chainCast.title}</h1>
                 <Badge className={`${chainCast.status === 'live'
-                    ? 'bg-red-500/20 text-red-400 border-red-500/30'
-                    : chainCast.status === 'scheduled'
-                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                      : 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                  ? 'bg-red-500/20 text-red-400 border-red-500/30'
+                  : chainCast.status === 'scheduled'
+                    ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                    : 'bg-gray-500/20 text-gray-400 border-gray-500/30'
                   } border`}>
                   {chainCast.status === 'live' && <div className="w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse" />}
                   {chainCast.status.toUpperCase()}
