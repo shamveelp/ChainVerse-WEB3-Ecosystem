@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "@/redux/store";
 import { logout as reduxLogout } from "@/redux/slices/adminAuthSlice";
 import api from "@/lib/api-client";
+import { ADMIN_ROUTES } from "@/routes";
 
 import { Dropdown } from "@/components/ui/dropdown/Dropdown";
 import { DropdownItem } from "@/components/ui/dropdown/DropdownItem";
@@ -36,7 +37,7 @@ export default function UserDropdown() {
       console.error("Logout API error:", err);
     }
     dispatch(reduxLogout());
-    router.push("/admin/login");
+    router.push(ADMIN_ROUTES.LOGIN);
     closeDropdown();
   };
 
@@ -54,7 +55,7 @@ export default function UserDropdown() {
             src={
               // admin?.avatar 
               // ||
-               "/images/user/owner.jpg"}
+              "/images/user/owner.jpg"}
             alt="Admin"
           />
         </span>
@@ -64,9 +65,8 @@ export default function UserDropdown() {
         </span>
 
         <svg
-          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+            }`}
           width="18"
           height="20"
           viewBox="0 0 18 20"
@@ -105,7 +105,7 @@ export default function UserDropdown() {
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/admin/profile"
+              href={ADMIN_ROUTES.PROFILE}
               className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
@@ -132,7 +132,7 @@ export default function UserDropdown() {
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/admin/profile"
+              href={ADMIN_ROUTES.PROFILE}
               className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
@@ -159,7 +159,7 @@ export default function UserDropdown() {
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/admin/support"
+              href={ADMIN_ROUTES.SUPPORT}
               className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg

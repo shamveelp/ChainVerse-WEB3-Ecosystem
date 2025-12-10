@@ -13,6 +13,7 @@ import CreatePost from "@/components/community/posts/create-posts";
 import PostsFeed from "@/components/community/posts/posts-feed";
 import ChainCastJoinButton from "@/components/chainCast/chainCastJoinButton";
 import { Post } from "@/services/postsApiService";
+import { COMMUNITY_ADMIN_ROUTES, USER_ROUTES } from "@/routes";
 
 export default function CommunityPage() {
   const router = useRouter();
@@ -25,11 +26,11 @@ export default function CommunityPage() {
   }, []);
 
   const handleLogin = () => {
-    router.push("/user/login");
+    router.push(USER_ROUTES.LOGIN);
   };
 
   const handleAdminLogin = () => {
-    router.push("/comms-admin/get-started");
+    router.push(COMMUNITY_ADMIN_ROUTES.GET_STARTED);
   };
 
   const handlePostCreated = () => {
@@ -38,7 +39,7 @@ export default function CommunityPage() {
   };
 
   const handlePostClick = (post: Post) => {
-    router.push(`/user/community/post/${post._id}`);
+    router.push(`${USER_ROUTES.COMMUNITY_POST}/${post._id}`);
   };
 
   if (!mounted) {

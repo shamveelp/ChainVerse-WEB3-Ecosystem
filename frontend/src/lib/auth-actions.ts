@@ -11,6 +11,7 @@ import {
 } from "@/redux/slices/userAuthSlice"
 import { useToast } from "@/hooks/use-toast"
 import * as authApiService from "@/services/authApiService"
+import { COMMON_ROUTES, USER_ROUTES } from "@/routes"
 
 export function useAuthActions() {
   const dispatch = useDispatch()
@@ -27,7 +28,7 @@ export function useAuthActions() {
           title: "Login Successful",
           description: "Welcome back to ChainVerse!",
         })
-        router.push("/")
+        router.push(COMMON_ROUTES.HOME)
         return true
       } else {
         throw new Error(response.error || "Invalid credentials")
@@ -59,7 +60,7 @@ export function useAuthActions() {
           title: "Google Login Successful",
           description: "Welcome back to ChainVerse!",
         })
-        router.push("/")
+        router.push(COMMON_ROUTES.HOME)
       } else {
         toast({
           title: "Google Login Failed",
@@ -88,7 +89,7 @@ export function useAuthActions() {
         title: "Logged Out",
         description: "You have been successfully logged out",
       })
-      router.push("/user/login")
+      router.push(USER_ROUTES.LOGIN)
     } catch (error: any) {
       // Even if logout fails on server, clear local state
       dispatch(reduxLogout())
@@ -96,7 +97,7 @@ export function useAuthActions() {
         title: "Logged Out",
         description: "You have been logged out",
       })
-      router.push("/user/login")
+      router.push(USER_ROUTES.LOGIN)
     } finally {
       dispatch(setLoading(false))
     }
@@ -119,7 +120,7 @@ export function useAuthActions() {
 
         // Use setTimeout to ensure state is updated before navigation
         setTimeout(() => {
-          router.push("/user/verify-otp")
+          router.push(USER_ROUTES.VERIFY_OTP)
         }, 100)
 
         return true
@@ -157,7 +158,7 @@ export function useAuthActions() {
 
         // Use setTimeout to ensure state is updated before navigation
         setTimeout(() => {
-          router.push("/user/verify-otp")
+          router.push(USER_ROUTES.VERIFY_OTP)
         }, 100)
 
         return true
@@ -203,7 +204,7 @@ export function useAuthActions() {
           })
 
           setTimeout(() => {
-            router.push("/")
+            router.push(COMMON_ROUTES.HOME)
           }, 100)
 
           return true
@@ -220,7 +221,7 @@ export function useAuthActions() {
           })
 
           setTimeout(() => {
-            router.push("/user/reset-password")
+            router.push(USER_ROUTES.RESET_PASSWORD)
           }, 100)
 
           return true
@@ -255,7 +256,7 @@ export function useAuthActions() {
         })
 
         setTimeout(() => {
-          router.push("/user/login")
+          router.push(USER_ROUTES.LOGIN)
         }, 100)
 
         return true

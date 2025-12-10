@@ -10,6 +10,7 @@ export const COMMON_ROUTES = {
   BRIDGE: '/trade/bridge',
   BUY: '/trade/buy',
   LIQUIDITY: '/trade/liquidity',
+  CHART: '/chart',
 
   // NFT
 

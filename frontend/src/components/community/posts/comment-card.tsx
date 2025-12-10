@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import MentionTextarea from './mention-textarea'
 import { formatTimeAgo, formatStats } from '@/utils/format'
+import { USER_ROUTES } from '@/routes'
 
 interface CommentCardProps {
   comment: Comment;
@@ -47,7 +48,7 @@ export default function CommentCard({
 }: CommentCardProps) {
   const router = useRouter()
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
-  
+
   const [isReplying, setIsReplying] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [replyContent, setReplyContent] = useState('')
@@ -114,7 +115,7 @@ export default function CommentCard({
 
   const handleLike = async () => {
     if (!onLikeToggle) return
-    
+
     try {
       await onLikeToggle(comment._id)
     } catch (error: any) {
@@ -126,7 +127,7 @@ export default function CommentCard({
 
   const handleAuthorClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    router.push(`/user/community/${comment.author.username}`)
+    router.push(`${USER_ROUTES.COMMUNITY}/${comment.author.username}`)
   }
 
   const loadReplies = async () => {
@@ -205,7 +206,7 @@ export default function CommentCard({
                 className="text-cyan-400 hover:text-cyan-300 cursor-pointer font-medium"
                 onClick={(e) => {
                   e.stopPropagation()
-                  router.push(`/user/community/${username}`)
+                  router.push(`${USER_ROUTES.COMMUNITY}/${username}`)
                 }}
               >
                 {part}
@@ -260,7 +261,7 @@ export default function CommentCard({
                       </svg>
                     </div>
                   )}
-                  <span 
+                  <span
                     className="text-slate-400 text-sm cursor-pointer hover:underline"
                     onClick={handleAuthorClick}
                   >
@@ -370,9 +371,9 @@ export default function CommentCard({
           <Card className="bg-slate-800/50 border-slate-700/50 p-4">
             <div className="flex gap-3">
               <Avatar className="w-8 h-8 ring-2 ring-slate-700/50 flex-shrink-0">
-                <AvatarImage 
-                  src={currentUser?.profileImage || ''} 
-                  alt={currentUser?.name || currentUser?.username || 'User'} 
+                <AvatarImage
+                  src={currentUser?.profileImage || ''}
+                  alt={currentUser?.name || currentUser?.username || 'User'}
                 />
                 <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-xs">
                   {(currentUser?.name || currentUser?.username)?.charAt(0)?.toUpperCase() || 'U'}

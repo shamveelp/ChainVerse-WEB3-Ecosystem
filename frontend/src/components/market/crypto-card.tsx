@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { TrendingUp, TrendingDown, BarChart3, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import { COMMON_ROUTES } from "@/routes"
 import type { CryptoDataWithChanges } from "@/hooks/market/use-crypto-data"
 
 interface CryptoCardProps {
@@ -15,7 +16,7 @@ export function CryptoCard({ crypto }: CryptoCardProps) {
   const router = useRouter()
 
   const handleClick = () => {
-    router.push(`/chart/${crypto.symbol}`)
+    router.push(`${COMMON_ROUTES.CHART}/${crypto.symbol}`)
   }
 
   return (

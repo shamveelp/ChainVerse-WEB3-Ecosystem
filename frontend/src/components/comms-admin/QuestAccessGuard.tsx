@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Crown, Lock, Trophy, ArrowRight, Target, Award, Coins } from "lucide-react";
 import { communityAdminSubscriptionApiService } from "@/services/communityAdmin/communityAdminSubscriptionApiService";
 import { Skeleton } from "@/components/ui/skeleton";
+import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
 
 interface QuestAccessGuardProps {
   children: React.ReactNode;
@@ -135,13 +136,13 @@ export function QuestAccessGuard({ children }: QuestAccessGuardProps) {
                 {subscription.status === 'pending' ? 'Payment Pending' : 'Payment Failed'}
               </h3>
               <p className="text-gray-300 mb-4">
-                {subscription.status === 'pending' 
+                {subscription.status === 'pending'
                   ? 'You have a pending payment. Complete it to unlock Quests.'
                   : 'Your previous payment failed. You can retry or create a new subscription.'
                 }
               </p>
               <Button
-                onClick={() => router.push('/comms-admin/premium')}
+                onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.PREMIUM)}
                 className="bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
               >
                 <Crown className="h-4 w-4 mr-2" />
@@ -157,7 +158,7 @@ export function QuestAccessGuard({ children }: QuestAccessGuardProps) {
                 Get lifetime access to Quests and all premium features for just ₹899
               </p>
               <Button
-                onClick={() => router.push('/comms-admin/premium')}
+                onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.PREMIUM)}
                 className="bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
               >
                 <Crown className="h-4 w-4 mr-2" />

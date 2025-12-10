@@ -13,6 +13,7 @@ import { Post } from '@/services/postsApiService'
 import { postsApiService } from '@/services/postsApiService'
 import { toast } from 'sonner'
 import { formatTimeAgo, formatStats } from '@/utils/format'
+import { USER_ROUTES } from '@/routes'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -127,12 +128,12 @@ export default function PostCard({
   }
 
   const handlePostClick = () => {
-    router.push(`/user/community/post/${post._id}`)
+    router.push(`${USER_ROUTES.COMMUNITY_POST}/${post._id}`)
   }
 
   const handleAuthorClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    router.push(`/user/community/${post.author.username}`)
+    router.push(`${USER_ROUTES.COMMUNITY}/${post.author.username}`)
   }
 
   const handleEditPost = async () => {
@@ -218,12 +219,12 @@ export default function PostCard({
         {parts.map((part, index) => {
           if (part.startsWith('#')) {
             return (
-              <span 
-                key={index} 
+              <span
+                key={index}
                 className="text-cyan-400 hover:text-cyan-300 cursor-pointer font-medium transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
-                  router.push(`/user/community/explore?hashtag=${part.slice(1)}`)
+                  router.push(`${USER_ROUTES.COMMUNITY_EXPLORE}?hashtag=${part.slice(1)}`)
                 }}
               >
                 {part}
@@ -231,12 +232,12 @@ export default function PostCard({
             )
           } else if (part.startsWith('@')) {
             return (
-              <span 
-                key={index} 
+              <span
+                key={index}
                 className="text-blue-400 hover:text-blue-300 cursor-pointer font-medium transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
-                  router.push(`/user/community/${part.slice(1)}`)
+                  router.push(`${USER_ROUTES.COMMUNITY}/${part.slice(1)}`)
                 }}
               >
                 {part}
@@ -244,7 +245,7 @@ export default function PostCard({
             )
           } else if (part.startsWith('http')) {
             return (
-              <a 
+              <a
                 key={index}
                 href={part}
                 target="_blank"
@@ -296,7 +297,7 @@ export default function PostCard({
                     {post.author.name}
                   </h3>
                   {post.author.isVerified && (
-                    <div className="w-5 h-5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">   
+                    <div className="w-5 h-5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
@@ -309,7 +310,7 @@ export default function PostCard({
                     </div>
                   )}
                 </div>
-                <span 
+                <span
                   className="text-slate-400 text-sm truncate cursor-pointer hover:underline transition-colors"
                   onClick={handleAuthorClick}
                 >
@@ -448,13 +449,13 @@ export default function PostCard({
                 {editContent.length}/2000
               </div>
               <div className="w-full max-w-xs bg-slate-800/50 rounded-full h-1 overflow-hidden ml-4">
-                <div 
+                <div
                   className={cn(
                     "h-full transition-all duration-300",
                     editContent.length > 1800 ? "bg-red-500" :
-                    editContent.length > 1500 ? "bg-orange-500" :
-                    editContent.length > 1000 ? "bg-yellow-500" :
-                    "bg-gradient-to-r from-cyan-500 to-blue-500"
+                      editContent.length > 1500 ? "bg-orange-500" :
+                        editContent.length > 1000 ? "bg-yellow-500" :
+                          "bg-gradient-to-r from-cyan-500 to-blue-500"
                   )}
                   style={{ width: `${Math.min((editContent.length / 2000) * 100, 100)}%` }}
                 />

@@ -6,10 +6,10 @@ import { useSelector } from 'react-redux'
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  ArrowLeft, 
-  Users, 
-  Eye, 
+import {
+  ArrowLeft,
+  Users,
+  Eye,
   Clock,
   Loader2,
   AlertCircle,
@@ -24,6 +24,7 @@ import {
   type ChainCast,
   type CanJoinResponse
 } from '@/services/chainCast/userChainCastApiService'
+import { USER_ROUTES } from '@/routes'
 
 interface ChainCastPageProps {
   params: Promise<{
@@ -61,7 +62,7 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
 
         // Fetch ChainCast details
         const chainCastData = await userChainCastApiService.getChainCast(chainCastId)
-        
+
         // Adapt for user with proper role settings
         const adaptedChainCast = {
           ...chainCastData,
@@ -84,7 +85,7 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
             isVideoOff: true
           }
         }
-        
+
         setChainCast(adaptedChainCast as any)
 
         // Check if user is already a participant
@@ -126,7 +127,7 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
       if (result.success) {
         setHasJoined(true)
         // Update chainCast to reflect participation
-        setChainCast((prev:any) => prev ? {
+        setChainCast((prev: any) => prev ? {
           ...prev,
           isParticipant: true,
           userRole: 'participant'
@@ -187,7 +188,7 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
             <h1 className="text-xl font-bold text-white">Authentication Required</h1>
             <p className="text-slate-400">You need to be logged in to join ChainCasts.</p>
             <Button
-              onClick={() => router.push('/user/login')}
+              onClick={() => router.push(USER_ROUTES.LOGIN)}
               className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white"
             >
               Login
@@ -254,18 +255,17 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-2xl font-bold text-white">{chainCast.title}</h1>
-                <Badge className={`${
-                  chainCast.status === 'live'
+                <Badge className={`${chainCast.status === 'live'
                     ? 'bg-red-500/20 text-red-400 border-red-500/30'
                     : chainCast.status === 'scheduled'
-                    ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                    : 'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                } border`}>
+                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                      : 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                  } border`}>
                   {chainCast.status === 'live' && <div className="w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse" />}
                   {chainCast.status.toUpperCase()}
                 </Badge>
               </div>
-              
+
               {chainCast.description && (
                 <p className="text-slate-300 mb-4">{chainCast.description}</p>
               )}

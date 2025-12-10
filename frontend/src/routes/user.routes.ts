@@ -23,6 +23,9 @@ export const USER_ROUTES = {
   COMMUNITY_MESSAGES: '/user/community/messages',
   COMMUNITY_SETTINGS: '/user/community/settings',
   COMMUNITY_BOOKMARKS: '/user/community/bookmarks',
+  COMMUNITY_POST: '/user/community/post',
+  COMMUNITY_DETAIL: '/user/community/c',
+
 
   // market
   MARKET: '/user/market',

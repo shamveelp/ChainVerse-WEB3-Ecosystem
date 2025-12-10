@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
 
 interface Quest {
   _id: string;
@@ -278,7 +279,7 @@ export default function QuestsPage() {
             <p className="text-slate-400 mt-2 font-light">Create and manage engaging quests for your community</p>
           </div>
           <Button
-            onClick={() => router.push('/comms-admin/quests/create')}
+            onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.QUESTS_CREATE)}
             className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-violet-500/20"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -430,7 +431,7 @@ export default function QuestsPage() {
                           'No quests found matching your criteria.'}
                   </p>
                   <Button
-                    onClick={() => router.push('/comms-admin/quests/create')}
+                    onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.QUESTS_CREATE)}
                     className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-violet-500/20"
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -472,7 +473,7 @@ export default function QuestsPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-slate-200">
                                 <DropdownMenuItem
-                                  onClick={() => router.push(`/comms-admin/quests/${quest._id}`)}
+                                  onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS}/${quest._id}`)}
                                   className="text-slate-200 hover:bg-slate-800 cursor-pointer focus:bg-slate-800 focus:text-white"
                                 >
                                   <Eye className="h-4 w-4 mr-2" />
@@ -480,7 +481,7 @@ export default function QuestsPage() {
                                 </DropdownMenuItem>
                                 {quest.status === 'draft' && (
                                   <DropdownMenuItem
-                                    onClick={() => router.push(`/comms-admin/quests/edit/${quest._id}`)}
+                                    onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS_EDIT}/${quest._id}`)}
                                     className="text-slate-200 hover:bg-slate-800 cursor-pointer focus:bg-slate-800 focus:text-white"
                                   >
                                     <Edit className="h-4 w-4 mr-2" />
@@ -589,7 +590,7 @@ export default function QuestsPage() {
                             variant="outline"
                             size="sm"
                             className="flex-1 border-purple-600/50 text-purple-400 hover:bg-purple-950/30"
-                            onClick={() => router.push(`/comms-admin/quests/${quest._id}`)}
+                            onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS}/${quest._id}`)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
                             View
@@ -614,7 +615,7 @@ export default function QuestsPage() {
                               variant="outline"
                               size="sm"
                               className="flex-1 border-yellow-600/50 text-yellow-400 hover:bg-yellow-950/30"
-                              onClick={() => router.push(`/comms-admin/quests/${quest._id}/participants`)}
+                              onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS}/${quest._id}/participants`)}
                             >
                               <Trophy className="h-4 w-4 mr-2" />
                               Select Winners
@@ -625,7 +626,7 @@ export default function QuestsPage() {
                               variant="outline"
                               size="sm"
                               className="flex-1 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300"
-                              onClick={() => router.push(`/comms-admin/quests/${quest._id}`)}
+                              onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS}/${quest._id}`)}
                             >
                               <DollarSign className="h-4 w-4 mr-2" />
                               Distribute

@@ -20,6 +20,7 @@ import { communityAdminQuestApiService } from '@/services/quests/communityAdminQ
 import { TaskConfiguration } from '@/components/comms-admin/quests/TaskConfiguration';
 import { AIQuestChat } from '@/components/comms-admin/quests/AIQuestChat';
 import { QuestAccessGuard } from '@/components/comms-admin/QuestAccessGuard';
+import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
 
 type TaskType = 'join_community' | 'follow_user' | 'twitter_post' | 'upload_screenshot' | 'nft_mint' | 'token_hold' | 'wallet_connect' | 'custom';
 
@@ -377,7 +378,7 @@ export default function CreateQuestPage() {
           title: response.message || "Success! 🎉",
           description: "Quest created successfully. You can now review and start it when ready.",
         });
-        router.push('/comms-admin/quests');
+        router.push(COMMUNITY_ADMIN_ROUTES.QUESTS);
       } else {
         throw new Error(response.error || "Failed to create quest");
       }

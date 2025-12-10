@@ -28,48 +28,49 @@ import {
 import { logout } from '@/redux/slices/adminAuthSlice'
 import type { RootState } from "@/redux/store"
 import api from "@/lib/api-client"
+import { ADMIN_ROUTES } from "@/routes"
 
 // Web3 themed menu items
 const menuItems = [
   {
     title: "Dashboard",
-    url: "/admin",
+    url: ADMIN_ROUTES.DASHBOARD,
     icon: Home,
   },
   {
     title: "Users",
-    url: "/admin/user-management",
+    url: ADMIN_ROUTES.USER_MANAGEMENT,
     icon: Users,
   },
   {
     title: "Dex Management",
-    url: "/admin/dex-management",
+    url: ADMIN_ROUTES.DEX_MANAGEMENT,
     icon: Coins,
   },
   {
     title: "Community Requests",
-    url: "/admin/community-requests",
+    url: ADMIN_ROUTES.COMMUNITY_REQUESTS,
     icon: Database,
   },
   {
     title: "Wallets",
-    url: "/admin/wallet-management",
+    url: ADMIN_ROUTES.WALLET_MANAGEMENT,
     icon: Wallet,
   },
   {
     title: "Buy Crypto Requests",
-    url: "/admin/buy-crypto-management",
+    url: ADMIN_ROUTES.BUY_CRYPTO_MANAGEMENT,
     icon: Activity,
   },
   {
     title: "Market",
-    url: "/admin/market-management",
+    url: ADMIN_ROUTES.MARKET_MANAGEMENT,
     icon: ChartBar,
     badge: "1.2K",
   },
   {
     title: "Points",
-    url: "/admin/points-conversion",
+    url: ADMIN_ROUTES.POINTS_CONVERSION,
     icon: ChartBar,
     badge: "1.2K",
   },
@@ -94,12 +95,12 @@ export function AppSidebar() {
   const handleLogout = () => {
     dispatch(logout())
     api.post("/api/admin/logout")
-    router.push("/admin/login")
+    router.push(ADMIN_ROUTES.LOGIN)
   }
 
   const isActiveRoute = (url: string) => {
-    if (url === "/admin") {
-      return pathname === "/admin"
+    if (url === ADMIN_ROUTES.DASHBOARD) {
+      return pathname === ADMIN_ROUTES.DASHBOARD
     }
     return pathname.startsWith(url)
   }
@@ -117,7 +118,7 @@ export function AppSidebar() {
           </div>
         </div>
       </SidebarHeader>
-            
+
       <SidebarContent className="bg-slate-950/50">
         <SidebarGroup>
           <SidebarGroupLabel className="text-slate-400 text-xs font-medium tracking-wider">
@@ -149,7 +150,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-            
+
       <SidebarFooter className="border-t border-slate-800/50 bg-slate-950/50">
         <SidebarMenu>
           <SidebarMenuItem>
@@ -182,12 +183,12 @@ export function AppSidebar() {
                 align="end"
                 sideOffset={4}
               >
-                <DropdownMenuItem onClick={() => router.push('/admin/profile')} className="hover:bg-slate-800/50 hover:text-cyan-400">
+                <DropdownMenuItem onClick={() => router.push(ADMIN_ROUTES.PROFILE)} className="hover:bg-slate-800/50 hover:text-cyan-400">
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-slate-700/50" />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={handleLogout}
                   className="hover:bg-red-900/20 hover:text-red-400 text-red-400"
                 >

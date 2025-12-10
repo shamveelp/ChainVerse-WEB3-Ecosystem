@@ -29,6 +29,8 @@ export const ADMIN_ROUTES = {
   COMMUNITY_POSTS: '/admin/community-posts',
   COMMUNITIES: '/admin/communities',
   SETTINGS: '/admin/settings',
+  PROFILE: '/admin/profile',
+  SUPPORT: '/admin/support',
 } as const
 
 export type AdminRoutes = typeof ADMIN_ROUTES[keyof typeof ADMIN_ROUTES]

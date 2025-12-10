@@ -19,6 +19,7 @@ import {
   type SearchResponse
 } from '@/services/userCommunityServices/communityExploreApiService'
 import { toast } from 'sonner'
+import { USER_ROUTES } from '@/routes'
 
 // Search history management
 const SEARCH_HISTORY_KEY = 'communitySearchHistory'
@@ -36,14 +37,14 @@ const getSearchHistory = (): string[] => {
 
 const addToSearchHistory = (query: string) => {
   if (!query.trim() || typeof window === 'undefined') return
-  
+
   try {
     const history = getSearchHistory()
     const updatedHistory = [
       query.trim(),
       ...history.filter(item => item !== query.trim())
     ].slice(0, MAX_SEARCH_HISTORY)
-    
+
     localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updatedHistory))
   } catch (error) {
     console.error('Failed to save search history:', error)
@@ -79,7 +80,7 @@ export default function ExplorePage() {
   const [popularCommunities, setPopularCommunities] = useState<Community[]>([])
   const [loadingPopular, setLoadingPopular] = useState(true)
   const [searchHistory, setSearchHistory] = useState<string[]>([])
-  
+
   // Pagination for search results
   const [searchHasMore, setSearchHasMore] = useState(false)
   const [searchCursor, setSearchCursor] = useState<string | undefined>()
@@ -139,7 +140,7 @@ export default function ExplorePage() {
       }
 
       const results = await communityExploreApiService.search(query.trim(), type, cursor, 4)
-      
+
       if (reset) {
         setSearchResults(results)
         setSearchHasMore(results.hasMore)
@@ -219,12 +220,12 @@ export default function ExplorePage() {
 
   // Handle community click
   const handleCommunityClick = (community: Community) => {
-    router.push(`/user/community/c/${community.username}`)
+    router.push(`${USER_ROUTES.COMMUNITY_DETAIL}/${community.username}`)
   }
 
   // Handle user click
   const handleUserClick = (user: UserSearchResult) => {
-    router.push(`/user/community/${user.username}`)
+    router.push(`${USER_ROUTES.COMMUNITY}/${user.username}`)
   }
 
   // Handle load more search results
@@ -256,7 +257,7 @@ export default function ExplorePage() {
   const handleCommunityAction = async (community: Community, action: 'join' | 'leave') => {
     if (!currentUser) {
       toast.error('Please login to join communities')
-      router.push('/auth/login')
+      router.push(USER_ROUTES.LOGIN)
       return
     }
 
@@ -300,7 +301,7 @@ export default function ExplorePage() {
   const renderCommunityCard = (community: Community, showJoinButton: boolean = true) => (
     <div
       key={community._id}
-      className="group cursor-pointer hover:bg-slate-800/30 rounded-xl p-4 transition-colors border border-transparent hover:border-slate-700/50"        
+      className="group cursor-pointer hover:bg-slate-800/30 rounded-xl p-4 transition-colors border border-transparent hover:border-slate-700/50"
       onClick={() => handleCommunityClick(community)}
     >
       <div className="flex items-start gap-4">
@@ -345,11 +346,10 @@ export default function ExplorePage() {
                   e.stopPropagation()
                   handleCommunityAction(community, community.isMember ? 'leave' : 'join')
                 }}
-                className={`opacity-0 group-hover:opacity-100 transition-opacity ${
-                  community.isMember
+                className={`opacity-0 group-hover:opacity-100 transition-opacity ${community.isMember
                     ? 'border-slate-600 hover:bg-red-600/20 hover:border-red-400 hover:text-red-400'
                     : 'border-slate-600 hover:bg-purple-500/20 hover:border-purple-400'
-                }`}
+                  }`}
               >
                 {community.isMember ? 'Leave' : 'Join'}
               </Button>
@@ -361,9 +361,9 @@ export default function ExplorePage() {
   )
 
   const renderUserCard = (user: UserSearchResult) => (
-    <div 
+    <div
       key={user._id}
-      className="group cursor-pointer hover:bg-slate-800/30 rounded-xl p-4 transition-colors border border-transparent hover:border-slate-700/50"        
+      className="group cursor-pointer hover:bg-slate-800/30 rounded-xl p-4 transition-colors border border-transparent hover:border-slate-700/50"
       onClick={() => handleUserClick(user)}
     >
       <div className="flex items-start gap-4">
@@ -453,11 +453,10 @@ export default function ExplorePage() {
                     variant={activeFilter === filter.id ? "secondary" : "ghost"}
                     size="sm"
                     onClick={() => handleFilterChange(filter.id)}
-                    className={`flex-1 ${
-                      activeFilter === filter.id
+                    className={`flex-1 ${activeFilter === filter.id
                         ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30'
                         : 'text-slate-400 hover:text-white'
-                    }`}
+                      }`}
                   >
                     {filter.label}
                   </Button>

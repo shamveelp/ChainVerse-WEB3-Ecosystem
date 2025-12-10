@@ -32,6 +32,7 @@ import { toast } from 'sonner'
 import { useInView } from 'react-intersection-observer'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
+import { USER_ROUTES } from '@/routes'
 
 interface ChatPageProps {
   params: Promise<{
@@ -94,17 +95,17 @@ export default function ChatPage({ params }: ChatPageProps) {
       try {
         setIsInitialLoading(true)
         const conv = await getOrCreateConversation(username)
-        
+
         if (!mounted) return
-        
+
         setConversation(conv)
-        
+
         // Join socket room
         joinConversation(conv._id)
-        
+
         // Fetch messages
         await fetchMessages(conv._id)
-        
+
         // Mark as read
         if (conv.unreadCount > 0) {
           await markMessagesAsRead(conv._id)
@@ -140,7 +141,7 @@ export default function ChatPage({ params }: ChatPageProps) {
     if (inView && currentConversation && hasMoreMessages[currentConversation._id] && !loading) {
       const scrollContainer = messagesContainerRef.current
       const previousScrollHeight = scrollContainer?.scrollHeight || 0
-      
+
       loadMoreMessages(currentConversation._id).then(() => {
         // Maintain scroll position after loading older messages
         if (scrollContainer) {
@@ -154,7 +155,7 @@ export default function ChatPage({ params }: ChatPageProps) {
   // Handle send message
   const handleSendMessage = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    
+
     if (!newMessage.trim() || sendingMessage) return
 
     const messageContent = newMessage.trim()
@@ -162,7 +163,7 @@ export default function ChatPage({ params }: ChatPageProps) {
 
     try {
       await sendMessage(username, messageContent)
-      
+
       // Scroll to bottom
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -230,7 +231,7 @@ export default function ChatPage({ params }: ChatPageProps) {
     if (!message.isOwnMessage) return null
 
     const isRead = message.readBy.length > 1 // More than just sender
-    
+
     if (isRead) {
       return <CheckCheck className="h-3 w-3 text-blue-500" />
     } else {
@@ -240,7 +241,7 @@ export default function ChatPage({ params }: ChatPageProps) {
 
   // Handle back navigation
   const handleBack = () => {
-    router.push('/user/community/messages')
+    router.push(USER_ROUTES.COMMUNITY_MESSAGES)
   }
 
   // Format timestamp for messages
@@ -289,7 +290,7 @@ export default function ChatPage({ params }: ChatPageProps) {
         <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen flex items-center justify-center pt-16">
           <div className="text-center space-y-4">
             <p className="text-red-400">{error}</p>
-            <Button onClick={() => router.push('/user/community/messages')} variant="outline">
+            <Button onClick={() => router.push(USER_ROUTES.COMMUNITY_MESSAGES)} variant="outline">
               Back to Messages
             </Button>
           </div>
@@ -320,7 +321,7 @@ export default function ChatPage({ params }: ChatPageProps) {
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              
+
               {/* User Avatar and Name with Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -331,7 +332,7 @@ export default function ChatPage({ params }: ChatPageProps) {
                         {participant?.name?.charAt(0)?.toUpperCase() || participant?.username?.charAt(0)?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    
+
                     <div className="text-left">
                       <div className="flex items-center gap-1">
                         <h3 className="font-semibold text-white">
@@ -355,8 +356,8 @@ export default function ChatPage({ params }: ChatPageProps) {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-slate-800 border-slate-700">
-                  <DropdownMenuItem 
-                    onClick={() => router.push(`/user/community/${participant?.username}`)}
+                  <DropdownMenuItem
+                    onClick={() => router.push(`${USER_ROUTES.COMMUNITY}/${participant?.username}`)}
                     className="text-slate-300 hover:text-white hover:bg-slate-700"
                   >
                     View Profile
@@ -370,7 +371,7 @@ export default function ChatPage({ params }: ChatPageProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
                 <Phone className="h-4 w-4" />
@@ -385,8 +386,8 @@ export default function ChatPage({ params }: ChatPageProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                  <DropdownMenuItem 
-                    onClick={() => router.push(`/user/community/${participant?.username}`)}
+                  <DropdownMenuItem
+                    onClick={() => router.push(`${USER_ROUTES.COMMUNITY}/${participant?.username}`)}
                     className="text-slate-300 hover:text-white hover:bg-slate-700"
                   >
                     View Profile
@@ -421,8 +422,8 @@ export default function ChatPage({ params }: ChatPageProps) {
             {currentMessages.map((message, index) => {
               const isOwnMessage = message.isOwnMessage
               const showAvatar = !isOwnMessage && (
-                index === 0 || 
-                currentMessages[index - 1]?.isOwnMessage || 
+                index === 0 ||
+                currentMessages[index - 1]?.isOwnMessage ||
                 currentMessages[index - 1]?.sender._id !== message.sender._id
               )
 
@@ -508,30 +509,30 @@ export default function ChatPage({ params }: ChatPageProps) {
                             )}
                           </div>
                         </DropdownMenuTrigger>
-                        
+
                         {!message.isDeleted && (
-                          <DropdownMenuContent 
+                          <DropdownMenuContent
                             align={isOwnMessage ? "end" : "start"}
                             className="bg-slate-800 border-slate-700"
                           >
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => handleCopyMessage(message.content)}
                               className="text-slate-300 hover:text-white hover:bg-slate-700"
                             >
                               <Copy className="h-4 w-4 mr-2" />
                               Copy
                             </DropdownMenuItem>
-                            
+
                             {isOwnMessage && (
                               <>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => startEditingMessage(message)}
                                   className="text-slate-300 hover:text-white hover:bg-slate-700"
                                 >
                                   <Edit3 className="h-4 w-4 mr-2" />
                                   Edit
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => setShowDeleteDialog(message._id)}
                                   className="text-red-400 hover:text-red-300 hover:bg-slate-700"
                                 >
@@ -588,7 +589,7 @@ export default function ChatPage({ params }: ChatPageProps) {
                   {newMessage.length}/2000
                 </div>
               </div>
-              
+
               <Button
                 type="submit"
                 disabled={!newMessage.trim() || sendingMessage}
