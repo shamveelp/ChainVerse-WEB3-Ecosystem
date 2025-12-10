@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { getDashboardStats } from "@/services/admin/adminDashbaordApiService";
 
-export const EcommerceMetrics = () => {
+export const ChainVerseMetrics = () => {
   const [stats, setStats] = useState({ usersCount: 0, walletsCount: 0 });
 
   useEffect(() => {
