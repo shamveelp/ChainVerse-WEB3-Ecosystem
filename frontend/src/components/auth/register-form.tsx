@@ -288,6 +288,7 @@ export function RegisterForm() {
                 className="h-12 w-12 bg-gray-900/50 border-blue-600/30 hover:bg-blue-600/20 hover:border-blue-500/50 rounded-xl transition-all duration-300"
                 title="Generate random username"
               >
+                
                 {isGeneratingUsername ? (
                   <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
                 ) : (
