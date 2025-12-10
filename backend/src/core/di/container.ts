@@ -21,6 +21,8 @@ import { IAdminUserController } from "../interfaces/controllers/admin/IAdminUser
 import { AdminUserController } from "../../controllers/admin/AdminUser.controller"
 import { IAdminCommunityController } from "../interfaces/controllers/admin/IAdminCommunity.controller"
 import { AdminCommunityController } from "../../controllers/admin/AdminCommunity.controller"
+import { IAdminDashboardController } from "../interfaces/controllers/admin/IAdminDashboard.controller"
+import { AdminDashboardController } from "../../controllers/admin/AdminDashboard.controller"
 
 // Community Admin Controllers
 import { ICommunityAdminAuthController } from "../interfaces/controllers/communityAdmin/ICommunityAdminAuth.controller"
@@ -67,6 +69,8 @@ import { IAdminUserService } from "../interfaces/services/admin/IAdminUser.servi
 import { AdminUserService } from "../../services/admin/AdminUser.service"
 import { IAdminCommunityService } from "../interfaces/services/admin/IAdminCommunity.service"
 import { AdminCommunityService } from "../../services/admin/AdminCommunity.service"
+import { IAdminDashboardService } from "../interfaces/services/admin/IAdminDashboard.service"
+import { AdminDashboardService } from "../../services/admin/AdminDashboard.service"
 
 // Community Admin Services
 import { ICommunityAdminAuthService } from "../interfaces/services/communityAdmin/ICommunityAdminAuth.service"
@@ -261,6 +265,7 @@ container.bind<IPointsController>(TYPES.IPointsController).to(PointsController)
 container.bind<IAdminAuthController>(TYPES.IAdminAuthController).to(AdminAuthController)
 container.bind<IAdminUserController>(TYPES.IAdminUserController).to(AdminUserController)
 container.bind<IAdminCommunityController>(TYPES.IAdminCommunityController).to(AdminCommunityController)
+container.bind<IAdminDashboardController>(TYPES.IAdminDashboardController).to(AdminDashboardController)
 
 // Bind Community Admin Controllers
 container.bind<ICommunityAdminAuthController>(TYPES.ICommunityAdminAuthController).to(CommunityAdminAuthController)
@@ -290,6 +295,7 @@ container.bind<IPointsService>(TYPES.IPointsService).to(PointsService)
 container.bind<IAdminAuthService>(TYPES.IAdminAuthService).to(AdminAuthService)
 container.bind<IAdminUserService>(TYPES.IAdminUserService).to(AdminUserService)
 container.bind<IAdminCommunityService>(TYPES.IAdminCommunityService).to(AdminCommunityService)
+container.bind<IAdminDashboardService>(TYPES.IAdminDashboardService).to(AdminDashboardService)
 
 // Bind Community Admin Services
 container.bind<ICommunityAdminAuthService>(TYPES.ICommunityAdminAuthService).to(CommunityAdminAuthService)

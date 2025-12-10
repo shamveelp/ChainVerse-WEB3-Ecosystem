@@ -11,6 +11,7 @@ const TYPES = {
   IAdminAuthController: Symbol.for("IAdminAuthController"),
   IAdminUserController: Symbol.for("IAdminUserController"),
   IAdminCommunityController: Symbol.for("IAdminCommunityController"),
+  IAdminDashboardController: Symbol.for("IAdminDashboardController"),
 
   // Community Admin Controllers
   ICommunityAdminAuthController: Symbol.for("ICommunityAdminAuthController"),
@@ -37,6 +38,7 @@ const TYPES = {
   IAdminAuthService: Symbol.for("IAdminAuthService"),
   IAdminUserService: Symbol.for("IAdminUserService"),
   IAdminCommunityService: Symbol.for("IAdminCommunityService"),
+  IAdminDashboardService: Symbol.for("IAdminDashboardService"),
 
   // Community Admin Services
   ICommunityAdminAuthService: Symbol.for("ICommunityAdminAuthService"),

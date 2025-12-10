@@ -4,6 +4,7 @@ import { TYPES } from "../core/types/types";
 import { AdminAuthController } from "../controllers/admin/AdminAuth.controller";
 import { AdminUserController } from "../controllers/admin/AdminUser.controller";
 import { AdminCommunityController } from "../controllers/admin/AdminCommunity.controller";
+import { AdminDashboardController } from "../controllers/admin/AdminDashboard.controller";
 import { AdminCommunityPostController } from "../controllers/admin/AdminCommunityPost.controller";
 import { authMiddleware, roleMiddleware } from "../middlewares/auth.middleware";
 import {
@@ -48,6 +49,9 @@ const adminCommunityController = container.get<AdminCommunityController>(
 );
 const adminWalletController = container.get<AdminWalletController>(
   TYPES.IAdminWalletController
+);
+const adminDashboardController = container.get<AdminDashboardController>(
+  TYPES.IAdminDashboardController
 );
 const adminDexController = container.get<AdminDexController>(
   TYPES.IAdminDexController
@@ -111,6 +115,12 @@ router.post(
 );
 
 // Protected Routes - User Management
+router.get(
+  "/dashboard/stats",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminDashboardController.getDashboardStats.bind(adminDashboardController)
+);
 router.get(
   "/users",
   authMiddleware,

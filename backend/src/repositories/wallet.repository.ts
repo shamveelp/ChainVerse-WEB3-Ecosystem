@@ -1,7 +1,9 @@
 import WalletModel from '../models/wallet.model';
 import { IWalletRepository } from '../core/interfaces/repositories/IWallet.repository';
 import { IWallet } from '../models/wallet.model';
+import { injectable } from 'inversify';
 
+@injectable()
 export class WalletRepository implements IWalletRepository {
   async saveWallet(address: string): Promise<IWallet> {
     const wallet = await WalletModel.findOneAndUpdate(
@@ -14,5 +16,9 @@ export class WalletRepository implements IWalletRepository {
 
   async findWallet(address: string): Promise<IWallet | null> {
     return await WalletModel.findOne({ address });
+  }
+
+  async count(): Promise<number> {
+    return await WalletModel.countDocuments();
   }
 }
