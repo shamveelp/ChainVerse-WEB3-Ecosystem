@@ -147,6 +147,8 @@ export enum SuccessMessages {
     COMMENT_CREATED = "Comment created successfully",
     COMMENT_LIKE_TOGGLED = "Comment like toggled successfully",
     POST_SHARED = "Post shared successfully",
+    POST_FETCHED = "Post fetched successfully",
+    COMMENTS_FETCHED = "Comments fetched successfully",
     PROFILE_UPDATED = "Profile updated successfully",
     PROFILE_PICTURE_UPDATED = "Profile picture updated successfully",
 

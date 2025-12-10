@@ -247,6 +247,84 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
     }
 
     /**
+     * Retrieves a single post.
+     * @param req - Express Request object containing postId in params.
+     * @param res - Express Response object.
+     */
+    async getPost(req: Request, res: Response): Promise<void> {
+        try {
+            const communityAdminId = (req as any).user.id;
+            const { postId } = req.params;
+
+            const post = await this._feedService.getPostById(communityAdminId, postId);
+
+            res.status(StatusCode.OK).json({
+                success: true,
+                data: post,
+                message: SuccessMessages.POST_FETCHED,
+            });
+        } catch (error) {
+            const err = error as Error;
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_GET_POST;
+            logger.error(LoggerMessages.GET_POST_ERROR, {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
+                postId: req.params.postId,
+            });
+            res.status(statusCode).json({ success: false, error: message });
+        }
+    }
+
+    /**
+     * Retrieves comments for a post.
+     * @param req - Express Request object containing postId in params and cursor/limit in query.
+     * @param res - Express Response object.
+     */
+    async getPostComments(req: Request, res: Response): Promise<void> {
+        try {
+            const communityAdminId = (req as any).user.id;
+            const { postId } = req.params;
+            const { cursor, limit = '20' } = req.query;
+
+            let validLimit = 20;
+            if (limit && typeof limit === 'string') {
+                const parsedLimit = parseInt(limit, 10);
+                if (!isNaN(parsedLimit)) {
+                    validLimit = Math.min(Math.max(parsedLimit, 1), 50);
+                }
+            }
+
+            const comments = await this._feedService.getPostComments(
+                communityAdminId,
+                postId,
+                cursor as string,
+                validLimit
+            );
+
+            res.status(StatusCode.OK).json({
+                success: true,
+                data: comments,
+                message: SuccessMessages.COMMENTS_FETCHED,
+            });
+        } catch (error) {
+            const err = error as Error;
+            const statusCode =
+                error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
+            const message = err.message || ErrorMessages.FAILED_GET_POST_COMMENTS;
+            logger.error(LoggerMessages.GET_COMMENTS_ERROR, {
+                message,
+                stack: err.stack,
+                adminId: (req as any).user?.id,
+                postId: req.params.postId,
+            });
+            res.status(statusCode).json({ success: false, error: message });
+        }
+    }
+
+    /**
      * Deletes a post.
      * @param req - Express Request object containing postId in params and optional reason in body.
      * @param res - Express Response object.

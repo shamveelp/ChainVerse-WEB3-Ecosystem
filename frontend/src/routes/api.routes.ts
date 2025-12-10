@@ -103,6 +103,7 @@ export const COMMUNITY_ADMIN_API_ROUTES = {
     FEED_POST_SHARE: (id: string) => `/api/community-admin/feed/posts/${id}/share`,
     FEED_POST_PIN: (id: string) => `/api/community-admin/feed/posts/${id}/pin`,
     FEED_POST_BY_ID: (id: string) => `/api/community-admin/feed/posts/${id}`,
+    FEED_POST_COMMENTS: (id: string) => `/api/community-admin/feed/posts/${id}/comments`,
     ENGAGEMENT_STATS: '/api/community-admin/engagement-stats',
 
     // Members

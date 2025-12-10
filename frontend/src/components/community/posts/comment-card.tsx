@@ -127,7 +127,11 @@ export default function CommentCard({
 
   const handleAuthorClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    router.push(`${USER_ROUTES.COMMUNITY}/${comment.author.username}`)
+    if (comment.postedAsCommunity && comment.community) {
+      router.push(`${USER_ROUTES.COMMUNITY_DETAIL}/${comment.community.username}`)
+    } else {
+      router.push(`${USER_ROUTES.COMMUNITY}/${comment.author.username}`)
+    }
   }
 
   const loadReplies = async () => {
@@ -238,9 +242,12 @@ export default function CommentCard({
               )}
               onClick={handleAuthorClick}
             >
-              <AvatarImage src={comment.author.profilePic} alt={comment.author.name} />
+              <AvatarImage
+                src={comment.postedAsCommunity ? comment.community?.profilePic : comment.author.profilePic}
+                alt={comment.postedAsCommunity ? comment.community?.name : comment.author.name}
+              />
               <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-xs">
-                {comment.author.name.charAt(0)?.toUpperCase() || comment.author.username.charAt(0)?.toUpperCase()}
+                {(comment.postedAsCommunity ? comment.community?.name : comment.author.name)?.charAt(0)?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
 
@@ -252,9 +259,12 @@ export default function CommentCard({
                     className="font-semibold text-white hover:underline cursor-pointer text-sm"
                     onClick={handleAuthorClick}
                   >
-                    {comment.author.name}
+                    {comment.postedAsCommunity ? comment.community?.name : comment.author.name}
                   </h4>
-                  {comment.author.isVerified && (
+                  {comment.postedAsCommunity && (
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-medium">Community</span>
+                  )}
+                  {!comment.postedAsCommunity && comment.author.isVerified && (
                     <div className="w-4 h-4 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
                       <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -265,7 +275,7 @@ export default function CommentCard({
                     className="text-slate-400 text-sm cursor-pointer hover:underline"
                     onClick={handleAuthorClick}
                   >
-                    @{comment.author.username}
+                    @{comment.postedAsCommunity ? comment.community?.username : comment.author.username}
                   </span>
                   <span className="text-slate-500">·</span>
                   <span className="text-slate-500 text-sm hover:underline cursor-pointer">

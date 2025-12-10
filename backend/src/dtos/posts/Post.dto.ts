@@ -166,6 +166,13 @@ export class CommentResponseDto {
     updatedAt: Date | undefined;
     editedAt?: Date;
     replies?: CommentResponseDto[];
+    postedAsCommunity?: boolean;
+    community?: {
+        _id: string;
+        username: string;
+        name: string;
+        profilePic: string;
+    };
 }
 
 // Posts List Response DTO

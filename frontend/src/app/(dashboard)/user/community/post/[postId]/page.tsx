@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -52,16 +52,39 @@ export default function PostPage({ params }: PostPageProps) {
     clearComments
   } = useComments()
 
+  // Infinite scroll observer
+  const observerRef = useRef<IntersectionObserver>(null)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const node = loadMoreRef.current
+    if (!node || commentsLoading || !hasMoreComments) return
+
+    if (observerRef.current) observerRef.current.disconnect()
+
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMoreComments) {
+        loadMoreComments(postId)
+      }
+    })
+
+    observerRef.current.observe(node)
+
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect()
+    }
+  }, [commentsLoading, hasMoreComments, loadMoreComments, postId])
+
   // Load post and comments
   useEffect(() => {
     const loadPostData = async () => {
       try {
         setLoading(true)
         setError(null)
-        
+
         const response = await postsApiService.getPostById(postId)
         setPost(response.data.post)
-        
+
         // Load comments
         await loadComments(postId, true)
       } catch (err: any) {
@@ -90,7 +113,7 @@ export default function PostPage({ params }: PostPageProps) {
       // Optimistic update
       const newIsLiked = !post.isLiked
       const newLikesCount = newIsLiked ? post.likesCount + 1 : post.likesCount - 1
-      
+
       setPost(prev => prev ? {
         ...prev,
         isLiked: newIsLiked,
@@ -98,7 +121,7 @@ export default function PostPage({ params }: PostPageProps) {
       } : null)
 
       const response = await postsApiService.togglePostLike(post._id)
-      
+
       // Update with server response
       setPost(prev => prev ? {
         ...prev,
@@ -112,7 +135,7 @@ export default function PostPage({ params }: PostPageProps) {
         isLiked: !post.isLiked,
         likesCount: post.isLiked ? post.likesCount + 1 : post.likesCount - 1
       } : null)
-      
+
       toast.error('Failed to update like', {
         description: error.message || 'Please try again'
       })
@@ -121,10 +144,10 @@ export default function PostPage({ params }: PostPageProps) {
 
   const handleShare = async () => {
     if (!post) return
-    
+
     try {
       const response = await postsApiService.sharePost(post._id)
-      
+
       if (navigator.share) {
         await navigator.share({
           title: `Post by @${post.author.username}`,
@@ -135,7 +158,7 @@ export default function PostPage({ params }: PostPageProps) {
         await navigator.clipboard.writeText(response.shareUrl)
         toast.success('Link copied to clipboard!')
       }
-      
+
       setPost(prev => prev ? {
         ...prev,
         sharesCount: response.sharesCount
@@ -161,7 +184,7 @@ export default function PostPage({ params }: PostPageProps) {
       const newComment = await createComment(commentData)
       if (newComment) {
         setCommentContent('')
-        
+
         // Update post comments count
         setPost(prev => prev ? {
           ...prev,
@@ -183,8 +206,8 @@ export default function PostPage({ params }: PostPageProps) {
     try {
       const replyData = {
         postId: post._id,
-        content: mentionedUser && !content.includes(`@${mentionedUser}`) 
-          ? `@${mentionedUser} ${content}` 
+        content: mentionedUser && !content.includes(`@${mentionedUser}`)
+          ? `@${mentionedUser} ${content}`
           : content,
         parentCommentId
       }
@@ -270,14 +293,14 @@ export default function PostPage({ params }: PostPageProps) {
 
     // Parse hashtags, mentions, and links
     const parts = post.content.split(/(\#\w+|\@\w+|https?:\/\/[^\s]+)/g)
-    
+
     return (
       <p className="text-white whitespace-pre-wrap leading-relaxed text-lg">
         {parts.map((part, index) => {
           if (part.startsWith('#')) {
             return (
-              <span 
-                key={index} 
+              <span
+                key={index}
                 className="text-cyan-400 hover:text-cyan-300 cursor-pointer font-medium transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
@@ -289,8 +312,8 @@ export default function PostPage({ params }: PostPageProps) {
             )
           } else if (part.startsWith('@')) {
             return (
-              <span 
-                key={index} 
+              <span
+                key={index}
                 className="text-blue-400 hover:text-blue-300 cursor-pointer font-medium transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
@@ -302,7 +325,7 @@ export default function PostPage({ params }: PostPageProps) {
             )
           } else if (part.startsWith('http')) {
             return (
-              <a 
+              <a
                 key={index}
                 href={part}
                 target="_blank"
@@ -395,7 +418,7 @@ export default function PostPage({ params }: PostPageProps) {
             <div className="p-6">
               <Card className="bg-slate-900/60 backdrop-blur-sm border-slate-700/50 p-8 shadow-xl">
                 <div className="flex gap-4">
-                  <Avatar 
+                  <Avatar
                     className="w-14 h-14 ring-2 ring-slate-700/50 flex-shrink-0 cursor-pointer hover:ring-cyan-400/50 transition-all"
                     onClick={handleAuthorClick}
                   >
@@ -407,7 +430,7 @@ export default function PostPage({ params }: PostPageProps) {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-4">
-                      <h3 
+                      <h3
                         className="font-semibold text-white hover:underline cursor-pointer text-lg"
                         onClick={handleAuthorClick}
                       >
@@ -420,7 +443,7 @@ export default function PostPage({ params }: PostPageProps) {
                           </svg>
                         </div>
                       )}
-                      <span 
+                      <span
                         className="text-slate-400 cursor-pointer hover:underline"
                         onClick={handleAuthorClick}
                       >
@@ -498,9 +521,9 @@ export default function PostPage({ params }: PostPageProps) {
                 <Card className="bg-slate-900/60 backdrop-blur-sm border-slate-700/50 p-6 shadow-lg">
                   <div className="flex gap-4">
                     <Avatar className="w-12 h-12 ring-2 ring-slate-700/50 flex-shrink-0">
-                      <AvatarImage 
-                        src={profile?.profilePic || currentUser?.profileImage || ''} 
-                        alt={profile?.name || currentUser?.name || currentUser?.username || 'User'} 
+                      <AvatarImage
+                        src={profile?.profilePic || currentUser?.profileImage || ''}
+                        alt={profile?.name || currentUser?.name || currentUser?.username || 'User'}
                       />
                       <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
                         {(profile?.name || currentUser?.name || currentUser?.username)?.charAt(0)?.toUpperCase() || 'U'}
@@ -556,18 +579,20 @@ export default function PostPage({ params }: PostPageProps) {
                     />
                   ))}
 
-                  {/* Load more comments */}
+                  {/* Load more comments sentinel */}
                   {hasMoreComments && (
-                    <div className="flex justify-center pt-6">
-                      <Button
-                        onClick={() => loadMoreComments(post._id)}
-                        disabled={commentsLoading}
-                        variant="outline"
-                        className="border-slate-600 hover:bg-slate-800 rounded-full px-6"
-                      >
-                        {commentsLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                        Load More Comments
-                      </Button>
+                    <div
+                      ref={loadMoreRef}
+                      className="flex justify-center pt-6"
+                    >
+                      {commentsLoading ? (
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Loading more...</span>
+                        </div>
+                      ) : (
+                        <div className="h-4 w-full" />
+                      )}
                     </div>
                   )}
                 </div>

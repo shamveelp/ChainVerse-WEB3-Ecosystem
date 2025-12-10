@@ -49,11 +49,22 @@ export interface Comment {
   repliesCount: number;
   isLiked: boolean;
   isOwnComment: boolean;
+  postedAsCommunity: boolean;
+  community?: {
+    _id: string;
+    username: string;
+    name: string;
+    profilePic: string;
+  };
   createdAt: Date | string;
   updatedAt: Date | string;
   editedAt?: Date | string;
   replies?: Comment[];
 }
+
+// ... (keep intervening code if any, but since I'm replacing the interface def, I will just paste the interface above and then find the transformer below to replace separately or use multi_replace)
+
+// Actually, better to use multi_replace for clarity.
 
 export interface PostsListResponse {
   posts: Post[];
@@ -218,6 +229,13 @@ const transformCommentData = (data: any): Comment => {
     repliesCount: Number(data.repliesCount) || 0,
     isLiked: Boolean(data.isLiked),
     isOwnComment: Boolean(data.isOwnComment),
+    postedAsCommunity: Boolean(data.postedAsCommunity),
+    community: data.community ? {
+      _id: data.community._id || '',
+      username: data.community.username || '',
+      name: data.community.name || '',
+      profilePic: data.community.profilePic || ''
+    } : undefined,
     createdAt: data.createdAt || new Date().toISOString(),
     updatedAt: data.updatedAt || new Date().toISOString(),
     editedAt: data.editedAt,

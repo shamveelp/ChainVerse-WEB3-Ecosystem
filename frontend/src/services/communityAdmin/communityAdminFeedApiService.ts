@@ -99,7 +99,7 @@ class CommunityAdminFeedApiService {
   async getCommunityFeed(
     cursor?: string,
     limit: number = 10,
-    type: 'all' | 'members' | 'trending' = 'all'
+    type: 'allPosts' | 'members' | 'trending' = 'allPosts'
   ): Promise<ApiResponse<CommunityFeedResponse>> {
     try {
       const params = new URLSearchParams();
@@ -113,7 +113,12 @@ class CommunityAdminFeedApiService {
         data: response.data.data,
       };
     } catch (error: any) {
-      console.error("Get community feed error:", error.response?.data || error.message);
+      console.error("Get community feed error:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: `${COMMUNITY_ADMIN_API_ROUTES.FEED}?${new URLSearchParams({ cursor: cursor || '', limit: limit.toString(), type }).toString()}`
+      });
       return {
         success: false,
         error: error.response?.data?.error ||
@@ -247,6 +252,44 @@ class CommunityAdminFeedApiService {
           error.response?.data?.message ||
           error.message ||
           "Failed to get engagement stats",
+      };
+    }
+  }
+
+  // Get Post By ID
+  async getPostById(postId: string): Promise<ApiResponse<CommunityPost>> {
+    try {
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_BY_ID(postId));
+      return {
+        success: true,
+        data: response.data.data
+      };
+    } catch (error: any) {
+      console.error("Get post error:", error);
+      return {
+        success: false,
+        error: error.response?.data?.error || "Failed to get post"
+      };
+    }
+  }
+
+  // Get Post Comments
+  async getPostComments(postId: string, cursor?: string, limit: number = 20): Promise<ApiResponse> {
+    try {
+      const params = new URLSearchParams();
+      if (cursor) params.append('cursor', cursor);
+      params.append('limit', limit.toString());
+
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.FEED_POST_COMMENTS(postId)}?${params.toString()}`);
+      return {
+        success: true,
+        data: response.data.data
+      };
+    } catch (error: any) {
+      console.error("Get comments error:", error);
+      return {
+        success: false,
+        error: error.response?.data?.error || "Failed to get comments"
       };
     }
   }

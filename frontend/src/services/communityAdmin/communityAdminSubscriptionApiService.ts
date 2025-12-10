@@ -89,17 +89,23 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error: any) {
-      console.error("Get subscription error:", error.response?.data || error.message);
+      console.error("Get subscription error:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: COMMUNITY_ADMIN_API_ROUTES.SUBSCRIPTION
+      });
       // Handle 404 (subscription not found) gracefully
       if (error.response?.status === 404) {
         return {
           success: true,
-          data: undefined,
+          data: undefined, // Explicitly return undefined for data
           message: "No subscription found",
         };
       }
       return {
         success: false,
+        data: null, // Ensure data is null on error
         error: error.response?.data?.error ||
           error.response?.data?.message ||
           error.message ||

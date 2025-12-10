@@ -15,6 +15,7 @@ export interface IPostRepository {
     getCommunityMembersPosts(communityId: string, cursor?: string, limit?: number): Promise<any>;
     getUserPosts(targetUserId: string, viewerUserId?: string, cursor?: string, limit?: number): Promise<any>;
     getLikedPosts(targetUserId: string, viewerUserId?: string, cursor?: string, limit?: number): Promise<any>;
+    getGlobalPosts(cursor?: string, limit?: number): Promise<any>;
     getTrendingPosts(cursor?: string, limit?: number): Promise<any>;
     getPostsByHashtag(hashtag: string, cursor?: string, limit?: number): Promise<any>;
     searchPosts(query: string, cursor?: string, limit?: number): Promise<any>;
@@ -27,7 +28,7 @@ export interface IPostRepository {
     getPostLikes(postId: string, cursor?: string, limit?: number): Promise<any>;
 
     // Comment operations
-    createComment(userId: string, postId: string, content: string, parentCommentId?: string): Promise<IComment>;
+    createComment(userId: string, postId: string, content: string, parentCommentId?: string, postedAsCommunity?: boolean, communityId?: string): Promise<IComment>;
     findCommentById(commentId: string): Promise<IComment | null>;
     updateComment(commentId: string, content: string): Promise<IComment | null>;
     deleteComment(commentId: string, userId: string): Promise<boolean>;

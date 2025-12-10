@@ -285,6 +285,18 @@ router.get(
     communityAdminFeedController
   )
 );
+router.get(
+  "/feed/posts/:postId",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminFeedController.getPost.bind(communityAdminFeedController)
+);
+router.get(
+  "/feed/posts/:postId/comments",
+  authMiddleware,
+  roleMiddleware(["communityAdmin"]),
+  communityAdminFeedController.getPostComments.bind(communityAdminFeedController)
+);
 router.post(
   "/feed/posts/:postId/like",
   authMiddleware,

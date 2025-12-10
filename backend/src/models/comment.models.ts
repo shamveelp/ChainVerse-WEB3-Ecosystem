@@ -11,6 +11,8 @@ export interface IComment extends Document {
     isDeleted: boolean;
     deletedAt?: Date;
     editedAt?: Date;
+    postedAsCommunity?: boolean;
+    community?: Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -56,6 +58,15 @@ const CommentSchema: Schema<IComment> = new Schema({
     },
     deletedAt: {
         type: Date,
+        default: null
+    },
+    postedAsCommunity: {
+        type: Boolean,
+        default: false
+    },
+    community: {
+        type: Schema.Types.ObjectId,
+        ref: 'Community',
         default: null
     },
     editedAt: {

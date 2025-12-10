@@ -1,53 +1,32 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { 
-  Heart, 
-  MessageCircle, 
-  Share, 
-  MoreHorizontal, 
-  TrendingUp, 
-  Pin, 
-  Trash2, 
-  Loader2,
-  RefreshCw,
-  Users,
-  Activity,
-  MessageSquare
-} from 'lucide-react'
-import { cn } from "@/lib/utils"
-import { communityAdminFeedApiService } from '@/services/communityAdmin/communityAdminFeedApiService'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
+import { Loader2, RefreshCw, Users, Activity, MessageSquare, TrendingUp, MoreHorizontal, Pin, Trash2, MessageCircle, Heart, Share } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import communityAdminFeedApiService from '@/services/communityAdmin/communityAdminFeedApiService'
+
+// Reuse interfaces for consistency
+interface PostAuthor {
+  _id: string;
+  username: string;
+  name: string;
+  profilePic: string;
+  isVerified: boolean;
+  isCommunityMember: boolean;
+}
 
 interface CommunityPost {
   _id: string;
-  author: {
-    _id: string;
-    username: string;
-    name: string;
-    profilePic: string;
-    isVerified: boolean;
-    isCommunityMember: boolean;
-  };
+  author: PostAuthor;
   content: string;
   mediaUrls: string[];
   mediaType: 'none' | 'image' | 'video';
@@ -65,26 +44,28 @@ interface CommunityPost {
 }
 
 export default function CommunityAdminFeed() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentTab = searchParams.get('tab') as 'allPosts' | 'members' | 'trending' | null
+
   const [posts, setPosts] = useState<CommunityPost[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [cursor, setCursor] = useState<string>()
-  const [feedType, setFeedType] = useState<'all' | 'trending' | 'recent'>('all')
   const [communityStats, setCommunityStats] = useState({
     totalMembers: 0,
     activeMembersToday: 0,
     postsToday: 0,
     engagementRate: 0
   })
-  
+
   // Modal states
   const [deletePostId, setDeletePostId] = useState<string>()
   const [deleteReason, setDeleteReason] = useState('')
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  
+
   const observerRef = useRef<IntersectionObserver>(null)
-  const lastPostElementRef = useRef<HTMLDivElement>(null)
 
   // Set up intersection observer for infinite scroll
   const lastPostRef = useCallback((node: HTMLDivElement) => {
@@ -103,10 +84,12 @@ export default function CommunityAdminFeed() {
   // Load initial posts
   useEffect(() => {
     loadPosts(true)
-  }, [feedType])
+  }, [currentTab])
 
   const loadPosts = async (isInitial = false) => {
     try {
+      const type = currentTab || 'members' // Default to members if no tab
+
       if (isInitial) {
         setLoading(true)
         setCursor(undefined)
@@ -115,16 +98,26 @@ export default function CommunityAdminFeed() {
       const response = await communityAdminFeedApiService.getCommunityFeed(
         isInitial ? undefined : cursor,
         10,
-        feedType as any
+        type
       )
 
       if (response.success && response.data) {
+        // Deduplicate new posts against themselves (backend sanity check)
+        const uniqueNewPosts = response.data!.posts.filter((post, index, self) =>
+          index === self.findIndex((p) => p._id === post._id)
+        );
+
         if (isInitial) {
-          setPosts(response.data.posts)
+          setPosts(uniqueNewPosts)
         } else {
-          setPosts(prev => [...prev, ...response.data!.posts])
+          setPosts(prev => {
+            // Filter out existing posts to prevent duplicates
+            const existingIds = new Set(prev.map(p => p._id));
+            const distinctNewPosts = uniqueNewPosts.filter(p => !existingIds.has(p._id));
+            return [...prev, ...distinctNewPosts];
+          })
         }
-        
+
         setHasMore(response.data.hasMore)
         setCursor(response.data.nextCursor)
         setCommunityStats(response.data.communityStats)
@@ -142,175 +135,107 @@ export default function CommunityAdminFeed() {
     }
   }
 
-  const loadMorePosts = async () => {
-    if (loadingMore || !hasMore) return
-    setLoadingMore(true)
-    await loadPosts(false)
+  const loadMorePosts = () => {
+    if (!loadingMore && hasMore) {
+      setLoadingMore(true)
+      loadPosts(false)
+    }
   }
 
-  const refreshFeed = async () => {
-    await loadPosts(true)
+  const refreshFeed = () => {
+    loadPosts(true)
+  }
+
+  const handleTabChange = (tab: 'allPosts' | 'members' | 'trending') => {
+    router.push(`/comms-admin/feed?tab=${tab}`)
   }
 
   const handleLike = async (postId: string) => {
-    const postIndex = posts.findIndex(p => p._id === postId)
-    if (postIndex === -1) return
-
-    const post = posts[postIndex]
-    const wasLiked = post.isLiked
-    const newLikesCount = wasLiked ? post.likesCount - 1 : post.likesCount + 1
-
-    // Optimistic update
-    const updatedPosts = [...posts]
-    updatedPosts[postIndex] = {
-      ...post,
-      isLiked: !wasLiked,
-      likesCount: newLikesCount
-    }
-    setPosts(updatedPosts)
-
     try {
-      const response = await communityAdminFeedApiService.togglePostLike(postId)
-      
-      if (response.success && response.data) {
-        // Update with server response
-        updatedPosts[postIndex] = {
-          ...updatedPosts[postIndex],
-          isLiked: response.data.isLiked,
-          likesCount: response.data.likesCount
-        }
-        setPosts(updatedPosts)
+      const response = await communityAdminFeedApiService.togglePostLike(postId);
+      if (response.success) {
+        setPosts(prev => prev.map(p =>
+          p._id === postId
+            ? { ...p, isLiked: response.data!.isLiked, likesCount: response.data!.likesCount }
+            : p
+        ));
       } else {
-        // Revert optimistic update
-        updatedPosts[postIndex] = post
-        setPosts(updatedPosts)
-        toast.error(response.error || 'Failed to update like')
+        toast.error("Failed to like post");
       }
-    } catch (error: any) {
-      // Revert optimistic update
-      const revertedPosts = [...posts]
-      revertedPosts[postIndex] = post
-      setPosts(revertedPosts)
-      toast.error('Failed to update like')
+    } catch (error) {
+      console.error("Like error:", error);
     }
   }
 
   const handlePin = async (postId: string) => {
     try {
-      const response = await communityAdminFeedApiService.pinPost(postId)
-      
+      const response = await communityAdminFeedApiService.pinPost(postId);
       if (response.success) {
-        toast.success('Post pinned successfully')
-        // You might want to add a visual indicator for pinned posts
+        toast.success(response.message || "Post pinned/unpinned");
+        // Ideally reload or update state
       } else {
-        toast.error(response.error || 'Failed to pin post')
+        toast.error(response.error || "Failed to pin post");
       }
-    } catch (error: any) {
-      toast.error('Failed to pin post')
+    } catch (error) {
+      console.error("Pin error:", error);
     }
   }
 
   const handleDeleteClick = (postId: string) => {
-    setDeletePostId(postId)
-    setDeleteReason('')
-    setShowDeleteDialog(true)
+    setDeletePostId(postId);
+    setShowDeleteDialog(true);
   }
 
   const handleDeleteConfirm = async () => {
-    if (!deletePostId) return
-
+    if (!deletePostId) return;
     try {
-      const response = await communityAdminFeedApiService.deletePost(deletePostId, deleteReason)
-      
+      const response = await communityAdminFeedApiService.deletePost(deletePostId, deleteReason);
       if (response.success) {
-        setPosts(prev => prev.filter(post => post._id !== deletePostId))
-        toast.success('Post deleted successfully')
-        setShowDeleteDialog(false)
+        toast.success("Post deleted successfully");
+        setPosts(prev => prev.filter(p => p._id !== deletePostId));
+        setShowDeleteDialog(false);
+        setDeleteReason("");
+        setDeletePostId(undefined);
       } else {
-        toast.error(response.error || 'Failed to delete post')
+        toast.error(response.error || "Failed to delete post");
       }
-    } catch (error: any) {
-      toast.error('Failed to delete post')
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete post");
     }
   }
 
-  const renderMedia = (post: CommunityPost) => {
-    if (post.mediaUrls.length === 0) return null
-
-    return (
-      <div className="mt-3 sm:mt-4 rounded-xl sm:rounded-2xl overflow-hidden border border-red-700/30">
-        {post.mediaType === 'image' ? (
-          <div className="grid gap-2" style={{
-            gridTemplateColumns: post.mediaUrls.length === 1 ? '1fr' : post.mediaUrls.length === 2 ? '1fr 1fr' : '1fr 1fr',
-            gridTemplateRows: post.mediaUrls.length > 2 ? '1fr 1fr' : '1fr'
-          }}>
-            {post.mediaUrls.slice(0, 4).map((url, index) => (
-              <div key={index} className="relative overflow-hidden">
-                {index === 3 && post.mediaUrls.length > 4 && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-                    <span className="text-white text-xl font-semibold">+{post.mediaUrls.length - 3}</span>
-                  </div>
-                )}
-                <img
-                  src={url}
-                  alt={`Post media ${index + 1}`}
-                  className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
-                  style={{ aspectRatio: post.mediaUrls.length === 1 ? 'auto' : '1' }}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <video
-            src={post.mediaUrls[0]}
-            controls
-            className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
-          />
-        )}
-      </div>
-    )
+  const handlePostClick = (e: React.MouseEvent, postId: string) => {
+    // Prevent navigation if clicking on interactive elements
+    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) {
+      return;
+    }
+    router.push(`/comms-admin/feed/post/${postId}`);
   }
 
   const renderContent = (content: string) => {
-    const parts = content.split(/(\#\w+|\@\w+)/g)
-
-    return (
-      <p className="text-white whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
-        {parts.map((part, index) => {
-          if (part.startsWith('#')) {
-            return (
-              <span key={index} className="text-red-400 hover:text-red-300 cursor-pointer">
-                {part}
-              </span>
-            )
-          } else if (part.startsWith('@')) {
-            return (
-              <span key={index} className="text-blue-400 hover:text-blue-300 cursor-pointer">
-                {part}
-              </span>
-            )
-          }
-          return <span key={index}>{part}</span>
-        })}
-      </p>
-    )
+    return <p className="text-gray-200 whitespace-pre-wrap">{content}</p>
   }
 
-  if (loading) {
+  const renderMedia = (post: CommunityPost) => {
+    if (post.mediaType === 'none' || !post.mediaUrls.length) return null;
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-red-500 mx-auto" />
-            <p className="text-gray-400">Loading community feed...</p>
+      <div className="mt-3 grid gap-2">
+        {post.mediaUrls.map((url, i) => (
+          <div key={i} className="relative rounded-lg overflow-hidden bg-gray-900 border border-red-900/20">
+            {post.mediaType === 'image' ? (
+              <img src={url} alt="Post media" className="w-full h-auto object-contain max-h-[500px]" />
+            ) : (
+              <video src={url} controls className="w-full h-auto max-h-[500px]" />
+            )}
           </div>
-        </div>
+        ))}
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -348,7 +273,7 @@ export default function CommunityAdminFeed() {
               <Users className="h-8 w-8 text-red-400" />
               <div>
                 <p className="text-sm text-gray-400">Total Members</p>
-                <p className="text-xl font-bold text-white">{communityStats.totalMembers}</p>
+                <p className="text-xl font-bold text-white">{communityAdminFeedApiService.formatStats(communityStats.totalMembers)}</p>
               </div>
             </div>
           </CardContent>
@@ -360,7 +285,7 @@ export default function CommunityAdminFeed() {
               <Activity className="h-8 w-8 text-green-400" />
               <div>
                 <p className="text-sm text-gray-400">Active Today</p>
-                <p className="text-xl font-bold text-white">{communityStats.activeMembersToday}</p>
+                <p className="text-xl font-bold text-white">{communityAdminFeedApiService.formatStats(communityStats.activeMembersToday)}</p>
               </div>
             </div>
           </CardContent>
@@ -372,7 +297,7 @@ export default function CommunityAdminFeed() {
               <MessageSquare className="h-8 w-8 text-blue-400" />
               <div>
                 <p className="text-sm text-gray-400">Posts Today</p>
-                <p className="text-xl font-bold text-white">{communityStats.postsToday}</p>
+                <p className="text-xl font-bold text-white">{communityAdminFeedApiService.formatStats(communityStats.postsToday)}</p>
               </div>
             </div>
           </CardContent>
@@ -394,36 +319,36 @@ export default function CommunityAdminFeed() {
       {/* Feed Type Selector */}
       <div className="flex items-center gap-2">
         <Button
-          onClick={() => setFeedType('all')}
-          variant={feedType === 'all' ? 'default' : 'outline'}
+          onClick={() => handleTabChange('allPosts')}
+          variant={(currentTab === 'allPosts') ? 'default' : 'outline'}
           size="sm"
           className={cn(
-            feedType === 'all' 
-              ? 'bg-red-600 hover:bg-red-700 text-white' 
+            (currentTab === 'allPosts')
+              ? 'bg-red-600 hover:bg-red-700 text-white'
               : 'border-red-600/50 text-red-400 hover:bg-red-950/30'
           )}
         >
           All Posts
         </Button>
         <Button
-          onClick={() => setFeedType('recent')}
-          variant={feedType === 'recent' ? 'default' : 'outline'}
+          onClick={() => handleTabChange('members')}
+          variant={(currentTab === 'members' || !currentTab) ? 'default' : 'outline'}
           size="sm"
           className={cn(
-            feedType === 'recent' 
-              ? 'bg-red-600 hover:bg-red-700 text-white' 
+            (currentTab === 'members' || !currentTab)
+              ? 'bg-red-600 hover:bg-red-700 text-white'
               : 'border-red-600/50 text-red-400 hover:bg-red-950/30'
           )}
         >
-          Recent
+          Members
         </Button>
         <Button
-          onClick={() => setFeedType('trending')}
-          variant={feedType === 'trending' ? 'default' : 'outline'}
+          onClick={() => handleTabChange('trending')}
+          variant={(currentTab === 'trending') ? 'default' : 'outline'}
           size="sm"
           className={cn(
-            feedType === 'trending' 
-              ? 'bg-red-600 hover:bg-red-700 text-white' 
+            (currentTab === 'trending')
+              ? 'bg-red-600 hover:bg-red-700 text-white'
               : 'border-red-600/50 text-red-400 hover:bg-red-950/30'
           )}
         >
@@ -432,7 +357,7 @@ export default function CommunityAdminFeed() {
       </div>
 
       {/* Posts List */}
-      {posts.length === 0 ? (
+      {posts.length === 0 && !loading ? (
         <div className="text-center py-12">
           <MessageSquare className="h-12 w-12 text-gray-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-white mb-2">No posts yet</h3>
@@ -444,7 +369,8 @@ export default function CommunityAdminFeed() {
             <Card
               key={post._id}
               ref={index === posts.length - 1 ? lastPostRef : undefined}
-              className="bg-black/60 backdrop-blur-xl border-red-800/30 hover:border-red-700/50 transition-all duration-200 p-4 sm:p-6"
+              className="bg-black/60 backdrop-blur-xl border-red-800/30 hover:border-red-700/50 transition-all duration-200 p-4 sm:p-6 cursor-pointer"
+              onClick={(e) => handlePostClick(e, post._id)}
             >
               <div className="flex gap-3 sm:gap-4">
                 {/* Avatar */}

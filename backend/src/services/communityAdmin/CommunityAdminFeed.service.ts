@@ -24,11 +24,11 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
         @inject(TYPES.ICommunityAdminRepository) private _adminRepository: ICommunityAdminRepository,
         @inject(TYPES.IPostRepository) private _postRepository: IPostRepository,
         @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository
-    ) {}
+    ) { }
 
     async getCommunityFeed(adminId: string, cursor?: string, limit: number = 10, type: string = 'all'): Promise<CommunityFeedResponseDto> {
         try {
-            
+
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -40,35 +40,22 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
             let postsResult: any;
 
             switch (type) {
-                case 'all':
-                    // Get all posts from community members (including inactive/banned)
-                    postsResult = await this._postRepository.getCommunityFeedPosts(communityId, cursor, limit);
+                case 'allPosts':
+                    // Get all global posts
+                    postsResult = await this._postRepository.getGlobalPosts(cursor, limit);
                     break;
                 case 'members':
                     // Get posts only from active community members
                     postsResult = await this._postRepository.getCommunityMembersPosts(communityId, cursor, limit);
                     break;
                 case 'trending':
-                    // Get trending posts filtered by community members
-                    const members = await CommunityMemberModel.find({ communityId, isActive: true }).select('userId');
-                    const memberIds = members.map(member => member.userId.toString());
-                    
-                    if (memberIds.length === 0) {
-                        postsResult = { posts: [], hasMore: false, nextCursor: undefined };
-                    } else {
-                        const trendingResult = await this._postRepository.getTrendingPosts(cursor, limit);
-                        const filteredPosts = trendingResult.posts.filter((post: any) =>
-                            memberIds.includes(post.author._id.toString())
-                        );
-                        postsResult = {
-                            posts: filteredPosts,
-                            hasMore: trendingResult.hasMore,
-                            nextCursor: trendingResult.nextCursor
-                        };
-                    }
+                    // Get global trending posts
+                    postsResult = await this._postRepository.getTrendingPosts(cursor, limit);
                     break;
                 default:
-                    postsResult = await this._postRepository.getCommunityFeedPosts(communityId, cursor, limit);
+                    // Default to members if unknown type, or maybe allPosts? 
+                    // Let's default to members as it is safer/current behavior for admin view
+                    postsResult = await this._postRepository.getCommunityMembersPosts(communityId, cursor, limit);
                     break;
             }
 
@@ -79,7 +66,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
             const communityStats = await this._getCommunityStats(communityId);
 
-            
+
 
             return new CommunityFeedResponseDto(
                 transformedPosts,
@@ -99,7 +86,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async togglePostLike(adminId: string, postId: string): Promise<LikeResponseDto> {
         try {
-            
+
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -133,7 +120,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 message = "Post liked successfully";
             }
 
-            
+
 
             return {
                 success: true,
@@ -152,7 +139,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async createComment(adminId: string, data: CreateCommentDto): Promise<any> {
         try {
-            
+
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -181,10 +168,12 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 adminId,
                 data.postId || '',
                 data.content || '',
-                data.parentCommentId
+                data.parentCommentId,
+                true, // Posted as community
+                admin.communityId.toString() // Community ID
             );
 
-            
+
             return this._transformCommentForAdmin(comment, adminId);
         } catch (error) {
             console.error("CommunityAdminFeedService: Create comment error:", error);
@@ -197,7 +186,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async sharePost(adminId: string, postId: string, shareText?: string): Promise<ShareResponseDto> {
         try {
-            
+
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -233,7 +222,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async getEngagementStats(adminId: string, period: string = 'week'): Promise<CommunityEngagementStatsDto> {
         try {
-            
+
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -297,7 +286,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 memberActivity
             };
 
-            
+
             return new CommunityEngagementStatsDto(engagementData);
         } catch (error) {
             console.error("CommunityAdminFeedService: Get engagement stats error:", error);
@@ -310,7 +299,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
     async pinPost(adminId: string, postId: string): Promise<any> {
         try {
-            
+
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -336,7 +325,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
             // TODO: Implement post pinning logic in post repository
             // For now, return success
-            
+
 
             return {
                 success: true,
@@ -353,9 +342,54 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
         }
     }
 
+    async getPostById(adminId: string, postId: string): Promise<any> {
+        try {
+            const admin = await this._adminRepository.findById(adminId);
+            if (!admin) {
+                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+            }
+
+            const post = await this._postRepository.findPostById(postId);
+            if (!post) {
+                throw new CustomError("Post not found", StatusCode.NOT_FOUND);
+            }
+
+            return this._transformPostForAdmin(post, adminId);
+        } catch (error) {
+            console.error("CommunityAdminFeedService: Get post error:", error);
+            if (error instanceof CustomError) throw error;
+            throw new CustomError("Failed to fetch post", StatusCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async getPostComments(adminId: string, postId: string, cursor?: string, limit: number = 10): Promise<any> {
+        try {
+            const admin = await this._adminRepository.findById(adminId);
+            if (!admin) {
+                throw new CustomError("Community admin not found", StatusCode.NOT_FOUND);
+            }
+
+            const result = await this._postRepository.getPostComments(postId, cursor, limit);
+
+            const transformedComments = await Promise.all(
+                result.comments.map((comment: any) => this._transformCommentForAdmin(comment, adminId))
+            );
+
+            return {
+                comments: transformedComments,
+                hasMore: result.hasMore,
+                nextCursor: result.nextCursor
+            };
+        } catch (error) {
+            console.error("CommunityAdminFeedService: Get comments error:", error);
+            if (error instanceof CustomError) throw error;
+            throw new CustomError("Failed to fetch comments", StatusCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     async deletePost(adminId: string, postId: string, reason?: string): Promise<any> {
         try {
-            
+
 
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -385,7 +419,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 throw new CustomError("Failed to delete post", StatusCode.INTERNAL_SERVER_ERROR);
             }
 
-            
+
 
             return {
                 success: true,
@@ -463,7 +497,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
     private async _getEngagementStatsForMembers(memberIds: string[], startDate: Date): Promise<any> {
         const postStats = await this._postRepository.getPostStats();
         const postsAfterDate = await this._postRepository.getPostCountByUsersAfterDate(memberIds, startDate);
-        
+
         // Get active members (members who posted after start date)
         // This is a simplified calculation - you might want to implement a more sophisticated method
         const activeMembers = Math.min(memberIds.length, Math.max(1, postsAfterDate));

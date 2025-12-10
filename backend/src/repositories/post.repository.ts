@@ -10,6 +10,8 @@ import { StatusCode } from "../enums/statusCode.enum";
 import { Types } from "mongoose";
 import { PostResponseDto, PostsListResponseDto, PostStatsDto } from "../dtos/posts/Post.dto";
 
+import { CommunityMemberModel } from "../models/communityMember.model";
+
 @injectable()
 export class PostRepository implements IPostRepository {
   // Post CRUD operations
@@ -174,7 +176,7 @@ export class PostRepository implements IPostRepository {
         author: { $in: feedAuthorIds },
       })
         .populate("author", "_id username name profilePic community.isVerified")
-        .sort({ createdAt: -1 })
+        .sort({ _id: -1 })
         .limit(validLimit)
         .lean()
         .exec();
@@ -185,7 +187,7 @@ export class PostRepository implements IPostRepository {
         author: { $nin: feedAuthorIds },
       })
         .populate("author", "_id username name profilePic community.isVerified")
-        .sort({ createdAt: -1 })
+        .sort({ _id: -1 })
         .limit(validLimit)
         .lean()
         .exec();
@@ -197,7 +199,10 @@ export class PostRepository implements IPostRepository {
 
       // Combine and sort
       const allPosts = [...friendsPosts, ...publicPosts].sort((a, b) => {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        // Sort by _id (descending) to match the cursor behavior
+        if (a._id.toString() > b._id.toString()) return -1;
+        if (a._id.toString() < b._id.toString()) return 1;
+        return 0;
       });
 
       // Check if there are more posts
@@ -217,6 +222,109 @@ export class PostRepository implements IPostRepository {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching feed posts",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async getGlobalPosts(
+    cursor?: string,
+    limit: number = 10
+  ): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
+    try {
+      const validLimit = Math.min(Math.max(limit, 1), 20);
+      const query: any = { isDeleted: false }; // Fetch all non-deleted posts
+
+      if (cursor && Types.ObjectId.isValid(cursor)) {
+        query._id = { $lt: new Types.ObjectId(cursor) };
+      }
+
+      const posts = await PostModel.find(query)
+        .populate("author", "_id username name profilePic community.isVerified")
+        .sort({ _id: -1 })
+        .limit(validLimit + 1)
+        .lean()
+        .exec();
+
+      const hasMore = posts.length > validLimit;
+      const finalPosts = posts.slice(0, validLimit);
+      const nextCursor =
+        hasMore && finalPosts.length > 0
+          ? finalPosts[finalPosts.length - 1]._id.toString()
+          : undefined;
+
+      return {
+        posts: finalPosts,
+        hasMore,
+        nextCursor,
+      };
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        "Database error while fetching global posts",
+        StatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async getCommunityMembersPosts(
+    communityId: string,
+    cursor?: string,
+    limit: number = 10
+  ): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
+    try {
+      if (!Types.ObjectId.isValid(communityId)) {
+        throw new CustomError("Invalid community ID", StatusCode.BAD_REQUEST);
+      }
+
+      const validLimit = Math.min(Math.max(limit, 1), 20);
+
+      // 1. Get all active members of the community
+      const members = await CommunityMemberModel.find({
+        communityId: new Types.ObjectId(communityId),
+        isActive: true,
+        // bannedUntil: { $exists: false } // Optional: strict active check
+      }).select('userId').lean();
+
+      const memberIds = members.map(m => m.userId);
+
+      if (memberIds.length === 0) {
+        return { posts: [], hasMore: false };
+      }
+
+      // 2. Fetch posts from these members
+      const query: any = {
+        author: { $in: memberIds },
+        isDeleted: false
+      };
+
+      if (cursor && Types.ObjectId.isValid(cursor)) {
+        query._id = { $lt: new Types.ObjectId(cursor) };
+      }
+
+      const posts = await PostModel.find(query)
+        .populate("author", "_id username name profilePic community.isVerified")
+        .sort({ _id: -1 })
+        .limit(validLimit + 1)
+        .lean()
+        .exec();
+
+      const hasMore = posts.length > validLimit;
+      const finalPosts = posts.slice(0, validLimit);
+      const nextCursor =
+        hasMore && finalPosts.length > 0
+          ? finalPosts[finalPosts.length - 1]._id.toString()
+          : undefined;
+
+      return {
+        posts: finalPosts,
+        hasMore,
+        nextCursor,
+      };
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        "Database error while fetching community members posts",
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -590,7 +698,9 @@ export class PostRepository implements IPostRepository {
     authorId: string,
     postId: string,
     content: string,
-    parentCommentId?: string
+    parentCommentId?: string,
+    postedAsCommunity: boolean = false,
+    communityId?: string
   ): Promise<IComment> {
     try {
       if (
@@ -610,14 +720,24 @@ export class PostRepository implements IPostRepository {
         );
       }
 
-      const comment = new CommentModel({
+      const commentData: any = {
         post: new Types.ObjectId(postId),
         author: new Types.ObjectId(authorId),
         content: content.trim(),
         parentComment: parentCommentId
           ? new Types.ObjectId(parentCommentId)
           : null,
-      });
+        postedAsCommunity,
+      };
+
+      if (postedAsCommunity && communityId) {
+        if (!Types.ObjectId.isValid(communityId)) {
+          throw new CustomError("Invalid community ID", StatusCode.BAD_REQUEST);
+        }
+        commentData.community = new Types.ObjectId(communityId);
+      }
+
+      const comment = new CommentModel(commentData);
 
       const savedComment = await comment.save();
 
@@ -771,6 +891,7 @@ export class PostRepository implements IPostRepository {
 
       const comments = await CommentModel.find(query)
         .populate("author", "_id username name profilePic community.isVerified")
+        .populate("community", "_id username name profilePic")
         .sort({ createdAt: -1 })
         .limit(validLimit + 1)
         .lean()
@@ -819,6 +940,7 @@ export class PostRepository implements IPostRepository {
 
       const comments = await CommentModel.find(query)
         .populate("author", "_id username name profilePic community.isVerified")
+        .populate("community", "_id username name profilePic")
         .sort({ createdAt: -1 })
         .limit(validLimit + 1)
         .lean()

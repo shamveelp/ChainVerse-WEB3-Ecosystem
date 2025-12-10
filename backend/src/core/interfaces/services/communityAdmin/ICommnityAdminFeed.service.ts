@@ -16,4 +16,6 @@ export interface ICommunityAdminFeedService {
     getEngagementStats(adminId: string, period?: string): Promise<CommunityEngagementStatsDto>;
     pinPost(adminId: string, postId: string): Promise<any>;
     deletePost(adminId: string, postId: string, reason?: string): Promise<any>;
+    getPostById(adminId: string, postId: string): Promise<any>;
+    getPostComments(adminId: string, postId: string, cursor?: string, limit?: number): Promise<any>;
 }
