@@ -6,11 +6,28 @@ import logger from "../utils/logger";
 @injectable()
 export class MailService implements IMailService {
   private _transporter: nodemailer.Transporter;
+  private _isConfigured: boolean = false;
 
   constructor() {
-    // Create a mock transporter for development/WebContainer environment
-    if (process.env.NODE_ENV === 'development' || !process.env.SMTP_HOST) {
-      // Create a test account using ethereal email for development
+    const smtpHost = process.env.SMTP_HOST;
+    const smtpPort = process.env.SMTP_PORT;
+    const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
+    const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+
+    if (smtpHost && smtpUser && smtpPass) {
+      // Production or Development with real credentials
+      this._transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: parseInt(smtpPort || '587'),
+        secure: parseInt(smtpPort || '587') === 465, // true for 465, false for other ports
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+      this._isConfigured = true;
+    } else {
+      // Fallback/Mock for development verification without credentials
       this._transporter = nodemailer.createTransport({
         host: 'smtp.ethereal.email',
         port: 587,
@@ -20,17 +37,10 @@ export class MailService implements IMailService {
           pass: 'ethereal.pass'
         }
       });
-    } else {
-      // Production configuration
-      this._transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: false,
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
+      this._isConfigured = false;
+      if (process.env.NODE_ENV !== 'production') {
+        logger.info("MailService: SMTP credentials not found. Using mock transporter (logs only).");
+      }
     }
   }
 
@@ -57,14 +67,14 @@ export class MailService implements IMailService {
         </div>
       `;
 
-      // In development, just log the OTP instead of actually sending email
-      if (process.env.NODE_ENV === 'development' || !process.env.SMTP_HOST) {
+      // If not configured with real credentials in dev, just log
+      if (!this._isConfigured && process.env.NODE_ENV === 'development') {
         logger.info(`=== DEVELOPMENT EMAIL ===`);
         logger.info(`To: ${email}`);
         logger.info(`Subject: ${subject}`);
         logger.info(`OTP: ${otp}`);
         logger.info(`=== END EMAIL ===`);
-        
+
         // Simulate email sending delay
         await new Promise(resolve => setTimeout(resolve, 1000));
         return;
@@ -80,8 +90,11 @@ export class MailService implements IMailService {
       logger.info(`Email sent successfully to: ${email}`);
     } catch (error) {
       logger.error("Error sending email:", error);
-      // In development, don't throw error for email sending issues
-      if (process.env.NODE_ENV !== 'development') {
+      // In development, don't throw error for email sending issues if we were trying to send real email
+      if (process.env.NODE_ENV === 'development') {
+        // Maybe user has wrong credentials?
+        logger.warn("Failed to send email in development. Please check your SMTP credentials.");
+      } else {
         throw new Error("Failed to send verification email");
       }
     }
@@ -97,7 +110,7 @@ export class MailService implements IMailService {
       </div>
     `;
 
-    if (process.env.NODE_ENV === 'development' || !process.env.SMTP_HOST) {
+    if (!this._isConfigured && process.env.NODE_ENV === 'development') {
       logger.info(`=== COMMUNITY APPROVAL EMAIL ===`);
       logger.info(`To: ${email}`);
       logger.info(`Community: ${communityName}`);
@@ -126,7 +139,7 @@ export class MailService implements IMailService {
       </div>
     `;
 
-    if (process.env.NODE_ENV === 'development' || !process.env.SMTP_HOST) {
+    if (!this._isConfigured && process.env.NODE_ENV === 'development') {
       logger.info(`=== COMMUNITY REJECTION EMAIL ===`);
       logger.info(`To: ${email}`);
       logger.info(`Community: ${communityName}`);
@@ -155,7 +168,7 @@ export class MailService implements IMailService {
       </div>
     `;
 
-    if (process.env.NODE_ENV === 'development' || !process.env.SMTP_HOST) {
+    if (!this._isConfigured && process.env.NODE_ENV === 'development') {
       logger.info(`=== PASSWORD RESET CONFIRMATION ===`);
       logger.info(`To: ${email}`);
       logger.info(`=== END EMAIL ===`);

@@ -57,7 +57,7 @@ const navItems: NavItem[] = [
       { name: "Users", path: ADMIN_ROUTES.USER_MANAGEMENT, pro: false },
       { name: "Wallets", path: ADMIN_ROUTES.WALLET_MANAGEMENT, pro: false },
       { name: "Points", path: ADMIN_ROUTES.POINTS_CONVERSION, pro: false },
-      { name: "CVC Management", path: ADMIN_ROUTES.CVC_MANAGEMENT, pro: false },
+      // { name: "CVC Management", path: ADMIN_ROUTES.CVC_MANAGEMENT, pro: false },
     ],
   },
   {
