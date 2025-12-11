@@ -446,23 +446,23 @@ export default function QuestsPage() {
                     <CardContent className="p-6">
                       <div className="space-y-4">
                         {/* Quest Header */}
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-2 flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="text-lg font-semibold text-slate-100 truncate group-hover:text-violet-200 transition-colors">{quest.title}</h3>
+                              <h3 className="text-lg font-semibold text-slate-100 truncate group-hover:text-violet-200 transition-colors max-w-full">{quest.title}</h3>
                               {quest.isAIGenerated && (
-                                <Badge variant="outline" className="text-xs border-indigo-500/30 text-indigo-400 bg-indigo-500/5">
+                                <Badge variant="outline" className="text-xs border-indigo-500/30 text-indigo-400 bg-indigo-500/5 flex-shrink-0">
                                   AI
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-slate-400 text-sm line-clamp-2">{quest.description}</p>
+                            <p className="text-slate-400 text-sm line-clamp-2 break-words">{quest.description}</p>
                             <div className="flex flex-wrap gap-2 mt-2">
                               {getSelectionMethodBadge(quest.selectionMethod)}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 ml-2">
-                            <Badge className={`${getStatusColor(quest.status)} text-white shadow-sm`}>
+                          <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                            <Badge className={`${getStatusColor(quest.status)} text-white shadow-sm flex-shrink-0`}>
                               {quest.status}
                             </Badge>
                             <DropdownMenu>
