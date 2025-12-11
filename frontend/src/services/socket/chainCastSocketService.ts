@@ -56,8 +56,7 @@ class ChainCastSocketService {
         reconnection: true,
         reconnectionAttempts: this.maxReconnectAttempts,
         reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        maxReconnectionAttempts: this.maxReconnectAttempts
+        reconnectionDelayMax: 5000
       });
 
       const timeout = setTimeout(() => {
