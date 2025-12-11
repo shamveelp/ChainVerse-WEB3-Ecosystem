@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import {
   Bot, Plus, Trash2, Calendar, Users, Trophy, Target, ArrowLeft, Sparkles,
-  Upload, Save, Loader2, Check, X, Wand2, Zap, AlertTriangle, Crown
+  Upload, Save, Loader2, Check, X, Wand2, Zap, AlertTriangle, Crown, Crop
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
@@ -21,6 +21,7 @@ import { TaskConfiguration } from '@/components/comms-admin/quests/TaskConfigura
 import { AIQuestChat } from '@/components/comms-admin/quests/AIQuestChat';
 import { QuestAccessGuard } from '@/components/comms-admin/QuestAccessGuard';
 import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
+import { ImageCropper } from "@/components/ui/image-cropper";
 
 type TaskType = 'join_community' | 'follow_user' | 'twitter_post' | 'upload_screenshot' | 'nft_mint' | 'token_hold' | 'wallet_connect' | 'custom';
 
@@ -102,6 +103,10 @@ export default function CreateQuestPage() {
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Image cropping states
+  const [bannerCropperOpen, setBannerCropperOpen] = useState(false);
+  const [tempBannerUrl, setTempBannerUrl] = useState<string>('');
 
   const initialQuestState: CreateQuestData = {
     title: '',
@@ -313,14 +318,72 @@ export default function CreateQuestPage() {
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setBannerFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setBannerPreview(e.target?.result as string);
-      reader.readAsDataURL(file);
+  // Clean up object URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (tempBannerUrl) URL.revokeObjectURL(tempBannerUrl);
+    };
+  }, [tempBannerUrl]);
+
+  // Clean up blob URLs when preview changes
+  useEffect(() => {
+    return () => {
+      if (bannerPreview && bannerPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(bannerPreview);
+      }
+    };
+  }, [bannerPreview]);
+
+  const handleFileSelect = (file: File) => {
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    if (file.size > maxSize) {
+      toast({
+        variant: "destructive",
+        title: "File too large",
+        description: "Max 10MB allowed for banner images.",
+      });
+      return;
     }
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        variant: "destructive",
+        title: "Invalid file type",
+        description: "Please upload a valid image file",
+      });
+      return;
+    }
+
+    const imageUrl = URL.createObjectURL(file);
+    setTempBannerUrl(imageUrl);
+    setBannerCropperOpen(true);
+  };
+
+  const handleCropComplete = (croppedImage: File) => {
+    // Create preview URL for the cropped image
+    const previewUrl = URL.createObjectURL(croppedImage);
+
+    setBannerFile(croppedImage);
+    setBannerPreview(previewUrl);
+    setBannerCropperOpen(false);
+    if (tempBannerUrl) URL.revokeObjectURL(tempBannerUrl);
+    setTempBannerUrl('');
+  };
+
+  const removeBanner = () => {
+    setBannerFile(null);
+    setBannerPreview("");
+  };
+
+  // Wrapper for input change events
+  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+    // Reset value so same file can be selected again
+    event.target.value = '';
   };
 
   const handleAIQuestSave = async (aiQuestData: CreateQuestData) => {
@@ -581,17 +644,40 @@ export default function CreateQuestPage() {
                   {/* Banner Upload */}
                   <div className="space-y-2">
                     <Label>Quest Banner (Optional)</Label>
-                    <div className="flex items-center gap-4">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="bg-gray-800 border-gray-600 text-white"
-                      />
-                      {bannerPreview && (
-                        <div className="relative w-20 h-20 rounded-lg overflow-hidden">
-                          <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover" />
+                    <div className="mt-2 space-y-3">
+                      <div className="h-32 rounded-lg bg-gray-900 border border-gray-700 overflow-hidden relative">
+                        {bannerPreview ? (
+                          <img src={bannerPreview} alt="Quest banner" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center">
+                            <Badge className="bg-purple-500/20 text-purple-300">No Banner</Badge>
+                          </div>
+                        )}
+                      </div>
+                      {bannerPreview ? (
+                        <div className="flex gap-2 w-full">
+                          <Button
+                            variant="outline"
+                            className="border-gray-600 text-gray-200 flex-1"
+                            onClick={() => document.getElementById('banner-upload')?.click()}
+                          >
+                            Change
+                            <input id="banner-upload" type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="text-red-400 hover:text-red-300 hover:bg-red-400/10 flex-1"
+                            onClick={removeBanner}
+                          >
+                            Remove
+                          </Button>
                         </div>
+                      ) : (
+                        <Button variant="outline" className="border-gray-600 text-gray-200 w-full" onClick={() => document.getElementById('banner-upload')?.click()}>
+                          <Crop className="h-4 w-4 mr-2" />
+                          Upload & Crop
+                          <input id="banner-upload" type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -941,6 +1027,23 @@ export default function CreateQuestPage() {
             />
           </TabsContent>
         </Tabs>
+
+        {/* Image Cropper */}
+        <ImageCropper
+          open={bannerCropperOpen}
+          onClose={() => {
+            setBannerCropperOpen(false);
+            if (tempBannerUrl) {
+              URL.revokeObjectURL(tempBannerUrl);
+              setTempBannerUrl('');
+            }
+          }}
+          imageSrc={tempBannerUrl}
+          aspectRatio={3}
+          cropShape="rect"
+          fileName="quest-banner.jpg"
+          onCropComplete={handleCropComplete}
+        />
       </div>
     </QuestAccessGuard>
   );

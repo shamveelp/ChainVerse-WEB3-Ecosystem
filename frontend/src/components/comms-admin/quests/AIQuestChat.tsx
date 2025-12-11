@@ -15,7 +15,8 @@ import {
   CheckCircle,
   Upload,
   Search,
-  ChevronDown
+  ChevronDown,
+  Crop
 } from 'lucide-react';
 import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 import { toast } from '@/components/ui/use-toast';
@@ -32,6 +33,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ImageCropper } from "@/components/ui/image-cropper";
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -72,11 +74,32 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Image cropping states
+  const [bannerCropperOpen, setBannerCropperOpen] = useState(false);
+  const [tempBannerUrl, setTempBannerUrl] = useState<string>('');
+  const [bannerPreview, setBannerPreview] = useState<string>('');
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(scrollToBottom, [messages]);
+
+  // Clean up object URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (tempBannerUrl) URL.revokeObjectURL(tempBannerUrl);
+    };
+  }, [tempBannerUrl]);
+
+  // Clean up blob URLs when preview changes
+  useEffect(() => {
+    return () => {
+      if (bannerPreview && bannerPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(bannerPreview);
+      }
+    };
+  }, [bannerPreview]);
 
   const templates = [
     {
@@ -210,15 +233,60 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
     setAwaitingInput(null);
   };
 
+  const handleFileSelect = (file: File) => {
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    if (file.size > maxSize) {
+      toast({
+        variant: "destructive",
+        title: "File too large",
+        description: "Max 10MB allowed for banner images.",
+      });
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        variant: "destructive",
+        title: "Invalid file type",
+        description: "Please upload a valid image file",
+      });
+      return;
+    }
+
+    const imageUrl = URL.createObjectURL(file);
+    setTempBannerUrl(imageUrl);
+    setBannerCropperOpen(true);
+  };
+
+  const handleCropComplete = (croppedImage: File) => {
+    // Create preview URL for the cropped image
+    const previewUrl = URL.createObjectURL(croppedImage);
+
+    setBannerFile(croppedImage);
+    setBannerPreview(previewUrl);
+    setBannerCropperOpen(false);
+    if (tempBannerUrl) URL.revokeObjectURL(tempBannerUrl);
+    setTempBannerUrl('');
+
+    toast({
+      title: "Banner Uploaded",
+      description: "Banner will be applied when quest is created",
+    });
+
+    // If AI is waiting for banner input, respond
+    if (awaitingInput?.type === 'banner') {
+      handleInputResponse('uploaded');
+    }
+  };
+
   const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setBannerFile(file);
-      toast({
-        title: "Banner Uploaded",
-        description: "Banner will be applied when quest is created",
-      });
+      handleFileSelect(file);
     }
+    // Reset value so same file can be selected again
+    e.target.value = '';
   };
 
   const handleSearchInput = async (query: string) => {
@@ -357,14 +425,22 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
             <CardContent className="p-4">
               <div className="space-y-3">
                 <p className="text-purple-200 text-sm">{awaitingInput.prompt}</p>
+
+                {/* Banner Preview */}
+                {bannerPreview && (
+                  <div className="h-24 rounded-lg bg-gray-900 border border-gray-700 overflow-hidden">
+                    <img src={bannerPreview} alt="Banner preview" className="h-full w-full object-cover" />
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <Button
                     onClick={() => fileInputRef.current?.click()}
                     variant="outline"
                     className="flex-1 border-purple-600/50 text-purple-400"
                   >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Banner
+                    <Crop className="h-4 w-4 mr-2" />
+                    {bannerPreview ? 'Change Banner' : 'Upload & Crop'}
                   </Button>
                   <Button
                     onClick={() => handleInputResponse('skip')}
@@ -584,6 +660,23 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
           </div>
         </CardContent>
       </Card>
+
+      {/* Image Cropper */}
+      <ImageCropper
+        open={bannerCropperOpen}
+        onClose={() => {
+          setBannerCropperOpen(false);
+          if (tempBannerUrl) {
+            URL.revokeObjectURL(tempBannerUrl);
+            setTempBannerUrl('');
+          }
+        }}
+        imageSrc={tempBannerUrl}
+        aspectRatio={3}
+        cropShape="rect"
+        fileName="quest-banner.jpg"
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }
