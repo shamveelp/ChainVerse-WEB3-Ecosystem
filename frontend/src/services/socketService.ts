@@ -1,29 +1,12 @@
 import { io, Socket } from 'socket.io-client';
 
-interface MessageData {
-  receiverUsername: string;
-  content: string;
-  conversationId?: string;
-}
-
-interface EditMessageData {
-  messageId: string;
-  content: string;
-  conversationId: string;
-}
-
-interface DeleteMessageData {
-  messageId: string;
-  conversationId: string;
-}
-
-interface TypingData {
-  conversationId: string;
-}
-
-interface ReadMessagesData {
-  conversationId: string;
-}
+import {
+  MessageData,
+  EditMessageData,
+  DeleteMessageData,
+  TypingData,
+  ReadMessagesData
+} from "@/types/socket/chat.types";
 
 class SocketService {
   private socket: Socket | null = null;
@@ -34,7 +17,7 @@ class SocketService {
 
   connect(token: string): Promise<void> {
     if (this.socket?.connected) {
-      
+
       return Promise.resolve();
     }
 
@@ -49,8 +32,8 @@ class SocketService {
       return this.connectionPromise;
     }
 
-    
-    
+
+
     this.connectionPromise = new Promise((resolve, reject) => {
       this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
         auth: {
@@ -69,7 +52,7 @@ class SocketService {
 
       this.socket.on('connect', () => {
         clearTimeout(timeout);
-        
+
         this.reconnectAttempts = 0;
         if (this.reconnectTimeout) {
           clearTimeout(this.reconnectTimeout);
@@ -83,12 +66,12 @@ class SocketService {
         clearTimeout(timeout);
         console.error('❌ Socket connection error:', error.message);
         this.connectionPromise = null;
-        
+
         // Check if it's an authentication error
-        if (error.message?.includes('Authentication failed') || 
-            error.message?.includes('No token provided') ||
-            error.message?.includes('Token expired') ||
-            error.message?.includes('Invalid token')) {
+        if (error.message?.includes('Authentication failed') ||
+          error.message?.includes('No token provided') ||
+          error.message?.includes('Token expired') ||
+          error.message?.includes('Invalid token')) {
           console.error('Authentication failed - check token validity');
           reject(new Error('Authentication failed - token may be expired'));
         } else {
@@ -107,9 +90,9 @@ class SocketService {
     if (!this.socket) return;
 
     this.socket.on('disconnect', (reason) => {
-      
+
       this.connectionPromise = null;
-      
+
       if (reason === 'io server disconnect') {
         // Server initiated disconnect, try to reconnect
         this.handleReconnect();
@@ -117,7 +100,7 @@ class SocketService {
     });
 
     this.socket.on('reconnect', () => {
-      
+
       this.reconnectAttempts = 0;
       this.connectionPromise = null;
     });
@@ -146,9 +129,9 @@ class SocketService {
 
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-    
-    
-    
+
+
+
     this.reconnectTimeout = setTimeout(() => {
       if (this.socket && !this.socket.connected) {
         this.socket.connect();
@@ -158,17 +141,17 @@ class SocketService {
 
   disconnect(): void {
     if (this.socket) {
-      
+
       this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;
     }
-    
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
-    
+
     this.reconnectAttempts = 0;
     this.connectionPromise = null;
   }
@@ -176,7 +159,7 @@ class SocketService {
   // Room management
   joinConversation(conversationId: string): void {
     if (this.socket?.connected) {
-      
+
       this.socket.emit('join_conversation', conversationId);
     } else {
       console.warn('Cannot join conversation - socket not connected');
@@ -185,7 +168,7 @@ class SocketService {
 
   leaveConversation(conversationId: string): void {
     if (this.socket?.connected) {
-      
+
       this.socket.emit('leave_conversation', conversationId);
     } else {
       console.warn('Cannot leave conversation - socket not connected');
@@ -195,7 +178,7 @@ class SocketService {
   // Message operations
   sendMessage(data: MessageData): void {
     if (this.socket?.connected) {
-      
+
       this.socket.emit('send_message', data);
     } else {
       console.warn('Cannot send message - socket not connected');
@@ -205,7 +188,7 @@ class SocketService {
 
   editMessage(data: EditMessageData): void {
     if (this.socket?.connected) {
-      
+
       this.socket.emit('edit_message', data);
     } else {
       console.warn('Cannot edit message - socket not connected');
@@ -215,7 +198,7 @@ class SocketService {
 
   deleteMessage(data: DeleteMessageData): void {
     if (this.socket?.connected) {
-      
+
       this.socket.emit('delete_message', data);
     } else {
       console.warn('Cannot delete message - socket not connected');
@@ -225,7 +208,7 @@ class SocketService {
 
   markMessagesAsRead(data: ReadMessagesData): void {
     if (this.socket?.connected) {
-      
+
       this.socket.emit('mark_messages_read', data);
     } else {
       console.warn('Cannot mark messages as read - socket not connected');
@@ -248,35 +231,35 @@ class SocketService {
   // Event listeners
   onNewMessage(callback: (data: any) => void): void {
     this.socket?.on('new_message', (data) => {
-      
+
       callback(data);
     });
   }
 
   onMessageSent(callback: (data: any) => void): void {
     this.socket?.on('message_sent', (data) => {
-      
+
       callback(data);
     });
   }
 
   onMessageEdited(callback: (data: any) => void): void {
     this.socket?.on('message_edited', (data) => {
-      
+
       callback(data);
     });
   }
 
   onMessageDeleted(callback: (data: any) => void): void {
     this.socket?.on('message_deleted', (data) => {
-      
+
       callback(data);
     });
   }
 
   onMessagesRead(callback: (data: any) => void): void {
     this.socket?.on('messages_read', (data) => {
-      
+
       callback(data);
     });
   }
@@ -295,7 +278,7 @@ class SocketService {
 
   onUserStatusChanged(callback: (data: any) => void): void {
     this.socket?.on('user_status_changed', (data) => {
-      
+
       callback(data);
     });
   }

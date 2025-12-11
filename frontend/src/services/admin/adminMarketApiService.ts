@@ -2,15 +2,7 @@ import API from "@/lib/api-client";
 import { MarketCoin } from "@/types/user/market.types";
 import { ADMIN_API_ROUTES } from "../../routes/api.routes";
 
-export interface AdminMarketCoinsResponse {
-  success: boolean;
-  message: string;
-  coins: MarketCoin[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+import { AdminMarketCoinsResponse } from "@/types/admin/market.types";
 
 export const getAdminMarketCoins = async (
   page: number = 1,

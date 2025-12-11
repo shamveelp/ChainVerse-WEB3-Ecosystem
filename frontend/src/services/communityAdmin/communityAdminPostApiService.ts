@@ -2,100 +2,18 @@ import api from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
 // Types
-interface PostAuthor {
-    _id: string;
-    name: string;
-    email: string;
-    profilePic?: string;
-    communityName?: string;
-    communityLogo?: string;
-    isVerified: boolean;
-}
-
-interface CommunityAdminPost {
-    _id: string;
-    author: PostAuthor;
-    content: string;
-    mediaUrls: string[];
-    mediaType: 'none' | 'image' | 'video';
-    hashtags: string[];
-    mentions: string[];
-    likesCount: number;
-    commentsCount: number;
-    sharesCount: number;
-    isLiked: boolean;
-    isOwnPost: boolean;
-    canEdit: boolean;
-    canDelete: boolean;
-    createdAt: Date | string;
-    updatedAt: Date | string;
-    editedAt?: Date | string;
-}
-
-interface CommunityAdminComment {
-    _id: string;
-    post: string;
-    author: PostAuthor;
-    content: string;
-    parentComment?: string;
-    likesCount: number;
-    repliesCount: number;
-    isLiked: boolean;
-    isOwnComment: boolean;
-    canEdit: boolean;
-    canDelete: boolean;
-    createdAt: Date | string;
-    updatedAt: Date | string;
-    editedAt?: Date | string;
-    replies?: CommunityAdminComment[];
-}
-
-interface PostsResponse {
-    posts: CommunityAdminPost[];
-    hasMore: boolean;
-    nextCursor?: string;
-    totalCount: number;
-}
-
-interface CommentsResponse {
-    comments: CommunityAdminComment[];
-    hasMore: boolean;
-    nextCursor?: string;
-}
-
-interface CreatePostData {
-    content: string;
-    mediaUrls?: string[];
-    mediaType?: 'none' | 'image' | 'video';
-}
-
-interface CreateCommentData {
-    postId: string;
-    content: string;
-    parentCommentId?: string;
-}
-
-interface LikeResponse {
-    success: boolean;
-    isLiked: boolean;
-    likesCount: number;
-    message: string;
-}
-
-interface MediaUploadResponse {
-    success: boolean;
-    mediaUrl?: string;
-    mediaType?: 'image' | 'video';
-    message?: string;
-    error?: string;
-}
-
-interface ApiResponse<T = any> {
-    success: boolean;
-    message?: string;
-    error?: string;
-    data?: T;
-}
+import { ApiResponse } from "@/types/common.types";
+import {
+    PostAuthor,
+    CommunityAdminPost,
+    CommunityAdminComment,
+    PostsResponse,
+    CommentsResponse,
+    CreatePostData,
+    CreateCommentData,
+    LikeResponse,
+    MediaUploadResponse
+} from "@/types/comms-admin/posts.types";
 
 class CommunityAdminPostApiService {
     // private readonly baseUrl = '/api/community-admin';
@@ -378,4 +296,4 @@ class CommunityAdminPostApiService {
 
 export const communityAdminPostApiService = new CommunityAdminPostApiService();
 export default communityAdminPostApiService;
-export type { CommunityAdminPost, CommunityAdminComment, PostsResponse, CommentsResponse, CreatePostData, CreateCommentData };
+export type { CommunityAdminPost, CommunityAdminComment, PostsResponse, CommentsResponse, CreatePostData, CreateCommentData } from "@/types/comms-admin/posts.types";

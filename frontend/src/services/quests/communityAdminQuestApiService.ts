@@ -2,126 +2,16 @@ import api from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES, USER_API_ROUTES } from "../../routes/api.routes";
 
 // Types
-interface Quest {
-  _id: string;
-  communityId: string;
-  title: string;
-  description: string;
-  bannerImage?: string;
-  startDate: Date;
-  endDate: Date;
-  selectionMethod: 'fcfs' | 'random' | 'leaderboard';
-  participantLimit: number;
-  rewardPool: {
-    amount: number;
-    currency: string;
-    rewardType: 'token' | 'nft' | 'points' | 'custom';
-    customReward?: string;
-  };
-  status: 'draft' | 'active' | 'ended' | 'cancelled';
-  totalParticipants: number;
-  totalSubmissions: number;
-  winnersSelected: boolean;
-  rewardsDistributed: boolean;
-  isAIGenerated?: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  tasks?: QuestTask[];
-}
-
-interface QuestTask {
-  _id: string;
-  questId: string;
-  title: string;
-  description: string;
-  taskType: string;
-  isRequired: boolean;
-  order: number;
-  privilegePoints: number; // New field for leaderboard
-  config: any;
-  completedBy: number;
-}
-
-interface QuestStats {
-  totalQuests: number;
-  activeQuests: number;
-  endedQuests: number;
-  totalParticipants: number;
-  totalRewardsDistributed: number;
-}
-
-interface Participant {
-  _id: string;
-  questId: string;
-  userId: any;
-  walletAddress?: string;
-  status: string;
-  joinedAt: Date;
-  completedAt?: Date;
-  totalTasksCompleted: number;
-  totalPrivilegePoints: number;
-  isWinner: boolean;
-  rewardClaimed: boolean;
-}
-
-interface CreateQuestData {
-  title: string;
-  description: string;
-  bannerImage?: string;
-  startDate: Date;
-  endDate: Date;
-  selectionMethod: 'fcfs' | 'random' | 'leaderboard';
-  participantLimit: number;
-  rewardPool: {
-    amount: number;
-    currency: string;
-    rewardType: 'token' | 'nft' | 'points' | 'custom';
-    customReward?: string;
-  };
-  tasks: Array<{
-    title: string;
-    description: string;
-    taskType: string;
-    isRequired: boolean;
-    order: number;
-    privilegePoints?: number;
-    config?: any;
-  }>;
-  isAIGenerated?: boolean;
-  aiPrompt?: string;
-}
-
-interface AIQuestGenerationData {
-  prompt: string;
-  communityTheme?: string;
-  targetAudience?: string;
-  difficulty?: 'easy' | 'medium' | 'hard';
-  expectedWinners?: number;
-}
-
-interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  error?: string;
-  data?: T;
-}
-
-interface PaginationResponse<T> {
-  success: boolean;
-  message?: string;
-  error?: string;
-  data?: {
-    items?: T[];
-    quests?: Quest[];
-    participants?: Participant[];
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      pages: number;
-    };
-  };
-}
+import {
+  Quest,
+  QuestTask,
+  QuestStats,
+  Participant,
+  CreateQuestData,
+  AIQuestGenerationData,
+  PaginationResponse
+} from "@/types/comms-admin/quests.types";
+import { ApiResponse } from "@/types/common.types";
 
 class CommunityAdminQuestApiService {
   // private readonly baseUrl = '/api/community-admin';

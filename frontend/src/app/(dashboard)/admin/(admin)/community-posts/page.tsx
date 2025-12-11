@@ -3,7 +3,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { adminCommunityPostsApiService, AdminPostItem } from '@/services/admin/adminCommunityPostsApiService';
+import { adminCommunityPostsApiService } from '@/services/admin/adminCommunityPostsApiService';
+import type { AdminPostItem } from '@/types/admin/posts.types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';

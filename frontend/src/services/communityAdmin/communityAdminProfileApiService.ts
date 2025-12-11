@@ -2,50 +2,12 @@ import api from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
 // Types
-interface CommunityStats {
-  totalMembers: number;
-  activeMembers: number;
-  totalPosts: number;
-  totalQuests: number;
-  premiumMembers: number;
-  engagementRate: number;
-  myPostsCount: number;
-  myLikesCount: number;
-  myCommentsCount: number;
-}
-
-interface CommunityAdminProfile {
-  _id: string;
-  name: string;
-  email: string;
-  username: string;
-  bio?: string;
-  location?: string;
-  website?: string;
-  profilePic?: string;
-  bannerImage?: string;
-  communityId?: string;
-  communityName?: string;
-  communityLogo?: string;
-  isActive: boolean;
-  lastLogin?: Date;
-  joinDate: Date;
-  stats: CommunityStats;
-}
-
-interface UpdateProfileData {
-  name?: string;
-  bio?: string;
-  location?: string;
-  website?: string;
-}
-
-interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  error?: string;
-  data?: T;
-}
+import { ApiResponse } from "@/types/common.types";
+import {
+  CommunityStats,
+  CommunityAdminProfile,
+  UpdateProfileData
+} from "@/types/comms-admin/profile.types";
 
 class CommunityAdminProfileApiService {
   // private readonly baseUrl = '/api/community-admin';

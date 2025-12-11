@@ -1,4 +1,12 @@
 import { USER_API_ROUTES } from '../../routes/api.routes';
+import {
+  AIChatMessageRequest,
+  AIChatResponse,
+  AIAnalysisRequest,
+  AIExecuteTradeRequest,
+  AIParseIntentResult,
+  AITradeDetails
+} from "@/types/user/ai-trading.types";
 
 class AiTradeApiService {
   private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';

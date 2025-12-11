@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
 import {
-  communityAdminChainCastApiService,
-  type ChainCast
+  communityAdminChainCastApiService
 } from '@/services/chainCast/communityAdminChainCastApiService'
+import type { ChainCast } from '@/types/comms-admin/chaincast.types'
 import ChainCastRoom from '@/components/chainCast/chainCastRoom'
 import { toast } from 'sonner'
 import { Loader2, AlertCircle } from 'lucide-react'

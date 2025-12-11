@@ -1,29 +1,10 @@
 import { io, Socket } from "socket.io-client";
 
-export interface ChainCastParticipant {
-  userId: string;
-  username: string;
-  userType: 'user' | 'communityAdmin';
-  hasVideo?: boolean;
-  hasAudio?: boolean;
-  isMuted?: boolean;
-  isVideoOff?: boolean;
-}
-
-interface ChainCastReaction {
-  userId: string;
-  username: string;
-  emoji: string;
-  timestamp: Date;
-}
-
-interface ChatMessage {
-  id: string;
-  userId: string;
-  username: string;
-  message: string;
-  timestamp: Date;
-}
+import {
+  ChainCastParticipant,
+  ChainCastReaction,
+  ChatMessage
+} from "@/types/socket/chaincast.types";
 
 class ChainCastSocketService {
   public socket: Socket | null = null;
@@ -446,4 +427,4 @@ class ChainCastSocketService {
 }
 
 export const chainCastSocketService = new ChainCastSocketService();
-export type { ChainCastReaction, ChatMessage };
+export type { ChainCastReaction, ChatMessage } from "@/types/socket/chaincast.types";

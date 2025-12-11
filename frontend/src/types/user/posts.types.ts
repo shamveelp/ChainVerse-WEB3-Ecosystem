@@ -51,7 +51,6 @@ export interface Comment {
         username: string;
         name: string;
         profilePic: string;
-        isVerified: boolean;
     };
     createdAt: Date | string;
     updatedAt: Date | string;

@@ -1,41 +1,14 @@
 import api from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
-interface Subscription {
-  communityId: string;
-  plan: "lifetime";
-  status: "active" | "inactive" | "pending" | "failed" | "expired";
-  paymentId?: string;
-  orderId?: string;
-  expiresAt?: Date;
-  failedAt?: Date;
-  retryCount?: number;
-  timeRemaining?: {
-    minutes: number;
-    seconds: number;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-}
+import {
+  Subscription,
+  RazorpayOrder,
+  VerifyPaymentData
+} from "@/types/comms-admin/subscription.types";
+import { ApiResponse } from "@/types/common.types";
 
-interface RazorpayOrder {
-  orderId: string;
-  amount: number;
-  currency: string;
-}
 
-interface VerifyPaymentData {
-  razorpay_payment_id: string;
-  razorpay_order_id: string;
-  razorpay_signature: string;
-}
-
-interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  error?: string;
-  data?: T | null;
-}
 
 class CommunityAdminSubscriptionApiService {
   // private readonly baseUrl = '/api/community-admin';
@@ -105,7 +78,7 @@ class CommunityAdminSubscriptionApiService {
       }
       return {
         success: false,
-        data: null, // Ensure data is null on error
+        data: undefined, // Ensure data is undefined on error
         error: error.response?.data?.error ||
           error.response?.data?.message ||
           error.message ||

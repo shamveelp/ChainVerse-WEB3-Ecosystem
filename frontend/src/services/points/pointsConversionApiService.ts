@@ -1,45 +1,12 @@
 import API from "@/lib/api-client";
 import { USER_API_ROUTES, ADMIN_API_ROUTES } from "../../routes/api.routes";
 
-export interface ConversionRate {
-  pointsPerCVC: number;
-  minimumPoints: number;
-  minimumCVC: number;
-  claimFeeETH: string;
-  isActive: boolean;
-  companyWallet?: string;
-  cvcContractAddress?: string;
-  network?: string;
-}
-
-export interface PointsConversion {
-  id: string;
-  pointsConverted: number;
-  cvcAmount: number;
-  conversionRate: number;
-  status: 'pending' | 'approved' | 'rejected' | 'claimed';
-  transactionHash?: string;
-  claimFee: number;
-  walletAddress?: string;
-  adminNote?: string;
-  approvedBy?: any;
-  approvedAt?: string;
-  claimedAt?: string;
-  createdAt: string;
-}
-
-export interface ConversionStats {
-  totalPointsConverted: number;
-  totalCVCClaimed: number;
-  pendingConversions: number;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
+import { ApiResponse } from "@/types/common.types";
+import {
+  ConversionRate,
+  PointsConversion,
+  ConversionStats
+} from "@/types/points/conversion.types";
 
 export const pointsConversionApiService = {
   // User APIs

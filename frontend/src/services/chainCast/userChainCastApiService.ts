@@ -9,7 +9,7 @@ export type {
   ChainCastReaction,
   ChainCastParticipant,
   ChainCastModerationRequest
-} from "./communityAdminChainCastApiService";
+} from "@/types/comms-admin/chaincast.types";
 
 // User-specific interfaces
 export interface JoinChainCastRequest {
@@ -57,7 +57,7 @@ export interface ApiResponse<T> {
 }
 
 // Import types for proper typing
-import type { ChainCast, ChainCastsResponse, ReactionsResponse } from "./communityAdminChainCastApiService";
+import type { ChainCast, ChainCastsResponse, ReactionsResponse } from "@/types/comms-admin/chaincast.types";
 
 // Helper function to handle API errors
 const handleApiError = (error: any, defaultMessage: string) => {

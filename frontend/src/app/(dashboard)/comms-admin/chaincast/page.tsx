@@ -31,11 +31,9 @@ import {
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import {
-  communityAdminChainCastApiService,
-  type ChainCast,
-  type ChainCastsResponse,
-  type CreateChainCastRequest
+  communityAdminChainCastApiService
 } from '@/services/chainCast/communityAdminChainCastApiService'
+import type { ChainCast, ChainCastsResponse, CreateChainCastRequest } from '@/types/comms-admin/chaincast.types'
 
 const statusFilters = [
   { id: 'all', label: 'All ChainCasts', icon: BarChart3 },

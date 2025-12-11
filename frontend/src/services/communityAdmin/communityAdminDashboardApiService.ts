@@ -2,84 +2,14 @@ import api from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
 // Types
-interface CommunityOverview {
-  _id: string;
-  name: string;
-  username: string;
-  description: string;
-  category: string;
-  logo: string;
-  banner: string;
-  memberCount: number;
-  activeMembers: number;
-  isVerified: boolean;
-  settings: {
-    allowChainCast: boolean;
-    allowGroupChat: boolean;
-    allowPosts: boolean;
-    allowQuests: boolean;
-  };
-  socialLinks: Array<{
-    platform: string;
-    url: string;
-  }>;
-}
-
-interface CommunityStats {
-  totalMembers: number;
-  activeMembers: number;
-  newMembersToday: number;
-  newMembersThisWeek: number;
-  totalPosts: number;
-  postsToday: number;
-  totalLikes: number;
-  totalComments: number;
-  engagementRate: number;
-  growthRate: number;
-}
-
-interface RecentActivity {
-  id: string;
-  type: string;
-  user: {
-    _id: string;
-    username: string;
-    name: string;
-    profilePic: string;
-    isVerified: boolean;
-  };
-  action: string;
-  timestamp: Date;
-}
-
-interface TopMember {
-  _id: string;
-  username: string;
-  name: string;
-  profilePic: string;
-  isVerified: boolean;
-  totalPosts: number;
-  totalLikes: number;
-  totalComments: number;
-  questsCompleted: number;
-  joinedAt: Date;
-  role: string;
-  isPremium: boolean;
-}
-
-interface DashboardData {
-  communityOverview: CommunityOverview;
-  stats: CommunityStats;
-  recentActivity: RecentActivity[];
-  topMembers: TopMember[];
-}
-
-interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  error?: string;
-  data?: T;
-}
+import { ApiResponse } from "@/types/common.types";
+import {
+  CommunityOverview,
+  CommunityStats,
+  RecentActivity,
+  TopMember,
+  DashboardData
+} from "@/types/comms-admin/dashboard.types";
 
 class CommunityAdminDashboardApiService {
   // private readonly baseUrl = '/api/community-admin';

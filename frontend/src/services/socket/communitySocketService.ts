@@ -1,70 +1,16 @@
 import { io, Socket } from "socket.io-client";
 import { store } from "@/redux/store";
 
-interface CommunityMessage {
-  _id: string;
-  communityId: string;
-  admin: {
-    _id: string;
-    name: string;
-    profilePicture: string;
-  };
-  content: string;
-  mediaFiles: {
-    type: "image" | "video";
-    url: string;
-    filename: string;
-  }[];
-  messageType: "text" | "media" | "mixed";
-  isPinned: boolean;
-  reactions: {
-    emoji: string;
-    count: number;
-    userReacted: boolean;
-  }[];
-  totalReactions: number;
-  isEdited: boolean;
-  editedAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface CommunityGroupMessage {
-  _id: string;
-  communityId: string;
-  sender: {
-    _id: string;
-    username: string;
-    name: string;
-    profilePic: string;
-  };
-  content: string;
-  isEdited: boolean;
-  editedAt?: Date;
-  isCurrentUser: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface SendChannelMessageData {
-  content: string;
-  mediaFiles?: any[];
-  messageType?: "text" | "media" | "mixed";
-}
-
-interface SendGroupMessageData {
-  communityUsername: string | undefined;
-  content: string;
-}
-
-interface ReactionData {
-  messageId: string;
-  emoji: string;
-}
-
-interface TypingData {
-  communityId: string;
-}
+import {
+  CommunityMessage,
+  CommunityGroupMessage
+} from "@/types/community/chat.types";
+import {
+  SendChannelMessageData,
+  SendGroupMessageData,
+  ReactionData,
+  TypingData
+} from "@/types/socket/community.types";
 
 class CommunitySocketService {
   private socket: Socket | null = null;
@@ -629,4 +575,4 @@ class CommunitySocketService {
 }
 
 export const communitySocketService = new CommunitySocketService();
-export type { CommunityMessage, CommunityGroupMessage };
+export type { CommunityMessage, CommunityGroupMessage } from "@/types/community/chat.types";
