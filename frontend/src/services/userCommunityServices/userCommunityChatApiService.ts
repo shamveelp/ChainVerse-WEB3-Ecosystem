@@ -1,4 +1,5 @@
 import API from "@/lib/api-client";
+import { USER_API_ROUTES } from "../../routes/api.routes";
 
 // Community Channel Message interfaces
 export interface CommunityChannelMessage {
@@ -123,9 +124,9 @@ export const userCommunityChatApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      
 
-      const response = await API.get(`/api/user/community/${encodeURIComponent(communityUsername.trim())}/channel/messages?${params.toString()}`);
+
+      const response = await API.get(`${USER_API_ROUTES.COMMUNITY_CHAT.CHANNEL_MESSAGES(encodeURIComponent(communityUsername.trim()))}?${params.toString()}`);
 
       console.log('API: Channel messages fetched successfully:', {
         messageCount: response.data?.data?.messages?.length,
@@ -152,9 +153,9 @@ export const userCommunityChatApiService = {
         throw new Error("Message ID and emoji are required");
       }
 
-      
 
-      const response = await API.post(`/api/user/community/channel/messages/${encodeURIComponent(messageId.trim())}/react`, {
+
+      const response = await API.post(USER_API_ROUTES.COMMUNITY_CHAT.REACT_CHANNEL_MESSAGE(encodeURIComponent(messageId.trim())), {
         emoji: emoji.trim()
       });
 
@@ -183,9 +184,9 @@ export const userCommunityChatApiService = {
         throw new Error("Message ID and emoji are required");
       }
 
-      
 
-      const response = await API.delete(`/api/user/community/channel/messages/${encodeURIComponent(messageId.trim())}/react`, {
+
+      const response = await API.delete(USER_API_ROUTES.COMMUNITY_CHAT.REACT_CHANNEL_MESSAGE(encodeURIComponent(messageId.trim())), {
         data: { emoji: emoji.trim() }
       });
 
@@ -214,12 +215,12 @@ export const userCommunityChatApiService = {
         throw new Error("Community username and message content are required");
       }
 
-      console.log('API: Sending group message:', { 
+      console.log('API: Sending group message:', {
         communityUsername: data.communityUsername,
-        contentLength: data.content.length 
+        contentLength: data.content.length
       });
 
-      const response = await API.post('/api/user/community/group-chat/send', {
+      const response = await API.post(USER_API_ROUTES.COMMUNITY_CHAT.GROUP_SEND, {
         communityUsername: data.communityUsername.trim(),
         content: data.content.trim()
       });
@@ -252,9 +253,9 @@ export const userCommunityChatApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-      
 
-      const response = await API.get(`/api/user/community/${encodeURIComponent(communityUsername.trim())}/group-chat/messages?${params.toString()}`);
+
+      const response = await API.get(`${USER_API_ROUTES.COMMUNITY_CHAT.GROUP_MESSAGES(encodeURIComponent(communityUsername.trim()))}?${params.toString()}`);
 
       console.log('API: Group messages fetched successfully:', {
         messageCount: response.data?.data?.messages?.length,
@@ -281,9 +282,9 @@ export const userCommunityChatApiService = {
         throw new Error("Message ID and content are required");
       }
 
-      
 
-      const response = await API.put(`/api/user/community/group-chat/messages/${encodeURIComponent(messageId.trim())}`, {
+
+      const response = await API.put(USER_API_ROUTES.COMMUNITY_CHAT.GROUP_MESSAGE_BY_ID(encodeURIComponent(messageId.trim())), {
         content: content.trim()
       });
 
@@ -311,9 +312,9 @@ export const userCommunityChatApiService = {
         throw new Error("Message ID is required");
       }
 
-      
 
-      const response = await API.delete(`/api/user/community/group-chat/messages/${encodeURIComponent(messageId.trim())}`);
+
+      const response = await API.delete(USER_API_ROUTES.COMMUNITY_CHAT.GROUP_MESSAGE_BY_ID(encodeURIComponent(messageId.trim())));
 
       console.log('API: Group message deleted successfully:', {
         messageId,
@@ -339,9 +340,9 @@ export const userCommunityChatApiService = {
         throw new Error("Community username is required");
       }
 
-      
 
-      const response = await API.post(`/api/user/community/${encodeURIComponent(communityUsername.trim())}/group-chat/read`);
+
+      const response = await API.post(USER_API_ROUTES.COMMUNITY_CHAT.GROUP_READ(encodeURIComponent(communityUsername.trim())));
 
       console.log('API: Group messages marked as read successfully:', {
         communityUsername,

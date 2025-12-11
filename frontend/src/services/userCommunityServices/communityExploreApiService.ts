@@ -1,4 +1,5 @@
 import API from "@/lib/api-client";
+import { USER_API_ROUTES } from "../../routes/api.routes";
 
 // Community interfaces
 export interface Community {
@@ -273,9 +274,9 @@ export const communityExploreApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-    
-      const response = await API.get(`/api/user/communities/search?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.COMMUNITIES.SEARCH}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
@@ -325,9 +326,9 @@ export const communityExploreApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       if (category && category.trim()) params.append('category', category.trim());
 
-      
-      const response = await API.get(`/api/user/communities/popular?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.COMMUNITIES.POPULAR}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
@@ -357,10 +358,10 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = username.trim();
-      
 
-      const response = await API.get(`/api/user/communities/username/${encodeURIComponent(cleanUsername)}`);
-      
+
+      const response = await API.get(USER_API_ROUTES.COMMUNITIES.BY_USERNAME(encodeURIComponent(cleanUsername)));
+
 
       if (response.data?.success && response.data?.data) {
         return transformCommunityData(response.data.data) as CommunityProfile;
@@ -382,10 +383,10 @@ export const communityExploreApiService = {
 
     try {
       const cleanId = communityId.trim();
-      
 
-      const response = await API.get(`/api/user/communities/${encodeURIComponent(cleanId)}`);
-      
+
+      const response = await API.get(USER_API_ROUTES.COMMUNITIES.BY_ID(encodeURIComponent(cleanId)));
+
 
       if (response.data?.success && response.data?.data) {
         return transformCommunityData(response.data.data) as CommunityProfile;
@@ -407,10 +408,10 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = username.trim();
-      
 
-      const response = await API.get(`/api/user/community/profile/username/${encodeURIComponent(cleanUsername)}`);
-      
+
+      const response = await API.get(USER_API_ROUTES.COMMUNITIES.USER_PROFILE(encodeURIComponent(cleanUsername)));
+
 
       if (response.data?.success && response.data?.data) {
         return transformUserData(response.data.data);
@@ -432,12 +433,12 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = communityUsername.trim();
-      
 
-      const response = await API.post("/api/user/communities/join", {
+
+      const response = await API.post(USER_API_ROUTES.COMMUNITIES.JOIN, {
         communityUsername: cleanUsername
       });
-      
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -459,12 +460,12 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = communityUsername.trim();
-      
 
-      const response = await API.post("/api/user/communities/leave", {
+
+      const response = await API.post(USER_API_ROUTES.COMMUNITIES.LEAVE, {
         communityUsername: cleanUsername
       });
-      
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -494,9 +495,9 @@ export const communityExploreApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      
-      const response = await API.get(`/api/user/communities/${encodeURIComponent(cleanUsername)}/members?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.COMMUNITIES.MEMBERS(encodeURIComponent(cleanUsername))}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -522,10 +523,10 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = communityUsername.trim();
-      
 
-      const response = await API.get(`/api/user/communities/${encodeURIComponent(cleanUsername)}/member-status`);
-      
+
+      const response = await API.get(USER_API_ROUTES.COMMUNITIES.MEMBER_STATUS(encodeURIComponent(cleanUsername)));
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -547,12 +548,12 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = username.trim();
-      
 
-      const response = await API.post("/api/user/community/follow", {
+
+      const response = await API.post(USER_API_ROUTES.COMMUNITIES.FOLLOW, {
         username: cleanUsername
       });
-      
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -574,12 +575,12 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = username.trim();
-      
 
-      const response = await API.post("/api/user/community/unfollow", {
+
+      const response = await API.post(USER_API_ROUTES.COMMUNITIES.UNFOLLOW, {
         username: cleanUsername
       });
-      
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
@@ -601,10 +602,10 @@ export const communityExploreApiService = {
 
     try {
       const cleanUsername = username.trim();
-      
 
-      const response = await API.get(`/api/user/community/follow-status/${encodeURIComponent(cleanUsername)}`);
-      
+
+      const response = await API.get(USER_API_ROUTES.COMMUNITIES.FOLLOW_STATUS(encodeURIComponent(cleanUsername)));
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;

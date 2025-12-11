@@ -1,4 +1,5 @@
 import API from "@/lib/api-client";
+import { USER_API_ROUTES, ADMIN_API_ROUTES } from "../../routes/api.routes";
 
 export interface ConversionRate {
   pointsPerCVC: number;
@@ -49,8 +50,8 @@ export const pointsConversionApiService = {
     message: string;
   }>> => {
     try {
-      const response = await API.post("/api/user/points-conversion/create", { pointsToConvert });
-      
+      const response = await API.post(USER_API_ROUTES.POINTS_CONVERSION.CREATE, { pointsToConvert });
+
       if (response.data.success) {
         return {
           success: true,
@@ -74,8 +75,8 @@ export const pointsConversionApiService = {
     stats: ConversionStats;
   }>> => {
     try {
-      const response = await API.get(`/api/user/points-conversion/history?page=${page}&limit=${limit}`);
-      
+      const response = await API.get(`${USER_API_ROUTES.POINTS_CONVERSION.HISTORY}?page=${page}&limit=${limit}`);
+
       if (response.data.success) {
         return {
           success: true,
@@ -101,12 +102,12 @@ export const pointsConversionApiService = {
     message: string;
   }>> => {
     try {
-      const response = await API.post("/api/user/points-conversion/claim", {
+      const response = await API.post(USER_API_ROUTES.POINTS_CONVERSION.CLAIM, {
         conversionId,
         walletAddress,
         transactionHash
       });
-      
+
       if (response.data.success) {
         return {
           success: true,
@@ -125,8 +126,8 @@ export const pointsConversionApiService = {
 
   getCurrentRate: async (): Promise<ApiResponse<ConversionRate>> => {
     try {
-      const response = await API.get("/api/user/points-conversion/rate");
-      
+      const response = await API.get(USER_API_ROUTES.POINTS_CONVERSION.RATE);
+
       if (response.data.success) {
         return {
           success: true,
@@ -150,8 +151,8 @@ export const pointsConversionApiService = {
     userPoints?: number;
   }>> => {
     try {
-      const response = await API.get(`/api/user/points-conversion/validate?pointsToConvert=${pointsToConvert}`);
-      
+      const response = await API.get(`${USER_API_ROUTES.POINTS_CONVERSION.VALIDATE}?pointsToConvert=${pointsToConvert}`);
+
       if (response.data.success) {
         return {
           success: true,
@@ -182,9 +183,9 @@ export const adminPointsConversionApiService = {
         limit: limit.toString(),
       });
       if (status) params.append('status', status);
-      
-      const response = await API.get(`/api/admin/points-conversion/all?${params}`);
-      
+
+      const response = await API.get(`${ADMIN_API_ROUTES.POINTS_CONVERSION.ALL}?${params}`);
+
       if (response.data.success) {
         return {
           success: true,
@@ -203,8 +204,8 @@ export const adminPointsConversionApiService = {
 
   approveConversion: async (conversionId: string, adminNote?: string): Promise<ApiResponse<any>> => {
     try {
-      const response = await API.post(`/api/admin/points-conversion/${conversionId}/approve`, { adminNote });
-      
+      const response = await API.post(ADMIN_API_ROUTES.POINTS_CONVERSION.APPROVE(conversionId), { adminNote });
+
       if (response.data.success) {
         return {
           success: true,
@@ -223,8 +224,8 @@ export const adminPointsConversionApiService = {
 
   rejectConversion: async (conversionId: string, reason: string): Promise<ApiResponse<any>> => {
     try {
-      const response = await API.post(`/api/admin/points-conversion/${conversionId}/reject`, { reason });
-      
+      const response = await API.post(ADMIN_API_ROUTES.POINTS_CONVERSION.REJECT(conversionId), { reason });
+
       if (response.data.success) {
         return {
           success: true,
@@ -243,8 +244,8 @@ export const adminPointsConversionApiService = {
 
   getConversionStats: async (): Promise<ApiResponse<any>> => {
     try {
-      const response = await API.get("/api/admin/points-conversion/stats");
-      
+      const response = await API.get(ADMIN_API_ROUTES.POINTS_CONVERSION.STATS);
+
       if (response.data.success) {
         return {
           success: true,
@@ -263,8 +264,8 @@ export const adminPointsConversionApiService = {
 
   getConversionById: async (conversionId: string): Promise<ApiResponse<any>> => {
     try {
-      const response = await API.get(`/api/admin/points-conversion/${conversionId}`);
-      
+      const response = await API.get(ADMIN_API_ROUTES.POINTS_CONVERSION.BY_ID(conversionId));
+
       if (response.data.success) {
         return {
           success: true,
@@ -289,8 +290,8 @@ export const adminPointsConversionApiService = {
     effectiveFrom?: Date;
   }): Promise<ApiResponse<any>> => {
     try {
-      const response = await API.post("/api/admin/points-conversion/rate/update", rateData);
-      
+      const response = await API.post(ADMIN_API_ROUTES.POINTS_CONVERSION.RATE_UPDATE, rateData);
+
       if (response.data.success) {
         return {
           success: true,
@@ -309,8 +310,8 @@ export const adminPointsConversionApiService = {
 
   getConversionRates: async (page = 1, limit = 10): Promise<ApiResponse<any>> => {
     try {
-      const response = await API.get(`/api/admin/points-conversion/rates?page=${page}&limit=${limit}`);
-      
+      const response = await API.get(`${ADMIN_API_ROUTES.POINTS_CONVERSION.RATES}?page=${page}&limit=${limit}`);
+
       if (response.data.success) {
         return {
           success: true,
@@ -329,8 +330,8 @@ export const adminPointsConversionApiService = {
 
   getCurrentRate: async (): Promise<ApiResponse<any>> => {
     try {
-      const response = await API.get("/api/admin/points-conversion/rate/current");
-      
+      const response = await API.get(ADMIN_API_ROUTES.POINTS_CONVERSION.RATE_CURRENT);
+
       if (response.data.success) {
         return {
           success: true,

@@ -1,4 +1,5 @@
 import API from "@/lib/api-client";
+import { USER_API_ROUTES } from "../../routes/api.routes";
 
 // My Communities interfaces
 export interface MyCommunity {
@@ -151,9 +152,9 @@ export const userMyCommunitiesApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-      
-      const response = await API.get(`/api/user/my-communities?${params.toString()}`);
-      
+
+      const response = await API.get(`${USER_API_ROUTES.MY_COMMUNITIES.BASE}?${params.toString()}`);
+
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
@@ -186,9 +187,9 @@ export const userMyCommunitiesApiService = {
   // Get my communities stats
   getMyCommunitiesStats: async (): Promise<MyCommunitiesStats> => {
     try {
-      
-      const response = await API.get('/api/user/my-communities/stats');
-      
+
+      const response = await API.get(USER_API_ROUTES.MY_COMMUNITIES.STATS);
+
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
@@ -211,9 +212,9 @@ export const userMyCommunitiesApiService = {
   // Get my communities activity
   getMyCommunitiesActivity: async (): Promise<MyCommunitiesActivityResponse> => {
     try {
-      
-      const response = await API.get('/api/user/my-communities/activity');
-      
+
+      const response = await API.get(USER_API_ROUTES.MY_COMMUNITIES.ACTIVITY);
+
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
@@ -248,13 +249,13 @@ export const userMyCommunitiesApiService = {
 
     try {
       const cleanId = communityId.trim();
-      
 
-      const response = await API.put(`/api/user/my-communities/${encodeURIComponent(cleanId)}/notifications`, {
+
+      const response = await API.put(USER_API_ROUTES.MY_COMMUNITIES.NOTIFICATIONS(encodeURIComponent(cleanId)), {
         communityId: cleanId,
         enabled
       });
-      
+
 
       if (response.data?.success && response.data?.data) {
         return Boolean(response.data.data.notificationsEnabled);
@@ -276,10 +277,10 @@ export const userMyCommunitiesApiService = {
 
     try {
       const cleanId = communityId.trim();
-      
 
-      const response = await API.delete(`/api/user/my-communities/${encodeURIComponent(cleanId)}/leave`);
-      
+
+      const response = await API.delete(USER_API_ROUTES.MY_COMMUNITIES.LEAVE(encodeURIComponent(cleanId)));
+
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;

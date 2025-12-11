@@ -1,6 +1,7 @@
+import { USER_API_ROUTES } from '../../routes/api.routes';
+
 class AiTradeApiService {
   private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-  private static readonly AI_TRADING_ENDPOINT = `${this.BASE_URL}/api/ai-trading`;
 
   // Generate unique session ID for chat
   static generateSessionId(): string {
@@ -16,7 +17,7 @@ class AiTradeApiService {
     context?: any;
   }) {
     try {
-      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/chat/message`, {
+      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.CHAT_MESSAGE}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,7 +52,7 @@ class AiTradeApiService {
   // Get available tokens
   static async getAvailableTokens() {
     try {
-      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/tokens`);
+      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.TOKENS}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch available tokens');
@@ -67,7 +68,7 @@ class AiTradeApiService {
   // Get current token prices
   static async getTokenPrices() {
     try {
-      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/prices`);
+      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.PRICES}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch token prices');
@@ -93,7 +94,7 @@ class AiTradeApiService {
         amount,
       });
 
-      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/swap/estimate?${params}`);
+      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.SWAP_ESTIMATE}?${params}`);
 
       if (!response.ok) {
         throw new Error('Failed to calculate swap estimate');
@@ -114,7 +115,7 @@ class AiTradeApiService {
     walletAddress?: string;
   }) {
     try {
-      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/trade/analyze`, {
+      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.TRADE_ANALYZE}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +145,7 @@ class AiTradeApiService {
     slippage?: string;
   }) {
     try {
-      const response = await fetch(`${this.AI_TRADING_ENDPOINT}/trade/execute`, {
+      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.TRADE_EXECUTE}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +169,7 @@ class AiTradeApiService {
   static async getChatHistory(sessionId: string, limit: number = 20) {
     try {
       const response = await fetch(
-        `${this.AI_TRADING_ENDPOINT}/chat/history/${sessionId}?limit=${limit}`
+        `${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.CHAT_HISTORY(sessionId)}?limit=${limit}`
       );
 
       if (!response.ok) {

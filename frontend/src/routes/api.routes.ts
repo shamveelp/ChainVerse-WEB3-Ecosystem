@@ -51,6 +51,31 @@ export const ADMIN_API_ROUTES = {
     DEX_FULFILL_PAYMENT: '/api/admin/dex/fulfill-payment',
     DEX_STATS: '/api/admin/dex/stats',
     DEX_PENDING: '/api/admin/dex/pending',
+
+    // Points Conversion (Admin)
+    POINTS_CONVERSION: {
+        ALL: '/api/admin/points-conversion/all',
+        APPROVE: (id: string) => `/api/admin/points-conversion/${id}/approve`,
+        REJECT: (id: string) => `/api/admin/points-conversion/${id}/reject`,
+        STATS: '/api/admin/points-conversion/stats',
+        BY_ID: (id: string) => `/api/admin/points-conversion/${id}`,
+        RATE_UPDATE: '/api/admin/points-conversion/rate/update',
+        RATES: '/api/admin/points-conversion/rates',
+        RATE_CURRENT: '/api/admin/points-conversion/rate/current',
+    },
+
+    // Community Posts
+    COMMUNITY_POSTS: '/api/admin/community-posts',
+    COMMUNITY_POST_BY_ID: (id: string) => `/api/admin/community-posts/${id}`,
+    COMMUNITY_POST_RESTORE: (id: string) => `/api/admin/community-posts/${id}/restore`,
+    COMMUNITY_POST_COMMENTS: (id: string) => `/api/admin/community-posts/${id}/comments`,
+    COMMUNITY_POST_LIKERS: (id: string) => `/api/admin/community-posts/${id}/likers`,
+
+    DASHBOARD_STATS: '/api/admin/dashboard/stats',
+
+    MARKET_COINS: '/api/admin/market/coins',
+    MARKET_COIN_LISTING: (address: string) => `/api/admin/market/coins/${address}/listing`,
+    MARKET_COIN_BY_ADDRESS: (address: string) => `/api/admin/market/coins/${address}`,
 };
 
 // Community Admin API Routes
@@ -137,6 +162,42 @@ export const COMMUNITY_ADMIN_API_ROUTES = {
     SUBSCRIPTION_RETRY_PAYMENT: '/api/community-admin/subscription/retry-payment',
     SUBSCRIPTION_TIME_REMAINING: '/api/community-admin/subscription/time-remaining',
     SUBSCRIPTION_CHAINCAST_ACCESS: '/api/community-admin/subscription/chaincast-access',
+
+    // ChainCast (Community Admin)
+    CHAINCAST: {
+        CREATE: '/api/community-admin/chaincast/create',
+        LIST: '/api/community-admin/chaincast',
+        BY_ID: (id: string) => `/api/community-admin/chaincast/${id}`,
+        START: (id: string) => `/api/community-admin/chaincast/${id}/start`,
+        END: (id: string) => `/api/community-admin/chaincast/${id}/end`,
+        PARTICIPANTS: (id: string) => `/api/community-admin/chaincast/${id}/participants`,
+        PARTICIPANT_ACTION: (id: string, participantId: string) => `/api/community-admin/chaincast/${id}/participants/${participantId}`,
+        MODERATION_REQUESTS: (id: string) => `/api/community-admin/chaincast/${id}/moderation-requests`,
+        REVIEW_MODERATION: '/api/community-admin/chaincast/moderation-requests/review',
+        ANALYTICS: '/api/community-admin/chaincast/analytics',
+        REACTIONS: (id: string) => `/api/community-admin/chaincast/${id}/reactions`,
+    },
+
+    // Quests (Community Admin)
+    QUESTS: {
+        CREATE: '/api/community-admin/quests/create',
+        BASE: '/api/community-admin/quests',
+        BY_ID: (id: string) => `/api/community-admin/quests/${id}`,
+        GENERATE_AI: '/api/community-admin/quests/generate-ai',
+        START: (id: string) => `/api/community-admin/quests/${id}/start`,
+        END: (id: string) => `/api/community-admin/quests/${id}/end`,
+        PARTICIPANTS: (id: string) => `/api/community-admin/quests/${id}/participants`,
+        PARTICIPANT_DETAILS: (id: string, participantId: string) => `/api/community-admin/quests/${id}/participants/${participantId}`,
+        SELECT_WINNERS: '/api/community-admin/quests/select-winners',
+        SELECT_REPLACEMENT: (id: string) => `/api/community-admin/quests/${id}/select-replacement-winners`,
+        DISQUALIFY: (id: string, participantId: string) => `/api/community-admin/quests/${id}/participants/${participantId}/disqualify`,
+        DISTRIBUTE_REWARDS: (id: string) => `/api/community-admin/quests/${id}/distribute-rewards`,
+        STATS: (id: string) => `/api/community-admin/quests/${id}/stats`,
+        COMMUNITY_STATS: '/api/community-admin/quests/stats',
+        LEADERBOARD: (id: string) => `/api/community-admin/quests/${id}/leaderboard`,
+        UPLOAD_BANNER: (id: string) => `/api/community-admin/quests/${id}/upload-banner`,
+        AI_CHAT: '/api/community-admin/quests/ai-chat',
+    },
 };
 
 // User API Routes
@@ -233,4 +294,76 @@ export const USER_API_ROUTES = {
     POST_STATS: '/api/user/posts/stats/analytics',
     POST_HASHTAGS_POPULAR: '/api/user/posts/hashtags/popular',
     COMMUNITY_SEARCH_USERS: '/api/user/community/search-users',
+
+    // AI Trading
+    AI_TRADING: {
+        BASE: '/api/ai-trading',
+        CHAT_MESSAGE: '/api/ai-trading/chat/message',
+        TOKENS: '/api/ai-trading/tokens',
+        PRICES: '/api/ai-trading/prices',
+        SWAP_ESTIMATE: '/api/ai-trading/swap/estimate',
+        TRADE_ANALYZE: '/api/ai-trading/trade/analyze',
+        TRADE_EXECUTE: '/api/ai-trading/trade/execute',
+        CHAT_HISTORY: (sessionId: string) => `/api/ai-trading/chat/history/${sessionId}`,
+    },
+
+    // Points Conversion
+    POINTS_CONVERSION: {
+        CREATE: '/api/user/points-conversion/create',
+        HISTORY: '/api/user/points-conversion/history',
+        CLAIM: '/api/user/points-conversion/claim',
+        RATE: '/api/user/points-conversion/rate',
+        VALIDATE: '/api/user/points-conversion/validate',
+    },
+
+    // Quests
+    QUESTS: {
+        BASE: '/api/user/quests',
+        BY_ID: (id: string) => `/api/user/quests/${id}`,
+        TOP: '/api/user/quests/top',
+        MY: '/api/user/quests/my',
+        JOIN: '/api/user/quests/join',
+        PARTICIPATION_STATUS: (id: string) => `/api/user/quests/${id}/participation-status`,
+        TASKS: (id: string) => `/api/user/quests/${id}/tasks`,
+        SUBMIT_TASK: '/api/user/quests/submit-task',
+        MY_SUBMISSIONS: (id: string) => `/api/user/quests/${id}/submissions`,
+        UPLOAD_MEDIA: '/api/user/quests/upload-media',
+        STATS: (id: string) => `/api/user/quests/${id}/stats`,
+        LEADERBOARD: (id: string) => `/api/user/quests/${id}/leaderboard`,
+    },
+
+    // Communities (Explore/User Side)
+    COMMUNITIES: {
+        SEARCH: '/api/user/communities/search',
+        POPULAR: '/api/user/communities/popular',
+        BY_USERNAME: (username: string) => `/api/user/communities/username/${username}`,
+        BY_ID: (id: string) => `/api/user/communities/${id}`,
+        USER_PROFILE: (username: string) => `/api/user/community/profile/username/${username}`,
+        JOIN: '/api/user/communities/join',
+        LEAVE: '/api/user/communities/leave',
+        MEMBERS: (username: string) => `/api/user/communities/${username}/members`,
+        MEMBER_STATUS: (username: string) => `/api/user/communities/${username}/member-status`,
+        FOLLOW: '/api/user/community/follow',
+        UNFOLLOW: '/api/user/community/unfollow',
+        FOLLOW_STATUS: (username: string) => `/api/user/community/follow-status/${username}`,
+    },
+
+    // Community Chat (User Side)
+    COMMUNITY_CHAT: {
+        CHANNEL_MESSAGES: (username: string) => `/api/user/community/${username}/channel/messages`,
+        REACT_CHANNEL_MESSAGE: (id: string) => `/api/user/community/channel/messages/${id}/react`,
+        GROUP_SEND: '/api/user/community/group-chat/send',
+        GROUP_MESSAGES: (username: string) => `/api/user/community/${username}/group-chat/messages`,
+        GROUP_MESSAGE_BY_ID: (id: string) => `/api/user/community/group-chat/messages/${id}`,
+        GROUP_READ: (username: string) => `/api/user/community/${username}/group-chat/read`,
+    },
+
+    // My Communities
+    MY_COMMUNITIES: {
+        BASE: '/api/user/my-communities',
+        STATS: '/api/user/my-communities/stats',
+        ACTIVITY: '/api/user/my-communities/activity',
+        NOTIFICATIONS: (id: string) => `/api/user/my-communities/${id}/notifications`,
+        LEAVE: (id: string) => `/api/user/my-communities/${id}/leave`,
+    },
 };

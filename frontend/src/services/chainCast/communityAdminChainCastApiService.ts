@@ -1,4 +1,5 @@
 import API from "@/lib/api-client";
+import { COMMUNITY_ADMIN_API_ROUTES } from "../../routes/api.routes";
 
 // ChainCast interfaces
 export interface ChainCast {
@@ -215,7 +216,7 @@ export const communityAdminChainCastApiService = {
         scheduledStartTime: data.scheduledStartTime
       });
 
-      const response = await API.post('/api/community-admin/chaincast/create', data);
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.CREATE, data);
 
       console.log('API: ChainCast created successfully:', {
         chainCastId: response.data?.data?._id,
@@ -248,9 +249,9 @@ export const communityAdminChainCastApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       params.append('sortBy', sortBy);
 
-      
 
-      const response = await API.get(`/api/community-admin/chaincast?${params.toString()}`);
+
+      const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.LIST}?${params.toString()}`);
 
       console.log('API: ChainCasts fetched successfully:', {
         chainCastCount: response.data?.data?.chainCasts?.length,
@@ -276,9 +277,9 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      
 
-      const response = await API.get(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}`);
+
+      const response = await API.get(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.BY_ID(encodeURIComponent(chainCastId.trim())));
 
       console.log('API: ChainCast fetched successfully:', {
         chainCastId: response.data?.data?._id,
@@ -304,9 +305,9 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      
 
-      const response = await API.put(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}`, data);
+
+      const response = await API.put(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.BY_ID(encodeURIComponent(chainCastId.trim())), data);
 
       console.log('API: ChainCast updated successfully:', {
         chainCastId: response.data?.data?._id,
@@ -331,9 +332,9 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      
 
-      const response = await API.delete(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}`);
+
+      const response = await API.delete(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.BY_ID(encodeURIComponent(chainCastId.trim())));
 
       console.log('API: ChainCast deleted successfully:', {
         chainCastId,
@@ -359,9 +360,9 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      
 
-      const response = await API.post(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/start`);
+
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.START(encodeURIComponent(chainCastId.trim())));
 
       console.log('API: ChainCast started successfully:', {
         chainCastId: response.data?.data?._id,
@@ -387,9 +388,9 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      
 
-      const response = await API.post(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/end`);
+
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.END(encodeURIComponent(chainCastId.trim())));
 
       console.log('API: ChainCast ended successfully:', {
         chainCastId: response.data?.data?._id,
@@ -425,9 +426,9 @@ export const communityAdminChainCastApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-      
 
-      const response = await API.get(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/participants?${params.toString()}`);
+
+      const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.PARTICIPANTS(encodeURIComponent(chainCastId.trim()))}?${params.toString()}`);
 
       console.log('API: Participants fetched successfully:', {
         participantCount: response.data?.data?.participants?.length,
@@ -453,9 +454,9 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID and participant ID are required");
       }
 
-      
 
-      const response = await API.delete(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/participants/${encodeURIComponent(participantId.trim())}`, {
+
+      const response = await API.delete(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.PARTICIPANT_ACTION(encodeURIComponent(chainCastId.trim()), encodeURIComponent(participantId.trim())), {
         data: { reason }
       });
 
@@ -484,9 +485,9 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      
 
-      const response = await API.get(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/moderation-requests`);
+
+      const response = await API.get(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.MODERATION_REQUESTS(encodeURIComponent(chainCastId.trim())));
 
       console.log('API: Moderation requests fetched successfully:', {
         requestCount: response.data?.data?.requests?.length,
@@ -515,9 +516,9 @@ export const communityAdminChainCastApiService = {
         throw new Error("Request ID is required");
       }
 
-      
 
-      const response = await API.post('/api/community-admin/chaincast/moderation-requests/review', {
+
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.REVIEW_MODERATION, {
         requestId: requestId.trim(),
         status,
         reviewMessage
@@ -547,9 +548,9 @@ export const communityAdminChainCastApiService = {
       const params = new URLSearchParams();
       params.append('period', period);
 
-      
 
-      const response = await API.get(`/api/community-admin/chaincast/analytics?${params.toString()}`);
+
+      const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.ANALYTICS}?${params.toString()}`);
 
       console.log('API: Analytics fetched successfully:', {
         period,
@@ -583,9 +584,9 @@ export const communityAdminChainCastApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-      
 
-      const response = await API.get(`/api/community-admin/chaincast/${encodeURIComponent(chainCastId.trim())}/reactions?${params.toString()}`);
+
+      const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.REACTIONS(encodeURIComponent(chainCastId.trim()))}?${params.toString()}`);
 
       console.log('API: Reactions fetched successfully:', {
         reactionCount: response.data?.data?.reactions?.length,

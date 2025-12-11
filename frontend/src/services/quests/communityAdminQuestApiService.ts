@@ -1,4 +1,5 @@
 import api from "@/lib/api-client";
+import { COMMUNITY_ADMIN_API_ROUTES, USER_API_ROUTES } from "../../routes/api.routes";
 
 // Types
 interface Quest {
@@ -123,12 +124,12 @@ interface PaginationResponse<T> {
 }
 
 class CommunityAdminQuestApiService {
-  private readonly baseUrl = '/api/community-admin';
+  // private readonly baseUrl = '/api/community-admin';
 
   // Quest CRUD operations
   async createQuest(questData: CreateQuestData): Promise<ApiResponse<Quest>> {
     try {
-      const response = await api.post(`${this.baseUrl}/quests/create`, questData);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.CREATE, questData);
       return {
         success: true,
         data: response.data.data,
@@ -148,7 +149,7 @@ class CommunityAdminQuestApiService {
 
   async getQuest(questId: string): Promise<ApiResponse<Quest>> {
     try {
-      const response = await api.get(`${this.baseUrl}/quests/${questId}`);
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.QUESTS.BY_ID(questId));
       return {
         success: true,
         data: response.data.data,
@@ -179,7 +180,7 @@ class CommunityAdminQuestApiService {
       if (params?.status) queryParams.append('status', params.status);
       if (params?.search) queryParams.append('search', params.search);
 
-      const response = await api.get(`${this.baseUrl}/quests?${queryParams.toString()}`);
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.QUESTS.BASE}?${queryParams.toString()}`);
       return {
         success: true,
         data: response.data.data,
@@ -199,7 +200,7 @@ class CommunityAdminQuestApiService {
 
   async updateQuest(questId: string, questData: Partial<CreateQuestData>): Promise<ApiResponse<Quest>> {
     try {
-      const response = await api.put(`${this.baseUrl}/quests/${questId}`, questData);
+      const response = await api.put(COMMUNITY_ADMIN_API_ROUTES.QUESTS.BY_ID(questId), questData);
       return {
         success: true,
         data: response.data.data,
@@ -219,7 +220,7 @@ class CommunityAdminQuestApiService {
 
   async deleteQuest(questId: string): Promise<ApiResponse<{ deleted: boolean }>> {
     try {
-      const response = await api.delete(`${this.baseUrl}/quests/${questId}`);
+      const response = await api.delete(COMMUNITY_ADMIN_API_ROUTES.QUESTS.BY_ID(questId));
       return {
         success: true,
         data: response.data.data,
@@ -240,7 +241,7 @@ class CommunityAdminQuestApiService {
   // AI Quest Generation
   async generateQuestWithAI(aiData: AIQuestGenerationData): Promise<ApiResponse<CreateQuestData>> {
     try {
-      const response = await api.post(`${this.baseUrl}/quests/generate-ai`, aiData);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.GENERATE_AI, aiData);
       return {
         success: true,
         data: response.data.data,
@@ -261,7 +262,7 @@ class CommunityAdminQuestApiService {
   // Quest Status Management
   async startQuest(questId: string): Promise<ApiResponse<Quest>> {
     try {
-      const response = await api.post(`${this.baseUrl}/quests/${questId}/start`);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.START(questId));
       return {
         success: true,
         data: response.data.data,
@@ -281,7 +282,7 @@ class CommunityAdminQuestApiService {
 
   async endQuest(questId: string): Promise<ApiResponse<Quest>> {
     try {
-      const response = await api.post(`${this.baseUrl}/quests/${questId}/end`);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.END(questId));
       return {
         success: true,
         data: response.data.data,
@@ -318,7 +319,7 @@ class CommunityAdminQuestApiService {
       if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
-      const response = await api.get(`${this.baseUrl}/quests/${questId}/participants?${queryParams.toString()}`);
+      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.QUESTS.PARTICIPANTS(questId)}?${queryParams.toString()}`);
       return {
         success: true,
         data: response.data.data,
@@ -338,7 +339,7 @@ class CommunityAdminQuestApiService {
 
   async getParticipantDetails(questId: string, participantId: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.get(`${this.baseUrl}/quests/${questId}/participants/${participantId}`);
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.QUESTS.PARTICIPANT_DETAILS(questId, participantId));
       return {
         success: true,
         data: response.data.data,
@@ -358,7 +359,7 @@ class CommunityAdminQuestApiService {
 
   async selectWinners(questId: string, method?: 'fcfs' | 'random' | 'leaderboard'): Promise<ApiResponse<{ winners: any[]; message: string }>> {
     try {
-      const response = await api.post(`${this.baseUrl}/quests/select-winners`, {
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.SELECT_WINNERS, {
         questId,
         method
       });
@@ -381,7 +382,7 @@ class CommunityAdminQuestApiService {
 
   async selectReplacementWinners(questId: string, count: number = 1): Promise<ApiResponse<{ winners: any[]; message: string }>> {
     try {
-      const response = await api.post(`${this.baseUrl}/quests/${questId}/select-replacement-winners`, {
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.SELECT_REPLACEMENT(questId), {
         count
       });
       return {
@@ -403,7 +404,7 @@ class CommunityAdminQuestApiService {
 
   async disqualifyParticipant(questId: string, participantId: string, reason: string): Promise<ApiResponse<{ disqualified: boolean }>> {
     try {
-      const response = await api.post(`${this.baseUrl}/quests/${questId}/participants/${participantId}/disqualify`, {
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.DISQUALIFY(questId, participantId), {
         reason
       });
       return {
@@ -426,7 +427,7 @@ class CommunityAdminQuestApiService {
   // Reward Distribution
   async distributeRewards(questId: string): Promise<ApiResponse<{ success: boolean; message: string; winnersRewarded: number }>> {
     try {
-      const response = await api.post(`${this.baseUrl}/quests/${questId}/distribute-rewards`);
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.DISTRIBUTE_REWARDS(questId));
       return {
         success: true,
         data: response.data.data,
@@ -447,7 +448,7 @@ class CommunityAdminQuestApiService {
   // Analytics and Stats
   async getQuestStats(questId: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.get(`${this.baseUrl}/quests/${questId}/stats`);
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.QUESTS.STATS(questId));
       return {
         success: true,
         data: response.data.data,
@@ -467,7 +468,7 @@ class CommunityAdminQuestApiService {
 
   async getCommunityQuestStats(): Promise<ApiResponse<QuestStats>> {
     try {
-      const response = await api.get(`${this.baseUrl}/quests/stats`);
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.QUESTS.COMMUNITY_STATS);
       return {
         success: true,
         data: response.data.data,
@@ -487,7 +488,7 @@ class CommunityAdminQuestApiService {
 
   async getQuestLeaderboard(questId: string): Promise<ApiResponse<any[]>> {
     try {
-      const response = await api.get(`${this.baseUrl}/quests/${questId}/leaderboard`);
+      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.QUESTS.LEADERBOARD(questId));
       return {
         success: true,
         data: response.data.data,
@@ -511,7 +512,7 @@ class CommunityAdminQuestApiService {
       const formData = new FormData();
       formData.append('banner', file);
 
-      const response = await api.post(`${this.baseUrl}/quests/${questId}/upload-banner`, formData, {
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.UPLOAD_BANNER(questId), formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -537,7 +538,7 @@ class CommunityAdminQuestApiService {
   // Search Communities
   async searchCommunities(query: string): Promise<ApiResponse<any[]>> {
     try {
-      const response = await api.get(`/api/user/communities/search?query=${encodeURIComponent(query)}&type=communities`);
+      const response = await api.get(`${USER_API_ROUTES.COMMUNITIES.SEARCH}?query=${encodeURIComponent(query)}&type=communities`);
       return {
         success: true,
         data: response.data.data?.communities || [],
@@ -558,7 +559,7 @@ class CommunityAdminQuestApiService {
   // Search Users
   async searchUsers(query: string): Promise<ApiResponse<any[]>> {
     try {
-      const response = await api.get(`/api/user/communities/search?query=${encodeURIComponent(query)}&type=users`);
+      const response = await api.get(`${USER_API_ROUTES.COMMUNITIES.SEARCH}?query=${encodeURIComponent(query)}&type=users`);
       return {
         success: true,
         data: response.data.data?.users || [],
@@ -588,7 +589,7 @@ class CommunityAdminQuestApiService {
     }[];
   }>> {
     try {
-      const response = await api.post(`${this.baseUrl}/quests/ai-chat`, {
+      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.AI_CHAT, {
         message,
         history: conversationHistory || []
       });

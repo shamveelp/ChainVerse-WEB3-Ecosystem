@@ -1,4 +1,5 @@
 import api from "@/lib/api-client";
+import { USER_API_ROUTES } from "../../routes/api.routes";
 
 // Types
 interface Quest {
@@ -131,7 +132,7 @@ interface PaginationResponse<T> {
 }
 
 class UserQuestApiService {
-  private readonly baseUrl = '/api/user';
+  // private readonly baseUrl = '/api/user';
 
   // Quest browsing
   async getAvailableQuests(params?: {
@@ -155,7 +156,7 @@ class UserQuestApiService {
       if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
       if (params?.rewardType) queryParams.append('rewardType', params.rewardType);
 
-      const response = await api.get(`${this.baseUrl}/quests?${queryParams.toString()}`);
+      const response = await api.get(`${USER_API_ROUTES.QUESTS.BASE}?${queryParams.toString()}`);
       return {
         success: true,
         data: response.data.data,
@@ -172,7 +173,7 @@ class UserQuestApiService {
 
   async getQuest(questId: string): Promise<ApiResponse<Quest>> {
     try {
-      const response = await api.get(`${this.baseUrl}/quests/${questId}`);
+      const response = await api.get(USER_API_ROUTES.QUESTS.BY_ID(questId));
       return {
         success: true,
         data: response.data.data,
@@ -192,7 +193,7 @@ class UserQuestApiService {
       const queryParams = new URLSearchParams();
       if (limit) queryParams.append('limit', limit.toString());
 
-      const response = await api.get(`${this.baseUrl}/quests/top?${queryParams.toString()}`);
+      const response = await api.get(`${USER_API_ROUTES.QUESTS.TOP}?${queryParams.toString()}`);
       return {
         success: true,
         data: response.data.data,
@@ -221,7 +222,7 @@ class UserQuestApiService {
       if (params?.status) queryParams.append('status', params.status);
       if (params?.search) queryParams.append('search', params.search);
 
-      const response = await api.get(`${this.baseUrl}/quests/my?${queryParams.toString()}`);
+      const response = await api.get(`${USER_API_ROUTES.QUESTS.MY}?${queryParams.toString()}`);
       return {
         success: true,
         data: response.data.data,
@@ -239,7 +240,7 @@ class UserQuestApiService {
   // Quest participation
   async joinQuest(questId: string, walletAddress?: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
     try {
-      const response = await api.post(`${this.baseUrl}/quests/join`, {
+      const response = await api.post(USER_API_ROUTES.QUESTS.JOIN, {
         questId,
         walletAddress
       });
@@ -259,7 +260,7 @@ class UserQuestApiService {
 
   async checkParticipationStatus(questId: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.get(`${this.baseUrl}/quests/${questId}/participation-status`);
+      const response = await api.get(USER_API_ROUTES.QUESTS.PARTICIPATION_STATUS(questId));
       return {
         success: true,
         data: response.data.data,
@@ -277,7 +278,7 @@ class UserQuestApiService {
   // Quest tasks
   async getQuestTasks(questId: string): Promise<ApiResponse<QuestTask[]>> {
     try {
-      const response = await api.get(`${this.baseUrl}/quests/${questId}/tasks`);
+      const response = await api.get(USER_API_ROUTES.QUESTS.TASKS(questId));
       return {
         success: true,
         data: response.data.data,
@@ -303,7 +304,7 @@ class UserQuestApiService {
     targetUserId?: string;
   }): Promise<ApiResponse<TaskSubmission>> {
     try {
-      const response = await api.post(`${this.baseUrl}/quests/submit-task`, {
+      const response = await api.post(USER_API_ROUTES.QUESTS.SUBMIT_TASK, {
         questId,
         taskId,
         submissionData
@@ -324,7 +325,7 @@ class UserQuestApiService {
 
   async getMySubmissions(questId: string): Promise<ApiResponse<TaskSubmission[]>> {
     try {
-      const response = await api.get(`${this.baseUrl}/quests/${questId}/submissions`);
+      const response = await api.get(USER_API_ROUTES.QUESTS.MY_SUBMISSIONS(questId));
       return {
         success: true,
         data: response.data.data,
@@ -345,7 +346,7 @@ class UserQuestApiService {
       const formData = new FormData();
       formData.append('media', file);
 
-      const response = await api.post(`${this.baseUrl}/quests/upload-media`, formData, {
+      const response = await api.post(USER_API_ROUTES.QUESTS.UPLOAD_MEDIA, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -368,7 +369,7 @@ class UserQuestApiService {
   // Quest stats and leaderboard
   async getQuestStats(questId: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.get(`${this.baseUrl}/quests/${questId}/stats`);
+      const response = await api.get(USER_API_ROUTES.QUESTS.STATS(questId));
       return {
         success: true,
         data: response.data.data,
@@ -392,7 +393,7 @@ class UserQuestApiService {
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.limit) queryParams.append('limit', params.limit.toString());
 
-      const response = await api.get(`${this.baseUrl}/quests/${questId}/leaderboard?${queryParams.toString()}`);
+      const response = await api.get(`${USER_API_ROUTES.QUESTS.LEADERBOARD(questId)}?${queryParams.toString()}`);
       return {
         success: true,
         data: response.data.data,
@@ -456,17 +457,17 @@ class UserQuestApiService {
   getTaskTypeInstructions(taskType: string, config: any): string {
     switch (taskType) {
       case 'join_community':
-        return config.communityName 
+        return config.communityName
           ? `Join the "${config.communityName}" community`
           : "Join the specified community";
       case 'follow_user':
-        return config.targetUsername 
+        return config.targetUsername
           ? `Follow @${config.targetUsername}`
           : "Follow the specified user";
       case 'twitter_post':
         return "Post the specified content on Twitter and provide the post URL";
       case 'upload_screenshot':
-        return config.websiteUrl 
+        return config.websiteUrl
           ? `Take a screenshot of ${config.websiteUrl} and upload it`
           : "Upload a screenshot as proof of completion";
       case 'wallet_connect':

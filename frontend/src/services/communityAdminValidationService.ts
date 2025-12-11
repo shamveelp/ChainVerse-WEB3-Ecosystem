@@ -1,4 +1,5 @@
 import API from "@/lib/axios"
+import { COMMUNITY_ADMIN_API_ROUTES } from "../routes/api.routes"
 
 interface ValidationResponse {
   success: boolean
@@ -10,7 +11,7 @@ interface ValidationResponse {
 
 export const checkEmailAvailability = async (email: string): Promise<ValidationResponse> => {
   try {
-    const response = await API.post("/api/community-admin/check-email", { email })
+    const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHECK_EMAIL, { email })
     return {
       success: true,
       available: response.data.available || false,
@@ -27,7 +28,7 @@ export const checkEmailAvailability = async (email: string): Promise<ValidationR
 
 export const checkUsernameAvailability = async (username: string): Promise<ValidationResponse> => {
   try {
-    const response = await API.post("/api/community-admin/check-username", { username })
+    const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHECK_USERNAME, { username })
     return {
       success: true,
       available: response.data.available || false,
