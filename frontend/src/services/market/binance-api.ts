@@ -92,11 +92,11 @@ export async function fetchBinanceData(options: FetchBinanceOptions = {}): Promi
 
     const data: BinanceTickerData[] = await response.json()
 
-    let filteredData = symbols
+    const filteredTickers = symbols
       ? data.filter((item) => symbols.includes(item.symbol))
       : data
 
-    filteredData = filteredData
+    return filteredTickers
       .map(transformBinanceData)
       .sort(
         (a, b) =>
@@ -104,8 +104,6 @@ export async function fetchBinanceData(options: FetchBinanceOptions = {}): Promi
           Number.parseFloat(a.marketCap.replace(/[^0-9.-]+/g, "")),
       )
       .slice(0, limit)
-
-    return filteredData
   } catch (error) {
     console.error("Error fetching Binance data:", error)
     const symbols = options.symbols === undefined ? Object.keys(CRYPTO_SYMBOLS) : options.symbols
