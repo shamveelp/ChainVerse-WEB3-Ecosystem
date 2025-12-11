@@ -13,19 +13,20 @@ export interface IQuestTask extends Document {
     // For follow_user tasks
     targetUserId?: Types.ObjectId;
     targetUsername?: string;
-    
+    communityId?: Types.ObjectId;
+
     // For twitter_post tasks
     twitterText?: string;
     twitterHashtags?: string[];
-    
+
     // For nft_mint tasks
     contractAddress?: string;
     tokenId?: string;
-    
+
     // For token_hold tasks
     tokenAddress?: string;
     minimumAmount?: number;
-    
+
     // For custom tasks
     customInstructions?: string;
     requiresProof?: boolean;
@@ -40,10 +41,10 @@ const QuestTaskSchema: Schema<IQuestTask> = new Schema({
   questId: { type: Schema.Types.ObjectId, ref: 'Quest', required: true },
   title: { type: String, required: true, maxlength: 200 },
   description: { type: String, required: true, maxlength: 1000 },
-  taskType: { 
-    type: String, 
-    enum: ['join_community', 'follow_user', 'twitter_post', 'upload_screenshot', 'nft_mint', 'token_hold', 'wallet_connect', 'custom'], 
-    required: true 
+  taskType: {
+    type: String,
+    enum: ['join_community', 'follow_user', 'twitter_post', 'upload_screenshot', 'nft_mint', 'token_hold', 'wallet_connect', 'custom'],
+    required: true
   },
   isRequired: { type: Boolean, default: true },
   order: { type: Number, required: true },
@@ -51,6 +52,7 @@ const QuestTaskSchema: Schema<IQuestTask> = new Schema({
   config: {
     targetUserId: { type: Schema.Types.ObjectId, ref: 'User' },
     targetUsername: { type: String },
+    communityId: { type: Schema.Types.ObjectId, ref: 'Community' },
     twitterText: { type: String },
     twitterHashtags: [{ type: String }],
     contractAddress: { type: String },

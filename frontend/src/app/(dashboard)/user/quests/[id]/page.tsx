@@ -265,9 +265,11 @@ export default function QuestDetailPage() {
 
     // Add specific fields based on task type
     if (selectedTask.taskType === 'join_community') {
-      validationData.communityId = selectedTask.config?.communityId || quest?.communityId;
+      const commId = selectedTask.config?.communityId || quest?.communityId;
+      validationData.communityId = (typeof commId === 'object' && commId !== null) ? (commId as any)._id : commId;
     } else if (selectedTask.taskType === 'follow_user') {
-      validationData.targetUserId = selectedTask.config?.targetUserId;
+      const userId = selectedTask.config?.targetUserId;
+      validationData.targetUserId = (typeof userId === 'object' && userId !== null) ? (userId as any)._id : userId;
     }
 
     // Validate submission data
@@ -515,8 +517,8 @@ export default function QuestDetailPage() {
 
               <div className="absolute top-4 right-4 flex gap-2">
                 <Badge className={`backdrop-blur-md shadow-lg border-0 ${quest.status === 'active' ? 'bg-green-500/90 text-black' :
-                    quest.status === 'ended' ? 'bg-gray-500/90 text-white' :
-                      'bg-blue-500/90 text-white'
+                  quest.status === 'ended' ? 'bg-gray-500/90 text-white' :
+                    'bg-blue-500/90 text-white'
                   }`}>
                   {quest.status.toUpperCase()}
                 </Badge>
@@ -717,8 +719,8 @@ export default function QuestDetailPage() {
                           <div className="col-span-1 text-center font-mono text-gray-400">
                             {participant.rank <= 3 ? (
                               <span className={`flex items-center justify-center w-6 h-6 rounded-full mx-auto ${participant.rank === 1 ? 'bg-yellow-500/20 text-yellow-500' :
-                                  participant.rank === 2 ? 'bg-gray-400/20 text-gray-300' :
-                                    'bg-orange-500/20 text-orange-500'
+                                participant.rank === 2 ? 'bg-gray-400/20 text-gray-300' :
+                                  'bg-orange-500/20 text-orange-500'
                                 }`}>
                                 {participant.rank}
                               </span>
@@ -949,10 +951,43 @@ export default function QuestDetailPage() {
                         <Button
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 gap-2"
                           onClick={() => {
-                            const url = selectedTask.taskType === 'join_community'
-                              ? `/user/community/${selectedTask.config?.communityId || quest?.communityId}`
-                              : `/user/profile/${selectedTask.config?.targetUserId}`;
-                            window.open(url, '_blank');
+                            let url = '#';
+                            if (selectedTask.taskType === 'join_community') {
+                              const configComm = selectedTask.config?.communityId;
+                              const isConfigObject = typeof configComm === 'object' && configComm !== null;
+
+                              // Try to get username
+                              let communityUsername = isConfigObject ? configComm.username : undefined;
+
+                              if (!communityUsername) {
+                                // Try quest community
+                                if (quest?.community?.username) {
+                                  communityUsername = quest.community.username;
+                                } else if (quest?.communityId && typeof quest.communityId === 'object' && (quest.communityId as any).username) {
+                                  communityUsername = (quest.communityId as any).username;
+                                }
+                              }
+
+                              if (communityUsername) {
+                                url = `/user/community/c/${communityUsername}`;
+                              } else {
+                                // Fallback to ID
+                                let id = isConfigObject ? configComm._id : configComm;
+                                if (!id && quest?.communityId) {
+                                  id = typeof quest.communityId === 'object' ? (quest.communityId as any)._id : quest.communityId;
+                                }
+                                if (id) url = `/user/community/c/${id}`;
+                              }
+                            } else {
+                              // follow_user
+                              const targetUser = selectedTask.config?.targetUserId;
+                              const isUserObject = typeof targetUser === 'object' && targetUser !== null;
+                              const username = isUserObject ? targetUser.username : targetUser;
+
+                              if (username) url = `/user/community/${username}`;
+                            }
+
+                            if (url !== '#') window.open(url, '_blank');
                           }}
                         >
                           {selectedTask.taskType === 'join_community' ? <Users className="h-4 w-4" /> : <Users className="h-4 w-4" />}

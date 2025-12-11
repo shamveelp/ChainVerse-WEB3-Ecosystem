@@ -14,7 +14,7 @@ export class UserQuestRepository implements IUserQuestRepository {
     const { sortBy = 'createdAt', sortOrder = 'desc', ...queryFilters } = filters;
 
     const sortOptions: any = {};
-    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;   
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
     const [quests, total] = await Promise.all([
       QuestModel.find(queryFilters)
@@ -35,11 +35,11 @@ export class UserQuestRepository implements IUserQuestRepository {
       .lean();
   }
 
-  async findTopQuests(limit: number): Promise<IQuest[]> { 
+  async findTopQuests(limit: number): Promise<IQuest[]> {
     return await QuestModel.find({
       status: { $in: ['active', 'ended'] }
     })
-      .sort({ totalParticipants: -1, createdAt: -1 })     
+      .sort({ totalParticipants: -1, createdAt: -1 })
       .limit(limit)
       .populate('communityId', 'communityName logo username')
       .lean();
@@ -56,7 +56,7 @@ export class UserQuestRepository implements IUserQuestRepository {
   }
 
   async updateParticipant(participantId: string, updateData: Partial<IQuestParticipant>): Promise<IQuestParticipant | null> {
-    return await QuestParticipantModel.findByIdAndUpdate( 
+    return await QuestParticipantModel.findByIdAndUpdate(
       participantId,
       { ...updateData, updatedAt: new Date() },
       { new: true }
@@ -71,7 +71,7 @@ export class UserQuestRepository implements IUserQuestRepository {
       filter.status = status;
     }
 
-    const [participations, total] = await Promise.all([   
+    const [participations, total] = await Promise.all([
       QuestParticipantModel.find(filter)
         .sort({ joinedAt: -1 })
         .skip(skip)
@@ -84,7 +84,7 @@ export class UserQuestRepository implements IUserQuestRepository {
           }
         })
         .lean(),
-      QuestParticipantModel.countDocuments(filter)        
+      QuestParticipantModel.countDocuments(filter)
     ]);
 
     const questsWithDetails = participations.map(participation => ({
@@ -99,6 +99,8 @@ export class UserQuestRepository implements IUserQuestRepository {
   async findTasksByQuest(questId: string): Promise<IQuestTask[]> {
     return await QuestTaskModel.find({ questId })
       .sort({ order: 1 })
+      .populate('config.targetUserId', 'username name profilePic')
+      .populate('config.communityId', 'username communityName logo')
       .lean();
   }
 
@@ -112,7 +114,7 @@ export class UserQuestRepository implements IUserQuestRepository {
   }
 
   async updateSubmission(submissionId: string, updateData: Partial<IQuestSubmission>): Promise<IQuestSubmission | null> {
-    return await QuestSubmissionModel.findByIdAndUpdate(  
+    return await QuestSubmissionModel.findByIdAndUpdate(
       submissionId,
       { ...updateData, updatedAt: new Date() },
       { new: true }
@@ -128,8 +130,8 @@ export class UserQuestRepository implements IUserQuestRepository {
 
   // Enhanced analytics
   async getQuestParticipantStats(questId: string): Promise<any> {
-    const [totalParticipants, completedParticipants, inProgressParticipants, winnerCount] = await Promise.all([     
-      QuestParticipantModel.countDocuments({ questId }),  
+    const [totalParticipants, completedParticipants, inProgressParticipants, winnerCount] = await Promise.all([
+      QuestParticipantModel.countDocuments({ questId }),
       QuestParticipantModel.countDocuments({ questId, status: 'completed' }),
       QuestParticipantModel.countDocuments({ questId, status: 'in_progress' }),
       QuestParticipantModel.countDocuments({ questId, isWinner: true })
@@ -147,7 +149,7 @@ export class UserQuestRepository implements IUserQuestRepository {
   // Enhanced leaderboard with pagination and proper scoring
   async getQuestLeaderboard(questId: string, page: number = 1, limit: number = 10): Promise<{ participants: any[]; total: number; pages: number }> {
     const skip = (page - 1) * limit;
-    
+
     // Get quest details to determine selection method
     const quest = await QuestModel.findById(questId).lean();
     if (!quest) {
@@ -155,7 +157,7 @@ export class UserQuestRepository implements IUserQuestRepository {
     }
 
     let sortCriteria: any = {};
-    
+
     // Different sorting based on quest selection method
     if (quest.selectionMethod === 'leaderboard') {
       // For leaderboard method: sort by privilege points, then by completion time
@@ -179,7 +181,7 @@ export class UserQuestRepository implements IUserQuestRepository {
     }
 
     const [participants, total] = await Promise.all([
-      QuestParticipantModel.find({ 
+      QuestParticipantModel.find({
         questId,
         status: { $in: ['completed', 'in_progress', 'winner'] }
       })
@@ -188,7 +190,7 @@ export class UserQuestRepository implements IUserQuestRepository {
         .limit(limit)
         .populate('userId', 'username name profilePic')
         .lean(),
-      QuestParticipantModel.countDocuments({ 
+      QuestParticipantModel.countDocuments({
         questId,
         status: { $in: ['completed', 'in_progress', 'winner'] }
       })
@@ -230,7 +232,7 @@ export class UserQuestRepository implements IUserQuestRepository {
     if (!quest) return 0;
 
     let sortCriteria: any = {};
-    
+
     if (quest.selectionMethod === 'leaderboard') {
       sortCriteria = {
         totalPrivilegePoints: -1,
@@ -249,7 +251,7 @@ export class UserQuestRepository implements IUserQuestRepository {
       };
     }
 
-    const participants = await QuestParticipantModel.find({ 
+    const participants = await QuestParticipantModel.find({
       questId,
       status: { $in: ['completed', 'in_progress', 'winner'] }
     })
@@ -287,7 +289,7 @@ export class UserQuestRepository implements IUserQuestRepository {
   }
 
   async incrementTaskCompletions(taskId: string): Promise<void> {
-    await QuestTaskModel.findByIdAndUpdate(taskId, {      
+    await QuestTaskModel.findByIdAndUpdate(taskId, {
       $inc: { completedBy: 1 }
     });
   }
