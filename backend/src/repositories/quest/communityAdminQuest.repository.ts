@@ -99,7 +99,7 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
   }
 
   async findParticipantsByQuest(
-    questId: string, 
+    questId: string,
     page: number,
     limit: number,
     status?: string
@@ -161,8 +161,8 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
         $ne: ['$status', 'disqualified']
       }
     })
-    .populate('userId', 'username name profilePic email')
-    .lean();
+      .populate('userId', 'username name profilePic email')
+      .lean();
   }
 
   async getParticipantsByFCFS(questId: string, limit: number): Promise<IQuestParticipant[]> {
@@ -170,10 +170,10 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
       questId,
       status: 'completed'
     })
-    .sort({ completedAt: 1 }) // First completed first
-    .limit(limit)
-    .populate('userId', 'username name profilePic email')
-    .lean();
+      .sort({ completedAt: 1 }) // First completed first
+      .limit(limit)
+      .populate('userId', 'username name profilePic email')
+      .lean();
   }
 
   async getParticipantsByLeaderboard(questId: string, limit: number): Promise<IQuestParticipant[]> {
@@ -181,13 +181,13 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
       questId,
       status: 'completed'
     })
-    .sort({ 
-      totalPrivilegePoints: -1, // Highest points first
-      completedAt: 1 // Then by completion time
-    })
-    .limit(limit)
-    .populate('userId', 'username name profilePic email')
-    .lean();
+      .sort({
+        totalPrivilegePoints: -1, // Highest points first
+        completedAt: 1 // Then by completion time
+      })
+      .limit(limit)
+      .populate('userId', 'username name profilePic email')
+      .lean();
   }
 
   async getRandomParticipants(questId: string, limit: number): Promise<IQuestParticipant[]> {
@@ -204,7 +204,7 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
   async distributeRewards(questId: string): Promise<boolean> {
     const session = await mongoose.startSession();
     session.startTransaction();
-    
+
     try {
       // Get quest details
       const quest = await QuestModel.findById(questId).session(session);
@@ -304,6 +304,16 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
     ]);
 
     return { submissions, total };
+  }
+
+  async findSubmissionsByUserAndQuest(
+    userId: string,
+    questId: string
+  ): Promise<IQuestSubmission[]> {
+    return await QuestSubmissionModel.find({ userId, questId })
+      .populate('taskId', 'title taskType')
+      .sort({ submittedAt: -1 })
+      .lean();
   }
 
   async findSubmissionsByTask(
@@ -419,7 +429,7 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
     }).select('privilegePoints');
 
     const totalPoints = completedTasksWithPoints.reduce((sum, task) => sum + task.privilegePoints, 0);
-    
+
     // Update participant's total privilege points
     await QuestParticipantModel.findByIdAndUpdate(participantId, {
       totalPrivilegePoints: totalPoints

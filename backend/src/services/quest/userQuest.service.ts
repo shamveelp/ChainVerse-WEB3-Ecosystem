@@ -171,9 +171,8 @@ export class UserQuestService implements IUserQuestService {
         throw new CustomError(ErrorMessages.QUEST_ALREADY_ENDED, StatusCode.BAD_REQUEST);
       }
 
-      if (quest.totalParticipants >= quest.participantLimit) {
-        throw new CustomError(ErrorMessages.QUEST_FULL, StatusCode.BAD_REQUEST);
-      }
+      // Note: participantLimit represents winner limit, not total participant cap
+      // Unlimited users can participate; only winner selection is limited
 
       // Check if user is already participating
       const existingParticipation = await this._questRepository.findParticipantByUserAndQuest(userId, joinDto.questId);

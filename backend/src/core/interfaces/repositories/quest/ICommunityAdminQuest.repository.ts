@@ -55,6 +55,10 @@ export interface ICommunityAdminQuestRepository {
     limit: number,
     status?: string
   ): Promise<{ submissions: IQuestSubmission[]; total: number }>;
+  findSubmissionsByUserAndQuest(
+    userId: string,
+    questId: string
+  ): Promise<IQuestSubmission[]>;
   findSubmissionsByTask(
     taskId: string,
     page: number,

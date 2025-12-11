@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, Trophy, Calendar, Target, Coins, Award, Play, Square, CreditCard as Edit, Trash2, Crown, Clock, CheckCircle, AlertCircle, MoreVertical, Eye, UserX } from 'lucide-react';
+import { ArrowLeft, Users, Trophy, Calendar, Target, Coins, Award, Play, Square, CreditCard as Edit, Trash2, Crown, Clock, CheckCircle, AlertCircle, MoreVertical, Eye, UserX, ExternalLink } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 import {
@@ -77,6 +77,7 @@ interface Participant {
   totalTasksCompleted: number;
   isWinner: boolean;
   walletAddress?: string;
+  submissions?: any[];
 }
 
 interface QuestStats {
@@ -467,8 +468,8 @@ export default function QuestDetailPage() {
                         {quest.rewardPool.amount} {quest.rewardPool.currency}
                       </p>
                       <p className="text-gray-400">
-                        {quest.rewardPool.rewardType === 'custom' 
-                          ? quest.rewardPool.customReward 
+                        {quest.rewardPool.rewardType === 'custom'
+                          ? quest.rewardPool.customReward
                           : `${quest.rewardPool.rewardType.charAt(0).toUpperCase() + quest.rewardPool.rewardType.slice(1)} Reward`}
                       </p>
                       <p className="text-sm text-gray-500">
@@ -512,8 +513,8 @@ export default function QuestDetailPage() {
                             {stats.totalParticipants > 0 ? Math.round((stats.completedParticipants / stats.totalParticipants) * 100) : 0}%
                           </span>
                         </div>
-                        <Progress 
-                          value={stats.totalParticipants > 0 ? (stats.completedParticipants / stats.totalParticipants) * 100 : 0} 
+                        <Progress
+                          value={stats.totalParticipants > 0 ? (stats.completedParticipants / stats.totalParticipants) * 100 : 0}
                           className="h-2"
                         />
                       </div>
@@ -530,15 +531,16 @@ export default function QuestDetailPage() {
                   <CardContent>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400">Participants</span>
+                        <span className="text-gray-400">Participants / Winners</span>
                         <span className="text-white">
-                          {Math.min(quest.totalParticipants, quest.participantLimit)} / {quest.participantLimit}
+                          {quest.totalParticipants} / {quest.participantLimit} winners
                         </span>
                       </div>
-                      <Progress 
-                        value={(quest.totalParticipants / quest.participantLimit) * 100} 
+                      <Progress
+                        value={Math.min((quest.totalParticipants / quest.participantLimit) * 100, 100)}
                         className="h-3"
                       />
+                      <p className="text-xs text-gray-500">Unlimited users can participate</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -641,7 +643,7 @@ export default function QuestDetailPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-gray-800 border-gray-600">
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => viewParticipantDetails(participant)}
                               className="text-white hover:bg-gray-700"
                             >
@@ -649,7 +651,7 @@ export default function QuestDetailPage() {
                               View Details
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-gray-600" />
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => disqualifyParticipant(participant._id, "Manual disqualification")}
                               className="text-red-400 hover:bg-gray-700"
                               disabled={participant.status === 'disqualified'}
@@ -734,7 +736,7 @@ export default function QuestDetailPage() {
                     </div>
                     <p className="text-gray-400">Overall Completion Rate</p>
                   </div>
-                  
+
                   {stats && (
                     <div className="space-y-3">
                       <div className="flex justify-between">
@@ -817,17 +819,114 @@ export default function QuestDetailPage() {
                     {selectedParticipant.isWinner ? "Winner" : "Not selected"}
                   </p>
                 </div>
+
+                <div className="mt-6 pt-4 border-t border-gray-700">
+                  <h4 className="text-sm font-semibold text-white mb-3">Task Submissions</h4>
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                    {quest.tasks?.map((task) => {
+                      const submission = selectedParticipant.submissions?.find((s: any) => {
+                        const sTaskId = s.taskId?._id || s.taskId;
+                        return String(sTaskId) === String(task._id);
+                      });
+
+                      return (
+                        <div key={task._id} className="bg-gray-800/50 p-3 rounded-lg border border-gray-700/50">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <p className="text-sm font-medium text-gray-200">{task.title}</p>
+                              <span className="text-xs text-gray-500 uppercase tracking-wider">{task.taskType.replace('_', ' ')}</span>
+                            </div>
+                            {submission ? (
+                              <div className="flex flex-col items-end">
+                                <Badge className="bg-green-600/20 text-green-400 border-green-600/30 mb-1">Completed</Badge>
+                                <span className="text-[10px] text-gray-500">
+                                  {new Date(submission.submittedAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                            ) : (
+                              <Badge variant="outline" className="text-gray-500 border-gray-700">Pending</Badge>
+                            )}
+                          </div>
+
+                          {submission && (
+                            <div className="mt-2 text-sm bg-black/20 p-2 rounded">
+                              <p className="text-xs text-gray-500 mb-1">Submission Details:</p>
+
+                              {submission.submissionData ? (
+                                <>
+                                  {submission.submissionData.imageUrl && (
+                                    <div className="relative group mt-1">
+                                      <a href={submission.submissionData.imageUrl} target="_blank" rel="noopener noreferrer" className="block">
+                                        <img src={submission.submissionData.imageUrl} alt="Proof" className="w-full h-32 object-cover rounded border border-gray-700" />
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded">
+                                          <ExternalLink className="w-5 h-5 text-white" />
+                                        </div>
+                                      </a>
+                                    </div>
+                                  )}
+
+                                  {submission.submissionData.twitterUrl && (
+                                    <a href={submission.submissionData.twitterUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-400 hover:text-blue-300 break-all mt-1">
+                                      <ExternalLink className="w-3 h-3 mr-1 flex-shrink-0" />
+                                      {submission.submissionData.twitterUrl}
+                                    </a>
+                                  )}
+
+                                  {submission.submissionData.text && (
+                                    <p className="text-gray-300 mt-1 p-2 bg-gray-900/50 rounded">{submission.submissionData.text}</p>
+                                  )}
+
+                                  {submission.submissionData.linkUrl && (
+                                    <a href={submission.submissionData.linkUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-400 hover:text-blue-300 truncate mt-1">
+                                      <ExternalLink className="w-3 h-3 mr-1" />
+                                      {submission.submissionData.linkUrl}
+                                    </a>
+                                  )}
+
+                                  {(task.taskType === 'join_community' || task.taskType === 'follow_user') && (
+                                    <div className="text-gray-300 flex items-center mt-1">
+                                      <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
+                                      <span>ID Verified: {submission.submissionData.communityName || submission.submissionData.targetUsername || 'Success'}</span>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <div className="text-gray-400 italic text-xs">
+                                  Task marked as completed but no details provided.
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setSelectedParticipant(null)}
-              className="border-gray-600 text-gray-400"
-            >
-              Close
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (selectedParticipant && confirm("Are you sure you want to disqualify this participant?")) {
+                    disqualifyParticipant(selectedParticipant._id, "Verification failed");
+                    setSelectedParticipant(null);
+                  }
+                }}
+              >
+                <UserX className="w-4 h-4 mr-2" />
+                Disqualify
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setSelectedParticipant(null)}
+                className="border-gray-600 text-gray-400"
+              >
+                Close
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

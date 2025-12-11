@@ -540,6 +540,9 @@ export default function CreateQuestPage() {
                         }}
                         className={`bg-gray-800 border-gray-600 text-white ${errors.participantLimit ? 'border-red-500' : ''}`}
                       />
+                      <p className="text-xs text-gray-400">
+                        Unlimited users can participate. This sets how many winners will receive rewards.
+                      </p>
                       {errors.participantLimit && (
                         <p className="text-red-400 text-xs flex items-center gap-1">
                           <AlertTriangle className="h-3 w-3" />

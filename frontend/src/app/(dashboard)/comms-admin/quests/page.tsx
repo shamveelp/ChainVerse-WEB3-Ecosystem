@@ -608,15 +608,16 @@ export default function QuestsPage() {
                         {quest.status === 'active' && (
                           <div className="space-y-2 bg-slate-800/30 rounded-lg p-3 border border-slate-700/50">
                             <div className="flex items-center justify-between text-sm">
-                              <span className="text-slate-400 font-medium">Participation</span>
+                              <span className="text-slate-400 font-medium">Participants / Winners</span>
                               <span className="text-white font-semibold">
-                                {Math.min(quest.totalParticipants, quest.participantLimit)} / {quest.participantLimit}
+                                {quest.totalParticipants} / {quest.participantLimit} winners
                               </span>
                             </div>
                             <Progress
-                              value={(quest.totalParticipants / quest.participantLimit) * 100}
+                              value={Math.min((quest.totalParticipants / quest.participantLimit) * 100, 100)}
                               className="h-2 bg-slate-700"
                             />
+                            <p className="text-xs text-slate-500">Unlimited users can participate. Progress shows participants vs winner slots.</p>
                           </div>
                         )}
 

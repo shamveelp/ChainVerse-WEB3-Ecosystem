@@ -650,9 +650,8 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
         throw new CustomError("Participant not found", StatusCode.NOT_FOUND);
       }
 
-      // Get participant's submissions
-      const { submissions } = await this._questRepository.findSubmissionsByQuest(questId, 1, 100);
-      const participantSubmissions = submissions.filter(s => s.userId.toString() === participantId);
+      // Get participant's submissions directly using the specific repository method
+      const participantSubmissions = await this._questRepository.findSubmissionsByUserAndQuest(participantId, questId);
 
       return {
         ...participant,
@@ -930,7 +929,13 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
         throw new CustomError("Only draft quests can be started", StatusCode.BAD_REQUEST);
       }
 
-      const updatedQuest = await this._questRepository.updateQuest(questId, { status: 'active' });
+      // If start date is in the future, set it to now so users can join immediately
+      const updateData: any = { status: 'active' };
+      if (new Date(quest.startDate) > new Date()) {
+        updateData.startDate = new Date();
+      }
+
+      const updatedQuest = await this._questRepository.updateQuest(questId, updateData);
       if (!updatedQuest) {
         throw new CustomError("Failed to start quest", StatusCode.INTERNAL_SERVER_ERROR);
       }

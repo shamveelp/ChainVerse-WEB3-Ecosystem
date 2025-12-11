@@ -10,7 +10,7 @@ export interface IQuest extends Document {
   startDate: Date;
   endDate: Date;
   selectionMethod: 'fcfs' | 'random' | 'leaderboard'; // Added leaderboard
-  participantLimit: number; // Number of winners
+  participantLimit: number; // Maximum number of winners who will receive rewards (unlimited users can participate)
   rewardPool: {
     amount: number;
     currency: string; // 'USD', 'ETH', 'POINTS', etc.
