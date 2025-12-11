@@ -8,14 +8,15 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, UploadCloud, RefreshCw } from "lucide-react"
+import { Loader2, UploadCloud, RefreshCw, Crop } from "lucide-react"
 import { toast } from "sonner"
+import { communityAdminApiService } from "@/services/communityAdminApiService"
 import {
-  communityAdminApiService,
   type CommunityDetails,
   type CommunitySocialLinks,
   type CommunitySettings,
-} from "@/services/communityAdminApiService"
+} from "@/types/comms-admin/community-admin.types"
+import { ImageCropper } from "@/components/ui/image-cropper"
 
 interface FormState {
   communityName: string
@@ -64,6 +65,12 @@ export default function CommunitySettingsPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [bannerFile, setBannerFile] = useState<File | null>(null)
 
+  // Image cropping states
+  const [logoCropperOpen, setLogoCropperOpen] = useState(false)
+  const [bannerCropperOpen, setBannerCropperOpen] = useState(false)
+  const [tempLogoUrl, setTempLogoUrl] = useState<string>('')
+  const [tempBannerUrl, setTempBannerUrl] = useState<string>('')
+
   useEffect(() => {
     const fetchDetails = async () => {
       try {
@@ -75,6 +82,11 @@ export default function CommunitySettingsPage() {
         }
 
         const data: CommunityDetails = response.data.community as CommunityDetails
+
+        // Add cache-busting to prevent browser caching of images
+        const cacheBuster = `?t=${Date.now()}`
+        const logoUrl = data.logo ? `${data.logo}${cacheBuster}` : undefined
+        const bannerUrl = data.banner ? `${data.banner}${cacheBuster}` : undefined
 
         setFormState({
           communityName: data.communityName || "",
@@ -95,8 +107,8 @@ export default function CommunitySettingsPage() {
           logo: data.logo,
           banner: data.banner,
         })
-        setLogoPreview(data.logo)
-        setBannerPreview(data.banner)
+        setLogoPreview(logoUrl)
+        setBannerPreview(bannerUrl)
       } catch (error: any) {
         console.error("Failed to load community details:", error)
         toast.error("Unable to load community settings", {
@@ -109,6 +121,31 @@ export default function CommunitySettingsPage() {
 
     fetchDetails()
   }, [])
+
+  // Clean up object URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (tempLogoUrl) URL.revokeObjectURL(tempLogoUrl)
+      if (tempBannerUrl) URL.revokeObjectURL(tempBannerUrl)
+    }
+  }, [tempLogoUrl, tempBannerUrl])
+
+  // Clean up blob URLs when preview changes
+  useEffect(() => {
+    return () => {
+      if (logoPreview && logoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(logoPreview)
+      }
+    }
+  }, [logoPreview])
+
+  useEffect(() => {
+    return () => {
+      if (bannerPreview && bannerPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(bannerPreview)
+      }
+    }
+  }, [bannerPreview])
 
   const handleInputChange = (field: keyof FormState, value: string) => {
     setFormState((prev) => ({
@@ -162,30 +199,69 @@ export default function CommunitySettingsPage() {
     })
   }
 
-  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+  const handleFileSelect = (file: File, type: 'logo' | 'banner') => {
+    const maxSize = type === 'logo' ? 5 * 1024 * 1024 : 10 * 1024 * 1024
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Logo must be an image")
+    if (file.size > maxSize) {
+      toast.error(`File size too large. Max ${type === 'logo' ? '5MB' : '10MB'} allowed.`)
       return
     }
 
-    setLogoFile(file)
-    setLogoPreview(URL.createObjectURL(file))
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please upload a valid image file")
+      return
+    }
+
+    const imageUrl = URL.createObjectURL(file)
+
+    if (type === 'logo') {
+      setTempLogoUrl(imageUrl)
+      setLogoCropperOpen(true)
+    } else {
+      setTempBannerUrl(imageUrl)
+      setBannerCropperOpen(true)
+    }
   }
 
-  const handleBannerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+  const handleCropComplete = (croppedImage: File, type: 'logo' | 'banner') => {
+    // Create preview URL for the cropped image
+    const previewUrl = URL.createObjectURL(croppedImage)
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Banner must be an image")
-      return
+    if (type === 'logo') {
+      setLogoFile(croppedImage)
+      setLogoPreview(previewUrl)
+      setLogoCropperOpen(false)
+      if (tempLogoUrl) URL.revokeObjectURL(tempLogoUrl)
+      setTempLogoUrl('')
+    } else {
+      setBannerFile(croppedImage)
+      setBannerPreview(previewUrl)
+      setBannerCropperOpen(false)
+      if (tempBannerUrl) URL.revokeObjectURL(tempBannerUrl)
+      setTempBannerUrl('')
     }
+  }
 
-    setBannerFile(file)
-    setBannerPreview(URL.createObjectURL(file))
+  const removeImage = (type: 'logo' | 'banner') => {
+    if (type === 'logo') {
+      setLogoFile(null)
+      setLogoPreview(undefined)
+      setFormState(prev => ({ ...prev, logo: undefined }))
+    } else {
+      setBannerFile(null)
+      setBannerPreview(undefined)
+      setFormState(prev => ({ ...prev, banner: undefined }))
+    }
+  }
+
+  // Wrapper for input change events
+  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
+    const file = event.target.files?.[0]
+    if (file) {
+      handleFileSelect(file, type)
+    }
+    // Reset value so same file can be selected again
+    event.target.value = ''
   }
 
   const validateForm = () => {
@@ -227,11 +303,20 @@ export default function CommunitySettingsPage() {
       formData.append("socialLinks", JSON.stringify(formState.socialLinks))
       formData.append("settings", JSON.stringify(formState.settings))
 
+      // Handle Logo
       if (logoFile) {
         formData.append("logo", logoFile)
+      } else if (!logoPreview) {
+        // Explicitly remove logo if no file and no preview
+        formData.append("logo", "")
       }
+
+      // Handle Banner
       if (bannerFile) {
         formData.append("banner", bannerFile)
+      } else if (!bannerPreview) {
+        // Explicitly remove banner if no file and no preview
+        formData.append("banner", "")
       }
 
       const response = await communityAdminApiService.updateCommunity(formData)
@@ -241,6 +326,19 @@ export default function CommunitySettingsPage() {
       }
 
       const updatedCommunity: CommunityDetails = response.data.community as CommunityDetails
+
+      // Clean up any existing blob URLs before setting new ones
+      if (logoPreview && logoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(logoPreview)
+      }
+      if (bannerPreview && bannerPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(bannerPreview)
+      }
+
+      // Add cache-busting timestamp to prevent browser caching
+      const cacheBuster = `?t=${Date.now()}`
+      const logoUrl = updatedCommunity.logo ? `${updatedCommunity.logo}${cacheBuster}` : undefined
+      const bannerUrl = updatedCommunity.banner ? `${updatedCommunity.banner}${cacheBuster}` : undefined
 
       setFormState((prev) => ({
         ...prev,
@@ -261,8 +359,9 @@ export default function CommunitySettingsPage() {
         logo: updatedCommunity.logo,
         banner: updatedCommunity.banner,
       }))
-      setLogoPreview(updatedCommunity.logo)
-      setBannerPreview(updatedCommunity.banner)
+
+      setLogoPreview(logoUrl)
+      setBannerPreview(bannerUrl)
       setLogoFile(null)
       setBannerFile(null)
 
@@ -289,16 +388,16 @@ export default function CommunitySettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="space-y-6 pb-10">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white">Community Settings</h1>
           <p className="text-gray-400 mt-1">Manage how your community looks and behaves.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <Button
             variant="outline"
-            className="border-gray-600 text-gray-200 hover:bg-gray-800"
+            className="flex-1 sm:flex-none border-gray-600 text-gray-200 hover:bg-gray-800"
             onClick={() => window.location.reload()}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -307,7 +406,7 @@ export default function CommunitySettingsPage() {
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90"
+            className="flex-1 sm:flex-none bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90"
           >
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
             {saving ? "Saving..." : "Save Changes"}
@@ -315,8 +414,8 @@ export default function CommunitySettingsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <Card className="xl:col-span-2 bg-black/40 border-gray-800">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 bg-black/40 border-gray-800">
           <CardHeader>
             <CardTitle className="text-white">Community Details</CardTitle>
           </CardHeader>
@@ -386,7 +485,7 @@ export default function CommunitySettingsPage() {
             <div>
               <Label className="text-gray-300">Logo</Label>
               <div className="mt-2 flex items-center gap-4">
-                <div className="h-20 w-20 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center overflow-hidden">
+                <div className="h-20 w-20 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center overflow-hidden shrink-0">
                   {logoPreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={logoPreview} alt="Community logo" className="h-full w-full object-cover" />
@@ -394,20 +493,38 @@ export default function CommunitySettingsPage() {
                     <Badge className="bg-blue-500/20 text-blue-300">No Logo</Badge>
                   )}
                 </div>
-                <Button variant="outline" className="border-gray-600 text-gray-200" asChild>
-                  <label className="cursor-pointer flex items-center gap-2">
-                    <UploadCloud className="h-4 w-4" />
-                    Upload Logo
-                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
-                  </label>
-                </Button>
+                {logoPreview ? (
+                  <div className="flex flex-col sm:flex-row gap-2 w-full">
+                    <Button
+                      variant="outline"
+                      className="border-gray-600 text-gray-200 flex-1"
+                      onClick={() => document.getElementById('logo-upload')?.click()}
+                    >
+                      Change
+                      <input id="logo-upload" type="file" accept="image/*" className="hidden" onChange={(e) => onFileChange(e, 'logo')} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="text-red-400 hover:text-red-300 hover:bg-red-400/10 flex-1"
+                      onClick={() => removeImage('logo')}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" className="border-gray-600 text-gray-200 w-full" onClick={() => document.getElementById('logo-upload')?.click()}>
+                    <Crop className="h-4 w-4 mr-2" />
+                    Upload & Crop
+                    <input id="logo-upload" type="file" accept="image/*" className="hidden" onChange={(e) => onFileChange(e, 'logo')} />
+                  </Button>
+                )}
               </div>
             </div>
 
             <div>
               <Label className="text-gray-300">Banner</Label>
               <div className="mt-2 space-y-3">
-                <div className="h-28 rounded-lg bg-gray-900 border border-gray-700 overflow-hidden">
+                <div className="h-28 rounded-lg bg-gray-900 border border-gray-700 overflow-hidden relative">
                   {bannerPreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={bannerPreview} alt="Community banner" className="h-full w-full object-cover" />
@@ -417,13 +534,31 @@ export default function CommunitySettingsPage() {
                     </div>
                   )}
                 </div>
-                <Button variant="outline" className="border-gray-600 text-gray-200 w-full" asChild>
-                  <label className="cursor-pointer flex items-center justify-center gap-2">
-                    <UploadCloud className="h-4 w-4" />
-                    Upload Banner
-                    <input type="file" accept="image/*" className="hidden" onChange={handleBannerChange} />
-                  </label>
-                </Button>
+                {bannerPreview ? (
+                  <div className="flex flex-col sm:flex-row gap-2 w-full">
+                    <Button
+                      variant="outline"
+                      className="border-gray-600 text-gray-200 flex-1"
+                      onClick={() => document.getElementById('banner-upload')?.click()}
+                    >
+                      Change
+                      <input id="banner-upload" type="file" accept="image/*" className="hidden" onChange={(e) => onFileChange(e, 'banner')} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="text-red-400 hover:text-red-300 hover:bg-red-400/10 flex-1"
+                      onClick={() => removeImage('banner')}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" className="border-gray-600 text-gray-200 w-full" onClick={() => document.getElementById('banner-upload')?.click()}>
+                    <Crop className="h-4 w-4 mr-2" />
+                    Upload & Crop
+                    <input id="banner-upload" type="file" accept="image/*" className="hidden" onChange={(e) => onFileChange(e, 'banner')} />
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
@@ -466,12 +601,12 @@ export default function CommunitySettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {(["twitter", "discord", "telegram", "website"] as (keyof CommunitySocialLinks)[]).map((platform) => (
-              <div key={platform}>
-                <Label className="text-gray-300 capitalize">{platform}</Label>
+              <div key={String(platform)}>
+                <Label className="text-gray-300 capitalize">{String(platform)}</Label>
                 <Input
                   value={formState.socialLinks[platform] || ""}
                   onChange={(e) => handleSocialLinkChange(platform, e.target.value)}
-                  placeholder={`Enter ${platform} link`}
+                  placeholder={`Enter ${String(platform)} link`}
                   className="bg-gray-900 border-gray-700 text-white"
                 />
               </div>
@@ -509,6 +644,39 @@ export default function CommunitySettingsPage() {
           ))}
         </CardContent>
       </Card>
+
+      {/* Image Croppers */}
+      <ImageCropper
+        open={logoCropperOpen}
+        onClose={() => {
+          setLogoCropperOpen(false)
+          if (tempLogoUrl) {
+            URL.revokeObjectURL(tempLogoUrl)
+            setTempLogoUrl('')
+          }
+        }}
+        imageSrc={tempLogoUrl}
+        aspectRatio={1}
+        cropShape="round"
+        fileName="community-logo.jpg"
+        onCropComplete={(croppedImage) => handleCropComplete(croppedImage, 'logo')}
+      />
+
+      <ImageCropper
+        open={bannerCropperOpen}
+        onClose={() => {
+          setBannerCropperOpen(false)
+          if (tempBannerUrl) {
+            URL.revokeObjectURL(tempBannerUrl)
+            setTempBannerUrl('')
+          }
+        }}
+        imageSrc={tempBannerUrl}
+        aspectRatio={3}
+        cropShape="rect"
+        fileName="community-banner.jpg"
+        onCropComplete={(croppedImage) => handleCropComplete(croppedImage, 'banner')}
+      />
     </div>
   )
 }

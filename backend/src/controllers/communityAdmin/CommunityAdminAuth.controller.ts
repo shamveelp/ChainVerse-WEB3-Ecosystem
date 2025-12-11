@@ -448,6 +448,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 }
             };
 
+            // Handle logo upload or removal
             if (files?.logo?.[0]) {
                 const logoUrl = await uploadImage(files.logo[0], "chainverse/community-logos", [
                     { width: 400, height: 400, crop: "fill" },
@@ -456,8 +457,12 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 if (logoUrl) {
                     updatePayload.logo = logoUrl;
                 }
+            } else if (updatePayload.logo === '') {
+                // Explicitly remove logo if empty string is sent
+                updatePayload.logo = '';
             }
 
+            // Handle banner upload or removal
             if (files?.banner?.[0]) {
                 const bannerUrl = await uploadImage(files.banner[0], "chainverse/community-banners", [
                     { width: 1600, height: 600, crop: "fill" },
@@ -466,7 +471,11 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 if (bannerUrl) {
                     updatePayload.banner = bannerUrl;
                 }
+            } else if (updatePayload.banner === '') {
+                // Explicitly remove banner if empty string is sent
+                updatePayload.banner = '';
             }
+
 
             const result = await this._commAdminAuthService.updateCommunity(communityAdminId, updatePayload);
             res.status(StatusCode.OK).json(result);

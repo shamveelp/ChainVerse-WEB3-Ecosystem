@@ -2,6 +2,7 @@
 import type React from "react"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { Provider, useDispatch } from "react-redux"
 import { PersistGate } from "redux-persist/integration/react"
 import { store, persistor } from "@/redux/store"
@@ -65,6 +66,7 @@ export default function ClientLayout({ children }: Readonly<{ children: React.Re
           </Provider>
         )}
         <Toaster />
+        <SonnerToaster position="top-right" richColors />
       </body>
     </html>
   )
