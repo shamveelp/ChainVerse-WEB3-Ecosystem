@@ -1,151 +1,19 @@
 import API from "@/lib/api-client";
 import { USER_API_ROUTES } from "../../routes/api.routes";
 
-// Community interfaces
-export interface Community {
-  _id: string;
-  communityName: string;
-  username: string;
-  description: string;
-  category: string;
-  logo: string;
-  banner?: string;
-  isVerified: boolean;
-  memberCount: number;
-  isMember: boolean;
-  createdAt: Date | string;
-  rules?: string[];
-  socialLinks?: any[];
-  settings?: {
-    allowChainCast: boolean;
-    allowGroupChat: boolean;
-    allowPosts: boolean;
-    allowQuests: boolean;
-  };
-  memberRole?: string;
-  isAdmin?: boolean;
-}
-
-export interface CommunityProfile extends Community {
-  banner: string;
-  rules: string[];
-  socialLinks: any[];
-  settings: {
-    allowChainCast: boolean;
-    allowGroupChat: boolean;
-    allowPosts: boolean;
-    allowQuests: boolean;
-  };
-  memberRole?: string;
-  isAdmin: boolean;
-}
-
-export interface CommunityMember {
-  _id: string;
-  user: {
-    _id: string;
-    username: string;
-    name: string;
-    profilePic: string;
-    isVerified: boolean;
-  };
-  role: string;
-  joinedAt: Date;
-  isActive: boolean;
-  totalPosts: number;
-  totalLikes: number;
-  totalComments: number;
-}
-
-export interface UserSearchResult {
-  _id: string;
-  username: string;
-  name: string;
-  profilePic: string;
-  bio: string;
-  isVerified: boolean;
-  followersCount: number;
-  isFollowing?: boolean;
-}
-
-export interface UserProfile {
-  _id: string;
-  username: string;
-  name: string;
-  email: string;
-  profilePic: string;
-  followersCount: number;
-  followingCount: number;
-  bio: string;
-  location: string;
-  website: string;
-  bannerImage: string;
-  isVerified: boolean;
-  postsCount: number;
-  likesReceived: number;
-  socialLinks: {
-    twitter?: string;
-    instagram?: string;
-    linkedin?: string;
-    github?: string;
-  };
-  settings: {
-    isProfilePublic: boolean;
-    allowDirectMessages: boolean;
-    showFollowersCount: boolean;
-    showFollowingCount: boolean;
-  };
-  joinDate: Date;
-  isOwnProfile: boolean;
-  isFollowing?: boolean;
-}
-
-export interface SearchResponse {
-  communities: Community[];
-  users: UserSearchResult[];
-  hasMore: boolean;
-  nextCursor?: string;
-  totalCount: number;
-  searchType: string;
-}
-
-export interface CommunityListResponse {
-  communities: Community[];
-  hasMore: boolean;
-  nextCursor?: string;
-  totalCount: number;
-}
-
-export interface CommunityMemberListResponse {
-  members: CommunityMember[];
-  hasMore: boolean;
-  nextCursor?: string;
-  totalCount: number;
-}
-
-export interface JoinCommunityResponse {
-  success: boolean;
-  message: string;
-  isMember: boolean;
-  memberCount: number;
-  joinedAt?: Date;
-  leftAt?: Date;
-}
-
-export interface FollowResponse {
-  success: boolean;
-  message: string;
-  isFollowing: boolean;
-  followersCount: number;
-  followingCount: number;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
+import {
+  ExploreCommunity as Community,
+  ExploreCommunityProfile as CommunityProfile,
+  CommunityMember,
+  UserSearchResult,
+  ExploreUserProfile as UserProfile,
+  SearchResponse,
+  CommunityListResponse,
+  CommunityMemberListResponse,
+  JoinCommunityResponse,
+  FollowResponse
+} from "@/types/user/community-explore.types";
+import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors
 const handleApiError = (error: any, defaultMessage: string) => {

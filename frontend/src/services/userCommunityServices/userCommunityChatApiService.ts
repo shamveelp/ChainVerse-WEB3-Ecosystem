@@ -1,78 +1,14 @@
 import API from "@/lib/api-client";
 import { USER_API_ROUTES } from "../../routes/api.routes";
 
-// Community Channel Message interfaces
-export interface CommunityChannelMessage {
-  _id: string;
-  communityId: string;
-  admin: {
-    _id: string;
-    name: string;
-    profilePicture: string;
-  };
-  content: string;
-  mediaFiles: {
-    type: 'image' | 'video';
-    url: string;
-    filename: string;
-  }[];
-  messageType: 'text' | 'media' | 'mixed';
-  isPinned: boolean;
-  reactions: {
-    emoji: string;
-    count: number;
-    userReacted: boolean;
-  }[];
-  totalReactions: number;
-  isEdited: boolean;
-  editedAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Community Group Message interfaces
-export interface CommunityGroupMessage {
-  _id: string;
-  communityId: string;
-  sender: {
-    _id: string;
-    username: string;
-    name: string;
-    profilePic: string;
-  };
-  content: string;
-  isEdited: boolean;
-  editedAt?: Date;
-  isCurrentUser: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ChannelMessagesResponse {
-  messages: CommunityChannelMessage[];
-  hasMore: boolean;
-  nextCursor?: string;
-  totalCount: number;
-}
-
-export interface GroupMessagesResponse {
-  messages: CommunityGroupMessage[];
-  hasMore: boolean;
-  nextCursor?: string;
-  totalCount: number;
-}
-
-export interface SendGroupMessageRequest {
-  communityUsername: string;
-  content: string;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
+import {
+  CommunityMessage as CommunityChannelMessage,
+  CommunityGroupMessage,
+  ChannelMessagesResponse,
+  GroupMessagesResponse
+} from "@/types/community/chat.types";
+import { SendGroupMessageRequest } from "@/types/user/community-chat.types";
+import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors
 const handleApiError = (error: any, defaultMessage: string) => {

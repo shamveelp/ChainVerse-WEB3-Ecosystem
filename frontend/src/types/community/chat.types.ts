@@ -42,3 +42,17 @@ export interface CommunityGroupMessage {
     createdAt: Date;
     updatedAt: Date;
 }
+
+export interface ChannelMessagesResponse {
+    messages: CommunityMessage[];
+    hasMore: boolean;
+    nextCursor?: string;
+    totalCount: number;
+}
+
+export interface GroupMessagesResponse {
+    messages: CommunityGroupMessage[];
+    hasMore: boolean;
+    nextCursor?: string;
+    totalCount: number;
+}

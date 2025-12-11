@@ -1,6 +1,16 @@
-import { CommunityMessage, CommunityGroupMessage } from "@/types/community/chat.types";
+import {
+    CommunityMessage,
+    CommunityGroupMessage,
+    ChannelMessagesResponse,
+    GroupMessagesResponse
+} from "@/types/community/chat.types";
 
-export type { CommunityMessage, CommunityGroupMessage };
+export type {
+    CommunityMessage,
+    CommunityGroupMessage,
+    ChannelMessagesResponse,
+    GroupMessagesResponse
+};
 
 export interface CreateChannelMessageRequest {
     content: string;
@@ -11,18 +21,4 @@ export interface CreateChannelMessageRequest {
         filename: string;
     }[];
     messageType?: 'text' | 'media' | 'mixed';
-}
-
-export interface ChannelMessagesResponse {
-    messages: CommunityMessage[];
-    hasMore: boolean;
-    nextCursor?: string;
-    totalCount: number;
-}
-
-export interface GroupMessagesResponse {
-    messages: CommunityGroupMessage[];
-    hasMore: boolean;
-    nextCursor?: string;
-    totalCount: number;
 }

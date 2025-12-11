@@ -1,13 +1,10 @@
 import API from "@/lib/axios"
 import { COMMUNITY_ADMIN_API_ROUTES } from "../routes/api.routes"
 
-interface ValidationResponse {
-  success: boolean
-  available?: boolean
-  exists?: boolean
-  error?: string
-  message?: string
-}
+import {
+  ValidationResponse,
+  ValidationFormResult
+} from "@/types/comms-admin/validation.types";
 
 export const checkEmailAvailability = async (email: string): Promise<ValidationResponse> => {
   try {
@@ -49,7 +46,7 @@ export const validateWalletAddress = (address: string): boolean => {
   return ethRegex.test(address)
 }
 
-export const validateCommunityForm = (formData: any): { isValid: boolean; errors: Record<string, string> } => {
+export const validateCommunityForm = (formData: any): ValidationFormResult => {
   const errors: Record<string, string> = {}
 
   if (!formData.email || !formData.email.trim()) {
