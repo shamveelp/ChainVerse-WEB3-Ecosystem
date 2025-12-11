@@ -1,45 +1,8 @@
 import API from "@/lib/api-client"
 import { USER_API_ROUTES, ADMIN_API_ROUTES } from "@/routes"
 
-interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
-
-interface LoginResponse {
-  user: {
-    _id: string;
-    username: string;
-    email: string;
-    name: string;
-    refferalCode: string;
-    totalPoints: number;
-    profilePic?: string;
-    role: string;
-    isEmailVerified: boolean;
-    createdAt: string;
-    lastLogin?: string;
-  };
-  accessToken: string;
-  message: string;
-}
-
-interface RegisterResponse {
-  success: boolean;
-  message: string;
-}
-
-interface UsernameCheckResponse {
-  available: boolean;
-  success: boolean;
-}
-
-interface GenerateUsernameResponse {
-  username: string;
-  success: boolean;
-}
+import { ApiResponse } from "@/types/common.types"
+import { LoginResponse, RegisterResponse, UsernameCheckResponse, GenerateUsernameResponse } from "@/types/user/auth.types"
 
 export const login = async (email: string, password: string) => {
   try {

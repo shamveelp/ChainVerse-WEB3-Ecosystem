@@ -1,96 +1,16 @@
-import api from "@/lib/api-client";
+import API from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
-
-// Types
-interface PostAuthor {
-  _id: string;
-  username: string;
-  name: string;
-  profilePic: string;
-  isVerified: boolean;
-  isCommunityMember: boolean;
-}
-
-interface CommunityPost {
-  _id: string;
-  author: PostAuthor;
-  content: string;
-  mediaUrls: string[];
-  mediaType: 'none' | 'image' | 'video';
-  hashtags: string[];
-  mentions: string[];
-  likesCount: number;
-  commentsCount: number;
-  sharesCount: number;
-  isLiked: boolean;
-  isOwnPost: boolean;
-  canModerate: boolean;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-  editedAt?: Date | string;
-}
-
-interface CommunityFeedResponse {
-  posts: CommunityPost[];
-  hasMore: boolean;
-  nextCursor?: string;
-  totalCount: number;
-  communityStats: {
-    totalMembers: number;
-    activeMembersToday: number;
-    postsToday: number;
-    engagementRate: number;
-  };
-}
-
-interface CreateCommentData {
-  postId: string;
-  content: string;
-  parentCommentId?: string;
-}
-
-interface SharePostData {
-  shareText?: string;
-}
-
-interface LikeResponse {
-  success: boolean;
-  isLiked: boolean;
-  likesCount: number;
-  message: string;
-}
-
-interface ShareResponse {
-  success: boolean;
-  shareUrl: string;
-  sharesCount: number;
-  message: string;
-}
-
-interface EngagementStats {
-  period: 'today' | 'week' | 'month';
-  totalPosts: number;
-  totalLikes: number;
-  totalComments: number;
-  totalShares: number;
-  activeMembers: number;
-  engagementRate: number;
-  topHashtags: string[];
-  memberActivity: Array<{
-    date: string;
-    posts: number;
-    likes: number;
-    comments: number;
-    newMembers: number;
-  }>;
-}
-
-interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  error?: string;
-  data?: T;
-}
+import {
+  PostAuthor,
+  CommunityPost,
+  CommunityFeedResponse,
+  CreateCommentData,
+  SharePostData,
+  LikeResponse,
+  ShareResponse,
+  EngagementStats
+} from "@/types/comms-admin/feed.types";
+import { ApiResponse } from "@/types/common.types";
 
 class CommunityAdminFeedApiService {
   // private readonly baseUrl = '/api/community-admin';
@@ -107,7 +27,7 @@ class CommunityAdminFeedApiService {
       params.append('limit', limit.toString());
       params.append('type', type);
 
-      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.FEED}?${params.toString()}`);
+      const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.FEED}?${params.toString()}`);
       return {
         success: true,
         data: response.data.data,
@@ -132,7 +52,7 @@ class CommunityAdminFeedApiService {
   // Toggle post like
   async togglePostLike(postId: string): Promise<ApiResponse<LikeResponse>> {
     try {
-      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_LIKE(postId));
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_LIKE(postId));
       return {
         success: true,
         data: response.data.data,
@@ -153,7 +73,7 @@ class CommunityAdminFeedApiService {
   // Create comment
   async createComment(commentData: CreateCommentData): Promise<ApiResponse> {
     try {
-      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.FEED_COMMENTS, commentData);
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.FEED_COMMENTS, commentData);
       return {
         success: true,
         data: response.data.data,
@@ -174,7 +94,7 @@ class CommunityAdminFeedApiService {
   // Share post
   async sharePost(postId: string, shareData?: SharePostData): Promise<ApiResponse<ShareResponse>> {
     try {
-      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_SHARE(postId), shareData || {});
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_SHARE(postId), shareData || {});
       return {
         success: true,
         data: response.data.data,
@@ -195,7 +115,7 @@ class CommunityAdminFeedApiService {
   // Pin post
   async pinPost(postId: string): Promise<ApiResponse> {
     try {
-      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_PIN(postId));
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_PIN(postId));
       return {
         success: true,
         data: response.data.data,
@@ -216,7 +136,7 @@ class CommunityAdminFeedApiService {
   // Delete post
   async deletePost(postId: string, reason?: string): Promise<ApiResponse> {
     try {
-      const response = await api.delete(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_BY_ID(postId), {
+      const response = await API.delete(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_BY_ID(postId), {
         data: { reason }
       });
       return {
@@ -239,7 +159,7 @@ class CommunityAdminFeedApiService {
   // Get engagement stats
   async getEngagementStats(period: 'today' | 'week' | 'month' = 'week'): Promise<ApiResponse<EngagementStats>> {
     try {
-      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.ENGAGEMENT_STATS}?period=${period}`);
+      const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.ENGAGEMENT_STATS}?period=${period}`);
       return {
         success: true,
         data: response.data.data,
@@ -259,7 +179,7 @@ class CommunityAdminFeedApiService {
   // Get Post By ID
   async getPostById(postId: string): Promise<ApiResponse<CommunityPost>> {
     try {
-      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_BY_ID(postId));
+      const response = await API.get(COMMUNITY_ADMIN_API_ROUTES.FEED_POST_BY_ID(postId));
       return {
         success: true,
         data: response.data.data
@@ -280,7 +200,7 @@ class CommunityAdminFeedApiService {
       if (cursor) params.append('cursor', cursor);
       params.append('limit', limit.toString());
 
-      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.FEED_POST_COMMENTS(postId)}?${params.toString()}`);
+      const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.FEED_POST_COMMENTS(postId)}?${params.toString()}`);
       return {
         success: true,
         data: response.data.data

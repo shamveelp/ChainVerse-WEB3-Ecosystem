@@ -1,84 +1,13 @@
 import API from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
-
-// Community Channel Message interfaces
-export interface CommunityMessage {
-  _id: string;
-  communityId: string;
-  admin: {
-    _id: string;
-    name: string;
-    profilePicture: string;
-  };
-  content: string;
-  mediaFiles: {
-    type: 'image' | 'video';
-    url: string;
-    filename: string;
-  }[];
-  messageType: 'text' | 'media' | 'mixed';
-  isPinned: boolean;
-  reactions: {
-    emoji: string;
-    count: number;
-    userReacted: boolean;
-  }[];
-  totalReactions: number;
-  isEdited: boolean;
-  editedAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Community Group Message interfaces
-export interface CommunityGroupMessage {
-  _id: string;
-  communityId: string;
-  sender: {
-    _id: string;
-    username: string;
-    name: string;
-    profilePic: string;
-  };
-  content: string;
-  isEdited: boolean;
-  editedAt?: Date;
-  isCurrentUser: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreateChannelMessageRequest {
-  content: string;
-  mediaFiles?: {
-    type: 'image' | 'video';
-    url: string;
-    publicId: string;
-    filename: string;
-  }[];
-  messageType?: 'text' | 'media' | 'mixed';
-}
-
-export interface ChannelMessagesResponse {
-  messages: CommunityMessage[];
-  hasMore: boolean;
-  nextCursor?: string;
-  totalCount: number;
-}
-
-export interface GroupMessagesResponse {
-  messages: CommunityGroupMessage[];
-  hasMore: boolean;
-  nextCursor?: string;
-  totalCount: number;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
+import {
+  CommunityMessage,
+  CommunityGroupMessage,
+  CreateChannelMessageRequest,
+  ChannelMessagesResponse,
+  GroupMessagesResponse
+} from "@/types/comms-admin/chat.types";
+import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors
 const handleApiError = (error: any, defaultMessage: string) => {
@@ -269,8 +198,6 @@ export const communityAdminChatApiService = {
       if (!messageId) {
         throw new Error("Message ID is required");
       }
-
-
 
       const response = await API.delete(COMMUNITY_ADMIN_API_ROUTES.CHANNEL_MESSAGE_BY_ID(encodeURIComponent(messageId)));
 

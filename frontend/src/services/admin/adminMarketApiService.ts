@@ -1,5 +1,5 @@
-import api from "@/lib/api-client";
-import type { MarketCoin } from "@/services/marketApiService";
+import API from "@/lib/api-client";
+import { MarketCoin } from "@/types/user/market.types";
 
 export interface AdminMarketCoinsResponse {
   success: boolean;
@@ -24,7 +24,7 @@ export const getAdminMarketCoins = async (
     includeUnlisted: includeUnlisted ? "true" : "false",
   });
 
-  const response = await api.get(`/api/admin/market/coins?${params.toString()}`);
+  const response = await API.get(`/api/admin/market/coins?${params.toString()}`);
   return response.data as AdminMarketCoinsResponse;
 };
 
@@ -32,7 +32,7 @@ export const toggleAdminCoinListing = async (
   contractAddress: string,
   isListed: boolean
 ): Promise<MarketCoin> => {
-  const response = await api.patch(
+  const response = await API.patch(
     `/api/admin/market/coins/${contractAddress}/listing`,
     { isListed }
   );
@@ -47,12 +47,12 @@ export const addCoinFromTopList = async (payload: {
   marketCap?: string;
   network?: string;
 }): Promise<MarketCoin> => {
-  const response = await api.post("/api/admin/market/coins", payload);
+  const response = await API.post("/api/admin/market/coins", payload);
   return response.data.coin as MarketCoin;
 };
 
 export const deleteAdminCoin = async (contractAddress: string): Promise<void> => {
-  await api.delete(`/api/admin/market/coins/${contractAddress}`);
+  await API.delete(`/api/admin/market/coins/${contractAddress}`);
 };
 
 

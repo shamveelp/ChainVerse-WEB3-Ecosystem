@@ -1,58 +1,13 @@
 import API from "@/lib/api-client";
 import { USER_API_ROUTES } from "@/routes";
-
-export interface UserProfile {
-  _id: string;
-  username: string;
-  name: string;
-  email: string;
-  phone?: string;
-  refferalCode: string;
-  refferedBy: string;
-  profilePic: string;
-  role: "user";
-  totalPoints: number;
-  isBlocked: boolean;
-  isBanned: boolean;
-  tokenVersion?: number;
-  isEmailVerified: boolean;
-  isGoogleUser: boolean;
-  dailyCheckin: {
-    lastCheckIn: Date | string | null;
-    streak: number;
-  };
-  followersCount: number;
-  followingCount: number;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
-
-export interface ReferralStats {
-  totalReferrals: number;
-  totalPointsEarned: number;
-  referralCode: string;
-  referralLink: string;
-}
-
-export interface CheckInStatus {
-  hasCheckedInToday: boolean;
-  currentStreak: number;
-  nextCheckInAvailable: Date | null;
-}
-
-export interface DailyCheckInResult {
-  success: boolean;
-  pointsAwarded: number;
-  streakCount: number;
-  message: string;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
+import {
+  UserProfile,
+  ReferralStats,
+  CheckInStatus,
+  DailyCheckInResult,
+  UpdateProfileData
+} from "@/types/user/user.types";
+import { ApiResponse } from "@/types/common.types";
 
 export const userApiService = {
   getProfile: async (): Promise<{ data: UserProfile }> => {
@@ -104,12 +59,7 @@ export const userApiService = {
     }
   },
 
-  updateProfile: async (profileData: {
-    name: string;
-    username: string;
-    phone?: string;
-    profilePic?: string;
-  }): Promise<{ success: boolean; data?: any; error?: string; message?: string }> => {
+  updateProfile: async (profileData: UpdateProfileData): Promise<{ success: boolean; data?: any; error?: string; message?: string }> => {
     try {
 
       const response = await API.put(USER_API_ROUTES.UPDATE_PROFILE, profileData);

@@ -1,72 +1,13 @@
 import api from "@/lib/api-client"
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes"
 
-// Types
-interface CommunityApplicationData {
-  communityName: string
-  email: string
-  username: string
-  walletAddress: string
-  description: string
-  category: string
-  whyChooseUs: string
-  rules: string[]
-  socialLinks: {
-    twitter: string
-    discord: string
-    telegram: string
-    website: string
-  }
-  logo: string | File | null
-  banner: string | File | null
-}
-
-interface ApiResponse<T = any> {
-  success: boolean
-  message?: string
-  error?: string
-  data?: T
-}
-
-export interface CommunitySettings {
-  allowChainCast: boolean
-  allowGroupChat: boolean
-  allowPosts: boolean
-  allowQuests: boolean
-}
-
-export interface CommunitySocialLinks {
-  twitter?: string
-  discord?: string
-  telegram?: string
-  website?: string
-}
-
-export interface CommunityDetails {
-  id: string
-  communityName: string
-  email: string
-  username: string
-  walletAddress: string
-  description: string
-  category: string
-  rules: string[]
-  socialLinks: CommunitySocialLinks
-  logo?: string
-  banner?: string
-  settings: CommunitySettings
-  status: string
-  isVerified: boolean
-  memberCount: number
-  createdAt?: string
-  updatedAt?: string
-}
-
-interface CheckExistenceResponse {
-  exists: boolean
-  success: boolean
-  message?: string
-}
+import { ApiResponse } from "@/types/common.types"
+import {
+  CommunityApplicationData,
+  CommunitySettings,
+  CommunityDetails,
+  CheckExistenceResponse
+} from "@/types/comms-admin/community-admin.types"
 
 class CommunityAdminApiService {
   // private readonly baseUrl = '/api/community-admin'

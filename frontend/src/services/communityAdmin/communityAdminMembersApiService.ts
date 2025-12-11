@@ -1,78 +1,14 @@
-import api from "@/lib/api-client";
+import API from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
-
-// Types
-interface CommunityMember {
-  member: any;
-  _id: string;
-  userId: string;
-  username: string;
-  name: string;
-  email: string;
-  profilePic: string;
-  role: 'member' | 'moderator' | 'admin';
-  joinedAt: Date;
-  isActive: boolean;
-  lastActiveAt: Date;
-  isPremium: boolean;
-  stats: {
-    totalPosts: number;
-    totalLikes: number;
-    totalComments: number;
-    questsCompleted: number;
-  };
-  bannedUntil?: Date;
-  banReason?: string;
-}
-
-interface MemberFilters {
-  cursor?: string;
-  limit?: number;
-  search?: string;
-  role?: 'member' | 'moderator' | 'admin';
-  status?: 'active' | 'inactive' | 'banned';
-  sortBy?: 'recent' | 'oldest' | 'most_active' | 'most_posts';
-}
-
-interface MembersListResponse {
-  members: CommunityMember[];
-  hasMore: boolean;
-  nextCursor?: string;
-  totalCount: number;
-  summary: {
-    totalMembers: number;
-    activeMembers: number;
-    moderators: number;
-    premiumMembers: number;
-    bannedMembers: number;
-    newMembersThisWeek: number;
-  };
-}
-
-interface UpdateMemberRoleData {
-  memberId: string;
-  role: 'member' | 'moderator';
-  reason?: string;
-}
-
-interface BanMemberData {
-  memberId: string;
-  reason: string;
-  durationDays?: number;
-}
-
-interface BulkUpdateData {
-  memberIds: string[];
-  action: 'ban' | 'unban' | 'remove' | 'promote_to_moderator' | 'demote_to_member';
-  reason?: string;
-}
-
-interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  error?: string;
-  data?: T;
-}
+import {
+  CommunityMember,
+  MemberFilters,
+  MembersListResponse,
+  UpdateMemberRoleData,
+  BanMemberData,
+  BulkUpdateData
+} from "@/types/comms-admin/members.types";
+import { ApiResponse } from "@/types/common.types";
 
 class CommunityAdminMembersApiService {
   // private readonly baseUrl = '/api/community-admin/members';
@@ -88,7 +24,7 @@ class CommunityAdminMembersApiService {
       if (filters.status) params.append('status', filters.status);
       if (filters.sortBy) params.append('sortBy', filters.sortBy);
 
-      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.MEMBERS}?${params.toString()}`);
+      const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.MEMBERS}?${params.toString()}`);
       return {
         success: true,
         data: response.data.data,
@@ -108,7 +44,7 @@ class CommunityAdminMembersApiService {
   // Get member details
   async getMemberDetails(memberId: string): Promise<ApiResponse<CommunityMember>> {
     try {
-      const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.MEMBER_BY_ID(memberId));
+      const response = await API.get(COMMUNITY_ADMIN_API_ROUTES.MEMBER_BY_ID(memberId));
       return {
         success: true,
         data: response.data.data,
@@ -128,7 +64,7 @@ class CommunityAdminMembersApiService {
   // Update member role
   async updateMemberRole(data: UpdateMemberRoleData): Promise<ApiResponse<{ member: CommunityMember }>> {
     try {
-      const response = await api.put(COMMUNITY_ADMIN_API_ROUTES.MEMBER_ROLE, data);
+      const response = await API.put(COMMUNITY_ADMIN_API_ROUTES.MEMBER_ROLE, data);
       return {
         success: true,
         data: { member: response.data.member },
@@ -149,7 +85,7 @@ class CommunityAdminMembersApiService {
   // Ban member
   async banMember(data: BanMemberData): Promise<ApiResponse<{ member: CommunityMember }>> {
     try {
-      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.MEMBER_BAN_ACTION, data);
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.MEMBER_BAN_ACTION, data);
       return {
         success: true,
         data: { member: response.data.member },
@@ -170,7 +106,7 @@ class CommunityAdminMembersApiService {
   // Unban member
   async unbanMember(memberId: string): Promise<ApiResponse<{ member: CommunityMember }>> {
     try {
-      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.MEMBER_UNBAN(memberId));
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.MEMBER_UNBAN(memberId));
       return {
         success: true,
         data: { member: response.data.member },
@@ -191,7 +127,7 @@ class CommunityAdminMembersApiService {
   // Remove member
   async removeMember(memberId: string, reason?: string): Promise<ApiResponse> {
     try {
-      const response = await api.delete(COMMUNITY_ADMIN_API_ROUTES.MEMBER_BY_ID(memberId), {
+      const response = await API.delete(COMMUNITY_ADMIN_API_ROUTES.MEMBER_BY_ID(memberId), {
         data: { reason }
       });
       return {
@@ -214,7 +150,7 @@ class CommunityAdminMembersApiService {
   // Get member activity
   async getMemberActivity(memberId: string, period: string = 'week'): Promise<ApiResponse> {
     try {
-      const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.MEMBER_ACTIVITY(memberId)}?period=${period}`);
+      const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.MEMBER_ACTIVITY(memberId)}?period=${period}`);
       return {
         success: true,
         data: response.data.data,
@@ -234,7 +170,7 @@ class CommunityAdminMembersApiService {
   // Bulk update members
   async bulkUpdateMembers(data: BulkUpdateData): Promise<ApiResponse> {
     try {
-      const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.MEMBERS_BULK_UPDATE, data);
+      const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.MEMBERS_BULK_UPDATE, data);
       return {
         success: true,
         data: response.data.data,
