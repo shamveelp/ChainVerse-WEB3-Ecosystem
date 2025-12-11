@@ -980,9 +980,21 @@ export default function QuestDetailPage() {
                               }
                             } else {
                               // follow_user
-                              const targetUser = selectedTask.config?.targetUserId;
-                              const isUserObject = typeof targetUser === 'object' && targetUser !== null;
-                              const username = isUserObject ? targetUser.username : targetUser;
+                              const config = selectedTask.config || {};
+                              let username = config.targetUsername;
+
+                              if (!username) {
+                                const targetUser = config.targetUserId;
+                                if (targetUser && typeof targetUser === 'object' && (targetUser as any).username) {
+                                  username = (targetUser as any).username;
+                                } else if (typeof targetUser === 'string') {
+                                  // Fallback: If it's a string, it might be ID or username.
+                                  // We prefer not to link if it's an ID, but if we must...
+                                  // Let's assume if it looks like an ID, we try to use it, but really we want the username.
+                                  // If the user *entered* a username as targetUserId (legacy data?), it works.
+                                  username = targetUser;
+                                }
+                              }
 
                               if (username) url = `/user/community/${username}`;
                             }
