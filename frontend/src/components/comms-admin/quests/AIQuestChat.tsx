@@ -16,7 +16,8 @@ import {
   Upload,
   Search,
   ChevronDown,
-  Crop
+  Crop,
+  AlertTriangle
 } from 'lucide-react';
 import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 import { toast } from '@/components/ui/use-toast';
@@ -58,7 +59,7 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! I'm your AI Quest Assistant 🤖 I'll help you create an amazing quest for your community. Let's start with some basics:\n\n• What type of quest would you like to create?\n• Who is your target audience?\n• What's the main goal of this quest?\n\nJust describe your idea in natural language, and I'll guide you through the process!",
+      content: "Hi! I'm your AI Quest Assistant 🤖 I'll help you create an amazing quest for your community. Let's start with some basics:\n\n• What type of quest would you like to create?\n• Who is your target audience?\n• What's the main goal of this quest?\n\nJust describe your idea in natural language, and I'll guide you through the process!\n\n💡 **Note**: AI quest generation has usage limits. If you reach your limit, you can always switch to the Manual Creation tab.",
       timestamp: new Date()
     }
   ]);
@@ -201,12 +202,38 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
         throw new Error(response.error || 'Failed to get AI response');
       }
     } catch (error: any) {
+      // Check if it's a limit exceeded error
+      const errorMsg = error.message?.toLowerCase() || '';
+      const isLimitExceeded =
+        errorMsg.includes('limit') ||
+        errorMsg.includes('quota') ||
+        errorMsg.includes('rate') ||
+        errorMsg.includes('exceeded') ||
+        error.response?.status === 429;
+
+      let errorContent = '';
+
+      if (isLimitExceeded) {
+        errorContent = `⚠️ **AI Quest Limit Exceeded**\n\nYou've reached your AI quest generation limit for now. Here are your options:\n\n• **Switch to Manual Mode**: Click the "Manual Creation" tab to create your quest manually\n• **Edit Existing Quest**: If a quest was already generated, you can edit it using the "Manipulate / Edit" button\n• **Try Again Later**: Your AI limit will reset soon\n\nWould you like to switch to manual creation?`;
+      } else {
+        errorContent = `Error: ${error.message}. Please try again or rephrase your request.`;
+      }
+
       const errorMessage: Message = {
         role: 'system',
-        content: `Error: ${error.message}. Please try again or rephrase your request.`,
+        content: errorContent,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
+
+      // Show toast for limit exceeded
+      if (isLimitExceeded) {
+        toast({
+          variant: "destructive",
+          title: "AI Limit Exceeded",
+          description: "You've reached your AI quest generation limit. Please use manual creation or try again later.",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -488,7 +515,10 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
             {isUser ? (
               <User className="h-4 w-4" />
             ) : isSystem ? (
-              <span className="text-red-400 text-xs font-medium">System</span>
+              <>
+                <AlertTriangle className="h-4 w-4 text-red-400" />
+                <span className="text-red-400 text-xs font-medium">System</span>
+              </>
             ) : (
               <Bot className="h-4 w-4" />
             )}
