@@ -66,6 +66,17 @@ export const useChainCastWebRTC = (options: UseChainCastWebRTCOptions) => {
         return
       }
 
+      // Check signaling state before setting remote description
+      if (pc.signalingState === 'stable') {
+        console.warn('⚠️ Peer connection already in stable state, ignoring answer from:', fromUserId)
+        return
+      }
+
+      if (pc.signalingState !== 'have-local-offer') {
+        console.warn(`⚠️ Unexpected signaling state: ${pc.signalingState}, expected 'have-local-offer'`)
+        return
+      }
+
       await pc.setRemoteDescription(new RTCSessionDescription(answer))
       console.log('✅ WebRTC answer set for viewer:', fromUserId)
 
@@ -73,9 +84,13 @@ export const useChainCastWebRTC = (options: UseChainCastWebRTCOptions) => {
       const queue = iceCandidatesQueueRef.current.get(fromUserId)
       if (queue && queue.length > 0) {
         console.log(`🧊 Processing ${queue.length} queued ICE candidates for ${fromUserId}`)
-        queue.forEach(candidate => {
-          pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error('Failed to add queued candidate:', e))
-        })
+        for (const candidate of queue) {
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate))
+          } catch (e) {
+            console.error('Failed to add queued candidate:', e)
+          }
+        }
         iceCandidatesQueueRef.current.delete(fromUserId)
       }
 
@@ -370,29 +385,64 @@ export const useChainCastWebRTC = (options: UseChainCastWebRTCOptions) => {
   useEffect(() => {
     if (!isAdmin || !localStream) return
 
+    console.log('🔄 Admin stream changed, updating all peer connections...')
+
     // Update all peer connections with new tracks
-    peerConnectionsRef.current.forEach((pc, userId) => {
-      const senders = pc.getSenders()
+    peerConnectionsRef.current.forEach(async (pc, userId) => {
+      try {
+        const senders = pc.getSenders()
+        let needsRenegotiation = false
 
-      // Update video track
-      const videoTrack = localStream.getVideoTracks()[0]
-      const videoSender = senders.find(s => s.track?.kind === 'video')
-      if (videoTrack && videoSender) {
-        videoSender.replaceTrack(videoTrack)
-      } else if (videoTrack && !videoSender) {
-        pc.addTrack(videoTrack, localStream)
-      }
+        // Update video track
+        const videoTrack = localStream.getVideoTracks()[0]
+        const videoSender = senders.find(s => s.track?.kind === 'video')
 
-      // Update audio track
-      const audioTrack = localStream.getAudioTracks()[0]
-      const audioSender = senders.find(s => s.track?.kind === 'audio')
-      if (audioTrack && audioSender) {
-        audioSender.replaceTrack(audioTrack)
-      } else if (audioTrack && !audioSender) {
-        pc.addTrack(audioTrack, localStream)
+        if (videoTrack && videoSender) {
+          // Replace existing video track
+          await videoSender.replaceTrack(videoTrack)
+          console.log('✅ Replaced video track for:', userId)
+        } else if (videoTrack && !videoSender) {
+          // Add new video track
+          pc.addTrack(videoTrack, localStream)
+          needsRenegotiation = true
+          console.log('➕ Added video track for:', userId)
+        } else if (!videoTrack && videoSender) {
+          // Remove video track by replacing with null
+          await videoSender.replaceTrack(null)
+          console.log('➖ Removed video track for:', userId)
+        }
+
+        // Update audio track
+        const audioTrack = localStream.getAudioTracks()[0]
+        const audioSender = senders.find(s => s.track?.kind === 'audio')
+
+        if (audioTrack && audioSender) {
+          // Replace existing audio track
+          await audioSender.replaceTrack(audioTrack)
+          console.log('✅ Replaced audio track for:', userId)
+        } else if (audioTrack && !audioSender) {
+          // Add new audio track
+          pc.addTrack(audioTrack, localStream)
+          needsRenegotiation = true
+          console.log('➕ Added audio track for:', userId)
+        } else if (!audioTrack && audioSender) {
+          // Remove audio track by replacing with null
+          await audioSender.replaceTrack(null)
+          console.log('➖ Removed audio track for:', userId)
+        }
+
+        // If we added new tracks, we need to renegotiate
+        if (needsRenegotiation) {
+          console.log('🔄 Renegotiating connection for:', userId)
+          const offer = await pc.createOffer()
+          await pc.setLocalDescription(offer)
+          chainCastSocketService.sendWebRTCOffer(chainCastId, userId, offer)
+        }
+      } catch (error) {
+        console.error('❌ Failed to update tracks for:', userId, error)
       }
     })
-  }, [isAdmin, localStream])
+  }, [isAdmin, localStream, chainCastId])
 
   // Cleanup on unmount
   useEffect(() => {

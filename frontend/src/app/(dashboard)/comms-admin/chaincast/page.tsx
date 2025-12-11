@@ -31,6 +31,12 @@ import {
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   communityAdminChainCastApiService
 } from '@/services/chainCast/communityAdminChainCastApiService'
 import type { ChainCast, ChainCastsResponse, CreateChainCastRequest } from '@/types/comms-admin/chaincast.types'
@@ -462,91 +468,135 @@ function ChainCastPageContent() {
                     </div>
 
                     <div className="flex gap-2 ml-4">
-                      {chainCast.status === 'scheduled' && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingChainCast(chainCast)
-                              setFormData({
-                                title: chainCast.title,
-                                description: chainCast.description || '',
-                                maxParticipants: chainCast.maxParticipants,
-                                settings: chainCast.settings
-                              })
-                              setShowCreateDialog(true)
-                            }}
-                            className="border-red-600/50 text-red-400 hover:bg-red-950/30"
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </Button>
+                      <TooltipProvider>
+                        {chainCast.status === 'scheduled' && (
+                          <>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingChainCast(chainCast)
+                                    setFormData({
+                                      title: chainCast.title,
+                                      description: chainCast.description || '',
+                                      maxParticipants: chainCast.maxParticipants,
+                                      settings: chainCast.settings
+                                    })
+                                    setShowCreateDialog(true)
+                                  }}
+                                  className="border-red-600/50 text-red-400 hover:bg-red-950/30"
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Edit ChainCast details</p>
+                              </TooltipContent>
+                            </Tooltip>
 
-                          <Button
-                            size="sm"
-                            onClick={() => handleStartChainCast(chainCast)}
-                            disabled={actionLoading[chainCast._id]}
-                            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white"
-                          >
-                            {actionLoading[chainCast._id] ? (
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            ) : (
-                              <Play className="h-4 w-4 mr-2" />
-                            )}
-                            Go Live
-                          </Button>
-                        </>
-                      )}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleStartChainCast(chainCast)}
+                                  disabled={actionLoading[chainCast._id]}
+                                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white"
+                                >
+                                  {actionLoading[chainCast._id] ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Play className="h-4 w-4 mr-2" />
+                                  )}
+                                  Go Live
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Start the ChainCast and go live</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </>
+                        )}
 
-                      {chainCast.status === 'live' && (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => handleJoinLiveChainCast(chainCast)}
-                            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white"
-                          >
-                            <Video className="h-4 w-4 mr-2" />
-                            Join Room
-                          </Button>
+                        {chainCast.status === 'live' && (
+                          <>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleJoinLiveChainCast(chainCast)}
+                                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white"
+                                >
+                                  <Video className="h-4 w-4 mr-2" />
+                                  Join Room
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Join the live ChainCast room</p>
+                              </TooltipContent>
+                            </Tooltip>
 
-                          <Button
-                            size="sm"
-                            onClick={() => handleEndChainCast(chainCast)}
-                            disabled={actionLoading[chainCast._id]}
-                            className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white"
-                          >
-                            {actionLoading[chainCast._id] ? (
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            ) : (
-                              <Pause className="h-4 w-4 mr-2" />
-                            )}
-                            End Stream
-                          </Button>
-                        </>
-                      )}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleEndChainCast(chainCast)}
+                                  disabled={actionLoading[chainCast._id]}
+                                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white"
+                                >
+                                  {actionLoading[chainCast._id] ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Pause className="h-4 w-4 mr-2" />
+                                  )}
+                                  End Stream
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>End the ChainCast for everyone</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </>
+                        )}
 
-                      {chainCast.status === 'ended' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-red-600/50 text-red-400 hover:bg-red-950/30"
-                        >
-                          <BarChart3 className="h-4 w-4 mr-2" />
-                          Analytics
-                        </Button>
-                      )}
+                        {chainCast.status === 'ended' && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-red-600/50 text-red-400 hover:bg-red-950/30"
+                              >
+                                <BarChart3 className="h-4 w-4 mr-2" />
+                                Analytics
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>View ChainCast analytics and stats</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
 
-                      {(chainCast.status === 'scheduled' || chainCast.status === 'ended') && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowDeleteDialog(chainCast)}
-                          className="border-red-600/50 text-red-400 hover:bg-red-950/30"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
+                        {(chainCast.status === 'scheduled' || chainCast.status === 'ended') && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowDeleteDialog(chainCast)}
+                                className="border-red-600/50 text-red-400 hover:bg-red-950/30"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Delete this ChainCast</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </TooltipProvider>
                     </div>
                   </div>
                 </CardContent>

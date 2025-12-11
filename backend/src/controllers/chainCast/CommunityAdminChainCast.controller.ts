@@ -190,6 +190,17 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
 
             const result = await this._chainCastService.endChainCast(adminId, chainCastId);
 
+            // Emit socket event to notify all participants that chaincast has ended
+            const io = (req as any).app.get('io');
+            if (io) {
+                io.of('/chaincast').to(`chaincast:${chainCastId}`).emit('chaincast_ended', {
+                    adminId,
+                    adminName: (req as any).user.name || 'Admin',
+                    timestamp: new Date()
+                });
+                logger.info('ChainCast ended event emitted', { chainCastId });
+            }
+
             res.status(StatusCode.OK).json({
                 success: true,
                 message: SuccessMessages.CHAINCAST_ENDED,

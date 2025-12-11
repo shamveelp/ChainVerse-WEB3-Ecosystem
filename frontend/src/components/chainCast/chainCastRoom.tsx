@@ -9,6 +9,12 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   Video,
   VideoOff,
   Mic,
@@ -21,7 +27,8 @@ import {
   Send,
   Hand,
   Clock,
-  Heart
+  Heart,
+  AlertCircle
 } from 'lucide-react'
 import { RootState } from '@/redux/store'
 import { useWebRTC } from '@/hooks/useWebRTC'
@@ -33,6 +40,7 @@ import type { ChainCast } from '@/services/chainCast/userChainCastApiService'
 interface ChainCastRoomProps {
   chainCast: ChainCast
   onLeave: () => void
+  onHangUp?: () => void // Optional, only for admins
 }
 
 interface ChatMessage {
@@ -59,7 +67,7 @@ const reactions = [
   { emoji: '💯', label: '100' }
 ]
 
-export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps) {
+export default function ChainCastRoom({ chainCast, onLeave, onHangUp }: ChainCastRoomProps) {
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
   const currentAdmin = useSelector((state: RootState) => state.communityAdminAuth?.communityAdmin)
   // Prioritize community admin token
@@ -88,6 +96,7 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
   const [participantCount, setParticipantCount] = useState(isAdmin ? 1 : 0)
   const [floatingReactions, setFloatingReactions] = useState<FloatingReaction[]>([])
   const [connectionError, setConnectionError] = useState<string | null>(null)
+  const [chainCastEnded, setChainCastEnded] = useState(false)
 
   // Permission state: Admins strictly start with true, others false until promoted
   const [canStream, setCanStream] = useState(isAdmin)
@@ -132,6 +141,8 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
   // Register admin video ref for remote stream
   // We need to register refs for ANYONE who is streaming. 
   // For simplicity, we prioritize the main admin in the large view if we aren't the admin.
+  const [adminStreamReady, setAdminStreamReady] = useState(false)
+
   useEffect(() => {
     // If we are not the admin, we want to see the admin
     // In a full grid view, we'd map all participants. 
@@ -142,7 +153,19 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
       const adminUserId = chainCast.admin?._id || adminParticipant?.userId
 
       if (adminUserId) {
+        console.log('📺 Registering admin video ref for:', adminUserId)
         registerRemoteVideoRef(adminUserId, adminVideoRef.current)
+
+        // Check if stream is ready
+        const checkStream = setInterval(() => {
+          if (adminVideoRef.current?.srcObject) {
+            console.log('✅ Admin stream is ready!')
+            setAdminStreamReady(true)
+            clearInterval(checkStream)
+          }
+        }, 500)
+
+        return () => clearInterval(checkStream)
       }
     }
   }, [isAdmin, registerRemoteVideoRef, participants, chainCast.admin])
@@ -286,6 +309,12 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
       toast.error(data.error)
     })
 
+    // ChainCast ended by admin
+    chainCastSocketService.onChainCastEnded(() => {
+      setChainCastEnded(true)
+      toast.error('ChainCast has been ended by the host')
+    })
+
   }, [addParticipant, removeParticipant, updateParticipant, localStream, initializeLocalStream, isAdmin])
 
 
@@ -380,6 +409,27 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
     )
   }
 
+  // If chaincast ended, show message
+  if (chainCastEnded) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Card className="bg-slate-900/50 border-slate-700/50 p-8 max-w-md mx-auto">
+          <div className="text-center space-y-4">
+            <AlertCircle className="h-16 w-16 text-red-500 mx-auto" />
+            <h1 className="text-xl font-bold text-white">ChainCast Ended</h1>
+            <p className="text-slate-400">The host has ended this ChainCast.</p>
+            <Button
+              onClick={onLeave}
+              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white"
+            >
+              Return
+            </Button>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
   // --- UI RENDER --- //
   const showControls = canStream
 
@@ -418,9 +468,32 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
             </div>
           </div>
 
-          <Button onClick={onLeave} variant="outline" size="sm" className="border-red-600 text-red-400">
-            <PhoneOff className="h-4 w-4 mr-2" /> Leave
-          </Button>
+          <div className="flex gap-2">
+            <TooltipProvider>
+              {isAdmin && onHangUp && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={onHangUp} variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700">
+                      <PhoneOff className="h-4 w-4 mr-2" /> Hang Up
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>End the ChainCast for everyone</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={onLeave} variant="outline" size="sm" className="border-slate-600 text-slate-400">
+                    <PhoneOff className="h-4 w-4 mr-2" /> Leave
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isAdmin ? 'Leave without ending (you can rejoin)' : 'Leave the ChainCast'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       </div>
 
@@ -434,12 +507,22 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                       2. If I am NOT streaming, show Admin Remote.
                   */}
               {canStream && isVideoEnabled && localStream ? (
+                // Admin viewing their own stream
                 <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-              ) : (!canStream && adminVideoRef.current?.srcObject) ? (
-                <video ref={adminVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
-              ) : (
-                // Fallback / Avatar View
-                <div className="h-full flex items-center justify-center bg-slate-800">
+              ) : !canStream ? (
+                // Viewer watching admin stream - always render video element so it can receive stream
+                <video
+                  ref={adminVideoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                  style={{ display: adminStreamReady ? 'block' : 'none' }}
+                />
+              ) : null}
+
+              {/* Fallback / Avatar View - show when no video is available */}
+              {(!canStream && !adminStreamReady) || (canStream && !isVideoEnabled) ? (
+                <div className="absolute inset-0 h-full flex items-center justify-center bg-slate-800">
                   <div className="text-center">
                     <Avatar className="w-32 h-32 mx-auto mb-4">
                       <AvatarImage src={chainCast.admin.profilePicture} />
@@ -450,12 +533,12 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
                     <h3 className="text-xl font-medium text-white">{chainCast.admin.name}</h3>
                     <div className="flex flex-col items-center gap-2">
                       <p className="text-slate-400">
-                        {canStream ? 'Camera is off' : 'Live Stream'}
+                        {canStream ? 'Camera is off' : 'Waiting for stream...'}
                       </p>
                     </div>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Overlay Info */}
               <div className="absolute bottom-4 left-4 right-4 flex justify-between">
@@ -472,28 +555,51 @@ export default function ChainCastRoom({ chainCast, onLeave }: ChainCastRoomProps
           {/* Controls Bar */}
           <div className="mt-4 flex justify-center">
             <div className="bg-slate-900/90 backdrop-blur-xl rounded-full px-6 py-3 border border-slate-700/50 flex gap-4">
-              {showControls && (
-                <>
-                  <Button
-                    onClick={handleAudioToggle}
-                    size="icon"
-                    className={`rounded-full ${isAudioEnabled ? 'bg-slate-700' : 'bg-red-600'}`}
-                  >
-                    {isAudioEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
-                  </Button>
-                  <Button
-                    onClick={handleVideoToggle}
-                    size="icon"
-                    className={`rounded-full ${isVideoEnabled ? 'bg-slate-700' : 'bg-red-600'}`}
-                  >
-                    {isVideoEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
-                  </Button>
-                </>
-              )}
+              <TooltipProvider>
+                {showControls && (
+                  <>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={handleAudioToggle}
+                          size="icon"
+                          className={`rounded-full ${isAudioEnabled ? 'bg-slate-700' : 'bg-red-600'}`}
+                        >
+                          {isAudioEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{isAudioEnabled ? 'Mute microphone' : 'Unmute microphone'}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={handleVideoToggle}
+                          size="icon"
+                          className={`rounded-full ${isVideoEnabled ? 'bg-slate-700' : 'bg-red-600'}`}
+                        >
+                          {isVideoEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </>
+                )}
 
-              <Button onClick={onLeave} size="icon" className="rounded-full bg-red-600 hover:bg-red-700">
-                <PhoneOff className="h-4 w-4" />
-              </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={onLeave} size="icon" className="rounded-full bg-red-600 hover:bg-red-700">
+                      <PhoneOff className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Leave ChainCast</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
 

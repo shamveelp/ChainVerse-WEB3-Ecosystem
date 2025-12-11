@@ -83,10 +83,22 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
     loadChainCast()
   }, [chainCastId, isAuthenticated])
 
-  // Handle leave
+  // Handle leave (admin leaves but chaincast continues)
   const handleLeave = async () => {
     try {
-      // End the chaincast when admin leaves
+      toast.success('Left ChainCast (still running)')
+      router.push('/comms-admin/chaincast')
+    } catch (error: any) {
+      console.error('Failed to leave ChainCast:', error)
+      toast.error('Failed to leave ChainCast')
+      // Navigate back anyway
+      router.push('/comms-admin/chaincast')
+    }
+  }
+
+  // Handle hang up (admin ends the chaincast for everyone)
+  const handleHangUp = async () => {
+    try {
       if (chainCast?.status === 'live') {
         await communityAdminChainCastApiService.endChainCast(chainCastId)
         toast.success('ChainCast ended successfully')
@@ -144,5 +156,5 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
     )
   }
 
-  return <ChainCastRoom chainCast={chainCast} onLeave={handleLeave} />
+  return <ChainCastRoom chainCast={chainCast} onLeave={handleLeave} onHangUp={handleHangUp} />
 }

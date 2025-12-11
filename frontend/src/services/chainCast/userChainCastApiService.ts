@@ -11,6 +11,16 @@ export type {
   ChainCastModerationRequest
 } from "@/types/comms-admin/chaincast.types";
 
+// Re-export user-specific types
+export type {
+  CanJoinResponse,
+  JoinChainCastRequest,
+  JoinChainCastResponse,
+  UpdateParticipantRequest,
+  RequestModerationRequest,
+  AddReactionRequest
+} from "@/types/user/chaincast.types";
+
 // User-specific interfaces
 import {
   JoinChainCastRequest,

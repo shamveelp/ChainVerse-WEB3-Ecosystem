@@ -379,9 +379,12 @@ class ChainCastSocketService {
     }
   }
 
-  onChainCastEnded(callback: (data: { adminId: string; adminName: string; timestamp: Date }) => void): void {
+  onChainCastEnded(callback: (data?: { adminId: string; adminName: string; timestamp: Date }) => void): void {
     if (this.socket) {
-      this.socket.on("chaincast_ended", callback);
+      this.socket.on("chaincast_ended", (data) => {
+        console.log('🔴 ChainCast ended:', data);
+        callback(data);
+      });
     }
   }
 
