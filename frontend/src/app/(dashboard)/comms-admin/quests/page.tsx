@@ -442,144 +442,180 @@ export default function QuestsPage() {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {quests.map((quest) => (
-                  <Card key={quest._id} className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 hover:border-violet-500/30 transition-all duration-300 group">
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        {/* Quest Header */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="space-y-2 flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="text-lg font-semibold text-slate-100 truncate group-hover:text-violet-200 transition-colors max-w-full">{quest.title}</h3>
-                              {quest.isAIGenerated && (
-                                <Badge variant="outline" className="text-xs border-indigo-500/30 text-indigo-400 bg-indigo-500/5 flex-shrink-0">
-                                  AI
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-slate-400 text-sm line-clamp-2 break-words">{quest.description}</p>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {getSelectionMethodBadge(quest.selectionMethod)}
-                            </div>
+                  <Card key={quest._id} className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 hover:border-violet-500/50 transition-all duration-300 group overflow-hidden hover:shadow-2xl hover:shadow-violet-500/10">
+                    {/* Banner Image with Gradient Overlay */}
+                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-violet-600/20 via-indigo-600/20 to-purple-600/20">
+                      {quest.bannerImage ? (
+                        <>
+                          <img
+                            src={quest.bannerImage}
+                            alt={quest.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+                        </>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-600/30 via-indigo-600/30 to-purple-600/30">
+                          <Trophy className="h-20 w-20 text-violet-400/30" />
+                        </div>
+                      )}
+
+                      {/* Floating Status Badge */}
+                      <div className="absolute top-4 right-4 flex items-center gap-2">
+                        <Badge className={`${getStatusColor(quest.status)} text-white shadow-lg backdrop-blur-sm flex-shrink-0`}>
+                          {quest.status}
+                        </Badge>
+                        {quest.isAIGenerated && (
+                          <Badge variant="outline" className="text-xs border-indigo-400/50 text-indigo-300 bg-indigo-950/80 backdrop-blur-sm flex-shrink-0 shadow-lg">
+                            ✨ AI
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Dropdown Menu */}
+                      <div className="absolute top-4 left-4">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-9 w-9 p-0 bg-slate-900/80 backdrop-blur-sm text-slate-200 hover:text-white hover:bg-slate-800/90 border border-slate-700/50 shadow-lg">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-slate-900 border-slate-700 text-slate-200">
+                            <DropdownMenuItem
+                              onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS}/${quest._id}`)}
+                              className="text-slate-200 hover:bg-slate-800 cursor-pointer focus:bg-slate-800 focus:text-white"
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            {quest.status === 'draft' && (
+                              <DropdownMenuItem
+                                onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS_EDIT}/${quest._id}`)}
+                                className="text-slate-200 hover:bg-slate-800 cursor-pointer focus:bg-slate-800 focus:text-white"
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                            )}
+                            {quest.status === 'draft' && (
+                              <DropdownMenuItem
+                                onClick={() => setStartDialog({
+                                  open: true,
+                                  questId: quest._id,
+                                  questTitle: quest.title
+                                })}
+                                className="text-emerald-400 hover:bg-emerald-500/10 cursor-pointer focus:bg-emerald-500/10 focus:text-emerald-300"
+                              >
+                                <Play className="h-4 w-4 mr-2" />
+                                Start Quest
+                              </DropdownMenuItem>
+                            )}
+                            {quest.status === 'active' && (
+                              <DropdownMenuItem
+                                onClick={() => setEndDialog({
+                                  open: true,
+                                  questId: quest._id,
+                                  questTitle: quest.title
+                                })}
+                                className="text-amber-400 hover:bg-amber-500/10 cursor-pointer focus:bg-amber-500/10 focus:text-amber-300"
+                              >
+                                <Square className="h-4 w-4 mr-2" />
+                                End Quest
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator className="bg-slate-700" />
+                            <DropdownMenuItem
+                              onClick={() => setDeleteDialog({
+                                open: true,
+                                questId: quest._id,
+                                questTitle: quest.title
+                              })}
+                              className="text-red-400 hover:bg-red-500/10 cursor-pointer focus:bg-red-500/10 focus:text-red-300"
+                              disabled={quest.status === 'active'}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+
+                      {/* Reward Badge at Bottom */}
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <div className="flex items-center gap-2 bg-slate-900/90 backdrop-blur-md border border-violet-500/30 rounded-lg px-3 py-2 shadow-lg">
+                          <div className="flex items-center gap-2 text-violet-300">
+                            {getRewardTypeIcon(quest.rewardPool.rewardType)}
+                            <span className="font-semibold text-sm">{quest.rewardPool.amount} {quest.rewardPool.currency}</span>
                           </div>
-                          <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                            <Badge className={`${getStatusColor(quest.status)} text-white shadow-sm flex-shrink-0`}>
-                              {quest.status}
-                            </Badge>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-800">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-slate-200">
-                                <DropdownMenuItem
-                                  onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS}/${quest._id}`)}
-                                  className="text-slate-200 hover:bg-slate-800 cursor-pointer focus:bg-slate-800 focus:text-white"
-                                >
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View Details
-                                </DropdownMenuItem>
-                                {quest.status === 'draft' && (
-                                  <DropdownMenuItem
-                                    onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS_EDIT}/${quest._id}`)}
-                                    className="text-slate-200 hover:bg-slate-800 cursor-pointer focus:bg-slate-800 focus:text-white"
-                                  >
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                )}
-                                {quest.status === 'draft' && (
-                                  <DropdownMenuItem
-                                    onClick={() => setStartDialog({
-                                      open: true,
-                                      questId: quest._id,
-                                      questTitle: quest.title
-                                    })}
-                                    className="text-emerald-400 hover:bg-emerald-500/10 cursor-pointer focus:bg-emerald-500/10 focus:text-emerald-300"
-                                  >
-                                    <Play className="h-4 w-4 mr-2" />
-                                    Start Quest
-                                  </DropdownMenuItem>
-                                )}
-                                {quest.status === 'active' && (
-                                  <DropdownMenuItem
-                                    onClick={() => setEndDialog({
-                                      open: true,
-                                      questId: quest._id,
-                                      questTitle: quest.title
-                                    })}
-                                    className="text-amber-400 hover:bg-amber-500/10 cursor-pointer focus:bg-amber-500/10 focus:text-amber-300"
-                                  >
-                                    <Square className="h-4 w-4 mr-2" />
-                                    End Quest
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuSeparator className="bg-slate-700" />
-                                <DropdownMenuItem
-                                  onClick={() => setDeleteDialog({
-                                    open: true,
-                                    questId: quest._id,
-                                    questTitle: quest.title
-                                  })}
-                                  className="text-red-400 hover:bg-red-500/10 cursor-pointer focus:bg-red-500/10 focus:text-red-300"
-                                  disabled={quest.status === 'active'}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                          <div className="ml-auto">
+                            {getSelectionMethodBadge(quest.selectionMethod)}
                           </div>
                         </div>
+                      </div>
+                    </div>
 
-                        {/* Quest Stats */}
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div className="flex items-center gap-2 text-gray-400">
-                            <Calendar className="h-4 w-4" />
-                            <span>{formatDate(quest.startDate)}</span>
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        {/* Quest Title & Description */}
+                        <div className="space-y-2">
+                          <h3 className="text-xl font-bold text-white truncate group-hover:text-violet-200 transition-colors max-w-full">
+                            {quest.title}
+                          </h3>
+                          <p className="text-slate-400 text-sm line-clamp-2 break-words leading-relaxed">
+                            {quest.description}
+                          </p>
+                        </div>
+
+                        {/* Quest Stats Grid */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex items-center gap-2 text-slate-400 bg-slate-800/50 rounded-lg px-3 py-2">
+                            <Calendar className="h-4 w-4 text-violet-400 flex-shrink-0" />
+                            <span className="text-xs truncate">{formatDate(quest.startDate)}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-gray-400">
-                            <Users className="h-4 w-4" />
-                            <span>{quest.totalParticipants} participants</span>
+                          <div className="flex items-center gap-2 text-slate-400 bg-slate-800/50 rounded-lg px-3 py-2">
+                            <Users className="h-4 w-4 text-indigo-400 flex-shrink-0" />
+                            <span className="text-xs truncate">{quest.totalParticipants} joined</span>
                           </div>
-                          <div className="flex items-center gap-2 text-gray-400">
-                            <Target className="h-4 w-4" />
-                            <span>{quest.participantLimit} winners</span>
+                          <div className="flex items-center gap-2 text-slate-400 bg-slate-800/50 rounded-lg px-3 py-2">
+                            <Target className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                            <span className="text-xs truncate">{quest.participantLimit} winners</span>
                           </div>
-                          <div className="flex items-center gap-2 text-gray-400">
-                            {getRewardTypeIcon(quest.rewardPool.rewardType)}
-                            <span>{quest.rewardPool.amount} {quest.rewardPool.currency}</span>
+                          <div className="flex items-center gap-2 text-slate-400 bg-slate-800/50 rounded-lg px-3 py-2">
+                            <Clock className="h-4 w-4 text-amber-400 flex-shrink-0" />
+                            <span className="text-xs truncate">{formatDate(quest.endDate)}</span>
                           </div>
                         </div>
 
                         {/* Enhanced Status Indicators */}
-                        <div className="space-y-2">
-                          {quest.winnersSelected && (
-                            <div className="flex items-center gap-2 text-green-400 text-sm">
-                              <Crown className="h-4 w-4" />
-                              <span>Winners Selected</span>
-                            </div>
-                          )}
-                          {quest.rewardsDistributed && (
-                            <div className="flex items-center gap-2 text-indigo-400 text-sm">
-                              <DollarSign className="h-4 w-4" />
-                              <span>Rewards Distributed</span>
-                            </div>
-                          )}
-                        </div>
+                        {(quest.winnersSelected || quest.rewardsDistributed) && (
+                          <div className="flex flex-wrap gap-2">
+                            {quest.winnersSelected && (
+                              <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-3 py-1.5">
+                                <Crown className="h-3.5 w-3.5 text-emerald-400" />
+                                <span className="text-emerald-400 text-xs font-medium">Winners Selected</span>
+                              </div>
+                            )}
+                            {quest.rewardsDistributed && (
+                              <div className="flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/30 rounded-full px-3 py-1.5">
+                                <DollarSign className="h-3.5 w-3.5 text-indigo-400" />
+                                <span className="text-indigo-400 text-xs font-medium">Rewards Sent</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         {/* Progress for active quests */}
                         {quest.status === 'active' && (
-                          <div className="space-y-2">
+                          <div className="space-y-2 bg-slate-800/30 rounded-lg p-3 border border-slate-700/50">
                             <div className="flex items-center justify-between text-sm">
-                              <span className="text-gray-400">Progress</span>
-                              <span className="text-white font-medium">
+                              <span className="text-slate-400 font-medium">Participation</span>
+                              <span className="text-white font-semibold">
                                 {Math.min(quest.totalParticipants, quest.participantLimit)} / {quest.participantLimit}
                               </span>
                             </div>
                             <Progress
                               value={(quest.totalParticipants / quest.participantLimit) * 100}
-                              className="h-2 bg-slate-800"
+                              className="h-2 bg-slate-700"
                             />
                           </div>
                         )}
@@ -589,17 +625,16 @@ export default function QuestsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="flex-1 border-purple-600/50 text-purple-400 hover:bg-purple-950/30"
+                            className="flex-1 border-violet-500/50 text-violet-300 hover:bg-violet-500/10 hover:border-violet-400 hover:text-violet-200 transition-all"
                             onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS}/${quest._id}`)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
-                            View
+                            View Details
                           </Button>
                           {quest.status === 'draft' && (
                             <Button
-                              variant="outline"
                               size="sm"
-                              className="flex-1 border-green-600/50 text-green-400 hover:bg-green-950/30"
+                              className="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-lg shadow-emerald-500/20"
                               onClick={() => setStartDialog({
                                 open: true,
                                 questId: quest._id,
@@ -607,25 +642,23 @@ export default function QuestsPage() {
                               })}
                             >
                               <Play className="h-4 w-4 mr-2" />
-                              Start
+                              Launch
                             </Button>
                           )}
                           {quest.status === 'ended' && !quest.winnersSelected && (
                             <Button
-                              variant="outline"
                               size="sm"
-                              className="flex-1 border-yellow-600/50 text-yellow-400 hover:bg-yellow-950/30"
+                              className="flex-1 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white shadow-lg shadow-amber-500/20"
                               onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS}/${quest._id}/participants`)}
                             >
                               <Trophy className="h-4 w-4 mr-2" />
-                              Select Winners
+                              Pick Winners
                             </Button>
                           )}
                           {quest.status === 'ended' && quest.winnersSelected && !quest.rewardsDistributed && (
                             <Button
-                              variant="outline"
                               size="sm"
-                              className="flex-1 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300"
+                              className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/20"
                               onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS}/${quest._id}`)}
                             >
                               <DollarSign className="h-4 w-4 mr-2" />
