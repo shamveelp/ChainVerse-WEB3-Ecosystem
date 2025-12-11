@@ -105,8 +105,9 @@ export function ResetPasswordForm() {
       })
 
       router.push(USER_ROUTES.LOGIN)
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message
+    } catch (error) {
+      const err = error as { response?: { data?: { error?: string, message?: string } }; message?: string }
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message
       toast({
         title: "Password Reset Failed",
         description: errorMessage || "Error updating password",

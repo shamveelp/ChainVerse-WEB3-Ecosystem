@@ -20,9 +20,9 @@ export default function ForgotPasswordPage() {
   const [errors, setErrors] = useState<{ email?: string }>({})
 
   const validateForm = () => {
-    const emailValidation = validateEmail(email)
-    if (!emailValidation.isValid) {
-      setErrors({ email: emailValidation.error })
+    const emailError = validateEmail(email)
+    if (emailError) {
+      setErrors({ email: emailError })
       return false
     }
     setErrors({})
@@ -31,9 +31,9 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) return
-    
+
     setLoading(true)
     setSent(false)
 
@@ -54,10 +54,11 @@ export default function ForgotPasswordPage() {
           variant: "destructive",
         })
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response: { data?: { message?: string } } }
       toast({
         title: "Error",
-        description: error.message || "Something went wrong",
+        description: err.response?.data?.message || "Something went wrong",
         variant: "destructive",
       })
     } finally {

@@ -70,8 +70,9 @@ export function ForgotPasswordForm() {
       setTimeout(() => setIsCooldown(false), 30 * 1000)
 
       router.push(USER_ROUTES.VERIFY_OTP)
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message
+    } catch (error) {
+      const err = error as { response?: { data?: { error?: string, message?: string } }; message?: string }
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message
       toast({
         title: "Failed to Send Reset Code",
         description: errorMessage || "Please try again later",

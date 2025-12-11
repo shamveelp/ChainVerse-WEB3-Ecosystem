@@ -177,11 +177,12 @@ export function RegisterForm() {
       } else {
         throw new Error(result.error)
       }
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as { response: { data: { error: string } } }
       console.error("Registration error:", err)
       toast({
         title: "Registration Failed",
-        description: err.message || "Failed to register. Please try again.",
+        description: error.response?.data?.error || "Failed to register. Please try again.",
         variant: "destructive",
       })
     } finally {

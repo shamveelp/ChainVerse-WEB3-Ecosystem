@@ -54,10 +54,11 @@ export default function AdminForgotPassword() {
           className: "bg-red-900/90 border-red-500/50 text-red-100"
         })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as {response: {data?: {message?: string}}} 
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Something went wrong",
+        description: err.response?.data?.message || "Something went wrong",
         variant: "destructive",
         className: "bg-red-900/90 border-red-500/50 text-red-100"
       })

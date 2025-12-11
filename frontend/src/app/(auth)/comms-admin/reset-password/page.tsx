@@ -86,10 +86,11 @@ export default function ResetPasswordPage() {
           variant: "destructive",
         })
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response: { data?: { message?: string } } }
       toast({
         title: "Error",
-        description: error.message || "Something went wrong",
+        description: err.response?.data?.message || "Something went wrong",
         variant: "destructive",
       })
     } finally {

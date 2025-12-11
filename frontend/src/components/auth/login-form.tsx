@@ -78,8 +78,9 @@ export function LoginForm() {
       })
 
       router.push(redirectUrl)
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || "Invalid email or password"
+    } catch (err) {
+      const error = err as { response: { data: { error: string } } }
+      const errorMessage = error.response?.data?.error || "Invalid email or password"
       toast({
         title: "Authentication Failed",
         description: errorMessage,

@@ -270,11 +270,12 @@ export default function CreateCommunityPage() {
           variant: "destructive"
         })
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as {response: {data?: {message?: string}}} 
       console.error('Application submission error:', error)
       toast({
         title: "Error",
-        description: error.message || "Something went wrong",
+        description: err.response?.data?.message || "Something went wrong",
         variant: "destructive"
       })
     } finally {

@@ -160,7 +160,7 @@ export function validateWhyChooseUs(whyChooseUs: string): string | null {
 
 export function validateWebsiteUrl(url: string): string | null {
   if (!url || url.trim() === '') return null // Optional field
-  
+
   try {
     const trimmedUrl = url.trim()
     if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
@@ -215,6 +215,18 @@ export function validateOtp(otp: string): { isValid: boolean; error?: string } {
 
   if (!/^\d{6}$/.test(trimmedOtp)) {
     return { isValid: false, error: 'OTP must contain only digits' };
+  }
+
+  return { isValid: true };
+}
+
+export function validatePasswordMatch(password: string, confirmPassword: string): { isValid: boolean; error?: string } {
+  if (!confirmPassword || !confirmPassword.trim()) {
+    return { isValid: false, error: 'Please confirm your password' };
+  }
+
+  if (password !== confirmPassword) {
+    return { isValid: false, error: 'Passwords do not match' };
   }
 
   return { isValid: true };

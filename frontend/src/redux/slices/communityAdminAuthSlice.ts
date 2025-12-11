@@ -32,6 +32,8 @@ interface SerializableApplicationData {
   // Store only file names/paths, not File objects
   logoFileName?: string;
   bannerFileName?: string;
+  logo?: string;
+  banner?: string;
 }
 
 interface CommunityAdminAuthState {
@@ -140,13 +142,13 @@ export const communityAdminAuthSlice = createSlice({
   },
 });
 
-export const { 
-  login, 
-  logout, 
-  setLoading, 
-  setApplicationStatus, 
-  setTempEmail, 
-  setTempApplicationData, 
+export const {
+  login,
+  logout,
+  setLoading,
+  setApplicationStatus,
+  setTempEmail,
+  setTempApplicationData,
   clearTempData,
   updateToken,
   setSubscription,

@@ -51,10 +51,11 @@ export default function AdminLogin() {
       } else {
         throw new Error(response.message  || "Invalid email or password");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as {response: {data?: {message?: string}}} 
       toast({
         title: "Login Failed",
-        description: error.message || "Invalid email or password",
+        description: err.response?.data?.message || "Invalid email or password",
         variant: "destructive",
         className: "bg-red-600 text-white",
       });
