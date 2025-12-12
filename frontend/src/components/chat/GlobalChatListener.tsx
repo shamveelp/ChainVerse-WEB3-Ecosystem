@@ -15,6 +15,8 @@ export function GlobalChatListener() {
 
     // Use a ref to track if we've already connected in this instance
     const connectedRef = useRef(false)
+    // Use a ref to track processed message IDs to prevent duplicates
+    const processedMessageIds = useRef<Set<string>>(new Set())
 
     useEffect(() => {
         if (!token || !currentUser) return
@@ -32,9 +34,22 @@ export function GlobalChatListener() {
 
         connectSocket()
 
+        // Helper to check and mark message as processed
+        const isMessageProcessed = (messageId: string) => {
+            if (processedMessageIds.current.has(messageId)) return true
+            processedMessageIds.current.add(messageId)
+            // Clear from set after 10 seconds to allow memory cleanup
+            setTimeout(() => {
+                processedMessageIds.current.delete(messageId)
+            }, 10000)
+            return false
+        }
+
         // Handle new message event (if user is in the conversation room)
         const handleNewMessage = (data: any) => {
             const { message, conversation } = data
+
+            if (isMessageProcessed(message._id)) return
 
             // Don't show toast for own messages
             if (message.sender._id === currentUser._id) return
@@ -62,6 +77,8 @@ export function GlobalChatListener() {
             const lastMessage = conversation.lastMessage
 
             if (!lastMessage) return
+
+            if (isMessageProcessed(lastMessage._id)) return
 
             // Don't show toast for own messages
             // Check if lastMessage.sender matches current user

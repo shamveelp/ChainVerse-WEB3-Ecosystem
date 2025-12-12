@@ -5,6 +5,7 @@ import {
   ChainCastReaction,
   ChatMessage
 } from "@/types/socket/chaincast.types";
+import { store } from "@/redux/store";
 
 class ChainCastSocketService {
   public socket: Socket | null = null;
@@ -29,7 +30,15 @@ class ChainCastSocketService {
       this.cleanup();
 
       this.socket = io(socketUrl, {
-        auth: { token: token || 'liberal-token' },
+        auth: (cb) => {
+          const state = store.getState();
+          const activeToken = state.userAuth?.token ||
+            state.communityAdminAuth?.token ||
+            state.adminAuth?.token ||
+            token ||
+            'liberal-token';
+          cb({ token: activeToken });
+        },
         transports: ["websocket", "polling"],
         timeout: 10000,
         forceNew: false,

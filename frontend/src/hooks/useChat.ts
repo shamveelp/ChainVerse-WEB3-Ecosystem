@@ -25,6 +25,7 @@ export const useChat = () => {
   // Socket event handlers refs to prevent re-registering
   const socketEventHandlers = useRef<{ [key: string]: (data: any) => void }>({});
   const socketInitialized = useRef(false);
+  const processedMessageIds = useRef<Set<string>>(new Set());
 
   // Initialize socket connection with better error handling and retry logic
   useEffect(() => {
@@ -61,10 +62,21 @@ export const useChat = () => {
     if (!token || !currentUser || !socketConnected) return;
 
 
+    // Helper to check and mark message as processed
+    const isMessageProcessed = (messageId: string) => {
+      if (processedMessageIds.current.has(messageId)) return true;
+      processedMessageIds.current.add(messageId);
+      // Clear from set after 5 seconds to allow memory cleanup
+      setTimeout(() => {
+        processedMessageIds.current.delete(messageId);
+      }, 5000);
+      return false;
+    };
 
     // New message handler
     const handleNewMessage = (data: { message: MessageResponse; conversation: ConversationResponse }) => {
 
+      if (isMessageProcessed(data.message._id)) return;
 
       // Set the correct isOwnMessage flag based on current user
       const isOwnMessage = data.message.sender._id === currentUser?._id;
@@ -73,14 +85,21 @@ export const useChat = () => {
         isOwnMessage
       };
 
-      // Add message to the conversation
-      setMessages(prev => ({
-        ...prev,
-        [data.conversation._id]: [
-          ...(prev[data.conversation._id] || []),
-          messageWithCorrectOwnership
-        ]
-      }));
+      // Add message to the conversation if not already present
+      setMessages(prev => {
+        const existingMessages = prev[data.conversation._id] || [];
+        // Check for duplicates
+        if (existingMessages.some(m => m._id === messageWithCorrectOwnership._id)) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [data.conversation._id]: [
+            ...existingMessages,
+            messageWithCorrectOwnership
+          ]
+        };
+      });
 
       // Update conversation list
       setConversations(prev => {
@@ -96,14 +115,17 @@ export const useChat = () => {
       });
 
       // Show notification if message is from another user
-      if (!isOwnMessage) {
-        toast.success(`New message from ${data.message.sender.name || data.message.sender.username}`);
-      }
+      // Note: Toast is handled globally by GlobalChatListener
+      // if (!isOwnMessage) {
+      //   toast.success(`New message from ${data.message.sender.name || data.message.sender.username}`);
+      // }
     };
 
     const handleMessageSent = (data: { message: MessageResponse; conversation: ConversationResponse }) => {
 
       setSendingMessage(false);
+
+      if (isMessageProcessed(data.message._id)) return;
 
       // Ensure the sent message is marked as own message
       const messageWithCorrectOwnership = {

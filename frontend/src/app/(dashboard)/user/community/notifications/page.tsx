@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/redux/store'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -36,6 +38,7 @@ export default function NotificationsPage() {
   const router = useRouter()
   const [filter, setFilter] = useState('all')
   const { conversations, fetchConversations, loading, markMessagesAsRead } = useChat()
+  const currentUser = useSelector((state: RootState) => state.userAuth?.user)
 
   const filters = [
     { id: 'all', label: 'All' },
@@ -56,7 +59,7 @@ export default function NotificationsPage() {
   // We will map conversations to a notification-like structure.
 
   const messageNotifications = conversations
-    .filter(conv => conv.lastMessage && !conv.lastMessage.isDeleted)
+    .filter(conv => conv.lastMessage && !conv.lastMessage.isDeleted && conv.lastMessage.sender._id !== currentUser?._id)
     .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
     .map(conv => {
       const sender = conv.lastMessage?.sender;
@@ -139,8 +142,8 @@ export default function NotificationsPage() {
                     size="sm"
                     onClick={() => setFilter(filterItem.id)}
                     className={`flex-1 ${filter === filterItem.id
-                        ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30'
-                        : 'text-slate-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30'
+                      : 'text-slate-400 hover:text-white'
                       }`}
                   >
                     {filterItem.label}
@@ -160,8 +163,8 @@ export default function NotificationsPage() {
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
                     className={`p-4 cursor-pointer transition-all duration-200 hover:border-slate-600/50 ${!notification.read
-                        ? 'bg-slate-900/70 border-cyan-400/20 hover:bg-slate-900/90'
-                        : 'bg-slate-900/30 border-slate-700/50 hover:bg-slate-900/50'
+                      ? 'bg-slate-900/70 border-cyan-400/20 hover:bg-slate-900/90'
+                      : 'bg-slate-900/30 border-slate-700/50 hover:bg-slate-900/50'
                       }`}
                   >
                     <div className="flex items-start gap-3">

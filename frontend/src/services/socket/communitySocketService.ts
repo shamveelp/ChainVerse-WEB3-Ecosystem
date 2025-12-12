@@ -55,14 +55,23 @@ class CommunitySocketService {
       this.cleanupSocket();
 
       this.socket = io(socketUrl, {
-        auth: {
-          token: actualToken,
+        auth: (cb) => {
+          const state = store.getState();
+          const userToken = state?.userAuth?.token;
+          const adminToken = state?.communityAdminAuth?.token;
+          // Use token from store, or fallback to passed token (though passed token might be stale on reconnect)
+          const activeToken = adminToken || userToken || actualToken;
+          cb({
+            token: activeToken
+          });
         },
         transports: ["websocket", "polling"],
         timeout: 30000, // Increased timeout
         forceNew: true,
         autoConnect: true,
-        reconnection: false, // Handle reconnection manually
+        reconnection: true, // Enable built-in reconnection since we now handle dynamic tokens
+        reconnectionAttempts: this.maxReconnectAttempts,
+        reconnectionDelay: 1000,
         // More lenient connection options
         upgrade: true,
         rememberUpgrade: true,

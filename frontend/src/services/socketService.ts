@@ -7,6 +7,7 @@ import {
   TypingData,
   ReadMessagesData
 } from "@/types/socket/chat.types";
+import { store } from "@/redux/store";
 
 class SocketService {
   private socket: Socket | null = null;
@@ -36,8 +37,19 @@ class SocketService {
 
     this.connectionPromise = new Promise((resolve, reject) => {
       this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
-        auth: {
-          token: token.trim()
+        auth: (cb) => {
+          const state = store.getState();
+          // Get the active token from the store, prioritizing specific auth slices
+          // We check multiple slices because this service might be used by different user types
+          const storedToken = state.userAuth?.token ||
+            state.communityAdminAuth?.token ||
+            state.adminAuth?.token;
+
+          const activeToken = storedToken || token?.trim();
+
+          cb({
+            token: activeToken
+          });
         },
         transports: ['websocket', 'polling'],
         timeout: 20000,
@@ -230,38 +242,23 @@ class SocketService {
 
   // Event listeners
   onNewMessage(callback: (data: any) => void): void {
-    this.socket?.on('new_message', (data) => {
-
-      callback(data);
-    });
+    this.socket?.on('new_message', callback);
   }
 
   onMessageSent(callback: (data: any) => void): void {
-    this.socket?.on('message_sent', (data) => {
-
-      callback(data);
-    });
+    this.socket?.on('message_sent', callback);
   }
 
   onMessageEdited(callback: (data: any) => void): void {
-    this.socket?.on('message_edited', (data) => {
-
-      callback(data);
-    });
+    this.socket?.on('message_edited', callback);
   }
 
   onMessageDeleted(callback: (data: any) => void): void {
-    this.socket?.on('message_deleted', (data) => {
-
-      callback(data);
-    });
+    this.socket?.on('message_deleted', callback);
   }
 
   onMessagesRead(callback: (data: any) => void): void {
-    this.socket?.on('messages_read', (data) => {
-
-      callback(data);
-    });
+    this.socket?.on('messages_read', callback);
   }
 
   onConversationUpdated(callback: (data: any) => void): void {
@@ -277,24 +274,15 @@ class SocketService {
   }
 
   onUserStatusChanged(callback: (data: any) => void): void {
-    this.socket?.on('user_status_changed', (data) => {
-
-      callback(data);
-    });
+    this.socket?.on('user_status_changed', callback);
   }
 
   onMessageError(callback: (data: any) => void): void {
-    this.socket?.on('message_error', (data) => {
-      console.error('❌ Message error:', data);
-      callback(data);
-    });
+    this.socket?.on('message_error', callback);
   }
 
   onConversationError(callback: (data: any) => void): void {
-    this.socket?.on('conversation_error', (data) => {
-      console.error('❌ Conversation error:', data);
-      callback(data);
-    });
+    this.socket?.on('conversation_error', callback);
   }
 
   onTypingError(callback: (data: any) => void): void {
@@ -303,98 +291,122 @@ class SocketService {
 
   // Remove specific event listeners
   offNewMessage(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('new_message', callback);
-    } else {
-      this.socket?.removeAllListeners('new_message');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('new_message', callback);
+      } else {
+        this.socket.removeAllListeners('new_message');
+      }
     }
   }
 
   offMessageSent(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('message_sent', callback);
-    } else {
-      this.socket?.removeAllListeners('message_sent');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('message_sent', callback);
+      } else {
+        this.socket.removeAllListeners('message_sent');
+      }
     }
   }
 
   offMessageEdited(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('message_edited', callback);
-    } else {
-      this.socket?.removeAllListeners('message_edited');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('message_edited', callback);
+      } else {
+        this.socket.removeAllListeners('message_edited');
+      }
     }
   }
 
   offMessageDeleted(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('message_deleted', callback);
-    } else {
-      this.socket?.removeAllListeners('message_deleted');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('message_deleted', callback);
+      } else {
+        this.socket.removeAllListeners('message_deleted');
+      }
     }
   }
 
   offMessagesRead(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('messages_read', callback);
-    } else {
-      this.socket?.removeAllListeners('messages_read');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('messages_read', callback);
+      } else {
+        this.socket.removeAllListeners('messages_read');
+      }
     }
   }
 
   offConversationUpdated(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('conversation_updated', callback);
-    } else {
-      this.socket?.removeAllListeners('conversation_updated');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('conversation_updated', callback);
+      } else {
+        this.socket.removeAllListeners('conversation_updated');
+      }
     }
   }
 
   offUserTypingStart(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('user_typing_start', callback);
-    } else {
-      this.socket?.removeAllListeners('user_typing_start');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('user_typing_start', callback);
+      } else {
+        this.socket.removeAllListeners('user_typing_start');
+      }
     }
   }
 
   offUserTypingStop(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('user_typing_stop', callback);
-    } else {
-      this.socket?.removeAllListeners('user_typing_stop');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('user_typing_stop', callback);
+      } else {
+        this.socket.removeAllListeners('user_typing_stop');
+      }
     }
   }
 
   offUserStatusChanged(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('user_status_changed', callback);
-    } else {
-      this.socket?.removeAllListeners('user_status_changed');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('user_status_changed', callback);
+      } else {
+        this.socket.removeAllListeners('user_status_changed');
+      }
     }
   }
 
   offMessageError(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('message_error', callback);
-    } else {
-      this.socket?.removeAllListeners('message_error');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('message_error', callback);
+      } else {
+        this.socket.removeAllListeners('message_error');
+      }
     }
   }
 
   offConversationError(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('conversation_error', callback);
-    } else {
-      this.socket?.removeAllListeners('conversation_error');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('conversation_error', callback);
+      } else {
+        this.socket.removeAllListeners('conversation_error');
+      }
     }
   }
 
   offTypingError(callback?: (data: any) => void): void {
-    if (callback) {
-      this.socket?.off('typing_error', callback);
-    } else {
-      this.socket?.removeAllListeners('typing_error');
+    if (this.socket) {
+      if (callback) {
+        this.socket.off('typing_error', callback);
+      } else {
+        this.socket.removeAllListeners('typing_error');
+      }
     }
   }
 

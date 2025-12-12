@@ -129,6 +129,18 @@ export default function ChatPage({ params }: ChatPageProps) {
     }
   }, [username, getOrCreateConversation, joinConversation, leaveConversation, fetchMessages, markMessagesAsRead])
 
+  // Sync local conversation state with global conversations list
+  useEffect(() => {
+    if (conversation) {
+      const updatedConv = conversations.find(c => c._id === conversation._id)
+      if (updatedConv) {
+        // Only update if there are changes to avoid loop (though React handles object identity)
+        // For now, simpler to just set it as useChat guarantees new references on updates
+        setConversation(updatedConv)
+      }
+    }
+  }, [conversations, conversation?._id]) // Only run when conversations list changes or ID changes
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messagesEndRef.current && !loading) {
@@ -230,7 +242,8 @@ export default function ChatPage({ params }: ChatPageProps) {
   const getMessageStatusIcon = (message: MessageResponse) => {
     if (!message.isOwnMessage) return null
 
-    const isRead = message.readBy.length > 1 // More than just sender
+    // Check if anyone OTHER than the sender (current user) has read it
+    const isRead = message.readBy.some(r => r.user !== currentUser?._id)
 
     if (isRead) {
       return <CheckCheck className="h-3 w-3 text-blue-500" />

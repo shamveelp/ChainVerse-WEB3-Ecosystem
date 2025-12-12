@@ -57,10 +57,6 @@ export class AdminCommunityManagementRepository implements IAdminCommunityManage
     async getCommunityMembers(communityId: string, page: number, limit: number, search: string): Promise<{ members: any[], total: number }> {
         const query: any = { communityId };
 
-        // For search, we need to populate user first then filter, but Mongoose doesn't support easy search on populated fields in a single query efficiently.
-        // Or we can find Users first matching the search, then find CommunityMembers with those userIds.
-        // Assuming search is for username or email.
-
         if (search) {
             // Find users matching search
             // This requires importing UserModel, or doing an aggregation.
