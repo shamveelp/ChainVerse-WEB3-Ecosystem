@@ -45,6 +45,9 @@ export const USER_ROUTES = {
   // 
   PROFILE: '/my-profile',
 
+  //others
+  NOTIFICATIONS: '/user/community/notifications',
+
 
 
 } as const

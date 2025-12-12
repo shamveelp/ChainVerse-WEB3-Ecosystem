@@ -55,7 +55,10 @@ export default function ClientLayout({ children }: Readonly<{ children: React.Re
           <GoogleOAuthProvider clientId={googleClientId}>
             <Provider store={store}>
               <PersistGate loading={<PersistGateLoading />} persistor={persistor}>
-                <AuthInitializer>{children}</AuthInitializer>
+                <AuthInitializer>
+                  <GlobalChatListener />
+                  {children}
+                </AuthInitializer>
               </PersistGate>
             </Provider>
           </GoogleOAuthProvider>

@@ -128,10 +128,12 @@ export default function Navbar() {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
+                  <Link href={USER_ROUTES.NOTIFICATIONS}>
                   <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
                     <Bell className="h-5 w-5" />
                     <span className="sr-only">Notifications</span>
                   </Button>
+                  </Link>
                 </TooltipTrigger>
                 <TooltipContent>Notifications</TooltipContent>
               </Tooltip>
