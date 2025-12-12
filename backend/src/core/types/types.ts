@@ -165,6 +165,10 @@ const TYPES = {
   IAITradingService: Symbol.for("IAITradingService"),
   IAITradingController: Symbol.for("IAITradingController"),
 
+  IAdminCommunityManagementRepository: Symbol.for("IAdminCommunityManagementRepository"),
+  IAdminCommunityManagementService: Symbol.for("IAdminCommunityManagementService"),
+  IAdminCommunityManagementController: Symbol.for("IAdminCommunityManagementController"),
+
 };
 
 export { TYPES };

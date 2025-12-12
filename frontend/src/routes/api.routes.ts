@@ -26,6 +26,17 @@ export const ADMIN_API_ROUTES = {
     REJECT_COMMUNITY_REQUEST: (id: string) => `/api/admin/community-requests/${id}/reject`,
     EXPORT_COMMUNITY_REQUESTS: '/api/admin/community-requests/export',
 
+    // Community Management All
+    COMMUNITY_MANAGEMENT_ALL: '/api/admin/community-management/communities',
+    COMMUNITY_MANAGEMENT_BY_ID: (id: string) => `/api/admin/community-management/communities/${id}`,
+    COMMUNITY_MANAGEMENT_UPDATE_STATUS: (id: string) => `/api/admin/community-management/communities/${id}/status`,
+    COMMUNITY_MANAGEMENT_UPDATE_VERIFICATION: (id: string) => `/api/admin/community-management/communities/${id}/verification`,
+    COMMUNITY_MANAGEMENT_DELETE: (id: string) => `/api/admin/community-management/communities/${id}`,
+    COMMUNITY_MANAGEMENT_MEMBERS: (id: string) => `/api/admin/community-management/communities/${id}/members`,
+    COMMUNITY_MANAGEMENT_SETTINGS: (id: string) => `/api/admin/community-management/communities/${id}/settings`,
+
+
+
     // Wallet Management
     WALLETS: '/api/admin/wallets',
     WALLET_BY_ADDRESS: (address: string) => `/api/admin/wallets/${address}`,

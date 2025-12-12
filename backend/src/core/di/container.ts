@@ -24,6 +24,9 @@ import { AdminCommunityController } from "../../controllers/admin/AdminCommunity
 import { IAdminDashboardController } from "../interfaces/controllers/admin/IAdminDashboard.controller"
 import { AdminDashboardController } from "../../controllers/admin/AdminDashboard.controller"
 
+import { IAdminCommunityManagementController } from "../interfaces/controllers/admin/IAdminCommunityManagement.controller";
+import { AdminCommunityManagementController } from "../../controllers/admin/AdminCommunityManagement.controller";
+
 // Community Admin Controllers
 import { ICommunityAdminAuthController } from "../interfaces/controllers/communityAdmin/ICommunityAdminAuth.controller"
 import { CommunityAdminAuthController } from "../../controllers/communityAdmin/CommunityAdminAuth.controller"
@@ -214,6 +217,12 @@ import { IAdminCommunityPostService } from "../interfaces/services/admin/IAdminC
 import { AdminCommunityPostService } from "../../services/admin/AdminCommunityPost.service";
 import { IAdminCommunityPostController } from "../interfaces/controllers/admin/IAdminCommunityPost.controller";
 import { AdminCommunityPostController } from "../../controllers/admin/AdminCommunityPost.controller";
+
+import { IAdminCommunityManagementService } from "../interfaces/services/admin/IAdminCommunityManagement.service";
+import { AdminCommunityManagementService } from "../../services/admin/AdminCommunityManagement.service";
+import { IAdminCommunityManagementRepository } from "../interfaces/repositories/admin/IAdminCommunityManagement.repository";
+import { AdminCommunityManagementRepository } from "../../repositories/admin/AdminCommunityManagement.repository";
+
 import { IPointsConversionRepository } from "../interfaces/repositories/points/IPointsConversion.repository"
 import { IConversionRateRepository } from "../interfaces/repositories/points/IConversionRate.repository"
 import { PointsConversionRepository } from "../../repositories/points/PointsConversion.repository"
@@ -262,6 +271,7 @@ container.bind<IReferralController>(TYPES.IReferralController).to(ReferralContro
 container.bind<IPointsController>(TYPES.IPointsController).to(PointsController)
 
 // Bind Admin Controllers
+container.bind<IAdminCommunityManagementController>(TYPES.IAdminCommunityManagementController).to(AdminCommunityManagementController);
 container.bind<IAdminAuthController>(TYPES.IAdminAuthController).to(AdminAuthController)
 container.bind<IAdminUserController>(TYPES.IAdminUserController).to(AdminUserController)
 container.bind<IAdminCommunityController>(TYPES.IAdminCommunityController).to(AdminCommunityController)
@@ -441,5 +451,8 @@ container.bind<IDexSwapRepository>(TYPES.IDexSwapRepository).to(DexSwapRepositor
 container.bind<IAITradingController>(TYPES.IAITradingController).to(AITradingController);
 container.bind<IAITradingService>(TYPES.IAITradingService).to(AITradingService);
 container.bind<IAIChatHistoryRepository>(TYPES.IAIChatHistoryRepository).to(AIChatHistoryRepository);
+
+container.bind<IAdminCommunityManagementRepository>(TYPES.IAdminCommunityManagementRepository).to(AdminCommunityManagementRepository);
+container.bind<IAdminCommunityManagementService>(TYPES.IAdminCommunityManagementService).to(AdminCommunityManagementService);
 
 export default container

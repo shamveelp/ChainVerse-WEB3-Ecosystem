@@ -4,6 +4,7 @@ import { TYPES } from "../core/types/types";
 import { AdminAuthController } from "../controllers/admin/AdminAuth.controller";
 import { AdminUserController } from "../controllers/admin/AdminUser.controller";
 import { AdminCommunityController } from "../controllers/admin/AdminCommunity.controller";
+import { AdminCommunityManagementController } from "../controllers/admin/AdminCommunityManagement.controller";
 import { AdminDashboardController } from "../controllers/admin/AdminDashboard.controller";
 import { AdminCommunityPostController } from "../controllers/admin/AdminCommunityPost.controller";
 import { authMiddleware, roleMiddleware } from "../middlewares/auth.middleware";
@@ -65,6 +66,11 @@ const adminPointsConversionController = container.get<AdminPointsConversionContr
 const adminCommunityPostController = container.get<AdminCommunityPostController>(
   TYPES.IAdminCommunityPostController
 );
+
+const adminCommunityManagementController = container.get<AdminCommunityManagementController>(
+  TYPES.IAdminCommunityManagementController
+);
+
 
 // Auth Routes (Public)
 router.post(
@@ -211,6 +217,51 @@ router.patch(
   roleMiddleware(["admin"]),
   validateBody(RejectCommunityRequestDto),
   adminCommunityController.rejectCommunityRequest.bind(adminCommunityController)
+);
+
+// Protected Routes - Community Management
+router.get(
+  "/community-management/communities",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityManagementController.getAllCommunities.bind(adminCommunityManagementController)
+);
+router.get(
+  "/community-management/communities/:id",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityManagementController.getCommunityById.bind(adminCommunityManagementController)
+);
+router.patch(
+  "/community-management/communities/:id/status",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityManagementController.updateCommunityStatus.bind(adminCommunityManagementController)
+);
+router.patch(
+  "/community-management/communities/:id/verification",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityManagementController.updateVerificationStatus.bind(adminCommunityManagementController)
+);
+router.get(
+  "/community-management/communities/:id/members",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityManagementController.getCommunityMembers.bind(adminCommunityManagementController)
+);
+router.patch(
+  "/community-management/communities/:id/settings",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityManagementController.updateCommunitySettings.bind(adminCommunityManagementController)
+);
+router.delete(
+  "/community-management/communities/:id",
+
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  adminCommunityManagementController.deleteCommunity.bind(adminCommunityManagementController)
 );
 
 // Protected Routes - Community Post Management
