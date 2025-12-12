@@ -10,6 +10,7 @@ import { setupAxiosInterceptors } from "@/lib/api-client"
 import { setLoading } from "@/redux/slices/userAuthSlice"
 import { useEffect } from "react"
 import { GoogleOAuthProvider } from "@react-oauth/google"
+import { GlobalChatListener } from "@/components/chat/GlobalChatListener"
 
 // Component to handle dispatching setLoading(false) after rehydration
 function AuthInitializer({ children }: { children: React.ReactNode }) {
@@ -61,7 +62,10 @@ export default function ClientLayout({ children }: Readonly<{ children: React.Re
         ) : (
           <Provider store={store}>
             <PersistGate loading={<PersistGateLoading />} persistor={persistor}>
-              <AuthInitializer>{children}</AuthInitializer>
+              <AuthInitializer>
+                <GlobalChatListener />
+                {children}
+              </AuthInitializer>
             </PersistGate>
           </Provider>
         )}

@@ -13,6 +13,19 @@ import {
   MessageListResponse,
   SendMessageResponse
 } from "@/types/user/community.types";
+
+export type {
+  CommunityProfile,
+  UserFollowInfo,
+  FollowListResponse,
+  FollowResponse,
+  UpdateCommunityProfileData,
+  MessageResponse,
+  ConversationResponse,
+  ConversationListResponse,
+  MessageListResponse,
+  SendMessageResponse
+};
 import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors consistently
