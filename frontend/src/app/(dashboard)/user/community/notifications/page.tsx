@@ -7,7 +7,7 @@ import { RootState } from '@/redux/store'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart, MessageCircle, Repeat2, UserPlus, TrendingUp, Bell, Settings, Loader2 } from 'lucide-react'
+import { Heart, MessageCircle, Repeat2, UserPlus, TrendingUp, Bell, Settings, Loader2, Video, Hash, Users } from 'lucide-react'
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
 import { useChat } from '@/hooks/useChat'
@@ -29,6 +29,12 @@ const getNotificationIcon = (type: string) => {
       return <Bell className="h-5 w-5 text-cyan-400" />
     case 'community':
       return <TrendingUp className="h-5 w-5 text-orange-400" />
+    case 'chaincast_started':
+      return <Video className="h-5 w-5 text-red-500" />
+    case 'community_channel':
+      return <Hash className="h-5 w-5 text-green-500" />
+    case 'community_group':
+      return <Users className="h-5 w-5 text-blue-500" />
     default:
       return <Bell className="h-5 w-5 text-slate-400" />
   }
@@ -37,7 +43,9 @@ const getNotificationIcon = (type: string) => {
 export default function NotificationsPage() {
   const router = useRouter()
   const [filter, setFilter] = useState('all')
-  const { conversations, fetchConversations, loading, markMessagesAsRead } = useChat()
+  const { conversations, fetchConversations, loading: chatLoading, markMessagesAsRead } = useChat()
+  const [systemNotifications, setSystemNotifications] = useState<any[]>([])
+  const [sysLoading, setSysLoading] = useState(true)
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
 
   const filters = [
@@ -50,20 +58,28 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     fetchConversations()
+    fetchSystemNotifications()
   }, [fetchConversations])
 
-  // Derive notifications from conversations with unread messages
-  // We can also include all conversations with recent activity if we want, but "notifications" usually implies "new/unread"
-  // For the purpose of "live notification ... whenever the user recieves a message", 
-  // showing the latest message from conversations makes sense.
-  // We will map conversations to a notification-like structure.
+  const fetchSystemNotifications = async () => {
+    try {
+      setSysLoading(true)
+      const data = await communityApiService.getNotifications(1, 50)
+      if (data && data.notifications) {
+        setSystemNotifications(data.notifications)
+      }
+    } catch (error) {
+      console.error("Failed to fetch system notifications", error)
+    } finally {
+      setSysLoading(false)
+    }
+  }
 
+  // Map chat conversations to notifications
   const messageNotifications = conversations
     .filter(conv => conv.lastMessage && !conv.lastMessage.isDeleted && conv.lastMessage.sender._id !== currentUser?._id)
-    .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
     .map(conv => {
       const sender = conv.lastMessage?.sender;
-      // Handle case where sender might be just an ID (though types say it's populated)
       const senderName = typeof sender === 'object' ? (sender.name || sender.username) : 'Unknown User';
       const senderPic = typeof sender === 'object' ? sender.profilePic : '';
       const senderIsVerified = typeof sender === 'object' ? sender.isVerified : false;
@@ -80,29 +96,65 @@ export default function NotificationsPage() {
         },
         action: 'sent you a message',
         content: conv.lastMessage?.content,
-        timestamp: communityApiService.formatTimestamp(conv.lastActivity),
+        timestamp: conv.lastActivity, // Keep raw date for sorting
+        formattedTimestamp: communityApiService.formatTimestamp(conv.lastActivity),
         read: conv.unreadCount === 0,
-        data: conv // Keep reference to original conversation
+        data: conv,
+        link: `/user/community/messages/${senderUsername}`
       };
     });
 
+  // Map system notifications to UI format
+  const mappedSystemNotifications = systemNotifications.map(notification => ({
+    id: notification._id,
+    type: notification.type,
+    user: {
+      name: notification.title, // Use title as "Name" e.g. "New Channel Message"
+      username: '',
+      avatar: '', // TODO: Could use community avatar/logo if available in metadata
+      verified: false
+    },
+    action: '',
+    content: notification.message,
+    timestamp: notification.createdAt,
+    formattedTimestamp: communityApiService.formatTimestamp(notification.createdAt),
+    read: notification.read,
+    data: notification,
+    link: notification.link || '#'
+  }));
+
+  const allNotifications = [...messageNotifications, ...mappedSystemNotifications].sort((a, b) =>
+    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+
   const handleNotificationClick = async (notification: any) => {
     if (notification.type === 'message') {
-      // Mark as read
       if (!notification.read) {
         await markMessagesAsRead(notification.id);
       }
-      // Navigate to chat
-      if (notification.user.username) {
-        router.push(`/user/community/messages/${notification.user.username}`);
+      if (notification.link) router.push(notification.link);
+    } else {
+      // System Notification
+      if (!notification.read) {
+        try {
+          await communityApiService.markNotificationAsRead(notification.id);
+          // Update local state to reflect read status
+          setSystemNotifications(prev => prev.map(n => n._id === notification.id ? { ...n, read: true } : n));
+        } catch (e) {
+          console.error("Failed to mark as read", e);
+        }
+      }
+      if (notification.link && notification.link !== '#') {
+        router.push(notification.link);
       }
     }
   }
 
-  const filteredNotifications = messageNotifications.filter(n => {
+  const filteredNotifications = allNotifications.filter(n => {
     if (filter === 'all') return true
-    if (filter === 'mentions') return n.type === 'mention' // We don't have these yet
-    return false // We currently only implement messages
+    if (filter === 'mentions') return n.type === 'mention'
+    // 'likes', 'follows', 'reposts' might need real data later
+    return false
   })
 
   return (
@@ -153,7 +205,7 @@ export default function NotificationsPage() {
             </div>
 
             <div className="px-4 space-y-2 pb-6">
-              {loading && messageNotifications.length === 0 ? (
+              {chatLoading && sysLoading && messageNotifications.length === 0 ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
                 </div>
@@ -190,7 +242,7 @@ export default function NotificationsPage() {
                             </div>
                           )}
                           <span className="text-slate-400 text-sm">{notification.action}</span>
-                          <span className="text-slate-500 text-sm">• {notification.timestamp}</span>
+                          <span className="text-slate-500 text-sm">• {notification.formattedTimestamp}</span>
                         </div>
 
                         {notification.content && (

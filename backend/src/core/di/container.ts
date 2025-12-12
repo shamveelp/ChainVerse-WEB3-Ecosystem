@@ -260,6 +260,14 @@ import { AITradingService } from "../../services/aiChat/AiTrading.service"
 import { IAIChatHistoryRepository } from "../interfaces/repositories/aiChat/IAIChatHistory.repository"
 import { AIChatHistoryRepository } from "../../repositories/aiChat/AiChatHistory.repository"
 
+// Notification
+import { INotificationRepository } from "../interfaces/repositories/notification/INotification.repository";
+import { NotificationRepository } from "../../repositories/notification/Notification.repository";
+import { INotificationService } from "../interfaces/services/notification/INotification.service";
+import { NotificationService } from "../../services/notification/Notification.service";
+import { INotificationController } from "../interfaces/controllers/notification/INotification.controller";
+import { NotificationController } from "../../controllers/notification/Notification.controller";
+
 // Create Container
 const container = new Container()
 
@@ -454,5 +462,10 @@ container.bind<IAIChatHistoryRepository>(TYPES.IAIChatHistoryRepository).to(AICh
 
 container.bind<IAdminCommunityManagementRepository>(TYPES.IAdminCommunityManagementRepository).to(AdminCommunityManagementRepository);
 container.bind<IAdminCommunityManagementService>(TYPES.IAdminCommunityManagementService).to(AdminCommunityManagementService);
+
+// Notification Bindings
+container.bind<INotificationRepository>(TYPES.INotificationRepository).to(NotificationRepository);
+container.bind<INotificationService>(TYPES.INotificationService).to(NotificationService);
+container.bind<INotificationController>(TYPES.INotificationController).to(NotificationController);
 
 export default container

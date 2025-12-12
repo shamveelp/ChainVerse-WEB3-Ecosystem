@@ -7,6 +7,10 @@ import container from '../core/di/container';
 import { IUserCommunityChatService } from '../core/interfaces/services/community/IUserCommunityChat.service';
 import { ICommunityAdminCommunityService } from '../core/interfaces/services/communityAdmin/ICommunityAdminCommunity.service';
 import { TYPES } from '../core/types/types';
+import { emitToUser } from './socketHandlers';
+import { CommunityMemberModel } from '../models/communityMember.model';
+import { NotificationModel } from '../models/notification.model';
+import { CommunityModel } from '../models/community.model';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -258,6 +262,19 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           messageId: message._id
         });
 
+        const community = await CommunityModel.findById(socket.communityId).select('username');
+        const communityUsername = community?.username || socket.communityId;
+
+        // Notify community members
+        notifyCommunityMembers(io, socket.communityId!, {
+          type: 'community_channel',
+          title: 'New Channel Message',
+          message: message.content || 'New media message',
+          link: `/user/community/communities/${communityUsername}`,
+          communityId: socket.communityId,
+          messageId: message._id
+        }, socket.userId);
+
       } catch (error: any) {
         logger.error('Send channel message error', {
           socketId: socket.id,
@@ -357,6 +374,18 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           communityId: message.communityId,
           messageId: message._id
         });
+
+        if (message.communityId) {
+          // Notify community members
+          notifyCommunityMembers(io, message.communityId.toString(), {
+            type: 'community_group',
+            title: `New Message in ${data.communityUsername}`,
+            message: `${socket.username}: ${message.content}`,
+            link: `/user/community/communities/${data.communityUsername}`,
+            communityId: message.communityId,
+            messageId: message._id
+          }, socket.userId);
+        }
 
       } catch (error: any) {
         logger.error('Send group message error', {
@@ -604,4 +633,45 @@ export const emitToCommunity = (io: SocketIOServer, communityId: string, event: 
 // Helper function to check community connections
 export const getCommunityConnections = (communityId: string): number => {
   return communitySocketMap.get(communityId)?.size || 0;
+};
+
+// Helper function to notify all community members
+export const notifyCommunityMembers = async (io: SocketIOServer, communityId: string, notification: any, excludeUserId?: string) => {
+  try {
+    const members = await CommunityMemberModel.find({
+      communityId,
+      isActive: true
+    }).select('userId').lean();
+
+    const notificationsToCreate: any[] = [];
+
+    for (const member of members) {
+      if (excludeUserId && member.userId.toString() === excludeUserId) continue;
+
+      const userId = member.userId.toString();
+
+      notificationsToCreate.push({
+        recipient: member.userId,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        link: notification.link,
+        read: false,
+        metadata: {
+          communityId: notification.communityId,
+          messageId: notification.messageId,
+          chainCastId: notification.chainCastId
+        }
+      });
+
+      emitToUser(io, userId, 'community_notification', notification);
+    }
+
+    if (notificationsToCreate.length > 0) {
+      await NotificationModel.insertMany(notificationsToCreate);
+    }
+
+  } catch (error) {
+    logger.error('Error notifying community members:', error);
+  }
 };

@@ -377,4 +377,12 @@ export const USER_API_ROUTES = {
         NOTIFICATIONS: (id: string) => `/api/user/my-communities/${id}/notifications`,
         LEAVE: (id: string) => `/api/user/my-communities/${id}/leave`,
     },
+
+    // Notifications System
+    NOTIFICATIONS_SYSTEM: {
+        BASE: '/api/user/notifications',
+        MARK_READ: (id: string) => `/api/user/notifications/${id}/read`,
+        MARK_ALL_READ: '/api/user/notifications/mark-all-read',
+        DELETE: (id: string) => `/api/user/notifications/${id}`,
+    },
 };

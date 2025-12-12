@@ -474,6 +474,21 @@ class SocketService {
     }
   }
 
+  // Generic event listeners
+  on(event: string, callback: (data: any) => void): void {
+    this.socket?.on(event, callback);
+  }
+
+  off(event: string, callback?: (data: any) => void): void {
+    if (this.socket) {
+      if (callback) {
+        this.socket.off(event, callback);
+      } else {
+        this.socket.removeAllListeners(event);
+      }
+    }
+  }
+
   // Utility methods
   isConnected(): boolean {
     return this.socket?.connected || false;

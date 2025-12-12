@@ -169,6 +169,11 @@ const TYPES = {
   IAdminCommunityManagementService: Symbol.for("IAdminCommunityManagementService"),
   IAdminCommunityManagementController: Symbol.for("IAdminCommunityManagementController"),
 
+  // Notification
+  INotificationRepository: Symbol.for("INotificationRepository"),
+  INotificationService: Symbol.for("INotificationService"),
+  INotificationController: Symbol.for("INotificationController"),
+
 };
 
 export { TYPES };

@@ -84,6 +84,7 @@ import { DexSwapController } from "../controllers/dex/DexSwap.controller";
 import { GetChartDataDto, GetSwapHistoryDto, RecordSwapDto, UpdatePriceDto } from "../dtos/dex/DexSwap.dto";
 import { AITradingController } from "../controllers/aiChat/AiTrading.controller";
 import { ExecuteTradeDto, GetChatHistoryDto } from "../dtos/aiTrading/AiTrading.dto";
+import { NotificationController } from "../controllers/notification/Notification.controller";
 
 // Get controller instance
 
@@ -162,6 +163,10 @@ const aiTradingController = container.get<AITradingController>(
   TYPES.IAITradingController
 );
 
+const notificationController = container.get<NotificationController>(
+  TYPES.INotificationController
+);
+
 
 
 // Auth Routes with DTO validation
@@ -211,6 +216,37 @@ router.post(
   "/google-login",
   validateBody(GoogleLoginDto),
   userAuthController.googleLogin.bind(userAuthController)
+);
+
+
+
+// Notification Routes
+router.get(
+  "/notifications",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  notificationController.getNotifications.bind(notificationController)
+);
+
+router.put(
+  "/notifications/:notificationId/read",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  notificationController.markAsRead.bind(notificationController)
+);
+
+router.patch(
+  "/notifications/mark-all-read",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  notificationController.markAllAsRead.bind(notificationController)
+);
+
+router.delete(
+  "/notifications/:notificationId",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  notificationController.deleteNotification.bind(notificationController)
 );
 
 // Market Routes

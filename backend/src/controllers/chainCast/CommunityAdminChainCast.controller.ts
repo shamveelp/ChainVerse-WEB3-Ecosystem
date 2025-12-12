@@ -14,6 +14,7 @@ import {
     GetReactionsQueryDto
 } from "../../dtos/chainCast/ChainCast.dto";
 import { ICommunityAdminChainCastController } from "../../core/interfaces/controllers/chainCast/ICommunityAdminChainCast.controller";
+import { notifyCommunityMembers } from "../../socket/communitySocketHandlers";
 
 
 
@@ -163,6 +164,19 @@ export class CommunityAdminChainCastController implements ICommunityAdminChainCa
             const { chainCastId } = req.params;
 
             const result = await this._chainCastService.startChainCast(adminId, chainCastId);
+
+            // Notify community members about chaincast start
+            const io = (req as any).app.get('io');
+            if (io && result.communityId) {
+                notifyCommunityMembers(io, result.communityId, {
+                    type: 'chaincast_started',
+                    title: 'ChainCast Live!',
+                    message: `${result.title} is now live!`,
+                    link: `/user/chaincast/${chainCastId}`,
+                    communityId: result.communityId,
+                    chainCastId: chainCastId
+                });
+            }
 
             res.status(StatusCode.OK).json({
                 success: true,

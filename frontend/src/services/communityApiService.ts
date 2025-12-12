@@ -648,5 +648,59 @@ export const communityApiService = {
         year: messageDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
       });
     }
+  },
+
+  // Notifications System
+  getNotifications: async (page: number = 1, limit: number = 20, unreadOnly: boolean = false) => {
+    try {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+      if (unreadOnly) params.append('unreadOnly', 'true');
+
+      const response = await API.get(`${USER_API_ROUTES.NOTIFICATIONS_SYSTEM.BASE}?${params.toString()}`);
+
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data?.error || "Failed to fetch notifications");
+    } catch (error: any) {
+      console.error('API: Get notifications failed:', error);
+      handleApiError(error, "Failed to get notifications");
+      throw error;
+    }
+  },
+
+  markNotificationAsRead: async (notificationId: string) => {
+    try {
+      const response = await API.put(USER_API_ROUTES.NOTIFICATIONS_SYSTEM.MARK_READ(notificationId));
+      if (response.data?.success) return true;
+      throw new Error(response.data?.error || "Failed");
+    } catch (error: any) {
+      console.error('API: Mark notification read failed:', error);
+      throw error;
+    }
+  },
+
+  markAllNotificationsAsRead: async () => {
+    try {
+      const response = await API.patch(USER_API_ROUTES.NOTIFICATIONS_SYSTEM.MARK_ALL_READ);
+      if (response.data?.success) return true;
+      throw new Error(response.data?.error || "Failed");
+    } catch (error: any) {
+      console.error('API: Mark all read failed:', error);
+      throw error;
+    }
+  },
+
+  deleteNotification: async (notificationId: string) => {
+    try {
+      const response = await API.delete(USER_API_ROUTES.NOTIFICATIONS_SYSTEM.DELETE(notificationId));
+      if (response.data?.success) return true;
+      throw new Error(response.data?.error || "Failed");
+    } catch (error: any) {
+      console.error('API: Delete notification failed:', error);
+      throw error;
+    }
   }
 };

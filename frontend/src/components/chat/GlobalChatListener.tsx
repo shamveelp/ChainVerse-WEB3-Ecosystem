@@ -130,12 +130,33 @@ export function GlobalChatListener() {
             })
         }
 
+        // Handle Community Notifications
+        const handleCommunityNotification = (data: any) => {
+            const { type, title, message, link, messageId, communityId } = data;
+
+            if (messageId && isMessageProcessed(messageId)) return;
+
+            // Don't show toast if on the relevant page
+            if (link && pathname === link) return;
+
+            toast.info(title, {
+                description: message.length > 50 ? `${message.substring(0, 50)}...` : message,
+                action: link ? {
+                    label: "View",
+                    onClick: () => router.push(link)
+                } : undefined,
+                duration: 5000,
+            });
+        };
+
         socketService.onNewMessage(handleNewMessage)
         socketService.onConversationUpdated(handleConversationUpdated)
+        socketService.on('community_notification', handleCommunityNotification)
 
         return () => {
             socketService.offNewMessage(handleNewMessage)
             socketService.offConversationUpdated(handleConversationUpdated)
+            socketService.off('community_notification', handleCommunityNotification)
         }
     }, [token, currentUser, pathname, router])
 
