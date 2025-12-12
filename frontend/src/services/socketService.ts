@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import axios from 'axios';
 
 import {
   MessageData,
@@ -15,6 +16,49 @@ class SocketService {
   private maxReconnectAttempts = 5;
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private connectionPromise: Promise<void> | null = null;
+
+  private async refreshToken(): Promise<string | null> {
+    try {
+      const state = store.getState();
+      let refreshEndpoint: string;
+      let actionType: string;
+
+      // Determine endpoint based on which token is present or active role
+      // This is a naive heuristic; usually you'd know who is logged in.
+      // We check where the current token might have come from.
+      if (state.communityAdminAuth?.token) {
+        refreshEndpoint = "/api/community-admin/refresh-token";
+        actionType = "communityAdminAuth/updateToken";
+      } else if (state.adminAuth?.token) {
+        refreshEndpoint = "/api/admin/refresh-token";
+        actionType = "adminAuth/updateToken";
+      } else {
+        // Default to user
+        refreshEndpoint = "/api/user/refresh-token";
+        actionType = "userAuth/updateToken";
+      }
+
+      // Use axios directly to avoid interceptor loop, but we need withCredentials
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${refreshEndpoint}`,
+        {},
+        { withCredentials: true }
+      );
+
+      if (response.data.success && response.data.accessToken) {
+        // Dispatch to Redux
+        store.dispatch({
+          type: actionType,
+          payload: response.data.accessToken,
+        });
+        return response.data.accessToken;
+      }
+      return null;
+    } catch (error) {
+      console.error('Core socket token refresh failed:', error);
+      return null;
+    }
+  }
 
   connect(token: string): Promise<void> {
     if (this.socket?.connected) {
@@ -74,7 +118,7 @@ class SocketService {
         resolve();
       });
 
-      this.socket.on('connect_error', (error) => {
+      this.socket.on('connect_error', async (error) => {
         clearTimeout(timeout);
         console.error('❌ Socket connection error:', error.message);
         this.connectionPromise = null;
@@ -82,8 +126,28 @@ class SocketService {
         // Check if it's an authentication error
         if (error.message?.includes('Authentication failed') ||
           error.message?.includes('No token provided') ||
+          error.message?.includes('Access token expired') ||
           error.message?.includes('Token expired') ||
           error.message?.includes('Invalid token')) {
+
+          console.warn('⚠️ Socket auth failed, attempting to refresh token...');
+
+          try {
+            // Attempt to refresh the token
+            const newToken = await this.refreshToken();
+            if (newToken) {
+              console.log('✅ Token refreshed successfully for socket, retrying connection...');
+              // The connect() call below will trigger the auth callback again, 
+              // which will pick up the new token from the store
+              this.socket?.connect();
+              return;
+            }
+          } catch (refreshError) {
+            console.error('❌ Socket token refresh failed:', refreshError);
+            reject(new Error('Authentication failed - token expired and refresh failed'));
+            return;
+          }
+
           console.error('Authentication failed - check token validity');
           reject(new Error('Authentication failed - token may be expired'));
         } else {

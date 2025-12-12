@@ -476,7 +476,8 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                             throw new Error(`Invalid action: ${action}`);
                     }
                     results.push({ memberId, status: 'success', result });
-                } catch (error: any) {
+                } catch (err) {
+                    const error = err as Error;
                     errors.push({ memberId, status: 'error', error: error.message });
                 }
             }

@@ -166,7 +166,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         communityRequest._id.toString(),
         SuccessMessages.APPLICATION_SUBMITTED_SUCCESS
       );
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.CREATE_APPLICATION_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -228,7 +229,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         message:
           SuccessMessages.PASSWORD_SET_OTP_SENT,
       };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.SET_PASSWORD_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -261,7 +263,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         success: true,
         message: SuccessMessages.OTP_VERIFIED_APPLICATION_REVIEW,
       };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.VERIFY_OTP_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -300,7 +303,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         success: true,
         message: SuccessMessages.OTP_RESENT_SUCCESS,
       };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.RESEND_OTP_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -394,7 +398,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       };
 
       return responseDto;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.COMMUNITY_ADMIN_LOGIN_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -436,7 +441,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         success: true,
         message: SuccessMessages.PASSWORD_RESET_CODE_SENT,
       };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.FORGOT_PASSWORD_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -469,7 +475,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         success: true,
         message: SuccessMessages.OTP_VERIFIED_RESET_PASSWORD
       };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.VERIFY_FORGOT_PASSWORD_OTP_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -516,7 +523,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         success: true,
         message: SuccessMessages.PASSWORD_RESET,
       };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.RESET_PASSWORD_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -568,7 +576,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         accessToken: newAccessToken,
         message: SuccessMessages.TOKEN_REFRESHED,
       };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.REFRESH_TOKEN_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -617,7 +626,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         success: true,
         communityAdmin: responseDto,
       };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.GET_PROFILE_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -666,7 +676,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         success: true,
         community: communityPayload,
       };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.GET_COMMUNITY_DETAILS_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -722,7 +733,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         message: SuccessMessages.COMMUNITY_UPDATED_SUCCESS,
         community: communityPayload,
       };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.UPDATE_COMMUNITY_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -800,7 +812,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         updatedRequest!._id.toString(),
         SuccessMessages.APPLICATION_RESUBMITTED_SUCCESS
       );
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.REAPPLY_APPLICATION_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -835,7 +848,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       return await this.communityAdminRepo.createCommunityAdmin(
         communityAdminData
       );
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.REGISTER_COMMUNITY_ADMIN_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -848,7 +862,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       await this.communityAdminRepo.updateCommunityAdmin(id, {
         lastLogin: new Date(),
       });
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.UPDATE_LAST_LOGIN_ERROR, error);
       // Don't throw error as this is not critical for login flow
     }
@@ -1064,7 +1079,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       );
 
       logger.info(`Community created from request: ${requestId}`);
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.CREATE_COMMUNITY_ERROR, error);
       throw error instanceof CustomError
         ? error
@@ -1087,7 +1103,8 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
       await this.communityAdminRepo.updateCommunityAdmin(id, {
         tokenVersion: (communityAdmin.tokenVersion ?? 0) + 1,
       });
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       logger.error(LoggerMessages.INCREMENT_TOKEN_VERSION_ERROR, error);
       throw error instanceof CustomError
         ? error

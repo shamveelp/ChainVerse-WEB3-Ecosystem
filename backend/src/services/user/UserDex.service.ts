@@ -238,7 +238,7 @@ export class UserDexService implements IUserDexService {
           await this._paymentRepository.updateStatus(payment._id.toString(), 'failed');
           throw new CustomError("Payment not successful on Razorpay", StatusCode.BAD_REQUEST);
         }
-      } catch (razorpayError: any) {
+      } catch (razorpayError:unknown) {
         logger.error("Error fetching payment from Razorpay:", razorpayError);
         // Don't fail if we can't fetch from Razorpay, signature verification is sufficient
       }
