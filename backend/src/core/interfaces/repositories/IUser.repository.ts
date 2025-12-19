@@ -17,4 +17,16 @@ export interface IUserRepository extends IBaseRepository<IUser> {
     count(search?: string): Promise<number>;
     updateLastLogin(id: string): Promise<IUser | null>;
     incrementTokenVersion(id: string): Promise<IUser | null>;
+
+    createUser(data: {
+        googleId?: string;
+        email: string;
+        name: string;
+        // lastName: string;
+        // username: string;
+        // password: string;
+        role: string;
+        // referralCode?: string;
+        // referredBy?: string;
+    }): Promise<IUser>;
 }

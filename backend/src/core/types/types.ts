@@ -174,6 +174,8 @@ const TYPES = {
   INotificationService: Symbol.for("INotificationService"),
   INotificationController: Symbol.for("INotificationController"),
 
+  IWalletRepository: Symbol.for("IWalletRepository"),
+
 };
 
 export { TYPES };

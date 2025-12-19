@@ -688,4 +688,17 @@ export class PostRepository implements IPostRepository {
 
         return [...new Set(mentions)]; // Remove duplicates
     }
+
+    private extractHashtagsAndMentions(content: string): { hashtags: string[], mentions: string[] } {
+        const hashtags = this.extractHashtags(content);
+        const mentions = this.extractMentions(content);
+        return { hashtags, mentions };
+    }
+
+    getGlobalPosts(cursor?: string, limit?: number): Promise<any> {
+        if (cursor === undefined) {}
+        if (limit === undefined) {}
+        return fetch("", {})
+        
+    }
 }

@@ -121,4 +121,24 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
       throw new Error("Database error");
     }
   }
+
+  async createUser(data: {
+    googleId?: string;
+    email: string;
+    name: string;
+    role: string;
+  }): Promise<IUser> {
+    try {
+      const user = new this.model({
+        googleId: data.googleId,
+        email: data.email.toLowerCase().trim(),
+        name: data.name.trim(),
+        role: data.role,
+      });
+      return await user.save();
+    } catch (error) {
+      logger.error("Error creating user:", error);
+      throw new Error("Database error");
+    }
+  }
 }
