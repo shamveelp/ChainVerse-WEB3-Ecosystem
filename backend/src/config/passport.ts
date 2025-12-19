@@ -32,7 +32,7 @@ export class PassportConfig {
                                 role: "user",
                             })
                         }
-                        return done(null, user);
+                        return done(null, user as any);
                     } catch (error) {
                         logger.error("Google Strategy: Error", error);
                         return done(error);

@@ -8,6 +8,7 @@
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc && echo Build successful",
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
     "lint": "eslint .",
@@ -68,6 +69,7 @@
     "razorpay": "^2.9.6",
     "redis": "^5.8.2",
     "socket.io": "^4.7.4",
+    "stripe": "^20.1.0",
     "uuid": "^13.0.0",
     "winston": "^3.17.0",
     "zod": "^4.1.3"
