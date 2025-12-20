@@ -25,7 +25,7 @@ export default function ReapplyPage() {
   const router = useRouter()
   const dispatch = useDispatch()
   const { tempApplicationData } = useSelector((state: RootState) => state.communityAdminAuth)
-  
+
   const [loading, setLoading] = useState(false)
   const [emailChecking, setEmailChecking] = useState(false)
   const [usernameChecking, setUsernameChecking] = useState(false)
@@ -135,7 +135,21 @@ export default function ReapplyPage() {
     e.preventDefault()
 
     // Validate form
-    const validation = validateCommunityForm(formData as any)
+    const validationData = {
+      email: formData.email,
+      communityName: formData.communityName,
+      username: formData.communityUsername,
+      walletAddress: formData.ethWallet,
+      description: formData.description,
+      category: formData.category,
+      whyChooseUs: formData.whyChooseUs,
+      rules: formData.communityRules,
+      socialLinks: formData.socialHandlers,
+      logo: formData.logo,
+      banner: formData.banner
+    }
+
+    const validation = validateCommunityForm(validationData)
     if (!validation.isValid) {
       setErrors(validation.errors ?? {})
       toast({
@@ -187,7 +201,7 @@ export default function ReapplyPage() {
         description: formData.description,
         category: formData.category,
         whyChooseUs: formData.whyChooseUs,
-        rules: formData.communityRules.filter((rule:any) => rule.trim() !== ''),
+        rules: formData.communityRules.filter((rule) => rule.trim() !== ''),
         socialLinks: formData.socialHandlers,
         logo: logoUrl,
         banner: bannerUrl
@@ -270,7 +284,7 @@ export default function ReapplyPage() {
     }
 
     const imageUrl = URL.createObjectURL(file)
-    
+
     if (type === 'logo') {
       setTempLogoUrl(imageUrl)
       setLogoCropperOpen(true)
@@ -376,7 +390,7 @@ export default function ReapplyPage() {
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className={`bg-blue-950/20 border-blue-800/30 text-white placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500/20 pr-10 ${errors.email ? 'border-red-500' : emailAvailable === true ? 'border-green-500' : emailAvailable === false ? 'border-red-500' : ''}`}
                     placeholder="Enter your email address"
                     required

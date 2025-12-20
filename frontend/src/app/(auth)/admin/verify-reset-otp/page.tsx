@@ -103,7 +103,7 @@ export default function AdminVerifyResetOTP() {
         })
       }
     } catch (error) {
-      const err = error as {response: {data?: {message?: string}}} 
+      const err = error as { response: { data?: { message?: string } } }
       toast({
         title: "Error",
         description: err.response?.data?.message || "Something went wrong",
@@ -204,7 +204,7 @@ export default function AdminVerifyResetOTP() {
                 {otp.map((digit, index) => (
                   <Input
                     key={index}
-                    ref={(el:any) => inputRefs.current[index] = el}
+                    ref={(el: HTMLInputElement | null) => { inputRefs.current[index] = el }}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}

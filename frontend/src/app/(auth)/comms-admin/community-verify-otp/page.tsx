@@ -107,7 +107,7 @@ export default function CommunityOTPVerificationPage() {
         inputRefs.current[0]?.focus()
       }
     } catch (error) {
-      const err = error as {response: {data?: {message?: string}}} 
+      const err = error as { response: { data?: { message?: string } } }
       toast({
         title: "Error",
         description: err.response?.data?.message || "Something went wrong",
@@ -140,7 +140,7 @@ export default function CommunityOTPVerificationPage() {
         })
       }
     } catch (error) {
-      const err = error as {response: {data?: {message?: string}}} 
+      const err = error as { response: { data?: { message?: string } } }
       toast({
         title: "Error",
         description: err.response?.data?.message || "Something went wrong",
@@ -194,7 +194,7 @@ export default function CommunityOTPVerificationPage() {
                 {otp.map((digit, index) => (
                   <Input
                     key={index}
-                    ref={(el:any) => inputRefs.current[index] = el}
+                    ref={(el: HTMLInputElement | null) => { inputRefs.current[index] = el }}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}

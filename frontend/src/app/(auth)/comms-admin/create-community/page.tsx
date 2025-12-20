@@ -233,13 +233,13 @@ export default function CreateCommunityPage() {
         banner: formData.banner
       }
 
-      
 
-      const result = await communityAdminApiService.submitCommunityApplication(applicationData as any)
+
+      const result = await communityAdminApiService.submitCommunityApplication(applicationData)
 
       if (result.success) {
         dispatch(setTempEmail(formData.email))
-        
+
         // Store only serializable data in Redux (excluding File objects)
         const serializableData = {
           communityName: applicationData.communityName,
@@ -271,7 +271,7 @@ export default function CreateCommunityPage() {
         })
       }
     } catch (error) {
-      const err = error as {response: {data?: {message?: string}}} 
+      const err = error as { response: { data?: { message?: string } } }
       console.error('Application submission error:', error)
       toast({
         title: "Error",
@@ -370,11 +370,11 @@ export default function CreateCommunityPage() {
     if (type === 'logo') {
       if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl)
       setLogoPreviewUrl('')
-      setFormData({...formData, logo: null})
+      setFormData({ ...formData, logo: null })
     } else {
       if (bannerPreviewUrl) URL.revokeObjectURL(bannerPreviewUrl)
       setBannerPreviewUrl('')
-      setFormData({...formData, banner: null})
+      setFormData({ ...formData, banner: null })
     }
   }
 
@@ -458,7 +458,7 @@ export default function CreateCommunityPage() {
                     {getEmailValidationIcon()}
                   </div>
                 </div>
-                {errors.email && <p className="text-red-400 text-sm flex items-center gap-1 mt-1"><AlertCircle className="h-4 w-4" />{errors.email}</p>}        
+                {errors.email && <p className="text-red-400 text-sm flex items-center gap-1 mt-1"><AlertCircle className="h-4 w-4" />{errors.email}</p>}
                 {emailAvailable === true && !errors.email && <p className="text-green-400 text-sm flex items-center gap-1 mt-1"><CheckCircle className="h-4 w-4" />Email is available</p>}
               </div>
             </CardContent>
@@ -550,7 +550,7 @@ export default function CreateCommunityPage() {
                   <Select
                     value={formData.category}
                     onValueChange={(value) => {
-                      setFormData({...formData, category: value})
+                      setFormData({ ...formData, category: value })
                       clearFieldError('category')
                     }}
                   >
@@ -617,7 +617,7 @@ export default function CreateCommunityPage() {
                       <Input
                         value={rule}
                         onChange={(e) => updateRule(index, e.target.value)}
-                        className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20"       
+                        className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20"
                         placeholder={`Rule ${index + 1}`}
                       />
                       {formData.rules.length > 1 && (
@@ -634,7 +634,7 @@ export default function CreateCommunityPage() {
                     </div>
                   ))}
                 </div>
-                {errors.rules && <p className="text-red-400 text-sm flex items-center gap-1 mt-2"><AlertCircle className="h-4 w-4" />{errors.rules}</p>}        
+                {errors.rules && <p className="text-red-400 text-sm flex items-center gap-1 mt-2"><AlertCircle className="h-4 w-4" />{errors.rules}</p>}
               </div>
             </CardContent>
           </Card>
@@ -653,7 +653,7 @@ export default function CreateCommunityPage() {
                   value={formData.socialLinks.twitter}
                   onChange={(e) => setFormData({
                     ...formData,
-                    socialLinks: {...formData.socialLinks, twitter: e.target.value}
+                    socialLinks: { ...formData.socialLinks, twitter: e.target.value }
                   })}
                   className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20"
                   placeholder="Twitter/X handle"
@@ -662,7 +662,7 @@ export default function CreateCommunityPage() {
                   value={formData.socialLinks.discord}
                   onChange={(e) => setFormData({
                     ...formData,
-                    socialLinks: {...formData.socialLinks, discord: e.target.value}
+                    socialLinks: { ...formData.socialLinks, discord: e.target.value }
                   })}
                   className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20"
                   placeholder="Discord server"
@@ -671,7 +671,7 @@ export default function CreateCommunityPage() {
                   value={formData.socialLinks.telegram}
                   onChange={(e) => setFormData({
                     ...formData,
-                    socialLinks: {...formData.socialLinks, telegram: e.target.value}
+                    socialLinks: { ...formData.socialLinks, telegram: e.target.value }
                   })}
                   className="bg-red-950/20 border-red-800/30 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20"
                   placeholder="Telegram group"
@@ -681,7 +681,7 @@ export default function CreateCommunityPage() {
                   onChange={(e) => {
                     setFormData({
                       ...formData,
-                      socialLinks: {...formData.socialLinks, website: e.target.value}
+                      socialLinks: { ...formData.socialLinks, website: e.target.value }
                     })
                     clearFieldError('website')
                   }}
@@ -689,7 +689,7 @@ export default function CreateCommunityPage() {
                   placeholder="Website URL"
                 />
               </div>
-              {errors.website && <p className="text-red-400 text-sm flex items-center gap-1 mt-2"><AlertCircle className="h-4 w-4" />{errors.website}</p>}      
+              {errors.website && <p className="text-red-400 text-sm flex items-center gap-1 mt-2"><AlertCircle className="h-4 w-4" />{errors.website}</p>}
             </CardContent>
           </Card>
 
@@ -706,7 +706,7 @@ export default function CreateCommunityPage() {
                 <div className="space-y-2">
                   <Label className="text-orange-400 font-medium">Community Logo</Label>
                   <div
-                    className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-orange-500/50 transition-colors cursor-pointer" 
+                    className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-orange-500/50 transition-colors cursor-pointer"
                     onClick={() => document.getElementById('logo-input')?.click()}
                   >
                     {logoPreviewUrl ? (
@@ -762,7 +762,7 @@ export default function CreateCommunityPage() {
                 <div className="space-y-2">
                   <Label className="text-orange-400 font-medium">Community Banner</Label>
                   <div
-                    className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-orange-500/50 transition-colors cursor-pointer" 
+                    className="border-2 border-dashed border-red-800/30 rounded-lg p-8 text-center hover:border-orange-500/50 transition-colors cursor-pointer"
                     onClick={() => document.getElementById('banner-input')?.click()}
                   >
                     {bannerPreviewUrl ? (
