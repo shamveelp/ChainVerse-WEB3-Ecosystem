@@ -1,5 +1,13 @@
 // frontend/src/lib/cropImage.ts
-export async function getCroppedImg(imageSrc: string, pixelCrop: any): Promise<Blob> {
+
+export interface PixelCrop {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export async function getCroppedImg(imageSrc: string, pixelCrop: PixelCrop): Promise<Blob> {
   const image = new Image();
   image.src = imageSrc;
 

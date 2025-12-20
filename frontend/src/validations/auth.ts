@@ -12,6 +12,11 @@ export interface RegisterData {
   referralCode?: string
 }
 
+type RegisterErrors = Partial<RegisterData> & {
+  agreeTerms?: string
+}
+
+
 export const validateLoginForm = (formData: LoginData): Partial<LoginData> => {
   const errors: Partial<LoginData> = {}
 
@@ -28,8 +33,11 @@ export const validateLoginForm = (formData: LoginData): Partial<LoginData> => {
   return errors
 }
 
-export const validateRegisterForm = (formData: RegisterData, agreeTerms: boolean): Partial<RegisterData> => {
-  const errors: Partial<RegisterData> = {}
+export const validateRegisterForm = (
+  formData: RegisterData,
+  agreeTerms: boolean
+): RegisterErrors => {
+  const errors: RegisterErrors = {}
 
   if (!formData.name.trim()) {
     errors.name = "Name is required"
@@ -53,7 +61,11 @@ export const validateRegisterForm = (formData: RegisterData, agreeTerms: boolean
 
   if (!formData.password) {
     errors.password = "Password is required"
-  } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)) {
+  } else if (
+    !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+      formData.password
+    )
+  ) {
     errors.password =
       "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 8 characters long"
   }
@@ -62,12 +74,17 @@ export const validateRegisterForm = (formData: RegisterData, agreeTerms: boolean
     errors.confirmPassword = "Passwords do not match"
   }
 
-  if (formData.referralCode && formData.referralCode.trim() && !/^[a-zA-Z0-9]{8}$/.test(formData.referralCode)) {
-    errors.referralCode = "Referral code must be 8 characters long and contain only letters and numbers"
+  if (
+    formData.referralCode &&
+    formData.referralCode.trim() &&
+    !/^[a-zA-Z0-9]{8}$/.test(formData.referralCode)
+  ) {
+    errors.referralCode =
+      "Referral code must be 8 characters long and contain only letters and numbers"
   }
 
   if (!agreeTerms) {
-    (errors as any).agreeTerms = "You must agree to the terms and conditions"
+    errors.agreeTerms = "You must agree to the terms and conditions"
   }
 
   return errors

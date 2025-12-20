@@ -1,3 +1,5 @@
+import { PixelCrop } from "./cropImage"
+
 export const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const image = new Image()
@@ -24,7 +26,7 @@ export function rotateSize(width: number, height: number, rotation: number) {
 
 export async function getCroppedImg(
   imageSrc: string,
-  pixelCrop: any,
+  pixelCrop: PixelCrop,
   rotation = 0,
   fileName = 'cropped-image.jpg'
 ): Promise<File> {
