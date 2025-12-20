@@ -48,6 +48,17 @@ interface PointsHistoryItem {
   createdAt: string;
 }
 
+interface PointsSummary {
+  pointsByType: {
+    daily_checkin: number;
+    referral_bonus: number;
+    quest_reward: number;
+    bonus: number;
+    deduction: number;
+    [key: string]: number;
+  };
+}
+
 export default function PointsPage() {
   const dispatch = useDispatch();
   const { profile } = useSelector((state: RootState) => state.userProfile);
@@ -59,7 +70,7 @@ export default function PointsPage() {
     []
   );
   const [pointsHistory, setPointsHistory] = useState<PointsHistoryItem[]>([]);
-  const [pointsSummary, setPointsSummary] = useState<any>(null);
+  const [pointsSummary, setPointsSummary] = useState<PointsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -334,11 +345,11 @@ export default function PointsPage() {
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={setSelectedDate as any}
+                  onSelect={(date) => date && setSelectedDate(date)}
                   className="rounded-md border-slate-700"
                   required={false} // Add this line
                   modifiers={{
-                    checkedIn: (date: any) => isCheckInDay(date),
+                    checkedIn: (date: Date) => isCheckInDay(date),
                   }}
                   modifiersStyles={{
                     checkedIn: {

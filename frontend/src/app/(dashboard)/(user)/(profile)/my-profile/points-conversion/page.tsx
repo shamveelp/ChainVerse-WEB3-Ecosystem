@@ -113,7 +113,8 @@ export default function PointsConversionPage() {
           description: result.error || "Could not fetch conversion rate. Please refresh.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
+      
       console.error("Fetch rate error:", error);
       toast.error("Error Loading Data", {
         description: "Failed to load conversion rate. Please try again.",
@@ -138,7 +139,8 @@ export default function PointsConversionPage() {
           description: result.error || "Could not fetch your conversion history.",
         });
       }
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error("Fetch conversions error:", error);
       toast.error("Error Loading History", {
         description: "Failed to load conversion history. Please try again.",
@@ -229,7 +231,8 @@ export default function PointsConversionPage() {
           description: result.error || "Failed to create conversion request.",
         });
       }
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error("Conversion error:", error);
       toast.error("Conversion Error", {
         description: error.message || "An unexpected error occurred. Please try again.",
@@ -363,9 +366,9 @@ export default function PointsConversionPage() {
           description: apiResult.error || "Transaction succeeded but failed to update records.",
         });
       }
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error("Claim error:", error);
-
       // Handle user rejection
       if (error.message?.includes("rejected") || error.message?.includes("denied")) {
         toast.error("Transaction Rejected", {

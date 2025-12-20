@@ -12,7 +12,7 @@ import { Phone, Mail, Calendar, Flame } from "lucide-react";
 import { format, isValid } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { setProfile, setLoading as setProfileLoading, setError, clearError } from "@/redux/slices/userProfileSlice";
+import { setProfile, setLoading as setProfileLoading, setError, clearError, clearProfileData } from "@/redux/slices/userProfileSlice";
 import { logout } from "@/redux/slices/userAuthSlice";
 import { userApiService } from "@/services/userApiServices";
 import EditProfileModal from "@/components/user/profile/edit-profile-modal";
@@ -40,15 +40,16 @@ export default function MyProfilePage() {
         if (response.data.dailyCheckin?.lastCheckIn && !isValid(new Date(response.data.dailyCheckin.lastCheckIn))) {
           throw new Error("Invalid lastCheckIn date format");
         }
-        dispatch(setProfile(response.data as any));
+        dispatch(setProfile(response.data));
         dispatch(clearError());
-      } catch (err: any) {
+      } catch (error) {
+        const err = error as Error & { response?: { status?: number } };
         const errorMessage = err.message || "Failed to fetch profile";
         dispatch(setError(errorMessage));
         toast.error("Error loading profile", { description: errorMessage });
         if (errorMessage.includes("not authenticated") || err.response?.status === 401) {
           dispatch(logout());
-          dispatch(setProfile(null as any)); // Clear profile on logout
+          dispatch(clearProfileData()); // Clear profile on logout
           router.replace("/user/login");
         } else if (retryCount < 3) {
           // Retry up to 3 times with exponential backoff

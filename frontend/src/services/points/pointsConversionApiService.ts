@@ -8,6 +8,12 @@ import {
   ConversionStats
 } from "@/types/points/conversion.types";
 
+export type {
+  ConversionRate,
+  PointsConversion,
+  ConversionStats,
+}
+
 export const pointsConversionApiService = {
   // User APIs
   createConversion: async (pointsToConvert: number): Promise<ApiResponse<{
