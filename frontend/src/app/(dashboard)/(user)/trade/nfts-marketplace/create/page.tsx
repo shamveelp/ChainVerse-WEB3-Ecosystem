@@ -120,9 +120,10 @@ export default function CreatePage() {
       toast.success('NFT created successfully!');
       router.push('/trade/nfts-marketplace/explore');
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating NFT:', error);
-      toast.error(error.message || 'Failed to create NFT. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create NFT. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

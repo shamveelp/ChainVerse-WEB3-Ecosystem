@@ -12,9 +12,55 @@ import Navbar from '@/components/home/navbar';
 import Link from 'next/link';
 import PillNavigation from '@/components/dex/PillNavigation';
 
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayErrorResponse {
+  error: {
+    code: string;
+    description: string;
+    source: string;
+    step: string;
+    reason: string;
+    metadata: Record<string, unknown>;
+  };
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: RazorpayResponse) => void;
+  prefill: {
+    name: string;
+    email: string;
+  };
+  theme: {
+    color: string;
+  };
+  modal: {
+    ondismiss: () => void;
+  };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  on: (event: string, handler: (response: RazorpayErrorResponse) => void) => void;
+}
+
+interface RazorpayConstructor {
+  new(options: RazorpayOptions): RazorpayInstance;
+}
+
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: RazorpayConstructor;
   }
 }
 
@@ -39,7 +85,14 @@ export default function BuyCryptoPage() {
   const [amount, setAmount] = useState<string>('');
   const [estimatedEth, setEstimatedEth] = useState<number>(0);
   const [ethPrice, setEthPrice] = useState<number>(0);
-  const [fees, setFees] = useState<any>(null);
+
+  interface EstimateFees {
+    estimatedEth: number;
+    platformFee: number;
+    actualEthToReceive: number;
+  }
+
+  const [fees, setFees] = useState<EstimateFees | null>(null);
   const [loading, setLoading] = useState(false);
   const [calculating, setCalculating] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
@@ -215,7 +268,7 @@ export default function BuyCryptoPage() {
         name: 'ChainVerse Crypto',
         description: `Buy ${fees?.actualEthToReceive?.toFixed(6) || '0'} ETH`,
         order_id: orderResponse.data.orderId,
-        handler: async function (response: any) {
+        handler: async function (response: RazorpayResponse) {
           try {
             setLoading(true);
             // Verify payment
@@ -239,12 +292,13 @@ export default function BuyCryptoPage() {
             } else {
               throw new Error(verifyResponse.error || 'Payment verification failed');
             }
-          } catch (error: any) {
+          } catch (error: unknown) {
             console.error('Payment verification error:', error);
+            const errorMessage = error instanceof Error ? error.message : "Please contact support if amount was deducted.";
             toast({
               variant: "destructive",
               title: "Payment Verification Failed",
-              description: error.message || "Please contact support if amount was deducted.",
+              description: errorMessage,
             });
           } finally {
             setLoading(false);
@@ -272,7 +326,7 @@ export default function BuyCryptoPage() {
 
       const razorpay = new window.Razorpay(options);
 
-      razorpay.on('payment.failed', function (response: any) {
+      razorpay.on('payment.failed', function (response: RazorpayErrorResponse) {
         console.error('Payment failed:', response.error);
         setLoading(false);
         toast({
@@ -283,12 +337,13 @@ export default function BuyCryptoPage() {
       });
 
       razorpay.open();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Payment initiation failed:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to initiate payment. Please try again.";
       toast({
         variant: "destructive",
         title: "Payment Failed",
-        description: error.message || "Failed to initiate payment. Please try again.",
+        description: errorMessage,
       });
       setLoading(false);
     }

@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { 
-  ArrowLeft, 
-  Heart, 
-  Share2, 
-  ExternalLink, 
-  User, 
-  Calendar, 
-  Tag, 
+import {
+  ArrowLeft,
+  Heart,
+  Share2,
+  ExternalLink,
+  User,
+  Calendar,
+  Tag,
   TrendingUp,
   ShoppingCart,
   DollarSign,
@@ -38,7 +38,7 @@ export default function NFTDetailPage() {
   const params = useParams();
   const router = useRouter();
   const tokenId = params.id as string;
-  
+
   const [nft, setNft] = useState<NFTWithMetadata | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
@@ -64,10 +64,10 @@ export default function NFTDetailPage() {
     try {
       setLoading(true);
       const tokenIdBigInt = BigInt(tokenId);
-      
+
       // Get NFT data from contract
       const listedToken = await getListedTokenForId(tokenIdBigInt);
-      
+
       if (!listedToken || Number(listedToken.tokenId) === 0) {
         throw new Error('NFT not found');
       }
@@ -114,9 +114,10 @@ export default function NFTDetailPage() {
       await buyNFT(nft.tokenId, nft.price);
       toast.success('NFT purchased successfully!');
       await loadNFTDetails(); // Reload to reflect changes
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error buying NFT:', error);
-      toast.error(error.message || 'Failed to buy NFT');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to buy NFT';
+      toast.error(errorMessage);
     }
   };
 
@@ -175,7 +176,7 @@ export default function NFTDetailPage() {
 
   const isOwner = account && nft.owner.toLowerCase() === account.address.toLowerCase();
   const isSeller = account && nft.seller.toLowerCase() === account.address.toLowerCase();
-  const isCreator = nft.creator && account && 
+  const isCreator = nft.creator && account &&
     nft.creator.toLowerCase() === account.address.toLowerCase();
 
   return (
@@ -311,7 +312,7 @@ export default function NFTDetailPage() {
                       <DollarSign className="h-5 w-5" />
                       Current Price
                     </h3>
-                    
+
                     <div className="flex items-baseline gap-2">
                       <span className="text-4xl font-bold">{nft.formattedPrice}</span>
                       <span className="text-xl text-muted-foreground">ETH</span>

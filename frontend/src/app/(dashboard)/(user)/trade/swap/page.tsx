@@ -231,7 +231,7 @@ export default function SwapPage() {
       {/* Chat Bubble with Props */}
       <ChatBubble
         onExecuteSwap={executeSwap}
-        onSetSwapForm={(form: any) => setSwapForm((prev: any) => ({ ...prev, ...form }))}
+        onSetSwapForm={(form: Partial<typeof swapForm>) => setSwapForm((prev: typeof swapForm) => ({ ...prev, ...form }))}
         tokenPrices={tokenPrices}
         currentBalances={balances}
       />

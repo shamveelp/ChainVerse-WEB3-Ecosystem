@@ -55,7 +55,8 @@ export default function BuyCryptoHistoryPage() {
       } else {
         throw new Error('Failed to load payments');
       }
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Failed to load payments:', error);
       toast({
         variant: "destructive",

@@ -136,9 +136,15 @@ export default function LiquidityPage() {
         coinAAmount: '',
         coinBAmount: ''
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Add liquidity failed:', error);
-      const errorMessage = error.reason || error.message || 'Unknown error';
+      let errorMessage = 'Unknown error';
+      if (error && typeof error === 'object' && 'reason' in error) {
+        errorMessage = (error as { reason: string }).reason;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       setError(`Add liquidity failed: ${errorMessage}`);
       toast({
         variant: "destructive",

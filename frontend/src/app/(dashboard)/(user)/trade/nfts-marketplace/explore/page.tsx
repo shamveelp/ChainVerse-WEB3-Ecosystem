@@ -104,9 +104,10 @@ export default function ExplorePage() {
       toast.success('NFT purchased successfully!');
       // Reload NFTs to reflect the change
       await loadNFTs();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error buying NFT:', error);
-      toast.error(error.message || 'Failed to buy NFT');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to buy NFT';
+      toast.error(errorMessage);
     }
   };
 
@@ -220,11 +221,10 @@ export default function ExplorePage() {
             </p>
           </motion.div>
         ) : (
-          <div className={`grid gap-6 ${
-            viewMode === 'grid'
+          <div className={`grid gap-6 ${viewMode === 'grid'
               ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
               : 'grid-cols-1'
-          }`}>
+            }`}>
             {filteredNFTs.map((nft, index) => (
               <motion.div
                 key={nft.tokenId.toString()}
