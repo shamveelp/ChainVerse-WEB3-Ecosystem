@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
-import { NFT_ABI } from '@/lib/web3-config';
+import { NFT_ABI } from '@/lib/web3-constants';
 
 const client = createPublicClient({
   chain: sepolia,

@@ -3,9 +3,9 @@
 import { useAccount, useConfig, useReadContract, useWriteContract, useChainId } from 'wagmi';
 import { waitForTransactionReceipt, readContract } from '@wagmi/core';
 import { parseEther, formatEther } from 'viem';
-import { MARKETPLACE_ABI, NFT_ABI, getContractAddress } from '@/lib/web3-config';
+import { MARKETPLACE_ABI, NFT_ABI, getContractAddress } from '@/lib/web3-constants';
 import { useState, useEffect, useMemo } from 'react';
-import { fetchMetadata, NFTMetadata } from '@/lib/ipfs';
+import { fetchMetadata, NFTMetadata } from '@/lib/nft/ipfs';
 import { toast } from 'sonner';
 
 export interface NFTItem {
@@ -99,7 +99,7 @@ export function useMarketplace() {
   const loadNFTsWithMetadata = async (items: any[]): Promise<NFTItem[]> => {
     if (!items || items.length === 0) return [];
 
-    
+
 
     const itemsWithMetadata = await Promise.all(
       items.map(async (item) => {
@@ -111,12 +111,12 @@ export function useMarketplace() {
             functionName: 'tokenURI',
             args: [item.tokenId],
           }) as string;
-          
-          
-          
+
+
+
           const metadata = await fetchMetadata(tokenURI);
-          
-          
+
+
           return { ...item, metadata };
         } catch (error) {
           console.error('Error fetching metadata for token:', item.tokenId, error);
@@ -132,20 +132,20 @@ export function useMarketplace() {
       })
     );
 
-    
+
     return itemsWithMetadata;
   };
 
   // Load market data with metadata
   useEffect(() => {
     (async () => {
-      
+
       if (!marketItemsQuery.data) return;
-      
+
       setLoadingData(true);
       try {
         const items = await loadNFTsWithMetadata(marketItemsQuery.data as any[]);
-        
+
         setMarketItems(items);
       } catch (error) {
         console.error('Error loading market items:', error);
@@ -158,12 +158,12 @@ export function useMarketplace() {
 
   useEffect(() => {
     (async () => {
-      
+
       if (!myNFTsQuery.data) return;
-      
+
       try {
         const items = await loadNFTsWithMetadata(myNFTsQuery.data as any[]);
-        
+
         setMyNFTs(items);
       } catch (error) {
         console.error('Error loading my NFTs:', error);
@@ -173,12 +173,12 @@ export function useMarketplace() {
 
   useEffect(() => {
     (async () => {
-      
+
       if (!listedItemsQuery.data) return;
-      
+
       try {
         const items = await loadNFTsWithMetadata(listedItemsQuery.data as any[]);
-        
+
         setListedItems(items);
       } catch (error) {
         console.error('Error loading listed items:', error);
@@ -190,9 +190,9 @@ export function useMarketplace() {
   const listNFT = async (tokenId: bigint, price: string) => {
     try {
       if (!address) throw new Error('Wallet not connected');
-      
+
       toast.info('Approving NFT for marketplace...');
-      
+
       // 1) Approve marketplace to transfer NFT
       const approveHash = await writeContractAsync({
         address: NFT_CONTRACT_ADDRESS,
@@ -202,7 +202,7 @@ export function useMarketplace() {
       });
 
       await waitForTransactionReceipt(config, { hash: approveHash });
-      
+
       toast.info('Creating market listing...');
 
       // 2) Create market item (pay listing fee)
@@ -218,7 +218,7 @@ export function useMarketplace() {
       await waitForTransactionReceipt(config, { hash: listHash });
 
       toast.success('NFT successfully listed for sale!');
-      
+
       // Refresh all data
       await refreshData();
     } catch (error: any) {
@@ -231,9 +231,9 @@ export function useMarketplace() {
   const buyNFT = async (itemId: bigint, price: bigint) => {
     try {
       if (!address) throw new Error('Wallet not connected');
-      
+
       toast.info('Processing purchase...');
-      
+
       const hash = await writeContractAsync({
         address: MARKETPLACE_ADDRESS,
         abi: MARKETPLACE_ABI,
@@ -243,9 +243,9 @@ export function useMarketplace() {
       });
 
       await waitForTransactionReceipt(config, { hash });
-      
+
       toast.success('NFT purchased successfully! 🎉');
-      
+
       await refreshData();
     } catch (error: any) {
       console.error('Error buying NFT:', error);
@@ -257,11 +257,11 @@ export function useMarketplace() {
   const mintAndListNFT = async (tokenURI: string, price?: string) => {
     try {
       if (!address) throw new Error('Wallet not connected');
-      
+
       if (price && parseFloat(price) > 0) {
         // Mint and list in one transaction
         toast.info('Minting and listing NFT...');
-        
+
         const listingFee = (listingPrice ?? 0n) as bigint;
         const hash = await writeContractAsync({
           address: MARKETPLACE_ADDRESS,
@@ -272,12 +272,12 @@ export function useMarketplace() {
         });
 
         await waitForTransactionReceipt(config, { hash });
-        
+
         toast.success('NFT minted and listed successfully! 🚀');
       } else {
         // Just mint
         toast.info('Minting NFT...');
-        
+
         const hash = await writeContractAsync({
           address: NFT_CONTRACT_ADDRESS,
           abi: NFT_ABI,
@@ -286,7 +286,7 @@ export function useMarketplace() {
         });
 
         await waitForTransactionReceipt(config, { hash });
-        
+
         toast.success('NFT minted successfully! 🎨');
       }
 
@@ -300,8 +300,8 @@ export function useMarketplace() {
 
   const refreshData = async () => {
     try {
-      
-      
+
+
       // Force refresh all queries
       await Promise.all([
         marketItemsQuery.refetch?.(),
@@ -310,11 +310,11 @@ export function useMarketplace() {
         refetchStats(),
         refetchListingPrice(),
       ]);
-      
+
       // Trigger re-render
       setRefreshTrigger(prev => prev + 1);
-      
-      
+
+
     } catch (error) {
       console.error('Error refreshing data:', error);
     }

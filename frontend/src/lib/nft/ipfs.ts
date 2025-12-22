@@ -13,6 +13,25 @@ export interface NFTMetadata {
   }>;
 }
 
+export const fetchMetadata = async (tokenURI: string): Promise<NFTMetadata> => {
+  try {
+    // Handle IPFS protocol
+    let url = tokenURI;
+    if (tokenURI.startsWith('ipfs://')) {
+      url = `https://gateway.pinata.cloud/ipfs/${tokenURI.substring(7)}`;
+    } else if (tokenURI.startsWith('undefined')) {
+      // Handle cases where URI might be malformed "undefined" string
+      throw new Error('Invalid token URI');
+    }
+
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching metadata:', error);
+    throw new Error('Failed to fetch metadata');
+  }
+};
+
 export const uploadFileToIPFS = async (file: File): Promise<string> => {
   const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
 
