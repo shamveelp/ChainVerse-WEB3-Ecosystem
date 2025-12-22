@@ -12,6 +12,7 @@ export class CustomError extends Error {
 }
 
 
+
 export function handleRepositoryError(error: unknown, message: string): never {
     if (error instanceof CustomError) throw error;
     throw new CustomError(message, StatusCode.INTERNAL_SERVER_ERROR);
