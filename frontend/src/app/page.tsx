@@ -9,6 +9,7 @@ import NFTSection from '@/components/home/nft-section';
 import SocialSection from '@/components/home/social-section';
 import Footer from '@/components/home/footer';
 
+
 export default function HomePage() {
   useEffect(() => {
     const lenis = new Lenis({
