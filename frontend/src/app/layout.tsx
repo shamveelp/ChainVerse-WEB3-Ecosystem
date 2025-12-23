@@ -4,6 +4,7 @@ import ClientLayout from "./clientLayout"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ThirdwebProvider } from "thirdweb/react";
 import { Providers } from "./providers";
+import "./globals.css"
 
 
 export const metadata: Metadata = {
@@ -17,23 +18,23 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClientLayout>
-
-      <ThemeProvider
-          attribute="class"
-          defaultTheme="dark" // Default to dark theme as per hero section background
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ThirdwebProvider>
-            <Providers>
-
-            {children}
-            </Providers>
-
-          </ThirdwebProvider>
-        </ThemeProvider>
-
-    </ClientLayout>
+    <html lang="en">
+      <body className="antialiased">
+        <ClientLayout>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark" // Default to dark theme as per hero section background
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ThirdwebProvider>
+              <Providers>
+                {children}
+              </Providers>
+            </ThirdwebProvider>
+          </ThemeProvider>
+        </ClientLayout>
+      </body>
+    </html>
   )
 }

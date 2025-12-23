@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { apiService } from "@/lib/api" // Assuming apiService can be used server-side or has a server-side equivalent
+// import { apiService } from "@/lib/api" // Removed to prevent Edge Runtime issues if not used
 
 // Define paths that are considered authentication routes
 const AUTH_ROUTES = [

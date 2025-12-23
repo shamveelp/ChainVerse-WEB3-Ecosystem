@@ -1,6 +1,6 @@
 "use client"
 import type React from "react"
-import "./globals.css"
+// import "./globals.css" // Moved to layout.tsx
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { Provider, useDispatch } from "react-redux"
@@ -48,33 +48,28 @@ export default function ClientLayout({ children }: Readonly<{ children: React.Re
     console.error("NEXT_PUBLIC_GOOGLE_CLIENT_ID is not defined. Google OAuth will not work.")
   }
 
+  const content = (
+    <Provider store={store}>
+      <PersistGate loading={<PersistGateLoading />} persistor={persistor}>
+        <AuthInitializer>
+          <GlobalChatListener />
+          {children}
+        </AuthInitializer>
+      </PersistGate>
+    </Provider>
+  )
+
   return (
-    <html lang="en">
-      <body className="antialiased">
-        {googleClientId ? (
-          <GoogleOAuthProvider clientId={googleClientId}>
-            <Provider store={store}>
-              <PersistGate loading={<PersistGateLoading />} persistor={persistor}>
-                <AuthInitializer>
-                  <GlobalChatListener />
-                  {children}
-                </AuthInitializer>
-              </PersistGate>
-            </Provider>
-          </GoogleOAuthProvider>
-        ) : (
-          <Provider store={store}>
-            <PersistGate loading={<PersistGateLoading />} persistor={persistor}>
-              <AuthInitializer>
-                <GlobalChatListener />
-                {children}
-              </AuthInitializer>
-            </PersistGate>
-          </Provider>
-        )}
-        <Toaster />
-        <SonnerToaster position="top-right" richColors />
-      </body>
-    </html>
+    <>
+      {googleClientId ? (
+        <GoogleOAuthProvider clientId={googleClientId}>
+          {content}
+        </GoogleOAuthProvider>
+      ) : (
+        content
+      )}
+      <Toaster />
+      <SonnerToaster position="top-right" richColors />
+    </>
   )
 }
