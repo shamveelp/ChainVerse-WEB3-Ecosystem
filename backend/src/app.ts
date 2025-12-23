@@ -29,6 +29,10 @@ app.use('/api/community-admin', communityAdminRoutes)
 app.use('/api/wallet', walletRoutes)
 app.use('/api/ai-trading', aiTradingRoutes);
 
+app.get("/", (req,res) => {
+    res.send("ChainVerse Backend is running!");
+})
+
 // initAdmin()
 
 export default app;
