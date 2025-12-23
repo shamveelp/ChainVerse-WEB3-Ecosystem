@@ -7,6 +7,7 @@ import aiTradingRoutes from './routes/aiTrading.routes';
 // import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import logger from './utils/logger';
 // import { initAdmin } from './createAdmin/initAdmin';
 
 // dotenv.config();
@@ -35,4 +36,8 @@ app.get("/", (req,res) => {
 
 // initAdmin()
 
+logger.info("Application initialized.");
+
 export default app;
+
+
