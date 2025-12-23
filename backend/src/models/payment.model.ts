@@ -46,7 +46,7 @@ const PaymentSchema: Schema<IPayment> = new Schema({
     transactionHash: { type: String },
     ethPriceAtTime: { type: Number, required: true },
     adminNote: { type: String },
-    approvedBy: { type: Types.ObjectId, ref: 'Admin' },
+    approvedBy: { type: Schema.Types.ObjectId, ref: 'Admin' },
     approvedAt: { type: Date },
     rejectedAt: { type: Date },
     fulfilledAt: { type: Date },

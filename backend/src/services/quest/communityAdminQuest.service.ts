@@ -65,7 +65,12 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
             ...taskDto,
             questId: quest._id,
             completedBy: 0,
-            privilegePoints: taskDto.privilegePoints || 1 // Default to 1 if not specified
+            privilegePoints: taskDto.privilegePoints || 1, // Default to 1 if not specified
+            config: taskDto.config ? {
+              ...taskDto.config,
+              targetUserId: taskDto.config.targetUserId ? new mongoose.Types.ObjectId(taskDto.config.targetUserId) : undefined,
+              communityId: taskDto.config.communityId ? new mongoose.Types.ObjectId(taskDto.config.communityId) : undefined
+            } : undefined
           };
           await this._questRepository.createQuestTask(taskData as Partial<IQuestTask>);
         }
@@ -330,7 +335,12 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
           const taskData = {
             ...taskDto,
             questId: new mongoose.Types.ObjectId(questId),
-            completedBy: 0
+            completedBy: 0,
+            config: taskDto.config ? {
+              ...taskDto.config,
+              targetUserId: taskDto.config.targetUserId ? new mongoose.Types.ObjectId(taskDto.config.targetUserId) : undefined,
+              communityId: taskDto.config.communityId ? new mongoose.Types.ObjectId(taskDto.config.communityId) : undefined
+            } : undefined
           };
           await this._questRepository.createQuestTask(taskData as Partial<IQuestTask>);
         }

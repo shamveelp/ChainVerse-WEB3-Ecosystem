@@ -30,7 +30,7 @@ export interface IAIChatHistory extends Document {
 
 const AIChatHistorySchema: Schema<IAIChatHistory> = new Schema({
     sessionId: { type: String, required: true, unique: true },
-    userId: { type: Types.ObjectId, ref: 'User', default: null },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     walletAddress: { type: String, default: null },
     messages: [{
         role: { type: String, enum: ['user', 'assistant'], required: true },

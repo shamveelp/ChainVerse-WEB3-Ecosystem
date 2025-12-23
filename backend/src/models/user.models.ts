@@ -1,4 +1,4 @@
-import mongoose, {Schema, Document, Model, Types} from "mongoose";
+import mongoose, { Schema, Document, Model, Types } from "mongoose";
 import { ObjectId } from "mongodb";
 
 export interface IUser extends Document {
@@ -59,7 +59,7 @@ const UserSchema: Schema<IUser> = new Schema({
     phone: { type: String, required: false },
     googleId: { type: String, default: null },
     refferalCode: { type: String, required: false, unique: false },
-    refferedBy: { type: Types.ObjectId, ref: 'User', default: null },
+    refferedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     profilePic: { type: String, default: '' },
     totalPoints: { type: Number, default: 0 },
     isBlocked: { type: Boolean, default: false },
