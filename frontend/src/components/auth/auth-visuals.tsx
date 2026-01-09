@@ -1,9 +1,11 @@
 "use client"
 
-import { useRef, useEffect } from "react"
+import { useRef } from "react"
 import { gsap } from "gsap"
 import { useGSAP } from "@gsap/react"
 import { Bitcoin, Cpu, Globe, Layers, ShieldCheck, Zap } from "lucide-react"
+import Link from "next/link"
+import { COMMON_ROUTES } from "@/routes"
 
 export function AuthVisuals() {
     const containerRef = useRef<HTMLDivElement>(null)
@@ -92,53 +94,66 @@ export function AuthVisuals() {
         >
             {/* Background Gradients & Effects */}
             <div className="absolute inset-0 z-0">
-                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[100px] bg-gradient-orb" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[100px] bg-gradient-orb" />
-                <div className="absolute top-[40%] right-[20%] w-[300px] h-[300px] bg-blue-600/10 rounded-full blur-[80px] animate-pulse" />
+                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-cyan-600/20 rounded-full blur-[120px] bg-gradient-orb opacity-60" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-700/10 rounded-full blur-[120px] bg-gradient-orb opacity-60" />
+                <div className="absolute top-[40%] right-[20%] w-[300px] h-[300px] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse" />
 
                 {/* Grid Pattern */}
                 <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" style={{ opacity: 0.05 }}></div>
             </div>
+
+            {/* Right Edge Blending Gradient - Smooth transition to form side */}
+            <div className="absolute inset-y-0 right-0 w-64 bg-gradient-to-l from-[#0a0a0f] via-[#0a0a0f]/80 to-transparent z-10 pointer-events-none" />
 
             {/* Floating Icons Container - Parallax Layer */}
             <div ref={iconsRef} className="absolute inset-0 z-10 pointer-events-none">
                 <div className="absolute top-[15%] left-[15%] floating-icon text-cyan-400/30">
                     <Bitcoin size={60} strokeWidth={1} />
                 </div>
-                <div className="absolute top-[20%] right-[20%] floating-icon text-purple-400/30">
+                <div className="absolute top-[20%] right-[20%] floating-icon text-blue-400/30">
                     <Globe size={80} strokeWidth={1} />
                 </div>
-                <div className="absolute bottom-[25%] left-[20%] floating-icon text-blue-400/30">
+                <div className="absolute bottom-[25%] left-[20%] floating-icon text-indigo-400/30">
                     <Cpu size={70} strokeWidth={1} />
                 </div>
-                <div className="absolute bottom-[15%] right-[15%] floating-icon text-indigo-400/30">
+                <div className="absolute bottom-[15%] right-[15%] floating-icon text-cyan-500/30">
                     <Layers size={50} strokeWidth={1} />
                 </div>
-                <div className="absolute top-[50%] left-[10%] floating-icon text-emerald-400/20">
+                <div className="absolute top-[50%] left-[10%] floating-icon text-blue-500/20">
                     <ShieldCheck size={40} strokeWidth={1} />
                 </div>
-                <div className="absolute top-[45%] right-[10%] floating-icon text-yellow-400/20">
+                <div className="absolute top-[45%] right-[10%] floating-icon text-indigo-300/20">
                     <Zap size={45} strokeWidth={1} />
                 </div>
 
                 {/* Connecting Lines (Simulated Blockchain) */}
-                <svg className="absolute inset-0 w-full h-full opacity-10">
-                    <line x1="15%" y1="15%" x2="25%" y2="25%" stroke="white" strokeWidth="1" />
-                    <line x1="80%" y1="20%" x2="70%" y2="30%" stroke="white" strokeWidth="1" />
-                    <line x1="20%" y1="75%" x2="30%" y2="65%" stroke="white" strokeWidth="1" />
+                <svg className="absolute inset-0 w-full h-full opacity-20">
+                    <line x1="15%" y1="15%" x2="25%" y2="25%" stroke="url(#line-gradient)" strokeWidth="1" />
+                    <line x1="80%" y1="20%" x2="70%" y2="30%" stroke="url(#line-gradient)" strokeWidth="1" />
+                    <line x1="20%" y1="75%" x2="30%" y2="65%" stroke="url(#line-gradient)" strokeWidth="1" />
+                    <defs>
+                        <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="rgba(34, 211, 238, 0)" />
+                            <stop offset="50%" stopColor="rgba(34, 211, 238, 0.5)" />
+                            <stop offset="100%" stopColor="rgba(34, 211, 238, 0)" />
+                        </linearGradient>
+                    </defs>
                 </svg>
             </div>
 
             {/* Main Content */}
             <div className="relative z-20 max-w-xl text-center">
                 <div className="mb-8 flex justify-center">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-[1px] shadow-lg shadow-cyan-500/20">
-                        <div className="w-full h-full rounded-2xl bg-black flex items-center justify-center backdrop-blur-xl">
+                    <Link
+                        href={COMMON_ROUTES.HOME}
+                        className="block w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-[1px] shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover:scale-105 transition-all duration-300 group"
+                    >
+                        <div className="w-full h-full rounded-2xl bg-[#0a0a0f] flex items-center justify-center backdrop-blur-xl group-hover:bg-[#0a0a0f]/80 transition-colors">
                             <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-tr from-cyan-400 to-blue-500">
                                 C
                             </span>
                         </div>
-                    </div>
+                    </Link>
                 </div>
 
                 <h1
@@ -146,7 +161,7 @@ export function AuthVisuals() {
                     className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-6 leading-tight"
                 >
                     Access the <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500">
                         Decentralized Future
                     </span>
                 </h1>
@@ -164,7 +179,7 @@ export function AuthVisuals() {
                     {['Zero Fees', 'Instant Swap', 'AI Analytics'].map((tag, i) => (
                         <div
                             key={i}
-                            className="px-4 py-2 rounded-full border border-white/5 bg-white/5 backdrop-blur-sm text-sm text-gray-300 floating-icon"
+                            className="px-5 py-2.5 rounded-full border border-cyan-500/20 bg-cyan-950/10 backdrop-blur-md text-sm font-medium text-cyan-100 floating-icon shadow-[0_0_15px_rgba(6,182,212,0.1)] hover:border-cyan-500/40 transition-colors"
                         >
                             {tag}
                         </div>
