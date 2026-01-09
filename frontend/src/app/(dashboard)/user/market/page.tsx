@@ -11,19 +11,19 @@ export default function HomePage() {
 
   return (
     <>
-    <Navbar />
-    <div className="min-h-screen bg-background">
-      <MarketHeader
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+      <Navbar />
+      <div className="min-h-screen bg-background pt-28 md:pt-32">
+        <MarketHeader
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
         // onWatchlistClick={() => }
-      />
-      <main className="container mx-auto px-4 py-6 space-y-6">
-        <MarketStats />
-        <CryptoGrid searchTerm={searchTerm} />
-      </main>
-    </div>
-    
+        />
+        <main className="container mx-auto px-4 py-6 space-y-6">
+          <MarketStats />
+          <CryptoGrid searchTerm={searchTerm} />
+        </main>
+      </div>
+
     </>
   )
 }

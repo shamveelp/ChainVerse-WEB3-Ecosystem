@@ -287,7 +287,7 @@ export default function QuestsPage() {
 
   const formatTimeRemaining = (timeRemaining?: { days: number; hours: number; minutes: number; hasEnded: boolean }) => {
     if (!timeRemaining || timeRemaining.hasEnded) return "Ended";
-    
+
     const { days, hours, minutes } = timeRemaining;
     if (days > 0) return `${days}d ${hours}h`;
     if (hours > 0) return `${hours}h ${minutes}m`;
@@ -305,7 +305,7 @@ export default function QuestsPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
       <Navbar />
 
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-4 pb-8 pt-28 md:pt-32 space-y-8">
         {/* Hero Section */}
         <div className="text-center space-y-4">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
@@ -351,7 +351,7 @@ export default function QuestsPage() {
               {topQuests.map((quest, index) => (
                 <div key={quest._id} className="w-full flex-shrink-0">
                   <Card className="relative h-80 overflow-hidden bg-black/60 backdrop-blur-xl border-purple-800/30 cursor-pointer group"
-                        onClick={() => router.push(`/user/quests/${quest._id}`)}>
+                    onClick={() => router.push(`/user/quests/${quest._id}`)}>
                     <div
                       className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                       style={{ backgroundImage: `url(${quest.bannerImage})` }}
@@ -410,9 +410,8 @@ export default function QuestsPage() {
               <button
                 key={index}
                 onClick={() => setCurrentCarouselIndex(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  currentCarouselIndex === index ? 'bg-purple-400' : 'bg-gray-600'
-                }`}
+                className={`w-2 h-2 rounded-full transition-colors ${currentCarouselIndex === index ? 'bg-purple-400' : 'bg-gray-600'
+                  }`}
               />
             ))}
           </div>
@@ -543,7 +542,7 @@ export default function QuestsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {myQuests.map((myQuest) => (
                         <Card key={myQuest._id} className="bg-black/40 backdrop-blur-xl border-purple-800/30 hover:border-purple-700/50 transition-all duration-300 cursor-pointer group"
-                              onClick={() => router.push(`/user/quests/${myQuest.quest._id}`)}>
+                          onClick={() => router.push(`/user/quests/${myQuest.quest._id}`)}>
                           <CardContent className="p-6">
                             <div className="space-y-4">
                               {/* Quest Header */}
@@ -647,7 +646,7 @@ export default function QuestsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                       {quests.map((quest) => (
                         <Card key={quest._id} className="bg-black/40 backdrop-blur-xl border-purple-800/30 hover:border-purple-700/50 transition-all duration-300 cursor-pointer group"
-                              onClick={() => router.push(`/user/quests/${quest._id}`)}>
+                          onClick={() => router.push(`/user/quests/${quest._id}`)}>
                           {quest.bannerImage && (
                             <div className="relative h-48 overflow-hidden rounded-t-lg">
                               <img

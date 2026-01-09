@@ -481,7 +481,7 @@ export default function QuestDetailPage() {
     <div className="min-h-screen bg-[#0b0b0b] text-gray-100 font-sans selection:bg-purple-500/30">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="container mx-auto px-4 pb-8 pt-28 md:pt-32 max-w-7xl">
         {/* Breadcrumb / Back Navigation */}
         <div className="mb-6">
           <Button
