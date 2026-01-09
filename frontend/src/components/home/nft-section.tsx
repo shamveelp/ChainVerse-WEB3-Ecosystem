@@ -1,98 +1,120 @@
-import { ArrowRight, Palette, TrendingUp, Users } from "lucide-react"
+"use client"
+
+import { useEffect, useRef } from "react"
+import Image from "next/image"
+import { gsap } from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { ArrowRight, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import Image from "next/image"
+
+gsap.registerPlugin(ScrollTrigger)
+
+const nftItems = [
+  { id: 1, name: "Cosmic Voyager #001", artist: "StarWalker", price: "1.2 ETH", image: "/giffy.gif" },
+  { id: 2, name: "Neon Genesis #042", artist: "CyberPunk_Lab", price: "0.8 ETH", image: "/giffy.gif" },
+  { id: 3, name: "Ethereal Spirit #108", artist: "SoulArt", price: "2.5 ETH", image: "/giffy.gif" },
+  { id: 4, name: "Digital Horizon #777", artist: "FutureVisions", price: "1.5 ETH", image: "/giffy.gif" },
+]
 
 export default function NFTSection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const headerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Header Animation
+      gsap.fromTo(headerRef.current,
+        { y: 50, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          scrollTrigger: {
+            trigger: headerRef.current,
+            start: "top 80%",
+          }
+        }
+      )
+
+      // Cards Animation
+      gsap.utils.toArray(".nft-card").forEach((card: any, i) => {
+        gsap.fromTo(card,
+          { y: 100, opacity: 0, rotateY: 15 },
+          {
+            y: 0,
+            opacity: 1,
+            rotateY: 0,
+            duration: 0.8,
+            delay: i * 0.1,
+            scrollTrigger: {
+              trigger: card,
+              start: "top 90%",
+            }
+          }
+        )
+      })
+
+    }, sectionRef)
+    return () => ctx.revert()
+  }, [])
+
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8">
+    <section ref={sectionRef} className="py-24 px-4 sm:px-6 lg:px-8 bg-[#0a0a1a] overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              NFT Marketplace
-            </span>
-          </h2>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Discover, collect, and trade unique digital assets in our curated NFT marketplace. From art to gaming items,
-            find your next digital treasure.
-          </p>
+        <div ref={headerRef} className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center space-x-2 text-purple-400 font-medium mb-4">
+              <Sparkles className="w-5 h-5" />
+              <span>NFT Marketplace</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Collect Digital <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+                Masterpieces
+              </span>
+            </h2>
+            <p className="text-gray-400 text-lg">
+              Discover unique assets from world-class artists. Buy, sell, and trade with zero friction.
+            </p>
+          </div>
+          <Button variant="outline" className="border-purple-500/30 text-purple-300 hover:text-white hover:bg-purple-500/20 hover:border-purple-500 rounded-full px-8">
+            View Collection <ArrowRight className="ml-2 w-4 h-4" />
+          </Button>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
-          {/* Left - Features */}
-          <div className="space-y-8">
-            <div className="grid gap-6">
-              <div className="flex items-start space-x-4">
-                <div className="bg-purple-600/20 p-3 rounded-lg">
-                  <Palette className="h-6 w-6 text-purple-400" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-200 mb-2">Curated Collections</h3>
-                  <p className="text-gray-400">Handpicked NFT collections from top artists and creators worldwide.</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="bg-blue-600/20 p-3 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-blue-400" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-200 mb-2">Real-time Analytics</h3>
-                  <p className="text-gray-400">
-                    Track floor prices, volume, and trends with advanced market analytics.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="bg-pink-600/20 p-3 rounded-lg">
-                  <Users className="h-6 w-6 text-pink-400" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-200 mb-2">Creator Royalties</h3>
-                  <p className="text-gray-400">
-                    Support artists with automatic royalty distribution on secondary sales.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-            >
-              Get Started <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
-
-          {/* Right - NFT Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map((item) => (
-              <Card
-                key={item}
-                className="bg-slate-800/50 border-slate-700/50 hover:border-purple-500/50 transition-colors"
-              >
-                <CardContent className="p-4">
-                  <div className="aspect-square bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg mb-3 flex items-center justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {nftItems.map((item) => (
+            <div key={item.id} className="nft-card group perspective-1000">
+              <Card className="bg-gray-900 border-gray-800 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500 hover:-translate-y-2">
+                <CardContent className="p-0">
+                  <div className="relative aspect-square overflow-hidden">
                     <Image
-                      src={`/giffy.gif`}
-                      alt={`NFT ${item}`}
-                      width={300}
-                      height={300}
-                      className="rounded-lg"
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                      <Button className="w-full bg-white text-black hover:bg-gray-200 font-bold rounded-xl">Buy Now</Button>
+                    </div>
                   </div>
-                  <h4 className="font-semibold text-gray-200 mb-1">Digital Art #{item}</h4>
-                  <p className="text-sm text-gray-400 mb-2">By Artist{item}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-purple-400 font-semibold">{0.5 + item * 0.3} ETH</span>
-                    <span className="text-xs text-gray-500">#{item}23</span>
+
+                  <div className="p-5">
+                    <h3 className="text-lg font-bold text-white mb-1 group-hover:text-purple-400 transition-colors">{item.name}</h3>
+                    <p className="text-sm text-gray-500 mb-4">{item.artist}</p>
+                    <div className="flex justify-between items-center border-t border-gray-800 pt-4">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-500">Current Bid</span>
+                        <span className="text-white font-medium">{item.price}</span>
+                      </div>
+                      <span className="text-xs bg-gray-800 text-gray-400 px-2 py-1 rounded">24h left</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
