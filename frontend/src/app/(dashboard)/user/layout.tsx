@@ -1,0 +1,18 @@
+import { ThemeProvider } from "@/components/theme-provider"
+
+export default function UserLayout({
+    children,
+}: {
+    children: React.ReactNode
+}) {
+    return (
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            forcedTheme="dark"
+            disableTransitionOnChange
+        >
+            {children}
+        </ThemeProvider>
+    )
+}

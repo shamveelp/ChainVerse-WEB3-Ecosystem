@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ChevronDown, Menu, User, LogOut, Bell, Wallet, CircleDollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,8 +14,6 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ThemeToggle } from "./theme-toggle"
-
 // Redux imports (placeholders - you need to implement your Redux store and auth actions)
 import { useSelector } from "react-redux"
 import type { RootState } from "@/redux/store"
@@ -129,10 +127,10 @@ export default function Navbar() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href={USER_ROUTES.NOTIFICATIONS}>
-                  <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
-                    <Bell className="h-5 w-5" />
-                    <span className="sr-only">Notifications</span>
-                  </Button>
+                    <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
+                      <Bell className="h-5 w-5" />
+                      <span className="sr-only">Notifications</span>
+                    </Button>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent>Notifications</TooltipContent>
@@ -146,8 +144,6 @@ export default function Navbar() {
                 </TooltipTrigger>
                 <TooltipContent>Connect Wallet</TooltipContent>
               </Tooltip>
-
-              <ThemeToggle />
 
               {loading ? (
                 <div className="w-8 h-8 bg-muted rounded-full animate-pulse"></div>
@@ -200,7 +196,6 @@ export default function Navbar() {
             </div>
             {/* Mobile menu button */}
             <div className="md:hidden flex items-center space-x-2">
-              <ThemeToggle />
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-foreground">
