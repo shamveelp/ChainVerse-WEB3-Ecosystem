@@ -4,11 +4,9 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Eye, EyeOff, User, Mail, Lock, Bitcoin, Loader2, Wand2, CheckCircle, XCircle } from "lucide-react"
+import { Eye, EyeOff, User, Mail, Lock, Bitcoin, Loader2, Wand2, CheckCircle, XCircle, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { GoogleLogin } from "@react-oauth/google"
 import { useAuthActions } from "@/lib/auth-actions"
@@ -206,219 +204,232 @@ export function RegisterForm() {
 
   const getUsernameStatusIcon = () => {
     if (isCheckingUsername) {
-      return <Loader2 className="h-4 w-4 animate-spin text-yellow-400" />
+      return <Loader2 className="h-3 w-3 animate-spin text-yellow-500" />
     }
     if (usernameAvailable === true) {
-      return <CheckCircle className="h-4 w-4 text-green-400" />
+      return <CheckCircle className="h-3 w-3 text-green-500" />
     }
     if (usernameAvailable === false) {
-      return <XCircle className="h-4 w-4 text-red-400" />
+      return <XCircle className="h-3 w-3 text-red-500" />
     }
     return null
   }
 
   return (
-    <Card className="bg-gray-950/90 backdrop-blur-2xl border border-blue-600/30 shadow-2xl shadow-blue-600/20 rounded-2xl overflow-hidden">
-      <CardHeader className="text-center pb-4 bg-gradient-to-b from-blue-900/20 to-transparent">
-        <CardTitle className="text-4xl font-bold text-white tracking-tight">Join ChainVerse</CardTitle>
-        <p className="text-gray-300 text-sm mt-2 font-medium">Your gateway to trading and social networking</p>
-      </CardHeader>
-      <CardContent className="space-y-6 p-6">
-        <div className="w-full flex justify-center">
+    <div className="w-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl shadow-black/50">
+      <div className="space-y-1 mb-4 text-center lg:text-left">
+        <h2 className="text-2xl font-bold text-white tracking-tight">
+          Join ChainVerse
+        </h2>
+        <p className="text-xs text-gray-400">
+          Your gateway to trading and social networking
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {/* Compact Google Button */}
+        <div className="w-full flex justify-center h-10 overflow-hidden rounded-full">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={handleGoogleError}
             theme="filled_black"
-            size="large"
+            size="medium"
             text="signup_with"
             shape="pill"
+            width="100%"
           />
         </div>
 
-        <div className="relative">
-          <Separator className="bg-blue-600/30" />
-          <div className="absolute inset-0 flex justify-center items-center">
-            <span className="bg-gray-950 px-4 text-sm text-gray-300">or join with email</span>
+        <div className="relative py-2">
+          <div className="absolute inset-0 flex items-center">
+            <span className="bg-gradient-to-r from-transparent via-white/10 to-transparent h-[1px] w-full" />
+          </div>
+          <div className="relative flex justify-center text-[10px] uppercase">
+            <span className="px-2 bg-[#0a0a0f] text-gray-500 font-bold tracking-widest">
+              Or email
+            </span>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-gray-200">
-              Full Name
-            </label>
-            <div className="relative group">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
-              <Input
-                id="name"
-                type="text"
-                placeholder="Enter your full name"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
-              />
-            </div>
-            {errors.name && <p className="text-red-400 text-sm animate-pulse">{errors.name}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="username" className="text-sm font-medium text-gray-200">
-              Username
-            </label>
-            <div className="relative flex gap-2">
-              <div className="relative flex-1 group">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {/* Row 1: Name & Username */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label htmlFor="name" className="text-xs font-semibold text-gray-400 uppercase tracking-wide ml-1">
+                Full Name
+              </label>
+              <div className="relative group">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
                 <Input
-                  id="username"
+                  id="name"
                   type="text"
-                  placeholder="Choose a unique username"
-                  value={formData.username}
-                  onChange={(e) => handleInputChange("username", e.target.value)}
-                  className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 pr-10 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  className="h-9 pl-9 bg-black/20 border-white/10 text-white text-sm placeholder:text-gray-600 focus:border-cyan-500/50 focus:bg-black/40 focus:ring-1 focus:ring-cyan-500/20 rounded-lg transition-all"
                 />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  {getUsernameStatusIcon()}
-                </div>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={handleGenerateUsername}
-                disabled={isGeneratingUsername}
-                className="h-12 w-12 bg-gray-900/50 border-blue-600/30 hover:bg-blue-600/20 hover:border-blue-500/50 rounded-xl transition-all duration-300"
-                title="Generate random username"
-              >
-                
-                {isGeneratingUsername ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
-                ) : (
-                  <Wand2 className="h-4 w-4 text-blue-400" />
-                )}
-              </Button>
+              {errors.name && <p className="text-red-400 text-[10px] pl-1 font-medium">{errors.name}</p>}
             </div>
-            {errors.username && <p className="text-red-400 text-sm animate-pulse">{errors.username}</p>}
-            {usernameAvailable === false && (
-              <p className="text-red-400 text-sm animate-pulse">Username not available</p>
-            )}
-            {usernameAvailable === true && (
-              <p className="text-green-400 text-sm animate-pulse">Username available</p>
-            )}
-            {isCheckingUsername && (
-              <p className="text-yellow-400 text-sm animate-pulse">Checking availability...</p>
-            )}
+
+            <div className="space-y-1">
+              <label htmlFor="username" className="text-xs font-semibold text-gray-400 uppercase tracking-wide ml-1">
+                Username
+              </label>
+              <div className="relative flex gap-1">
+                <div className="relative flex-1 group">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="johndoe"
+                    value={formData.username}
+                    onChange={(e) => handleInputChange("username", e.target.value)}
+                    className="h-9 pl-9 pr-6 bg-black/20 border-white/10 text-white text-sm placeholder:text-gray-600 focus:border-cyan-500/50 focus:bg-black/40 focus:ring-1 focus:ring-cyan-500/20 rounded-lg transition-all"
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    {getUsernameStatusIcon()}
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleGenerateUsername}
+                  disabled={isGeneratingUsername}
+                  className="h-9 w-9 bg-white/5 border-white/10 hover:bg-cyan-500/10 hover:border-cyan-500/30 text-cyan-400 rounded-lg transition-all shrink-0"
+                  title="Generate"
+                >
+                  {isGeneratingUsername ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Wand2 className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+              {errors.username && <p className="text-red-400 text-[10px] pl-1 font-medium">{errors.username}</p>}
+              {usernameAvailable === false && (
+                <p className="text-red-400 text-[10px] pl-1 font-medium">Taken</p>
+              )}
+              {usernameAvailable === true && (
+                <p className="text-green-400 text-[10px] pl-1 font-medium">Available</p>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-gray-200">
-              Email Address
+          <div className="space-y-1">
+            <label htmlFor="email" className="text-xs font-semibold text-gray-400 uppercase tracking-wide ml-1">
+              Email
             </label>
             <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email address"
+                placeholder="john@example.com"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
+                className="h-9 pl-9 bg-black/20 border-white/10 text-white text-sm placeholder:text-gray-600 focus:border-cyan-500/50 focus:bg-black/40 focus:ring-1 focus:ring-cyan-500/20 rounded-lg transition-all"
               />
             </div>
-            {errors.email && <p className="text-red-400 text-sm animate-pulse">{errors.email}</p>}
+            {errors.email && <p className="text-red-400 text-[10px] pl-1 font-medium">{errors.email}</p>}
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium text-gray-200">
-              Password
-            </label>
-            <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Create a strong password"
-                value={formData.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
-                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 pr-12 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-300 transition-colors"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </Button>
+          {/* Row 2: Passwords */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label htmlFor="password" className="text-xs font-semibold text-gray-400 uppercase tracking-wide ml-1">
+                Password
+              </label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="******"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  className="h-9 pl-9 pr-9 bg-black/20 border-white/10 text-white text-sm placeholder:text-gray-600 focus:border-cyan-500/50 focus:bg-black/40 focus:ring-1 focus:ring-cyan-500/20 rounded-lg transition-all"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-9 w-9 text-gray-500 hover:text-cyan-400 hover:bg-transparent transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                </Button>
+              </div>
+              {errors.password && <p className="text-red-400 text-[10px] pl-1 font-medium">{errors.password}</p>}
             </div>
-            {errors.password && <p className="text-red-400 text-sm animate-pulse">{errors.password}</p>}
-          </div>
 
-          <div className="space-y-2">
-            <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-200">
-              Confirm Password
-            </label>
-            <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
-              <Input
-                id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 pr-12 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-300 transition-colors"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </Button>
+            <div className="space-y-1">
+              <label htmlFor="confirmPassword" className="text-xs font-semibold text-gray-400 uppercase tracking-wide ml-1">
+                Confirm
+              </label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="******"
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                  className="h-9 pl-9 pr-9 bg-black/20 border-white/10 text-white text-sm placeholder:text-gray-600 focus:border-cyan-500/50 focus:bg-black/40 focus:ring-1 focus:ring-cyan-500/20 rounded-lg transition-all"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-9 w-9 text-gray-500 hover:text-cyan-400 hover:bg-transparent transition-colors"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                </Button>
+              </div>
+              {errors.confirmPassword && <p className="text-red-400 text-[10px] pl-1 font-medium">{errors.confirmPassword}</p>}
             </div>
-            {errors.confirmPassword && <p className="text-red-400 text-sm animate-pulse">{errors.confirmPassword}</p>}
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="referralCode" className="text-sm font-medium text-gray-200">
-              Referral Code <span className="text-gray-500">(Optional)</span>
+          <div className="space-y-1">
+            <label htmlFor="referralCode" className="text-xs font-semibold text-gray-400 uppercase tracking-wide ml-1">
+              Referral Code <span className="text-gray-600 font-normal normal-case">(Optional)</span>
             </label>
             <div className="relative group">
-              <Bitcoin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
+              <Bitcoin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
               <Input
                 id="referralCode"
                 type="text"
-                placeholder="Enter referral code (Optional)"
+                placeholder="Code"
                 value={formData.referralCode}
                 onChange={(e) => handleInputChange("referralCode", e.target.value.toUpperCase())}
                 maxLength={8}
-                className="bg-gray-900/50 border border-blue-600/30 text-white h-12 pl-10 rounded-xl focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover:border-blue-500/50"
+                className="h-9 pl-9 bg-black/20 border-white/10 text-white text-sm placeholder:text-gray-600 focus:border-cyan-500/50 focus:bg-black/40 focus:ring-1 focus:ring-cyan-500/20 rounded-lg transition-all"
               />
             </div>
-            {errors.referralCode && <p className="text-red-400 text-sm animate-pulse">{errors.referralCode}</p>}
+            {errors.referralCode && <p className="text-red-400 text-[10px] pl-1 font-medium">{errors.referralCode}</p>}
             {formData.referralCode && formData.referralCode.length === 8 && (
-              <p className="text-blue-400 text-sm animate-pulse">Earn 100 bonus points with a valid referral code!</p>
+              <p className="text-cyan-400 text-[10px] pl-1 animate-pulse">Earn 100 bonus points!</p>
             )}
           </div>
 
-          <div className="flex items-start space-x-2 text-sm">
+          <div className="flex items-start space-x-2 pt-1">
             <input
               type="checkbox"
               id="terms"
               checked={agreeTerms}
               onChange={() => setAgreeTerms(!agreeTerms)}
-              className="h-4 w-4 rounded accent-blue-600 border-blue-600/30 mt-0.5 transition-colors"
+              className="mt-0.5 h-3.5 w-3.5 rounded border-white/20 bg-white/5 text-cyan-500 focus:ring-cyan-500/50 focus:ring-offset-0"
             />
-            <label htmlFor="terms" className="text-gray-300 leading-relaxed">
-              I agree to the{" "}
-              <Link href={COMMON_ROUTES.TERMS} className="text-blue-400 hover:text-blue-300 transition-colors underline">
-                Terms of Service
+            <label htmlFor="terms" className="text-xs text-gray-400 leading-snug">
+              I agree to{" "}
+              <Link href={COMMON_ROUTES.TERMS} className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                Terms
               </Link>{" "}
-              and{" "}
-              <Link href={COMMON_ROUTES.PRIVACY} className="text-blue-400 hover:text-blue-300 transition-colors underline">
-                Privacy Policy
+              &{" "}
+              <Link href={COMMON_ROUTES.PRIVACY} className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                Privacy
               </Link>
             </label>
           </div>
@@ -426,34 +437,36 @@ export function RegisterForm() {
           <Button
             type="submit"
             disabled={loading || usernameAvailable !== true || !agreeTerms}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white h-12 rounded-xl font-semibold shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
+            className="w-full h-10 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white text-sm font-bold shadow-lg shadow-cyan-900/20 hover:shadow-cyan-500/20 border border-white/10 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform group mt-2"
           >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Creating Account...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
               </>
             ) : (
               <>
-                <Bitcoin className="mr-2 h-5 w-5" />
-                Join ChainVerse
+                <Bitcoin className="mr-2 h-4 w-4" />
+                Create Account
+                <ArrowRight className="ml-2 h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </>
             )}
           </Button>
         </form>
 
-        <div className="text-center">
-          <p className="text-gray-300 text-sm">
+        <div className="text-center pt-1">
+          <p className="text-gray-400 text-xs">
             Already have an account?{" "}
             <Link
               href={`${USER_ROUTES.LOGIN}?redirect=${encodeURIComponent(redirectUrl)}`}
-              className="text-blue-400 hover:text-blue-300 font-medium transition-colors underline"
+              className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300 transition-all"
             >
               Sign In
             </Link>
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
+
