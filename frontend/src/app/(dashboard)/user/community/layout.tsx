@@ -19,7 +19,7 @@ export default function CommunityLayout({
     <div className="min-h-screen bg-slate-950">
       <Navbar />
       {/* Push content below navbar */}
-      <div className="pt-28">{children}</div>
+      <div className="pt-32 md:pt-36">{children}</div>
     </div>
   )
 }

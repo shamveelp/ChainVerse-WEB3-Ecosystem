@@ -11,7 +11,7 @@ export default function NFTMarketplaceLayout({
   return (
     <CustomThirdwebProvider>
       <Navbar />
-      <div className="relative min-h-screen">
+      <div className="relative min-h-screen pt-32 md:pt-36">
         {/* Background Effects */}
         <div className="fixed inset-0 -z-10">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
