@@ -19,7 +19,7 @@ export default function TradeNavbar() {
       saveWallet(account.address)
         .then(() => {
           if (!cancelled) {
-            
+
           }
         })
         .catch((err) => {
@@ -35,7 +35,7 @@ export default function TradeNavbar() {
   }, [account?.address]); // Run effect when address changes
 
   return (
-    <div className="fixed top-16 left-0 w-full bg-gray-900 bg-opacity-80 backdrop-blur-md shadow-md z-10">
+    <div className="fixed top-28 left-0 w-full bg-gray-900 bg-opacity-80 backdrop-blur-md shadow-md z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-3">
         <h2 className="text-lg font-semibold text-gray-200">Trade</h2>
         <div>

@@ -14,7 +14,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-// Redux imports (placeholders - you need to implement your Redux store and auth actions)
+// Redux imports
 import { useSelector } from "react-redux"
 import type { RootState } from "@/redux/store"
 import { useAuthActions } from "@/lib/auth-actions"
@@ -45,130 +45,134 @@ export default function Navbar() {
 
   return (
     <TooltipProvider>
-      <nav className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-6 px-4 pointer-events-none">
+        <nav className="pointer-events-auto w-full max-w-7xl bg-black/40 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl px-2 sm:px-6 py-2">
+          <div className="flex justify-between items-center h-14">
             {/* Logo */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 ml-2">
               <Link
                 href={COMMON_ROUTES.HOME}
-                className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+                className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent hover:brightness-125 transition-all"
               >
                 ChainVerse
               </Link>
             </div>
+
             {/* Desktop Navigation */}
             <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-8">
+              <div className="flex items-baseline space-x-2">
                 <Link
                   href={COMMON_ROUTES.MARKET}
-                  className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
+                  className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300"
                 >
                   Market
                 </Link>
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors flex items-center gap-1">
-                    Trade <ChevronDown className="h-4 w-4" />
+                  <DropdownMenuTrigger className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 flex items-center gap-1 focus:outline-none">
+                    Trade <ChevronDown className="h-4 w-4 opacity-70" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-popover border-border">
-                    <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
-                      <Link href={COMMON_ROUTES.SWAP}>Swap</Link>
+                  <DropdownMenuContent className="bg-black/80 backdrop-blur-xl border-white/10 text-gray-300 rounded-xl mt-2 w-40 p-1">
+                    <DropdownMenuItem className="focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
+                      <Link href={COMMON_ROUTES.SWAP} className="w-full">Swap</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
-                      <Link href={COMMON_ROUTES.LIQUIDITY}>Liquidity</Link>
+                    <DropdownMenuItem className="focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
+                      <Link href={COMMON_ROUTES.LIQUIDITY} className="w-full">Liquidity</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
-                      <Link href={COMMON_ROUTES.BRIDGE}>Bridge</Link>
+                    <DropdownMenuItem className="focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
+                      <Link href={COMMON_ROUTES.BRIDGE} className="w-full">Bridge</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
-                      <Link href={COMMON_ROUTES.BUY}>Buy</Link>
+                    <DropdownMenuItem className="focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
+                      <Link href={COMMON_ROUTES.BUY} className="w-full">Buy</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Link
                   href={USER_ROUTES.COMMUNITY}
-                  className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
+                  className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300"
                 >
                   Community
                 </Link>
                 <Link
                   href={USER_ROUTES.NFT_MARKET}
-                  className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
+                  className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300"
                 >
                   NFTs
                 </Link>
                 <Link
                   href={USER_ROUTES.QUESTS}
-                  className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
+                  className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300"
                 >
                   Quests
                 </Link>
                 <Link
                   href={COMMON_ROUTES.ABOUT}
-                  className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
+                  className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300"
                 >
                   About Us
                 </Link>
               </div>
             </div>
+
             {/* Desktop Right Side Icons & Auth Buttons / User Menu */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-2 mr-2">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href={USER_ROUTES.PROFILE_POINTS}>
-                    <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
+                    <Button variant="ghost" size="icon" className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full w-10 h-10">
                       <CircleDollarSign className="h-5 w-5" />
                       <span className="sr-only">Daily Check-in</span>
                     </Button>
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent>Daily Check-in</TooltipContent>
+                <TooltipContent className="bg-black/80 border-white/10 text-white rounded-lg">Daily Check-in</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href={USER_ROUTES.NOTIFICATIONS}>
-                    <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
+                    <Button variant="ghost" size="icon" className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full w-10 h-10">
                       <Bell className="h-5 w-5" />
                       <span className="sr-only">Notifications</span>
                     </Button>
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent>Notifications</TooltipContent>
+                <TooltipContent className="bg-black/80 border-white/10 text-white rounded-lg">Notifications</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
+                  <Button variant="ghost" size="icon" className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full w-10 h-10">
                     <Wallet className="h-5 w-5" />
                     <span className="sr-only">Connect Wallet</span>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Connect Wallet</TooltipContent>
+                <TooltipContent className="bg-black/80 border-white/10 text-white rounded-lg">Connect Wallet</TooltipContent>
               </Tooltip>
 
               {loading ? (
-                <div className="w-8 h-8 bg-muted rounded-full animate-pulse"></div>
+                <div className="w-9 h-9 bg-white/10 rounded-full animate-pulse ml-2"></div>
               ) : user ? (
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center space-x-2 text-foreground hover:text-primary">
-                    <Avatar className="w-8 h-8">
+                  <DropdownMenuTrigger className="flex items-center space-x-2 text-gray-300 hover:text-white ml-2 focus:outline-none group">
+                    <Avatar className="w-9 h-9 border-2 border-transparent group-hover:border-blue-500 transition-all">
                       <AvatarImage src={avatarUrl} alt={user.username} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                        {user.username}
+                      <AvatarFallback className="bg-blue-600 text-white text-xs">
+                        {user.username.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-sm font-medium">{user.username}</span>
-                    <ChevronDown className="h-4 w-4" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-popover border-border w-48">
-                    <DropdownMenuItem className="text-foreground hover:text-primary hover:bg-accent">
+                  <DropdownMenuContent className="bg-black/80 backdrop-blur-xl border-white/10 text-gray-300 rounded-xl w-56 p-2 mt-2 mr-4">
+                    <div className="px-2 py-1.5 text-sm font-semibold text-white truncate">
+                      @{user.username}
+                    </div>
+                    <DropdownMenuSeparator className="bg-white/10" />
+                    <DropdownMenuItem className="focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
                       <Link href={USER_ROUTES.PROFILE} className="flex items-center w-full">
                         <User className="mr-2 h-4 w-4" />
                         Profile
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-border" />
+                    <DropdownMenuSeparator className="bg-white/10" />
                     <DropdownMenuItem
-                      className="text-destructive hover:text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
+                      className="text-red-400 focus:text-red-300 focus:bg-red-500/10 rounded-lg cursor-pointer"
                       onClick={handleLogout}
                     >
                       <LogOut className="mr-2 h-4 w-4" />
@@ -177,124 +181,129 @@ export default function Navbar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <div className="ml-4 flex items-center space-x-4">
+                <div className="ml-4 flex items-center space-x-3">
                   <Link href={USER_ROUTES.LOGIN}>
                     <Button
                       variant="ghost"
-                      className="text-foreground hover:text-primary hover:bg-accent cursor-pointer"
+                      className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full"
                     >
                       Login
                     </Button>
                   </Link>
                   <Link href={USER_ROUTES.REGISTER}>
-                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-full px-6 shadow-lg shadow-blue-500/20">
                       Register
                     </Button>
                   </Link>
                 </div>
               )}
             </div>
+
             {/* Mobile menu button */}
-            <div className="md:hidden flex items-center space-x-2">
+            <div className="md:hidden flex items-center mr-2">
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-foreground">
+                  <Button variant="ghost" size="icon" className="text-gray-300 hover:text-white">
                     <Menu className="h-6 w-6" />
                     <span className="sr-only">Toggle navigation menu</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="bg-background border-border">
-                  <div className="flex flex-col space-y-4 mt-8">
+                <SheetContent side="right" className="bg-black/95 backdrop-blur-xl border-white/10 w-[300px] sm:w-[350px]">
+                  <div className="flex flex-col space-y-6 mt-8">
                     <Link
                       href={USER_ROUTES.MARKET}
-                      className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium"
+                      className="text-xl font-medium text-gray-300 hover:text-white transition-colors"
+                      onClick={() => setIsOpen(false)}
                     >
                       Market
                     </Link>
-                    <div className="px-3 py-2">
-                      <div className="text-foreground text-sm font-medium mb-2">Trade</div>
-                      <div className="ml-4 space-y-2">
+                    <div className="space-y-4">
+                      <div className="text-xl font-medium text-gray-300">Trade</div>
+                      <div className="pl-4 space-y-3 border-l border-white/10 bg-white/5 py-4 rounded-r-xl">
                         <Link
                           href={USER_ROUTES.SWAP}
-                          className="block text-muted-foreground hover:text-primary text-sm"
+                          className="block text-gray-400 hover:text-white text-lg transition-colors"
+                          onClick={() => setIsOpen(false)}
                         >
                           Swap
                         </Link>
-                        <Link href={USER_ROUTES.BRIDGE} className="block text-muted-foreground hover:text-primary text-sm">
+                        <Link href={USER_ROUTES.BRIDGE} className="block text-gray-400 hover:text-white text-lg transition-colors" onClick={() => setIsOpen(false)}>
                           Bridge
                         </Link>
-                        <Link href={USER_ROUTES.BUY} className="block text-muted-foreground hover:text-primary text-sm">
+                        <Link href={USER_ROUTES.BUY} className="block text-gray-400 hover:text-white text-lg transition-colors" onClick={() => setIsOpen(false)}>
                           Buy
                         </Link>
-                        <Link href={USER_ROUTES.SELL} className="block text-muted-foreground hover:text-primary text-sm">
+                        <Link href={USER_ROUTES.SELL} className="block text-gray-400 hover:text-white text-lg transition-colors" onClick={() => setIsOpen(false)}>
                           Sell
                         </Link>
                       </div>
                     </div>
-                    <Link href={USER_ROUTES.NFT_MARKET} className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium">
+                    <Link href={USER_ROUTES.NFT_MARKET} className="text-xl font-medium text-gray-300 hover:text-white transition-colors" onClick={() => setIsOpen(false)}>
                       NFTs
                     </Link>
                     <Link
                       href={USER_ROUTES.COMMUNITY}
-                      className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium"
+                      className="text-xl font-medium text-gray-300 hover:text-white transition-colors" onClick={() => setIsOpen(false)}
                     >
                       Community
                     </Link>
-                    <Link href={USER_ROUTES.QUESTS} className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium">
+                    <Link href={USER_ROUTES.QUESTS} className="text-xl font-medium text-gray-300 hover:text-white transition-colors" onClick={() => setIsOpen(false)}>
                       Quests
                     </Link>
-                    <Link href={COMMON_ROUTES.ABOUT} className="text-foreground hover:text-primary px-3 py-2 text-sm font-medium">
+                    <Link href={COMMON_ROUTES.ABOUT} className="text-xl font-medium text-gray-300 hover:text-white transition-colors" onClick={() => setIsOpen(false)}>
                       About Us
                     </Link>
+
                     {/* Mobile Auth Section */}
-                    <div className="pt-4 space-y-2">
+                    <div className="pt-6 border-t border-white/10 space-y-3">
                       {user ? (
                         <>
-                          <div className="px-3 py-2 border-t border-border">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <Avatar className="w-6 h-6">
-                                <AvatarImage src={avatarUrl} alt={user.username} />
-                                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                                  {user.username}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="text-foreground text-sm font-medium">{user.username}</span>
-                            </div>
+                          <div className="flex items-center space-x-3 mb-4 bg-white/5 p-3 rounded-xl">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={avatarUrl} alt={user.username} />
+                              <AvatarFallback className="bg-blue-600 text-white">
+                                {user.username.slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-white font-medium text-lg px-2">{user.username}</span>
                           </div>
-                          <Link href={USER_ROUTES.PROFILE}>
+                          <Link href={USER_ROUTES.PROFILE} onClick={() => setIsOpen(false)}>
                             <Button
                               variant="ghost"
-                              className="w-full text-foreground hover:text-primary hover:bg-accent justify-start"
+                              className="w-full text-gray-300 hover:text-white hover:bg-white/10 justify-start h-12 text-lg"
                             >
-                              <User className="mr-2 h-4 w-4" />
+                              <User className="mr-3 h-5 w-5" />
                               Profile
                             </Button>
                           </Link>
                           <Button
-                            onClick={handleLogout}
+                            onClick={() => {
+                              handleLogout()
+                              setIsOpen(false)
+                            }}
                             variant="ghost"
-                            className="w-full text-destructive hover:text-destructive-foreground hover:bg-destructive/90 justify-start"
+                            className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 justify-start h-12 text-lg"
                           >
-                            <LogOut className="mr-2 h-4 w-4" />
+                            <LogOut className="mr-3 h-5 w-5" />
                             Logout
                           </Button>
                         </>
                       ) : (
-                        <>
-                          <Link href={USER_ROUTES.LOGIN}>
+                        <div className="grid grid-cols-2 gap-3">
+                          <Link href={USER_ROUTES.LOGIN} onClick={() => setIsOpen(false)}>
                             <Button
-                              variant="ghost"
-                              className="w-full text-foreground hover:text-primary hover:bg-accent"
+                              variant="outline"
+                              className="w-full border-white/20 text-white hover:bg-white/10 bg-transparent h-12"
                             >
                               Login
                             </Button>
                           </Link>
-                          <Link href={USER_ROUTES.REGISTER}>
-                            <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+                          <Link href={USER_ROUTES.REGISTER} onClick={() => setIsOpen(false)}>
+                            <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white h-12">
                               Register
                             </Button>
                           </Link>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -302,8 +311,8 @@ export default function Navbar() {
               </Sheet>
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </div>
     </TooltipProvider>
   )
 }

@@ -17,13 +17,9 @@ export default function CommunityLayout({
 
   return (
     <div className="min-h-screen bg-slate-950">
-      {/* Fixed Navbar */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <Navbar />
-      </div>
-
+      <Navbar />
       {/* Push content below navbar */}
-      <div className="pt-16">{children}</div>
+      <div className="pt-28">{children}</div>
     </div>
   )
 }
