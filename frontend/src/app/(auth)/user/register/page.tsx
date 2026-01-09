@@ -8,24 +8,24 @@ import { AuthVisuals } from "@/components/auth/auth-visuals"
 export default function RegisterPage() {
   return (
     <PreventLoggedIn>
-      <div className="flex h-screen w-screen overflow-hidden bg-[#0a0a0f] text-white selection:bg-cyan-500/30 selection:text-cyan-200">
+      <div className="flex min-h-screen lg:h-screen w-full lg:overflow-hidden bg-[#0a0a0f] text-white selection:bg-cyan-500/30 selection:text-cyan-200">
         {/* Left Side - Visuals */}
         <AuthVisuals />
 
         {/* Right Side - Register Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 relative z-10 bg-[#0a0a0f]">
+        <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 relative z-10 bg-[#0a0a0f] lg:overflow-y-auto">
           {/* Mobile Background Ambience */}
           <div className="lg:hidden absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-[-20%] right-[-20%] w-[80vw] h-[80vw] bg-purple-600/10 rounded-full blur-[80px]" />
             <div className="absolute bottom-[-20%] left-[-20%] w-[80vw] h-[80vw] bg-cyan-600/10 rounded-full blur-[80px]" />
           </div>
 
-          <div className="w-full max-w-xl relative z-20">
+          <div className="w-full max-w-xl relative z-20 my-auto">
             {/* Mobile Header */}
-            <div className="lg:hidden text-center mb-10">
+            <div className="lg:hidden text-center mb-8 mt-4">
               <Link
                 href={COMMON_ROUTES.HOME}
-                className="inline-flex items-center gap-2 mb-4"
+                className="inline-flex items-center gap-2"
               >
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-[1px]">
                   <div className="w-full h-full rounded-xl bg-black flex items-center justify-center">
@@ -39,7 +39,7 @@ export default function RegisterPage() {
             <RegisterForm />
 
             {/* Footer Links */}
-            <div className="mt-8 flex justify-center items-center gap-6 text-sm text-gray-500">
+            <div className="mt-8 mb-4 flex justify-center items-center gap-6 text-sm text-gray-500">
               <Link href="#" className="hover:text-cyan-400 transition-colors">Privacy</Link>
               <span className="w-1 h-1 rounded-full bg-gray-700"></span>
               <Link href="#" className="hover:text-cyan-400 transition-colors">Terms</Link>
