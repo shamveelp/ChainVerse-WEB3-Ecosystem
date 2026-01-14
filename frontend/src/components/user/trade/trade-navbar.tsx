@@ -4,7 +4,7 @@ import { client } from '@/lib/thirdweb-client';
 import { supportedChains } from '@/lib/thirdweb-config';
 import { useActiveAccount } from 'thirdweb/react';
 import { useEffect, useRef, useState } from 'react';
-import { saveWallet } from '@/services/walletApiService';
+import { saveWallet } from '@/services/WalletApiService';
 
 export default function TradeNavbar() {
   const account = useActiveAccount(); // Thirdweb hook to get the connected wallet
