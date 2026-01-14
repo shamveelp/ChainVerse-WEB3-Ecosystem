@@ -3,6 +3,8 @@
 import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { ChevronDown, ChevronUp, Menu, User, LogOut, Bell, Wallet, CircleDollarSign } from "lucide-react"
+import { ConnectButton } from "thirdweb/react"
+import { client } from "@/lib/thirdweb-client"
 
 // Helper component for mobile collapsible menu
 function CollapsibleMenu({ title, onItemClick }: { title: string; onItemClick: () => void }) {
@@ -121,7 +123,7 @@ export default function Navbar() {
     <TooltipProvider>
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-6 px-4 pointer-events-none">
         <nav className="pointer-events-auto w-full max-w-7xl bg-black/40 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl px-2 sm:px-6 py-2">
-          <div className="flex flex-wrap md:flex-nowrap justify-between items-center min-h-[56px] gap-2">
+          <div className="flex flex-wrap lg:flex-nowrap justify-between items-center min-h-[56px] gap-2">
             {/* Logo */}
             <div className="flex-shrink-0 ml-2">
               <Link
@@ -139,7 +141,7 @@ export default function Navbar() {
             </div>
 
             {/* Desktop Navigation */}
-            <div className={`hidden md:block flex-1 mx-4 ${isCollapsed ? "!hidden" : ""}`}>
+            <div className={`hidden lg:block flex-1 mx-4 ${isCollapsed ? "!hidden" : ""}`}>
               <div ref={navLinksRef} className="flex flex-wrap items-center justify-center lg:justify-start gap-y-2 lg:gap-x-1">
                 <Link
                   href={COMMON_ROUTES.MARKET}
@@ -194,7 +196,7 @@ export default function Navbar() {
             </div>
 
             {/* Desktop Right Side Icons & Auth Buttons / User Menu */}
-            <div className="hidden md:flex items-center space-x-2 mr-2">
+            <div className="hidden lg:flex items-center space-x-2 mr-2">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href={USER_ROUTES.PROFILE_POINTS}>
@@ -280,7 +282,7 @@ export default function Navbar() {
             </div>
 
             {/* Mobile menu button */}
-            <div className={`${isCollapsed ? "flex" : "md:hidden flex"} items-center mr-2`}>
+            <div className={`${isCollapsed ? "flex" : "lg:hidden flex"} items-center mr-2`}>
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-gray-300 hover:text-white h-12 w-12">
@@ -355,6 +357,14 @@ export default function Navbar() {
 
                     {/* Mobile Auth Section */}
                     <div className="pt-8 border-t border-white/10 space-y-4 mt-auto">
+                      <div className="flex justify-center mb-4">
+                        <ConnectButton
+                          client={client}
+                          theme={"dark"}
+                          btnTitle="Connect Wallet"
+                          modalSize={"compact"}
+                        />
+                      </div>
                       {user ? (
                         <>
                           <div className="flex items-center space-x-4 mb-6 bg-white/5 p-4 rounded-2xl border border-white/5">

@@ -21,7 +21,7 @@ export default function TradeNavbar({ topOffset = 'top-4' }: FloatingWalletButto
     if (account && account.address && account.address !== lastSavedAddress.current) {
       setError(null);
       lastSavedAddress.current = account.address;
-      
+
     }
 
     return () => {
@@ -30,7 +30,7 @@ export default function TradeNavbar({ topOffset = 'top-4' }: FloatingWalletButto
   }, [account?.address]);
 
   return (
-    <div className={`fixed ${topOffset} right-4 z-50`}>
+    <div className={`hidden lg:block fixed ${topOffset} right-4 md:right-[130px] z-40 transition-all duration-300`}>
       {error && (
         <div className="text-red-400 mb-2 text-sm bg-slate-900/80 p-2 rounded-md border border-red-700/50">{error}</div>
       )}

@@ -330,13 +330,13 @@ ${err.message || 'Something went wrong.'} Please check your balance and try agai
     <>
       <div
         className={`fixed bottom-6 right-6 z-50 transition-all duration-500 ease-out message-bubble-container ${isVisible
-            ? 'translate-y-0 opacity-100 scale-100'
-            : 'translate-y-20 opacity-0 scale-50'
+          ? 'translate-y-0 opacity-100 scale-100'
+          : 'translate-y-20 opacity-0 scale-50'
           }`}
       >
         {/* Floating Chat Window */}
         {isOpen && (
-          <div className="absolute bottom-20 right-0 w-[420px] max-h-[700px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden backdrop-blur-xl animate-in slide-in-from-bottom-5 duration-300">
+          <div className="absolute bottom-20 right-0 w-[85vw] sm:w-[420px] max-h-[700px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden backdrop-blur-xl animate-in slide-in-from-bottom-5 duration-300">
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 p-4 flex items-center justify-between relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
@@ -379,8 +379,8 @@ ${err.message || 'Something went wrong.'} Please check your balance and try agai
                         <div className={`flex-1 ${message.role === 'user' ? 'text-right' : ''}`}>
                           <div
                             className={`p-3 rounded-2xl ${message.role === 'user'
-                                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-br-none'
-                                : 'bg-slate-800/50 backdrop-blur-sm text-white border border-slate-700/30 rounded-tl-none'
+                              ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-br-none'
+                              : 'bg-slate-800/50 backdrop-blur-sm text-white border border-slate-700/30 rounded-tl-none'
                               }`}
                           >
                             <div

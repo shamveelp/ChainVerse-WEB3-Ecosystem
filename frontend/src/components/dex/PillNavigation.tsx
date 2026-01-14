@@ -58,22 +58,22 @@ export default function PillNavigation() {
   }, [activeTab]);
 
   return (
-    <div className="mb-6 w-full max-w-md mx-auto">
+    <div className="mb-6 w-full max-w-lg mx-auto">
       {/* Main Pill Navigation */}
       <div
         ref={containerRef}
-        className="bg-slate-900/50 backdrop-blur-xl rounded-full p-1.5 border border-slate-800 relative z-0"
+        className="bg-slate-950/80 backdrop-blur-xl rounded-full p-1.5 border border-white/10 relative z-0 shadow-lg shadow-black/20 overflow-x-auto no-scrollbar"
       >
         {/* Sliding Indicator */}
         <div
-          className="absolute top-1.5 bottom-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300 ease-out shadow-lg shadow-blue-500/20 z-0"
+          className="absolute top-1.5 bottom-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full transition-all duration-300 ease-out shadow-lg shadow-cyan-500/20 z-0 border border-white/10"
           style={{
             width: indicatorStyle.width,
             transform: `translateX(${indicatorStyle.left}px)`,
           }}
         />
 
-        <div className="flex relative z-10">
+        <div className="flex relative z-10 text-sm md:text-base">
           {navigationTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -84,7 +84,7 @@ export default function PillNavigation() {
                 href={tab.href}
                 ref={(el) => { tabRefs.current[tab.id] = el; }}
                 className={`
-                  flex-1 flex items-center justify-center space-x-2 px-6 py-2.5 rounded-full font-medium transition-all duration-300
+                  flex-1 flex items-center justify-center space-x-2 px-2 md:px-6 py-2.5 rounded-full font-medium transition-all duration-300 select-none
                   ${isActive
                     ? 'text-white'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -92,7 +92,8 @@ export default function PillNavigation() {
                 `}
               >
                 <Icon className={`h-4 w-4 transition-transform duration-300 ${isActive ? 'scale-110' : ''}`} />
-                <span className="text-sm">{tab.label}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
               </Link>
             );
           })}
