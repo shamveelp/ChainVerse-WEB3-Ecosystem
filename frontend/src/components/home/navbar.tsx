@@ -61,6 +61,7 @@ function CollapsibleMenu({ title, onItemClick }: { title: string; onItemClick: (
     </div>
   )
 }
+import ShinyText from "@/components/ui/shiny-text"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -125,9 +126,15 @@ export default function Navbar() {
             <div className="flex-shrink-0 ml-2">
               <Link
                 href={COMMON_ROUTES.HOME}
-                className="text-2xl font-bold text-white transition-all hover:tracking-wide"
+                className="text-2xl font-bold transition-all hover:tracking-wide"
               >
-                ChainVerse
+                <ShinyText
+                  text="ChainVerse"
+                  speed={3}
+                  yoyo={true}
+                  color="#b5b5b5"
+                  shineColor="#ffffff"
+                />
               </Link>
             </div>
 
@@ -287,10 +294,16 @@ export default function Navbar() {
                     <div className="flex items-center justify-between mb-8">
                       <Link
                         href={COMMON_ROUTES.HOME}
-                        className="text-2xl font-bold text-white transition-all hover:tracking-wide"
+                        className="text-2xl font-bold transition-all hover:tracking-wide"
                         onClick={() => setIsOpen(false)}
                       >
-                        ChainVerse
+                        <ShinyText
+                          text="ChainVerse"
+                          speed={3}
+                          yoyo={true}
+                          color="#b5b5b5"
+                          shineColor="#ffffff"
+                        />
                       </Link>
                       {/* Close button is handled by Sheet primitive */}
                     </div>
@@ -401,7 +414,7 @@ export default function Navbar() {
             </div>
           </div>
         </nav>
-      </div>
-    </TooltipProvider>
+      </div >
+    </TooltipProvider >
   )
 }
