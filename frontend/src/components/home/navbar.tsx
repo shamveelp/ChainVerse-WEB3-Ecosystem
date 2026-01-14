@@ -262,8 +262,8 @@ export default function Navbar() {
                     <span className="sr-only">Toggle navigation menu</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-full h-full border-none bg-black/95 p-0 sm:max-w-full">
-                  <div className="flex flex-col h-full bg-gradient-to-b from-slate-900 to-black p-6 overflow-y-auto">
+                <SheetContent side="right" className="w-full h-full border-none bg-black/90 backdrop-blur-3xl p-0 sm:max-w-full">
+                  <div className="flex flex-col h-full bg-gradient-to-b from-indigo-950/20 to-black/80 p-6 overflow-y-auto">
                     {/* Mobile Header with Logo */}
                     <div className="flex items-center justify-between mb-8">
                       <Link
