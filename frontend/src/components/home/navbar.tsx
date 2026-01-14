@@ -257,8 +257,8 @@ export default function Navbar() {
             <div className="md:hidden flex items-center mr-2">
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-gray-300 hover:text-white">
-                    <Menu className="h-6 w-6" />
+                  <Button variant="ghost" size="icon" className="text-gray-300 hover:text-white h-12 w-12">
+                    <Menu className="h-8 w-8" />
                     <span className="sr-only">Toggle navigation menu</span>
                   </Button>
                 </SheetTrigger>
@@ -273,16 +273,12 @@ export default function Navbar() {
                       >
                         ChainVerse
                       </Link>
-                      {/* Close button is handled by Sheet primitive but we can add custom if needed, 
-                          default X is usually fine but let's ensure it's visible or styling is good. 
-                          The SheetContent default close button might need styling overrides in global css or here.
-                          Actually, shadcn SheetContent usually includes a Close button. We will trust it but can style it if needed. 
-                      */}
+                      {/* Close button is handled by Sheet primitive */}
                     </div>
 
                     <div className="flex flex-col space-y-2 flex-1">
                       <Link
-                        href={USER_ROUTES.MARKET}
+                        href={COMMON_ROUTES.MARKET}
                         className="text-2xl font-medium text-gray-300 hover:text-white hover:bg-white/5 px-4 py-3 rounded-xl transition-all"
                         onClick={() => setIsOpen(false)}
                       >
@@ -344,7 +340,7 @@ export default function Navbar() {
                           <Link href={USER_ROUTES.PROFILE} onClick={() => setIsOpen(false)}>
                             <Button
                               variant="ghost"
-                              className="w-full text-gray-300 hover:text-white hover:bg-white/10 justify-start h-14 text-lg rounded-xl"
+                              className="w-full text-white bg-white/10 hover:bg-white/20 justify-start h-14 text-lg rounded-xl mb-3"
                             >
                               <User className="mr-3 h-5 w-5" />
                               Profile
@@ -356,7 +352,7 @@ export default function Navbar() {
                               setIsOpen(false)
                             }}
                             variant="ghost"
-                            className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 justify-start h-14 text-lg rounded-xl"
+                            className="w-full text-red-400 bg-red-500/10 hover:bg-red-500/20 hover:text-red-300 justify-start h-14 text-lg rounded-xl"
                           >
                             <LogOut className="mr-3 h-5 w-5" />
                             Logout
