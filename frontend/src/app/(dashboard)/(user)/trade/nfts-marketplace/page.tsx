@@ -1,180 +1,118 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, TrendingUp, Users } from 'lucide-react';
+import { useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-
-const stats = [
-  { label: 'Total Volume', value: '2.5M ETH', icon: TrendingUp },
-  { label: 'Active Users', value: '150K+', icon: Users },
-  { label: 'NFTs Minted', value: '500K+', icon: Sparkles },
-];
-
-const features = [
-  {
-    title: 'Create & Mint',
-    description: 'Turn your digital creations into unique NFTs with our easy-to-use minting platform',
-    gradient: 'from-blue-500 to-purple-600',
-  },
-  {
-    title: 'Trade & Collect',
-    description: 'Buy, sell, and collect NFTs from artists and creators around the world',
-    gradient: 'from-purple-600 to-pink-600',
-  },
-  {
-    title: 'Earn & Grow',
-    description: 'Monetize your art and build a sustainable creative career on the blockchain',
-    gradient: 'from-pink-600 to-orange-600',
-  },
-];
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import Hyperspeed, { hyperspeedPresets } from '@/components/ReactBits/Hyperspeed';
+import { ArrowRight, Wallet, Rocket, Layers } from 'lucide-react';
 
 export default function NFTMarketplaceHome() {
+  const container = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const buttonsRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    gsap.registerPlugin(useGSAP);
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+    tl.fromTo(titleRef.current,
+      { y: 100, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1.2 }
+    )
+      .fromTo(subtitleRef.current,
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1 },
+        "-=0.8"
+      )
+      .fromTo(buttonsRef.current,
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.8 },
+        "-=0.6"
+      );
+  }, { scope: container });
+
   return (
-    <div className="relative">
+    <div ref={container} className="relative min-h-screen bg-black text-white w-full overflow-x-hidden font-sans">
+      {/* Background Video */}
+      <div className="absolute top-0 left-0 w-full h-screen z-0 overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover opacity-60"
+        >
+          <source src="/videos/NFT.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black z-10" />
+      </div>
+
       {/* Hero Section */}
-      <section className="relative px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-              <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                Discover
-              </span>
-              <br />
-              <span className="text-foreground">
-                Extraordinary NFTs
-              </span>
-            </h1>
+      <section className="relative z-10 h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center pt-20">
+        <h1 ref={titleRef} className="text-5xl md:text-7xl lg:text-9xl font-black tracking-tighter mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-500 drop-shadow-2xl opacity-0">
+          DISCOVER<br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">UNIVERSE</span>
+        </h1>
 
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-              The most advanced decentralized marketplace for digital collectibles.
-              Create, buy, sell, and trade NFTs with complete ownership and transparency.
-            </p>
+        <p ref={subtitleRef} className="text-lg md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed font-light opacity-0">
+          Explore, create, and trade extraordinary digital assets in the most advanced decentralized marketplace.
+        </p>
 
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90">
-                <Link href="/nft-marketplace/explore">
-                  Explore NFTs
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-
-              <Button asChild variant="outline" size="lg">
-                <Link href="/nft-marketplace/create">
-                  Create NFT
-                </Link>
-              </Button>
-            </div>
-          </motion.div>
-
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-3"
-          >
-            {stats.map((stat, index) => (
-              <Card key={stat.label} className="p-6 text-center bg-gradient-to-br from-background/80 to-muted/20 backdrop-blur-sm border-border/50">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-primary/20 to-purple-600/20 mb-4">
-                  <stat.icon className="h-6 w-6 text-primary" />
-                </div>
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </Card>
-            ))}
-          </motion.div>
+        <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-6 mt-4 opacity-0">
+          <Link href="/trade/nfts-marketplace/explore">
+            <Button size="lg" className="rounded-full px-10 py-8 text-xl font-bold bg-white text-black hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]">
+              Explore NFTs <ArrowRight className="ml-3 h-6 w-6" />
+            </Button>
+          </Link>
+          <Link href="/trade/nfts-marketplace/create">
+            <Button size="lg" variant="outline" className="rounded-full px-10 py-8 text-xl font-bold border-2 border-white/20 text-white hover:bg-white/10 hover:border-white hover:scale-105 transition-all duration-300 backdrop-blur-md">
+              Create NFT
+            </Button>
+          </Link>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl font-bold sm:text-4xl mb-4">
-              Why Choose NFTorium?
+      {/* Hyperspeed Section */}
+      <section className="relative w-full py-32 overflow-hidden bg-black z-20 border-t border-white/5">
+        <div className="absolute inset-0 z-0 opacity-80">
+          <Hyperspeed effectOptions={hyperspeedPresets.two} />
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pointer-events-none">
+          <div className="flex flex-col items-center justify-center min-h-[600px] text-center space-y-12">
+            <h2 className="text-4xl md:text-7xl font-bold text-white tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
+              NEXT GEN SPEED
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Experience the future of digital ownership with our cutting-edge platform
-              built for creators, collectors, and traders.
-            </p>
-          </motion.div>
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -8 }}
-              >
-                <Card className="p-8 h-full bg-gradient-to-br from-background/90 to-muted/30 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-all duration-300">
-                  <div className={`h-12 w-12 rounded-lg bg-gradient-to-r ${feature.gradient} mb-6 flex items-center justify-center`}>
-                    <Sparkles className="h-6 w-6 text-white" />
-                  </div>
-
-                  <h3 className="text-xl font-semibold mb-3 text-foreground">
-                    {feature.title}
-                  </h3>
-
-                  <p className="text-muted-foreground leading-relaxed">
-                    {feature.description}
-                  </p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <Card className="p-12 text-center bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 backdrop-blur-sm border-primary/20">
-              <h2 className="text-3xl font-bold mb-4">
-                Ready to Join the Revolution?
-              </h2>
-
-              <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Start your NFT journey today. Create, collect, and trade digital assets
-                with complete ownership and transparency.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild size="lg" className="bg-gradient-to-r from-primary to-purple-600">
-                  <Link href="/nft-marketplace/create">
-                    Create Your First NFT
-                  </Link>
-                </Button>
-
-                <Button asChild variant="outline" size="lg">
-                  <Link href="/nft-marketplace/explore">
-                    Browse Collection
-                  </Link>
-                </Button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl mt-12 pointer-events-auto">
+              <div className="bg-black/40 backdrop-blur-xl p-8 rounded-3xl border border-white/10 hover:border-purple-500/50 transition-all duration-500 hover:-translate-y-2 group">
+                <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-500">
+                  <Rocket className="h-8 w-8 text-purple-400" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-white">Instant Minting</h3>
+                <p className="text-gray-400 leading-relaxed">Create NFTs in seconds with our optimized smart contracts and gas-free lazy minting.</p>
               </div>
-            </Card>
-          </motion.div>
+
+              <div className="bg-black/40 backdrop-blur-xl p-8 rounded-3xl border border-white/10 hover:border-blue-500/50 transition-all duration-500 hover:-translate-y-2 group">
+                <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-500">
+                  <Wallet className="h-8 w-8 text-blue-400" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-white">Secure Wallet</h3>
+                <p className="text-gray-400 leading-relaxed">Your assets are protected by industry-leading security protocols and multi-sig vaults.</p>
+              </div>
+
+              <div className="bg-black/40 backdrop-blur-xl p-8 rounded-3xl border border-white/10 hover:border-pink-500/50 transition-all duration-500 hover:-translate-y-2 group">
+                <div className="bg-gradient-to-br from-pink-500/20 to-rose-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-500">
+                  <Layers className="h-8 w-8 text-pink-400" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-white">Cross-Chain</h3>
+                <p className="text-gray-400 leading-relaxed">Seamlessly trade across multiple blockchain networks with our unified bridge.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>
