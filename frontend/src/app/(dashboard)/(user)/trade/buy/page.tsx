@@ -377,7 +377,7 @@ export default function BuyCryptoPage() {
         <Navbar />
         <TradeNavbar topOffset="top-[130px]" />
 
-        <div className="pt-24 md:pt-32 px-4 md:px-6 pb-20 overflow-x-hidden">
+        <div className="pt-32 md:pt-32 px-4 md:px-6 pb-20 overflow-x-hidden">
           <div className="max-w-5xl mx-auto w-full">
 
             <div className="mb-8 flex justify-center">

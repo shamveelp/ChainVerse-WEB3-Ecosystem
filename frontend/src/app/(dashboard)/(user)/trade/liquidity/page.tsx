@@ -181,7 +181,7 @@ export default function LiquidityPage() {
         <Navbar />
         <TradeNavbar topOffset="top-[130px]" />
 
-        <div className="pt-24 md:pt-32 px-4 pb-20 flex flex-col items-center min-h-screen">
+        <div className="pt-32 md:pt-32 px-4 pb-20 flex flex-col items-center min-h-screen">
           <div className="w-full max-w-lg mx-auto space-y-6">
 
             <PillNavigation />
