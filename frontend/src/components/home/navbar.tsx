@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { ChevronDown, ChevronUp, Menu, User, LogOut, Bell, Wallet, CircleDollarSign } from "lucide-react"
 
@@ -81,6 +81,25 @@ import { COMMON_ROUTES, USER_ROUTES } from "@/routes"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const navLinksRef = useRef<HTMLDivElement>(null)
+
+  // Measure nav height to determine if we should collapse
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (navLinksRef.current) {
+        // If height > 80px (approx 2 lines), Force collapse
+        setIsCollapsed(navLinksRef.current.offsetHeight > 80)
+      }
+    }
+
+    // Initial check
+    checkOverflow()
+
+    // Add resize listener
+    window.addEventListener("resize", checkOverflow)
+    return () => window.removeEventListener("resize", checkOverflow)
+  }, [])
   // Using Redux state for user and loading
   const { user, loading } = useSelector((state: RootState) => state.userAuth)
   const { logout } = useAuthActions()
@@ -101,7 +120,7 @@ export default function Navbar() {
     <TooltipProvider>
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-6 px-4 pointer-events-none">
         <nav className="pointer-events-auto w-full max-w-7xl bg-black/40 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl px-2 sm:px-6 py-2">
-          <div className="flex justify-between items-center h-14">
+          <div className="flex flex-wrap md:flex-nowrap justify-between items-center min-h-[56px] gap-2">
             {/* Logo */}
             <div className="flex-shrink-0 ml-2">
               <Link
@@ -113,8 +132,8 @@ export default function Navbar() {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:block">
-              <div className="flex items-baseline space-x-2">
+            <div className={`hidden md:block flex-1 mx-4 ${isCollapsed ? "!hidden" : ""}`}>
+              <div ref={navLinksRef} className="flex flex-wrap items-center justify-center lg:justify-start gap-y-2 lg:gap-x-1">
                 <Link
                   href={COMMON_ROUTES.MARKET}
                   className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300"
@@ -160,7 +179,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href={COMMON_ROUTES.ABOUT}
-                  className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300"
+                  className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 whitespace-nowrap"
                 >
                   About Us
                 </Link>
@@ -254,7 +273,7 @@ export default function Navbar() {
             </div>
 
             {/* Mobile menu button */}
-            <div className="md:hidden flex items-center mr-2">
+            <div className={`${isCollapsed ? "flex" : "md:hidden flex"} items-center mr-2`}>
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-gray-300 hover:text-white h-12 w-12">
