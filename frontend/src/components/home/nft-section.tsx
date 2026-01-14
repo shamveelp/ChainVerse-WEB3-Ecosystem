@@ -78,12 +78,12 @@ export default function NFTSection() {
               Discover unique assets from world-class artists. Buy, sell, and trade with zero friction.
             </p>
           </div>
-          <Button variant="outline" className="border-purple-500/30 text-purple-300 hover:text-white hover:bg-purple-500/20 hover:border-purple-500 rounded-full px-8">
+          <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 hover:border-white rounded-full px-8 transition-all">
             View Collection <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
           {nftItems.map((item) => (
             <div key={item.id} className="nft-card group perspective-1000">
               <Card className="bg-gray-900 border-gray-800 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500 hover:-translate-y-2">

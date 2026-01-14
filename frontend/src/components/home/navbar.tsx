@@ -106,7 +106,7 @@ export default function Navbar() {
             <div className="flex-shrink-0 ml-2">
               <Link
                 href={COMMON_ROUTES.HOME}
-                className="text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-400 to-pink-400 bg-clip-text text-transparent hover:brightness-125 transition-all"
+                className="text-2xl font-bold text-white transition-all hover:tracking-wide"
               >
                 ChainVerse
               </Link>
@@ -245,7 +245,7 @@ export default function Navbar() {
                     </Button>
                   </Link>
                   <Link href={USER_ROUTES.REGISTER}>
-                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-full px-6 shadow-lg shadow-blue-500/20">
+                    <Button className="bg-white text-black hover:bg-gray-200 rounded-full px-6 transition-colors font-medium">
                       Register
                     </Button>
                   </Link>
@@ -268,7 +268,7 @@ export default function Navbar() {
                     <div className="flex items-center justify-between mb-8">
                       <Link
                         href={COMMON_ROUTES.HOME}
-                        className="text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-400 to-pink-400 bg-clip-text text-transparent hover:brightness-125 transition-all"
+                        className="text-2xl font-bold text-white transition-all hover:tracking-wide"
                         onClick={() => setIsOpen(false)}
                       >
                         ChainVerse
@@ -369,7 +369,7 @@ export default function Navbar() {
                             </Button>
                           </Link>
                           <Link href={USER_ROUTES.REGISTER} onClick={() => setIsOpen(false)}>
-                            <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white h-14 text-lg rounded-xl shadow-lg shadow-blue-500/20 border-none">
+                            <Button className="w-full bg-white text-black hover:bg-gray-200 h-14 text-lg rounded-xl transition-colors font-medium border-none">
                               Register
                             </Button>
                           </Link>

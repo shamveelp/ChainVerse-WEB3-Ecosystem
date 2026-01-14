@@ -74,17 +74,17 @@ export default function SocialSection() {
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           <div className="social-icon-float p-8 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
             <Users className="w-12 h-12 text-blue-400 mx-auto mb-6" />
-            <h3 className="text-xl font-bold text-white mb-2">Global Community</h3>
+            <h3 className="text-xl font-bold text-white mb-2">Join Communities</h3>
             <p className="text-gray-400">Connect with enthusiasts from 150+ countries.</p>
           </div>
           <div className="social-icon-float p-8 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors" style={{ animationDelay: "0.5s" }}>
-            <MessageSquare className="w-12 h-12 text-pink-400 mx-auto mb-6" />
-            <h3 className="text-xl font-bold text-white mb-2">Decentralized Chat</h3>
+            <MessageSquare className="w-12 h-12 text-cyan-400 mx-auto mb-6" />
+            <h3 className="text-xl font-bold text-white mb-2">Talk to One Another</h3>
             <p className="text-gray-400">Privacy-focused messaging for secure collaborations.</p>
           </div>
           <div className="social-icon-float p-8 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors" style={{ animationDelay: "1s" }}>
             <Globe className="w-12 h-12 text-purple-400 mx-auto mb-6" />
-            <h3 className="text-xl font-bold text-white mb-2">DAO Governance</h3>
+            <h3 className="text-xl font-bold text-white mb-2">Join ChainCast</h3>
             <p className="text-gray-400">Vote on proposals and shape the platform's future.</p>
           </div>
         </div>
