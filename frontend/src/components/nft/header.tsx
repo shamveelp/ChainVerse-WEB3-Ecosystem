@@ -47,11 +47,10 @@ export function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`relative group flex items-center justify-center px-4 md:px-6 py-3 rounded-2xl transition-all duration-300 ${
-                  isActive
-                    ? 'text-white bg-white/10 shadow-lg'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
+                className={`relative group flex items-center justify-center px-4 md:px-6 py-3 rounded-2xl transition-all duration-300 ${isActive
+                  ? 'text-white bg-white/10 shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
               >
                 <item.icon
                   className={`w-5 h-5 ${isActive ? 'text-pink-400' : ''}`}
@@ -118,16 +117,17 @@ export function Header() {
               client={client}
               theme="dark"
               connectButton={{
-                label: 'Conn.',
+                label: 'Connect',
                 style: {
                   background: 'linear-gradient(to right, #ec4899, #8b5cf6)',
                   color: 'white',
                   borderRadius: '9999px',
-                  height: '38px',
+                  height: '36px',
                   padding: '0 12px',
                   fontSize: '12px',
                   fontWeight: '600',
                   border: 'none',
+                  minWidth: 'auto',
                 },
               }}
             />
