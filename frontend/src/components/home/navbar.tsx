@@ -37,10 +37,6 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await logout()
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    })
   }
 
   return (
