@@ -143,7 +143,7 @@ export default function Navbar() {
 
             {/* Desktop Navigation */}
             <div className={`hidden lg:block flex-1 mx-4 ${isCollapsed ? "!hidden" : ""}`}>
-              <div ref={navLinksRef} className="flex flex-wrap items-center justify-center lg:justify-start gap-y-2 lg:gap-x-1">
+              <div ref={navLinksRef} className="flex flex-wrap items-center justify-center lg:justify-center gap-y-2 lg:gap-x-1">
                 <Link
                   href={COMMON_ROUTES.MARKET}
                   className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300"
