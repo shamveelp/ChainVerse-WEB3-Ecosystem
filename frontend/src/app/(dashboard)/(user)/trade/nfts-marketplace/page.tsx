@@ -13,6 +13,7 @@ export default function NFTMarketplaceHome() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const buttonsRef = useRef<HTMLDivElement>(null);
+  const cardsContainerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
     gsap.registerPlugin(useGSAP);
@@ -32,22 +33,41 @@ export default function NFTMarketplaceHome() {
         { y: 0, opacity: 1, duration: 0.8 },
         "-=0.6"
       );
+
+    // Continuous floating animation for cards
+    if (cardsContainerRef.current) {
+      const cards = cardsContainerRef.current.querySelectorAll('.floating-card');
+      cards.forEach((card, index) => {
+        gsap.to(card, {
+          y: -15,
+          duration: 2 + index * 0.2, // Staggered duration
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          delay: index * 0.1 // Staggered delay
+        });
+      });
+    }
   }, { scope: container });
 
   return (
     <div ref={container} className="relative min-h-screen bg-black text-white w-full overflow-x-hidden font-sans">
       {/* Background Video */}
-      <div className="absolute top-0 left-0 w-full h-screen z-0 overflow-hidden">
+      <div className="absolute top-0 left-0 w-[100vw] h-screen z-0 overflow-hidden">
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="w-full h-full object-cover opacity-60"
+          className="w-full h-full object-cover opacity-60 scale-110"
         >
           <source src="/videos/NFT.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black z-10" />
+        {/* Main dark overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90 z-10" />
+
+        {/* Bottom seamless fade to black */}
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black via-black to-transparent z-20" />
       </div>
 
       {/* Hero Section */}
@@ -76,7 +96,7 @@ export default function NFTMarketplaceHome() {
       </section>
 
       {/* Hyperspeed Section */}
-      <section className="relative w-full py-32 overflow-hidden bg-black z-20 border-t border-white/5">
+      <section className="relative w-full py-32 overflow-hidden bg-black z-20">
         <div className="absolute inset-0 z-0 opacity-80">
           <Hyperspeed effectOptions={hyperspeedPresets.two} />
         </div>
@@ -87,30 +107,36 @@ export default function NFTMarketplaceHome() {
               NEXT GEN SPEED
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl mt-12 pointer-events-auto">
-              <div className="bg-black/40 backdrop-blur-xl p-8 rounded-3xl border border-white/10 hover:border-purple-500/50 transition-all duration-500 hover:-translate-y-2 group">
-                <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-500">
-                  <Rocket className="h-8 w-8 text-purple-400" />
+            <div ref={cardsContainerRef} className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl mt-12 pointer-events-auto">
+              <Link href="/trade/nfts-marketplace/explore">
+                <div className="floating-card bg-transparent p-8 rounded-3xl border border-white/10 hover:border-purple-500/50 transition-all duration-300 group cursor-pointer h-full flex flex-col items-center justify-center backdrop-blur-sm">
+                  <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-110 transition-transform duration-500">
+                    <Rocket className="h-8 w-8 text-purple-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3 text-white">Buy NFTs</h3>
+                  <p className="text-gray-400 leading-relaxed text-sm">Explore and collect unique digital assets from the universe.</p>
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-white">Instant Minting</h3>
-                <p className="text-gray-400 leading-relaxed">Create NFTs in seconds with our optimized smart contracts and gas-free lazy minting.</p>
-              </div>
+              </Link>
 
-              <div className="bg-black/40 backdrop-blur-xl p-8 rounded-3xl border border-white/10 hover:border-blue-500/50 transition-all duration-500 hover:-translate-y-2 group">
-                <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-500">
-                  <Wallet className="h-8 w-8 text-blue-400" />
+              <Link href="/trade/nfts-marketplace/create">
+                <div className="floating-card bg-transparent p-8 rounded-3xl border border-white/10 hover:border-blue-500/50 transition-all duration-300 group cursor-pointer h-full flex flex-col items-center justify-center backdrop-blur-sm">
+                  <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform duration-500">
+                    <Wallet className="h-8 w-8 text-blue-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3 text-white">Create</h3>
+                  <p className="text-gray-400 leading-relaxed text-sm">Mint your own NFTs and share your creativity with the world.</p>
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-white">Secure Wallet</h3>
-                <p className="text-gray-400 leading-relaxed">Your assets are protected by industry-leading security protocols and multi-sig vaults.</p>
-              </div>
+              </Link>
 
-              <div className="bg-black/40 backdrop-blur-xl p-8 rounded-3xl border border-white/10 hover:border-pink-500/50 transition-all duration-500 hover:-translate-y-2 group">
-                <div className="bg-gradient-to-br from-pink-500/20 to-rose-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-500">
-                  <Layers className="h-8 w-8 text-pink-400" />
+              <Link href="/trade/nfts-marketplace/profile">
+                <div className="floating-card bg-transparent p-8 rounded-3xl border border-white/10 hover:border-pink-500/50 transition-all duration-300 group cursor-pointer h-full flex flex-col items-center justify-center backdrop-blur-sm">
+                  <div className="w-16 h-16 rounded-full bg-pink-500/10 flex items-center justify-center mb-6 border border-pink-500/20 group-hover:scale-110 transition-transform duration-500">
+                    <Layers className="h-8 w-8 text-pink-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3 text-white">Sell Yours</h3>
+                  <p className="text-gray-400 leading-relaxed text-sm">List your NFTs for sale and reach a global audience of collectors.</p>
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-white">Cross-Chain</h3>
-                <p className="text-gray-400 leading-relaxed">Seamlessly trade across multiple blockchain networks with our unified bridge.</p>
-              </div>
+              </Link>
             </div>
           </div>
         </div>
