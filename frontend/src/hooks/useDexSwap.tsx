@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { useActiveAccount } from 'thirdweb/react';
 import { toast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { CONTRACTS, ERC20_ABI, DEX_ABI } from '@/lib/dex/contracts';
 import { loadBalances, getExplorerUrl, loadGlobalPoolsData } from '@/lib/dex/utils';
 import { TokenBalance, SwapForm } from '@/types/types-dex';
@@ -247,15 +248,14 @@ export const useDexSwap = () => {
             toast({
                 variant: "default",
                 title: "Swap Successful! 🎉",
-                description: (
-                    // We can't render JSX in the hook easily for the toast description if it expects a ReactNode, 
-                    // but toast shadcn usually handles strings. We will format it as a string or a simple object if possible,
-                    // but for now keeping it simple. The caller might want to handle user feedback.
-                    // Actually, we can return the TxHash and let the UI handle the Toast.
-                    // For now, I'll keep the toast here but as simple text, or rely on the fact that toast is global.
-                    // Wait, passing JSX to toast in a hook is fine if it's .tsx file, but this is .ts.
-                    // I will rename the file to .tsx or simplify.
-                    `Successfully swapped ${swapForm.fromAmount} ${swapForm.fromToken} for ${swapForm.toAmount} ${swapForm.toToken}.`
+                description: `Successfully swapped ${swapForm.fromAmount} ${swapForm.fromToken} for ${swapForm.toAmount} ${swapForm.toToken}.`,
+                action: (
+                    <ToastAction
+                        altText="View on Explorer"
+                        onClick={() => window.open(getExplorerUrl(tx.hash), '_blank')}
+                    >
+                        View on Explorer
+                    </ToastAction>
                 ),
             });
 
