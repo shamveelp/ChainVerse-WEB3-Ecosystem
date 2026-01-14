@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import { useActiveAccount } from 'thirdweb/react';
 import { toast } from '@/hooks/use-toast';
 import { CONTRACTS, ERC20_ABI, DEX_ABI } from '@/lib/dex/contracts';
-import { loadBalances, getExplorerUrl } from '@/lib/dex/utils';
+import { loadBalances, getExplorerUrl, loadGlobalPoolsData } from '@/lib/dex/utils';
 import { TokenBalance, SwapForm } from '@/types/types-dex';
 
 // Reusing the API class from the original file or importing it if it was separate.
@@ -68,13 +68,20 @@ export const useDexSwap = () => {
     });
 
     const loadUserBalances = useCallback(async () => {
-        if (!account?.address || !window.ethereum) return;
+        if (!window.ethereum) return;
 
         setRefreshingBalances(true);
         try {
             const provider = new ethers.BrowserProvider(window.ethereum);
-            const { balances: newBalances, poolsData } = await loadBalances(provider, account.address);
-            setBalances(newBalances);
+            let poolsData;
+
+            if (account?.address) {
+                const data = await loadBalances(provider, account.address);
+                setBalances(data.balances);
+                poolsData = data.poolsData;
+            } else {
+                poolsData = await loadGlobalPoolsData(provider);
+            }
 
             // Calculate prices
             const ethCoinAPrice = poolsData.coinA.ethReserve && poolsData.coinA.tokenReserve && parseFloat(poolsData.coinA.ethReserve) > 0
@@ -87,8 +94,8 @@ export const useDexSwap = () => {
 
             setTokenPrices({ ethCoinA: ethCoinAPrice, ethCoinB: ethCoinBPrice });
         } catch (error) {
-            console.error('Failed to load balances:', error);
-            setError('Failed to load balances');
+            console.error('Failed to load balances/prices:', error);
+            setError('Failed to load balances/prices');
         } finally {
             setRefreshingBalances(false);
         }
@@ -281,10 +288,8 @@ export const useDexSwap = () => {
     }, [account?.address, swapForm, swapSettings]);
 
     useEffect(() => {
-        if (account?.address) {
-            loadUserBalances();
-        }
-    }, [account?.address, loadUserBalances]);
+        loadUserBalances();
+    }, [loadUserBalances]); // Removed account check to allow loading prices immediately
 
     useEffect(() => {
         if (swapForm.fromAmount && account?.address) {
@@ -294,11 +299,9 @@ export const useDexSwap = () => {
     }, [swapForm.fromAmount, swapForm.fromToken, swapForm.toToken, calculateOutput]);
 
     useEffect(() => {
-        if (account?.address) {
-            const interval = setInterval(loadUserBalances, 30000);
-            return () => clearInterval(interval);
-        }
-    }, [account?.address, loadUserBalances]);
+        const interval = setInterval(loadUserBalances, 30000);
+        return () => clearInterval(interval);
+    }, [loadUserBalances]); // Removed account check to keep prices updated
 
     return {
         balances,
