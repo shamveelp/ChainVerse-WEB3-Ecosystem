@@ -1,7 +1,7 @@
 "use client"
 import type React from "react"
 // import "./globals.css" // Moved to layout.tsx
-import { Toaster } from "@/components/ui/toaster"
+
 import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { Provider, useDispatch } from "react-redux"
 import { PersistGate } from "redux-persist/integration/react"
@@ -59,7 +59,7 @@ export default function ClientLayout({ children }: Readonly<{ children: React.Re
       ) : (
         content
       )}
-      <Toaster />
+
       <SonnerToaster position="top-right" richColors />
     </>
   )
