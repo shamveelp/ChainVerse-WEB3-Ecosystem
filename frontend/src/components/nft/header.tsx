@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { Home, Compass, PlusSquare, User } from 'lucide-react';
+import { useState } from 'react';
 import { ConnectButton } from 'thirdweb/react';
 import { client } from '@/lib/thirdweb-client';
 import { USER_ROUTES } from '@/routes';
@@ -17,13 +18,28 @@ const navigation = [
 
 export function Header() {
   const pathname = usePathname();
+  const { scrollY } = useScroll();
+  const [hidden, setHidden] = useState(false);
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    if (latest > previous && latest > 150) {
+      setHidden(true);
+    } else {
+      setHidden(false);
+    }
+  });
 
   return (
     <div className="fixed bottom-6 inset-x-0 z-50 flex justify-center pointer-events-none px-4">
       <motion.nav
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
+        variants={{
+          visible: { y: 0, opacity: 1 },
+          hidden: { y: "150%", opacity: 0 },
+        }}
+        initial="visible"
+        animate={hidden ? "hidden" : "visible"}
+        transition={{ duration: 0.35, ease: 'easeInOut' }}
         className="pointer-events-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-2xl shadow-purple-900/20 p-2 flex items-center gap-2 max-w-[95vw] md:max-w-fit overflow-hidden"
       >
         {/* Logo (Desktop only) */}

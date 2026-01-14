@@ -198,8 +198,9 @@ export function NFTCard({
               </div>
 
               {/* Price and Buy Section */}
-              <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                <div className="space-y-1">
+              {/* Price and Buy Section */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 border-t border-border/50 gap-3 sm:gap-0">
+                <div className="space-y-1 w-full sm:w-auto">
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
                     {nft.currentlyListed ? 'Listed Price' : 'Last Price'}
@@ -218,12 +219,12 @@ export function NFTCard({
                   )}
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 w-full sm:w-auto">
                   {showBuyButton && nft.currentlyListed && onBuy && !isCurrentSeller && (
                     <Button
                       onClick={onBuy}
                       size="sm"
-                      className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                      className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
                     >
                       <ShoppingCart className="h-4 w-4 mr-1" />
                       Buy Now
@@ -235,7 +236,7 @@ export function NFTCard({
                       onClick={onRelist}
                       size="sm"
                       variant="outline"
-                      className="border-green-500/50 hover:bg-green-500/20"
+                      className="w-full sm:w-auto border-green-500/50 hover:bg-green-500/20"
                     >
                       <Tag className="h-4 w-4 mr-1" />
                       Sell

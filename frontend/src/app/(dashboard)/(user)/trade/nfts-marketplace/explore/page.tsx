@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Grid, List } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -23,7 +23,6 @@ const sortOptions = [
 export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('recent');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [enrichedNFTs, setEnrichedNFTs] = useState<NFTWithMetadata[]>([]);
   const [filteredNFTs, setFilteredNFTs] = useState<NFTWithMetadata[]>([]);
   const [loading, setLoading] = useState(true);
@@ -173,22 +172,7 @@ export default function ExplorePage() {
             </Select>
           </div>
 
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'outline'}
-              size="icon"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              size="icon"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          </div>
+
         </motion.div>
 
         {/* Results Counter */}
@@ -221,10 +205,7 @@ export default function ExplorePage() {
             </p>
           </motion.div>
         ) : (
-          <div className={`grid gap-6 ${viewMode === 'grid'
-              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-              : 'grid-cols-1'
-            }`}>
+          <div className="grid gap-6 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredNFTs.map((nft, index) => (
               <motion.div
                 key={nft.tokenId.toString()}
@@ -236,7 +217,6 @@ export default function ExplorePage() {
                   nft={nft}
                   onBuy={() => handleBuyNFT(nft)}
                   showBuyButton={!isBuying && nft.currentlyListed}
-                  className={viewMode === 'list' ? 'flex' : ''}
                 />
               </motion.div>
             ))}
