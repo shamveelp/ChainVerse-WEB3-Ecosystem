@@ -11,6 +11,7 @@ import { setLoading } from "@/redux/slices/userAuthSlice"
 import { useEffect } from "react"
 import { GoogleOAuthProvider } from "@react-oauth/google"
 import { GlobalChatListener } from "@/components/chat/GlobalChatListener"
+import LoadingScreen from "@/components/ui/loading-screen"
 
 // Component to handle dispatching setLoading(false) after rehydration
 function AuthInitializer({ children }: { children: React.ReactNode }) {
@@ -26,16 +27,6 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
 }
 
 // Loading component for PersistGate
-function PersistGateLoading() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-400">Loading...</p>
-      </div>
-    </div>
-  )
-}
 
 export default function ClientLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   // Setup Axios interceptors after the store is available
@@ -50,7 +41,7 @@ export default function ClientLayout({ children }: Readonly<{ children: React.Re
 
   const content = (
     <Provider store={store}>
-      <PersistGate loading={<PersistGateLoading />} persistor={persistor}>
+      <PersistGate loading={<LoadingScreen />} persistor={persistor}>
         <AuthInitializer>
           <GlobalChatListener />
           {children}
