@@ -52,7 +52,7 @@ export default function Navbar() {
             <div className="flex-shrink-0 ml-2">
               <Link
                 href={COMMON_ROUTES.HOME}
-                className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent hover:brightness-125 transition-all"
+                className="text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-400 to-pink-400 bg-clip-text text-transparent hover:brightness-125 transition-all"
               >
                 ChainVerse
               </Link>
