@@ -4,6 +4,6 @@ import { sepolia, mainnet, bsc, bscTestnet, polygon, polygonMumbai, base, baseSe
 export const config = getDefaultConfig({
   appName: 'ChainVerse NFT Marketplace',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
-  chains: [sepolia, baseSepolia, bscTestnet, mainnet, bsc, polygon, polygonMumbai, base],
+  chains: [sepolia],
   ssr: true,
 });

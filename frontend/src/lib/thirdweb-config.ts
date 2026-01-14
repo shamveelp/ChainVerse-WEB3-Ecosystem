@@ -1,7 +1,9 @@
-import { sepolia, mainnet } from "thirdweb/chains";
+import { sepolia } from "thirdweb/chains";
 import { createWallet } from "thirdweb/wallets";
 
-export const supportedChains = [sepolia, mainnet];
+export const activeChain = sepolia;
+
+export const supportedChains = [sepolia];
 
 export const supportedWallets = [
   createWallet("io.metamask"),

@@ -1,6 +1,7 @@
 'use client';
 import { ConnectButton } from 'thirdweb/react';
 import { client } from '@/lib/thirdweb-client';
+import { supportedChains } from '@/lib/thirdweb-config';
 import { useActiveAccount } from 'thirdweb/react';
 import { useEffect, useRef, useState } from 'react';
 import { saveWallet } from '@/services/WalletApiService';
@@ -44,6 +45,7 @@ export default function TradeNavbar() {
           )}
           <ConnectButton
             client={client}
+            chains={supportedChains}
             appMetadata={{
               name: 'ChainVerse WEB3',
               url: 'https://example.com',

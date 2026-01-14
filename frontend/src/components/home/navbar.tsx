@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ChevronDown, ChevronUp, Menu, User, LogOut, Bell, Wallet, CircleDollarSign } from "lucide-react"
 import { ConnectButton } from "thirdweb/react"
 import { client } from "@/lib/thirdweb-client"
+import { supportedChains } from "@/lib/thirdweb-config"
 
 // Helper component for mobile collapsible menu
 function CollapsibleMenu({ title, onItemClick }: { title: string; onItemClick: () => void }) {
@@ -360,9 +361,11 @@ export default function Navbar() {
                       <div className="flex justify-center mb-4">
                         <ConnectButton
                           client={client}
+                          chains={supportedChains}
                           theme={"dark"}
-                          btnTitle="Connect Wallet"
-                          modalSize={"compact"}
+                          connectButton={{
+                            label: "Connect Wallet",
+                          }}
                         />
                       </div>
                       {user ? (

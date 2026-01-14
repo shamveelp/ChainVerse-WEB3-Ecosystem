@@ -7,6 +7,7 @@ import { Home, Compass, PlusSquare, User } from 'lucide-react';
 import { useState } from 'react';
 import { ConnectButton } from 'thirdweb/react';
 import { client } from '@/lib/thirdweb-client';
+import { supportedChains } from '@/lib/thirdweb-config';
 import { USER_ROUTES } from '@/routes';
 
 const navigation = [
@@ -106,6 +107,7 @@ export function Header() {
           <div className="hidden sm:block">
             <ConnectButton
               client={client}
+              chains={supportedChains}
               appMetadata={{
                 name: 'ChainVerse NFT',
                 url: 'https://chainverse.com',
@@ -131,6 +133,7 @@ export function Header() {
           <div className="sm:hidden">
             <ConnectButton
               client={client}
+              chains={supportedChains}
               theme="dark"
               connectButton={{
                 label: 'Connect',

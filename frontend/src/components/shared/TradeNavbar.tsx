@@ -5,6 +5,7 @@ import { client } from '@/lib/thirdweb-client';
 import { useActiveAccount } from 'thirdweb/react';
 import { useEffect, useRef, useState } from 'react';
 import { Wallet } from 'lucide-react';
+import { supportedChains } from '@/lib/thirdweb-config';
 
 interface FloatingWalletButtonProps {
   topOffset?: string;
@@ -37,6 +38,7 @@ export default function TradeNavbar({ topOffset = 'top-4' }: FloatingWalletButto
       <div className="relative group">
         <ConnectButton
           client={client}
+          chains={supportedChains}
           appMetadata={{
             name: 'ChainVerse WEB3',
             url: 'https://example.com',
