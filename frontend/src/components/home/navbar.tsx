@@ -2,7 +2,65 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ChevronDown, Menu, User, LogOut, Bell, Wallet, CircleDollarSign } from "lucide-react"
+import { ChevronDown, ChevronUp, Menu, User, LogOut, Bell, Wallet, CircleDollarSign } from "lucide-react"
+
+// Helper component for mobile collapsible menu
+function CollapsibleMenu({ title, onItemClick }: { title: string; onItemClick: () => void }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="flex flex-col">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between text-2xl font-medium text-gray-300 hover:text-white hover:bg-white/5 px-4 py-3 rounded-xl transition-all w-full text-left"
+      >
+        <span>{title}</span>
+        {isOpen ? (
+          <ChevronUp className="h-5 w-5 text-gray-400" />
+        ) : (
+          <ChevronDown className="h-5 w-5 text-gray-400" />
+        )}
+      </button>
+
+      {/* Animated Height Container */}
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-96 opacity-100 mt-2" : "max-h-0 opacity-0"
+          }`}
+      >
+        <div className="flex flex-col space-y-2 pl-4 border-l-2 border-white/10 ml-4">
+          <Link
+            href={COMMON_ROUTES.SWAP}
+            className="block text-gray-400 hover:text-white text-lg py-2 pl-4 rounded-lg hover:bg-white/5 transition-colors"
+            onClick={onItemClick}
+          >
+            Swap
+          </Link>
+          <Link
+            href={COMMON_ROUTES.LIQUIDITY}
+            className="block text-gray-400 hover:text-white text-lg py-2 pl-4 rounded-lg hover:bg-white/5 transition-colors"
+            onClick={onItemClick}
+          >
+            Liquidity
+          </Link>
+          <Link
+            href={COMMON_ROUTES.BRIDGE}
+            className="block text-gray-400 hover:text-white text-lg py-2 pl-4 rounded-lg hover:bg-white/5 transition-colors"
+            onClick={onItemClick}
+          >
+            Bridge
+          </Link>
+          <Link
+            href={COMMON_ROUTES.BUY}
+            className="block text-gray-400 hover:text-white text-lg py-2 pl-4 rounded-lg hover:bg-white/5 transition-colors"
+            onClick={onItemClick}
+          >
+            Buy
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -204,69 +262,89 @@ export default function Navbar() {
                     <span className="sr-only">Toggle navigation menu</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="bg-black/95 backdrop-blur-xl border-white/10 w-[300px] sm:w-[350px]">
-                  <div className="flex flex-col space-y-6 mt-8">
-                    <Link
-                      href={USER_ROUTES.MARKET}
-                      className="text-xl font-medium text-gray-300 hover:text-white transition-colors"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Market
-                    </Link>
-                    <div className="space-y-4">
-                      <div className="text-xl font-medium text-gray-300">Trade</div>
-                      <div className="pl-4 space-y-3 border-l border-white/10 bg-white/5 py-4 rounded-r-xl">
-                        <Link
-                          href={USER_ROUTES.SWAP}
-                          className="block text-gray-400 hover:text-white text-lg transition-colors"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          Swap
-                        </Link>
-                        <Link href={USER_ROUTES.BRIDGE} className="block text-gray-400 hover:text-white text-lg transition-colors" onClick={() => setIsOpen(false)}>
-                          Bridge
-                        </Link>
-                        <Link href={USER_ROUTES.BUY} className="block text-gray-400 hover:text-white text-lg transition-colors" onClick={() => setIsOpen(false)}>
-                          Buy
-                        </Link>
-                        <Link href={USER_ROUTES.SELL} className="block text-gray-400 hover:text-white text-lg transition-colors" onClick={() => setIsOpen(false)}>
-                          Sell
-                        </Link>
-                      </div>
+                <SheetContent side="right" className="w-full h-full border-none bg-black/95 p-0 sm:max-w-full">
+                  <div className="flex flex-col h-full bg-gradient-to-b from-slate-900 to-black p-6 overflow-y-auto">
+                    {/* Mobile Header with Logo */}
+                    <div className="flex items-center justify-between mb-8">
+                      <Link
+                        href={COMMON_ROUTES.HOME}
+                        className="text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-400 to-pink-400 bg-clip-text text-transparent hover:brightness-125 transition-all"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        ChainVerse
+                      </Link>
+                      {/* Close button is handled by Sheet primitive but we can add custom if needed, 
+                          default X is usually fine but let's ensure it's visible or styling is good. 
+                          The SheetContent default close button might need styling overrides in global css or here.
+                          Actually, shadcn SheetContent usually includes a Close button. We will trust it but can style it if needed. 
+                      */}
                     </div>
-                    <Link href={USER_ROUTES.NFT_MARKET} className="text-xl font-medium text-gray-300 hover:text-white transition-colors" onClick={() => setIsOpen(false)}>
-                      NFTs
-                    </Link>
-                    <Link
-                      href={USER_ROUTES.COMMUNITY}
-                      className="text-xl font-medium text-gray-300 hover:text-white transition-colors" onClick={() => setIsOpen(false)}
-                    >
-                      Community
-                    </Link>
-                    <Link href={USER_ROUTES.QUESTS} className="text-xl font-medium text-gray-300 hover:text-white transition-colors" onClick={() => setIsOpen(false)}>
-                      Quests
-                    </Link>
-                    <Link href={COMMON_ROUTES.ABOUT} className="text-xl font-medium text-gray-300 hover:text-white transition-colors" onClick={() => setIsOpen(false)}>
-                      About Us
-                    </Link>
+
+                    <div className="flex flex-col space-y-2 flex-1">
+                      <Link
+                        href={USER_ROUTES.MARKET}
+                        className="text-2xl font-medium text-gray-300 hover:text-white hover:bg-white/5 px-4 py-3 rounded-xl transition-all"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Market
+                      </Link>
+
+                      {/* Collapsible Trade Section */}
+                      <CollapsibleMenu
+                        title="Trade"
+                        onItemClick={() => setIsOpen(false)}
+                      />
+
+                      <Link
+                        href={USER_ROUTES.NFT_MARKET}
+                        className="text-2xl font-medium text-gray-300 hover:text-white hover:bg-white/5 px-4 py-3 rounded-xl transition-all"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        NFTs
+                      </Link>
+                      <Link
+                        href={USER_ROUTES.COMMUNITY}
+                        className="text-2xl font-medium text-gray-300 hover:text-white hover:bg-white/5 px-4 py-3 rounded-xl transition-all"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Community
+                      </Link>
+                      <Link
+                        href={USER_ROUTES.QUESTS}
+                        className="text-2xl font-medium text-gray-300 hover:text-white hover:bg-white/5 px-4 py-3 rounded-xl transition-all"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Quests
+                      </Link>
+                      <Link
+                        href={COMMON_ROUTES.ABOUT}
+                        className="text-2xl font-medium text-gray-300 hover:text-white hover:bg-white/5 px-4 py-3 rounded-xl transition-all"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        About Us
+                      </Link>
+                    </div>
 
                     {/* Mobile Auth Section */}
-                    <div className="pt-6 border-t border-white/10 space-y-3">
+                    <div className="pt-8 border-t border-white/10 space-y-4 mt-auto">
                       {user ? (
                         <>
-                          <div className="flex items-center space-x-3 mb-4 bg-white/5 p-3 rounded-xl">
-                            <Avatar className="w-10 h-10">
+                          <div className="flex items-center space-x-4 mb-6 bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <Avatar className="w-12 h-12 border-2 border-blue-500/30">
                               <AvatarImage src={avatarUrl} alt={user.username} />
-                              <AvatarFallback className="bg-blue-600 text-white">
+                              <AvatarFallback className="bg-blue-600 text-white text-lg font-bold">
                                 {user.username.slice(0, 2).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="text-white font-medium text-lg px-2">{user.username}</span>
+                            <div className="flex flex-col">
+                              <span className="text-white font-semibold text-lg">{user.name || user.username}</span>
+                              <span className="text-gray-400 text-sm">@{user.username}</span>
+                            </div>
                           </div>
                           <Link href={USER_ROUTES.PROFILE} onClick={() => setIsOpen(false)}>
                             <Button
                               variant="ghost"
-                              className="w-full text-gray-300 hover:text-white hover:bg-white/10 justify-start h-12 text-lg"
+                              className="w-full text-gray-300 hover:text-white hover:bg-white/10 justify-start h-14 text-lg rounded-xl"
                             >
                               <User className="mr-3 h-5 w-5" />
                               Profile
@@ -278,24 +356,24 @@ export default function Navbar() {
                               setIsOpen(false)
                             }}
                             variant="ghost"
-                            className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 justify-start h-12 text-lg"
+                            className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 justify-start h-14 text-lg rounded-xl"
                           >
                             <LogOut className="mr-3 h-5 w-5" />
                             Logout
                           </Button>
                         </>
                       ) : (
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-4">
                           <Link href={USER_ROUTES.LOGIN} onClick={() => setIsOpen(false)}>
                             <Button
                               variant="outline"
-                              className="w-full border-white/20 text-white hover:bg-white/10 bg-transparent h-12"
+                              className="w-full border-white/20 text-white hover:bg-white/10 bg-transparent h-14 text-lg rounded-xl"
                             >
                               Login
                             </Button>
                           </Link>
                           <Link href={USER_ROUTES.REGISTER} onClick={() => setIsOpen(false)}>
-                            <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white h-12">
+                            <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white h-14 text-lg rounded-xl shadow-lg shadow-blue-500/20 border-none">
                               Register
                             </Button>
                           </Link>
