@@ -8,29 +8,45 @@ import { PersistGate } from "redux-persist/integration/react"
 import { store, persistor } from "@/redux/store"
 import { setupAxiosInterceptors } from "@/lib/api-client"
 import { setLoading } from "@/redux/slices/userAuthSlice"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { GoogleOAuthProvider } from "@react-oauth/google"
 import { GlobalChatListener } from "@/components/chat/GlobalChatListener"
 import LoadingScreen from "@/components/ui/loading-screen"
 
-// Component to handle dispatching setLoading(false) after rehydration
-function AuthInitializer({ children }: { children: React.ReactNode }) {
+import { logout } from "@/redux/slices/userAuthSlice"
+import { useSelector } from "react-redux"
+import type { RootState } from "@/redux/store"
+
+// Component to handle dispatching setLoading(false) and syncing session
+function AuthInitializer({ children, sessionExists }: { children: React.ReactNode; sessionExists: boolean }) {
   const dispatch = useDispatch()
+  const user = useSelector((state: RootState) => state.userAuth.user)
+
+  const isMounted = useRef(false)
 
   useEffect(() => {
-    // This useEffect will run after the component mounts and rehydration is complete.
-    // We can safely set loading to false here, as the persisted state will have been loaded.
-    dispatch(setLoading(false))
-  }, [dispatch])
+    // This effect runs after PersistGate has rehydrated the store
+    if (!isMounted.current) {
+      dispatch(setLoading(false))
+
+      // Sync Redux state with cookie presence ONLY when the app first loads
+      if (!sessionExists && user) {
+        dispatch(logout())
+      }
+      isMounted.current = true
+    }
+  }, [dispatch, sessionExists, user])
 
   return <>{children}</>
 }
 
 // Loading component for PersistGate
 
-export default function ClientLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  // Setup Axios interceptors after the store is available
-  setupAxiosInterceptors(store)
+export default function ClientLayout({ children, sessionExists }: Readonly<{ children: React.ReactNode; sessionExists: boolean }>) {
+  // Setup Axios interceptors after the store is available (only on client)
+  useEffect(() => {
+    setupAxiosInterceptors(store)
+  }, [])
 
   // Ensure NEXT_PUBLIC_GOOGLE_CLIENT_ID is defined
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
@@ -42,7 +58,7 @@ export default function ClientLayout({ children }: Readonly<{ children: React.Re
   const content = (
     <Provider store={store}>
       <PersistGate loading={<LoadingScreen />} persistor={persistor}>
-        <AuthInitializer>
+        <AuthInitializer sessionExists={sessionExists}>
           <GlobalChatListener />
           {children}
         </AuthInitializer>

@@ -25,14 +25,12 @@ export async function middleware(request: NextRequest) {
     // This is a simplified check. In a real scenario, you'd have a server-side
     // function that reads the session cookie and validates it.
     // For Next.js, we'll simulate by checking if a session cookie exists.
-    const sessionCookie = request.cookies.get("session") // Replace "session" with your actual session cookie name
+    // Check for refreshToken or accessToken
+    const sessionCookie = request.cookies.get("refreshToken") || request.cookies.get("accessToken")
     if (sessionCookie) {
-      // You might want to call a backend endpoint to validate the session cookie
-      // For this example, we'll assume the presence of the cookie implies authentication
-      // A more robust solution would involve a server-side API call to validate the session.
-      // const response = await apiService.checkSessionServerSide(sessionCookie.value);
-      // isAuthenticated = response.success;
-      isAuthenticated = true // Simplified: assume cookie presence means authenticated
+      // We assume cookie presence means authenticated for middleware purposes.
+      // The actual token verification happens on the backend.
+      isAuthenticated = true
     }
   } catch (error) {
     console.error("Middleware auth check failed:", error)

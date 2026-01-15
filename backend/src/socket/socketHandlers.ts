@@ -20,33 +20,41 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
   // Authentication middleware
   io.use(async (socket: AuthenticatedSocket, next) => {
     try {
-      const token = socket.handshake.auth.token ||
-                   socket.handshake.headers.authorization?.split(' ')[1] ||
-                   socket.handshake.query.token;
+      let token = socket.handshake.auth.token ||
+        socket.handshake.headers.authorization?.split(' ')[1] ||
+        socket.handshake.query.token;
+
+      if (!token && socket.handshake.headers.cookie) {
+        const cookieString = socket.handshake.headers.cookie;
+        const match = cookieString.match(/accessToken=([^;]+)/);
+        if (match) {
+          token = match[1];
+        }
+      }
 
       if (!token) {
-        logger.warn('Socket connection attempted without token', { 
+        logger.warn('Socket connection attempted without token', {
           socketId: socket.id,
           headers: socket.handshake.headers,
-          auth: socket.handshake.auth 
+          auth: socket.handshake.auth
         });
         return next(new Error('No token provided'));
       }
 
       // Validate token format first
       if (typeof token !== 'string' || token.split('.').length !== 3) {
-        logger.warn('Socket connection attempted with invalid token format', { 
+        logger.warn('Socket connection attempted with invalid token format', {
           socketId: socket.id,
           tokenType: typeof token,
-          tokenLength: token.toString().length 
+          tokenLength: token.toString().length
         });
         return next(new Error('Invalid token format'));
       }
 
       // Check if token is expired before verification
       if (JwtService.isTokenExpired(token)) {
-        logger.warn('Socket connection attempted with expired token', { 
-          socketId: socket.id 
+        logger.warn('Socket connection attempted with expired token', {
+          socketId: socket.id
         });
         return next(new Error('Access token expired'));
       }
@@ -61,7 +69,7 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
           error: error.message,
           tokenPresent: !!token
         });
-        
+
         if (error.message?.includes('expired')) {
           return next(new Error('Access token expired'));
         } else if (error.message?.includes('invalid')) {
@@ -72,9 +80,9 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
       }
 
       if (!decoded || !decoded.id) {
-        logger.warn('Socket connection attempted with invalid token payload', { 
+        logger.warn('Socket connection attempted with invalid token payload', {
           socketId: socket.id,
-          decoded: decoded ? 'present' : 'null' 
+          decoded: decoded ? 'present' : 'null'
         });
         return next(new Error('Invalid token payload'));
       }
@@ -97,20 +105,20 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
       }
 
       if (!user) {
-        logger.warn('Socket connection attempted for non-existent user', { 
+        logger.warn('Socket connection attempted for non-existent user', {
           socketId: socket.id,
-          userId: decoded.id 
+          userId: decoded.id
         });
         return next(new Error('User not found'));
       }
 
       if (user.isBlocked || user.isBanned) {
-        logger.warn('Socket connection attempted for blocked/banned user', { 
+        logger.warn('Socket connection attempted for blocked/banned user', {
           socketId: socket.id,
           userId: decoded.id,
           username: user.username,
           isBlocked: user.isBlocked,
-          isBanned: user.isBanned 
+          isBanned: user.isBanned
         });
         return next(new Error('User account is suspended'));
       }
@@ -145,17 +153,17 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
 
   io.on('connection', (socket: AuthenticatedSocket) => {
     if (!socket.userId) {
-      logger.warn('Socket connected without userId, disconnecting', { 
-        socketId: socket.id 
+      logger.warn('Socket connected without userId, disconnecting', {
+        socketId: socket.id
       });
       socket.disconnect(true);
       return;
     }
 
-    logger.info('User connected to socket', { 
+    logger.info('User connected to socket', {
       socketId: socket.id,
       userId: socket.userId,
-      username: socket.username 
+      username: socket.username
     });
 
     // Handle existing connection for the same user
@@ -164,11 +172,11 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
       // Disconnect the old socket
       const existingSocket = io.sockets.sockets.get(existingSocketId);
       if (existingSocket) {
-        logger.info('Disconnecting existing socket for user', { 
+        logger.info('Disconnecting existing socket for user', {
           userId: socket.userId,
           username: socket.username,
           oldSocketId: existingSocketId,
-          newSocketId: socket.id 
+          newSocketId: socket.id
         });
         existingSocket.disconnect(true);
       }
@@ -191,20 +199,20 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
     // Handle joining conversation rooms
     socket.on('join_conversation', (conversationId: string) => {
       if (!conversationId || typeof conversationId !== 'string') {
-        logger.warn('Invalid join_conversation request', { 
+        logger.warn('Invalid join_conversation request', {
           socketId: socket.id,
           userId: socket.userId,
-          conversationId 
+          conversationId
         });
         socket.emit('conversation_error', { error: 'Invalid conversation ID' });
         return;
       }
 
-      logger.info('User joining conversation', { 
+      logger.info('User joining conversation', {
         socketId: socket.id,
         userId: socket.userId,
         username: socket.username,
-        conversationId 
+        conversationId
       });
       socket.join(`conversation:${conversationId}`);
     });
@@ -212,20 +220,20 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
     // Handle leaving conversation rooms
     socket.on('leave_conversation', (conversationId: string) => {
       if (!conversationId || typeof conversationId !== 'string') {
-        logger.warn('Invalid leave_conversation request', { 
+        logger.warn('Invalid leave_conversation request', {
           socketId: socket.id,
           userId: socket.userId,
-          conversationId 
+          conversationId
         });
         socket.emit('conversation_error', { error: 'Invalid conversation ID' });
         return;
       }
 
-      logger.info('User leaving conversation', { 
+      logger.info('User leaving conversation', {
         socketId: socket.id,
         userId: socket.userId,
         username: socket.username,
-        conversationId 
+        conversationId
       });
       socket.leave(`conversation:${conversationId}`);
     });
@@ -238,10 +246,10 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
     }) => {
       try {
         if (!data.receiverUsername || !data.content?.trim()) {
-          logger.warn('Invalid send_message data', { 
+          logger.warn('Invalid send_message data', {
             socketId: socket.id,
             userId: socket.userId,
-            data 
+            data
           });
           socket.emit('message_error', { error: 'Invalid message data' });
           return;
@@ -256,10 +264,10 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
 
         // Check if conversation exists
         if (!result.conversation || !result.conversation._id) {
-          logger.error('Send message failed - no conversation', { 
+          logger.error('Send message failed - no conversation', {
             socketId: socket.id,
             userId: socket.userId,
-            receiverUsername: data.receiverUsername 
+            receiverUsername: data.receiverUsername
           });
           socket.emit('message_error', { error: 'Conversation not found' });
           return;
@@ -278,10 +286,10 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
         // Notify receiver if online
         const participants = result.conversation.participants;
         if (!participants || participants.length < 1) {
-          logger.error('Send message failed - invalid participants', { 
+          logger.error('Send message failed - invalid participants', {
             socketId: socket.id,
             userId: socket.userId,
-            conversationId: result.conversation._id 
+            conversationId: result.conversation._id
           });
           socket.emit('message_error', { error: 'Invalid conversation participants' });
           return;
@@ -303,7 +311,7 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
           conversation: result.conversation
         });
 
-        logger.info('Message sent successfully', { 
+        logger.info('Message sent successfully', {
           socketId: socket.id,
           userId: socket.userId,
           username: socket.username,
@@ -337,10 +345,10 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
     }) => {
       try {
         if (!data.messageId || !data.content?.trim() || !data.conversationId) {
-          logger.warn('Invalid edit_message data', { 
+          logger.warn('Invalid edit_message data', {
             socketId: socket.id,
             userId: socket.userId,
-            data 
+            data
           });
           socket.emit('message_error', { error: 'Invalid edit data' });
           return;
@@ -358,12 +366,12 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
           message: editedMessage
         });
 
-        logger.info('Message edited successfully', { 
+        logger.info('Message edited successfully', {
           socketId: socket.id,
           userId: socket.userId,
           username: socket.username,
           messageId: data.messageId,
-          conversationId: data.conversationId 
+          conversationId: data.conversationId
         });
 
       } catch (error) {
@@ -390,10 +398,10 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
     }) => {
       try {
         if (!data.messageId || !data.conversationId) {
-          logger.warn('Invalid delete_message data', { 
+          logger.warn('Invalid delete_message data', {
             socketId: socket.id,
             userId: socket.userId,
-            data 
+            data
           });
           socket.emit('message_error', { error: 'Invalid delete data' });
           return;
@@ -407,16 +415,16 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
           messageId: data.messageId
         });
 
-        logger.info('Message deleted successfully', { 
+        logger.info('Message deleted successfully', {
           socketId: socket.id,
           userId: socket.userId,
           username: socket.username,
           messageId: data.messageId,
-          conversationId: data.conversationId 
+          conversationId: data.conversationId
         });
 
       } catch (error) {
-          const err = error as Error;
+        const err = error as Error;
         logger.error('Socket delete message error', {
           socketId: socket.id,
           userId: socket.userId,
@@ -438,10 +446,10 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
     }) => {
       try {
         if (!data.conversationId) {
-          logger.warn('Invalid mark_messages_read data', { 
+          logger.warn('Invalid mark_messages_read data', {
             socketId: socket.id,
             userId: socket.userId,
-            data 
+            data
           });
           socket.emit('message_error', { error: 'Invalid conversation ID' });
           return;
@@ -457,11 +465,11 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
           readAt: new Date()
         });
 
-        logger.info('Messages marked as read', { 
+        logger.info('Messages marked as read', {
           socketId: socket.id,
           userId: socket.userId,
           username: socket.username,
-          conversationId: data.conversationId 
+          conversationId: data.conversationId
         });
 
       } catch (error) {
@@ -484,10 +492,10 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
     // Handle typing indicators
     socket.on('typing_start', (data: { conversationId: string }) => {
       if (!data.conversationId) {
-        logger.warn('Invalid typing_start data', { 
+        logger.warn('Invalid typing_start data', {
           socketId: socket.id,
           userId: socket.userId,
-          data 
+          data
         });
         socket.emit('typing_error', { error: 'Invalid conversation ID' });
         return;
@@ -501,10 +509,10 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
 
     socket.on('typing_stop', (data: { conversationId: string }) => {
       if (!data.conversationId) {
-        logger.warn('Invalid typing_stop data', { 
+        logger.warn('Invalid typing_stop data', {
           socketId: socket.id,
           userId: socket.userId,
-          data 
+          data
         });
         socket.emit('typing_error', { error: 'Invalid conversation ID' });
         return;
@@ -518,11 +526,11 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
 
     // Handle disconnect
     socket.on('disconnect', (reason) => {
-      logger.info('User disconnected from socket', { 
+      logger.info('User disconnected from socket', {
         socketId: socket.id,
         userId: socket.userId,
         username: socket.username,
-        reason 
+        reason
       });
 
       if (socket.userId) {

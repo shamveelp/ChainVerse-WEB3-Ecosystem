@@ -33,9 +33,9 @@ class SocketService {
         refreshEndpoint = "/api/admin/refresh-token";
         actionType = "adminAuth/updateToken";
       } else {
-        // Default to user
+        // Default to user - no Redux action needed for cookies
         refreshEndpoint = "/api/user/refresh-token";
-        actionType = "userAuth/updateToken";
+        actionType = "";
       }
 
       // Use axios directly to avoid interceptor loop, but we need withCredentials
@@ -46,11 +46,13 @@ class SocketService {
       );
 
       if (response.data.success && response.data.accessToken) {
-        // Dispatch to Redux
-        store.dispatch({
-          type: actionType,
-          payload: response.data.accessToken,
-        });
+        // Dispatch to Redux only if actionType is defined
+        if (actionType) {
+          store.dispatch({
+            type: actionType,
+            payload: response.data.accessToken,
+          });
+        }
         return response.data.accessToken;
       }
       return null;
@@ -60,16 +62,18 @@ class SocketService {
     }
   }
 
-  connect(token: string): Promise<void> {
+  connect(token?: string): Promise<void> {
     if (this.socket?.connected) {
 
       return Promise.resolve();
     }
 
-    // Basic token validation - just check if it exists and is a string
-    if (!token || typeof token !== 'string' || token.trim().length === 0) {
-      console.warn('No valid token provided to socket');
-      return Promise.reject(new Error('No valid token provided'));
+    // For admin/community admin, token is required. For user, it might be in cookie.
+    // So we relax this check or make it specific. 
+    // If token is provided, validate it.
+    if (token && (typeof token !== 'string' || token.trim().length === 0)) {
+      console.warn('Invalid token provided to socket');
+      // We don't reject immediately, maybe cookies work.
     }
 
     // Return existing connection promise if already connecting
@@ -84,11 +88,10 @@ class SocketService {
         auth: (cb) => {
           const state = store.getState();
           // Get the active token from the store, prioritizing specific auth slices
-          // We check multiple slices because this service might be used by different user types
-          const storedToken = state.userAuth?.token ||
-            state.communityAdminAuth?.token ||
+          const storedToken = state.communityAdminAuth?.token ||
             state.adminAuth?.token;
 
+          // For user, storedToken is undefined.
           const activeToken = storedToken || token?.trim();
 
           cb({
@@ -98,7 +101,8 @@ class SocketService {
         transports: ['websocket', 'polling'],
         timeout: 20000,
         forceNew: true,
-        autoConnect: true
+        autoConnect: true,
+        withCredentials: true // Enable cookies
       });
 
       const timeout = setTimeout(() => {

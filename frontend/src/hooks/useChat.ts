@@ -20,7 +20,7 @@ export const useChat = () => {
   const [socketConnected, setSocketConnected] = useState(false);
 
   const currentUser = useSelector((state: RootState) => state.userAuth?.user);
-  const token = useSelector((state: RootState) => state.userAuth?.token);
+
 
   // Socket event handlers refs to prevent re-registering
   const socketEventHandlers = useRef<{ [key: string]: (data: any) => void }>({});
@@ -29,12 +29,12 @@ export const useChat = () => {
 
   // Initialize socket connection with better error handling and retry logic
   useEffect(() => {
-    if (!token || !currentUser || socketInitialized.current) return;
+    if (!currentUser || socketInitialized.current) return;
 
     const initializeSocket = async () => {
       try {
 
-        await socketService.connect(token);
+        await socketService.connect();
         setSocketConnected(true);
 
         socketInitialized.current = true;
@@ -55,11 +55,11 @@ export const useChat = () => {
         socketInitialized.current = false;
       }
     };
-  }, [token, currentUser]);
+  }, [currentUser]);
 
   // Setup socket event listeners
   useEffect(() => {
-    if (!token || !currentUser || !socketConnected) return;
+    if (!currentUser || !socketConnected) return;
 
 
     // Helper to check and mark message as processed
@@ -311,7 +311,7 @@ export const useChat = () => {
         console.warn('⚠️ Socket event cleanup failed:', error);
       }
     };
-  }, [token, currentUser, socketConnected]);
+  }, [currentUser, socketConnected]);
 
   // Fetch conversations
   const fetchConversations = useCallback(async (cursor?: string, search?: string) => {

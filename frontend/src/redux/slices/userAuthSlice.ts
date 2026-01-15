@@ -13,7 +13,6 @@ interface UserType {
 
 interface UserAuthState {
   user: UserType | null
-  token: string | null
   isAuthenticated: boolean
   loading: boolean
   tempEmail: string | null
@@ -29,7 +28,6 @@ interface UserAuthState {
 
 const initialState: UserAuthState = {
   user: null,
-  token: null,
   isAuthenticated: false,
   loading: false,
   tempEmail: null,
@@ -41,9 +39,8 @@ export const userAuthSlice = createSlice({
   name: "userAuth",
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<{ user: UserType; token: string }>) => {
+    login: (state, action: PayloadAction<{ user: UserType }>) => {
       state.user = action.payload.user
-      state.token = action.payload.token
       state.isAuthenticated = true
       state.tempEmail = null
       state.tempUserData = null
@@ -51,7 +48,6 @@ export const userAuthSlice = createSlice({
     },
     logout: (state) => {
       state.user = null
-      state.token = null
       state.isAuthenticated = false
       state.tempEmail = null
       state.tempUserData = null
@@ -74,14 +70,10 @@ export const userAuthSlice = createSlice({
       state.tempUserData = null
       state.resetToken = null
     },
-    // Add updateToken action for token refresh
-    updateToken: (state, action: PayloadAction<string>) => {
-      state.token = action.payload
-    },
   },
 })
 
-export const { login, logout, setLoading, setTempEmail, setTempUserData, setResetToken, clearTempData, updateToken } =
+export const { login, logout, setLoading, setTempEmail, setTempUserData, setResetToken, clearTempData } =
   userAuthSlice.actions
 
 export default userAuthSlice.reducer

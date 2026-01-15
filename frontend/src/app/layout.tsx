@@ -12,15 +12,20 @@ export const metadata: Metadata = {
   description: "A modern web application with authentication",
 }
 
-export default function RootLayout({
+import { cookies } from "next/headers";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieStore = await cookies();
+  const sessionExists = cookieStore.has("refreshToken") || cookieStore.has("accessToken");
+
   return (
     <html lang="en">
       <body className="antialiased">
-        <ClientLayout>
+        <ClientLayout sessionExists={sessionExists}>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark" // Default to dark theme as per hero section background

@@ -18,8 +18,8 @@ export class JwtService implements IJwtService {
     if (!JWT_ACCESS_SECRET) {
       throw new CustomError("JWT_ACCESS_SECRET is not defined", StatusCode.INTERNAL_SERVER_ERROR)
     }
-    
-    
+
+
     return jwt.sign({ id, role, tokenVersion }, JWT_ACCESS_SECRET, { expiresIn: "15m" })
   }
 
@@ -63,14 +63,16 @@ export class JwtService implements IJwtService {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite:  "lax",
+      sameSite: "lax",
       maxAge: 15 * 60 * 1000, // 15 minutes
+      path: "/",
     })
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/",
     })
   }
 
@@ -79,8 +81,9 @@ export class JwtService implements IJwtService {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite:  "lax",
+      sameSite: "lax",
       maxAge: 15 * 60 * 1000, // 15 minutes
+      path: "/",
     })
   }
 
@@ -89,12 +92,14 @@ export class JwtService implements IJwtService {
     res.clearCookie("accessToken", {
       httpOnly: true,
       secure: isProduction,
-      sameSite:  "lax",
+      sameSite: "lax",
+      path: "/",
     })
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: isProduction,
-      sameSite:  "lax",
+      sameSite: "lax",
+      path: "/",
     })
   }
 
@@ -114,7 +119,7 @@ export class JwtService implements IJwtService {
     try {
       const expiration = this.getTokenExpiration(token);
       if (!expiration) return true;
-      
+
       return expiration.getTime() <= Date.now();
     } catch (error) {
       return true;
@@ -126,12 +131,12 @@ export class JwtService implements IJwtService {
     try {
       // Remove 'Bearer ' prefix if present
       const cleanToken = token.startsWith('Bearer ') ? token.substring(7) : token;
-      
+
       return this.verifyToken(cleanToken);
     } catch (error) {
       console.error("Socket token verification failed:", error);
       throw error;
     }
   }
-  
+
 }

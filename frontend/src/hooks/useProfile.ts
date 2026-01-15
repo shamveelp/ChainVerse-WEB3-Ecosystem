@@ -29,7 +29,7 @@ interface UsernameCheck {
 
 export const useProfile = () => {
   const dispatch = useDispatch();
-  const { user, token, isAuthenticated } = useSelector((state: RootState) => state.userAuth);
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.userAuth);
   const [profile, setProfile] = useState<UserType | null>(null);
   const [loading, setLocalLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export const useProfile = () => {
           stats: response.data.stats,
         };
         setProfile(userData);
-        dispatch(login({ user: userData, token: token || "" })); // Update Redux with user data
+        dispatch(login({ user: userData })); // Update Redux with user data
       } else {
         setError(response.error || "Failed to fetch profile");
       }
@@ -67,7 +67,7 @@ export const useProfile = () => {
       dispatch(setLoading(false));
       setLocalLoading(false);
     }
-  }, [dispatch, token]);
+  }, [dispatch]);
 
   const updateUserProfile = useCallback(
     async (data: { name: string; username: string; phone?: string; profilePic?: string }) => {
@@ -88,7 +88,7 @@ export const useProfile = () => {
             stats: response.data.stats,
           };
           setProfile(userData);
-          dispatch(login({ user: userData, token: token || "" })); // Update Redux with new profile
+          dispatch(login({ user: userData })); // Update Redux with new profile
           return true;
         } else {
           setError(response.error || "Failed to update profile");
@@ -102,7 +102,7 @@ export const useProfile = () => {
         setLocalLoading(false);
       }
     },
-    [dispatch, token]
+    [dispatch]
   );
 
   const checkUsername = useCallback(async (username: string) => {
@@ -134,7 +134,7 @@ export const useProfile = () => {
         if (response.success) {
           const updatedProfile = { ...profile, profileImage: response.imageUrl } as UserType;
           setProfile(updatedProfile);
-          dispatch(login({ user: updatedProfile, token: token || "" }));
+          dispatch(login({ user: updatedProfile }));
           return response;
         } else {
           setError(response.error || "Failed to upload image");
@@ -148,18 +148,18 @@ export const useProfile = () => {
         setLocalLoading(false);
       }
     },
-    [dispatch, profile, token]
+    [dispatch, profile]
   );
 
   useEffect(() => {
-    if (isAuthenticated && token && !profile) {
+    if (isAuthenticated && !profile) {
       fetchProfile();
     }
-  }, [isAuthenticated, token, profile, fetchProfile]);
+  }, [isAuthenticated, profile, fetchProfile]);
 
   return {
     profile,
-    loading: loading ,
+    loading: loading,
     error,
     usernameCheck,
     fetchProfile,

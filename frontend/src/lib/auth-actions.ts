@@ -23,7 +23,7 @@ export function useAuthActions() {
     try {
       const response = await authApiService.login(email, password)
       if (response.success && response.user && response.token) {
-        dispatch(reduxLogin({ user: response.user, token: response.token }))
+        dispatch(reduxLogin({ user: response.user }))
         toast({
           title: "Login Successful",
           description: "Welcome back to ChainVerse!",
@@ -53,7 +53,6 @@ export function useAuthActions() {
         dispatch(
           reduxLogin({
             user: response.user,
-            token: response.token,
           }),
         )
         toast({
@@ -197,7 +196,7 @@ export function useAuthActions() {
         )
 
         if (response.success && response.user && response.token) {
-          dispatch(reduxLogin({ user: response.user, token: response.token }))
+          dispatch(reduxLogin({ user: response.user }))
           toast({
             title: "Account Created Successfully",
             description: "Welcome to ChainVerse!",

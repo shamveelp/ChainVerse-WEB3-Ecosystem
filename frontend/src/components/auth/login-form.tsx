@@ -67,7 +67,6 @@ export function LoginForm() {
       dispatch(
         reduxLogin({
           user: response.data.user,
-          token: response.data.token || response.data.accessToken,
         }),
       )
 

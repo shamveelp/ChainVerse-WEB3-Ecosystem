@@ -21,7 +21,7 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
   api.interceptors.request.use(
     (config) => {
       const state = storeInstance?.getState() as RootState;
-      const userToken = state?.userAuth?.token;
+
       const adminToken = state?.adminAuth?.token;
       const communityAdminToken = state?.communityAdminAuth?.token;
 
@@ -33,7 +33,8 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
       } else if (config.url?.includes('/community-admin')) {
         token = communityAdminToken;
       } else {
-        token = userToken;
+        // User side relies on HttpOnly cookies, no Bearer token needed
+        token = null;
       }
 
       if (token) {
@@ -86,17 +87,17 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
           const response = await api.post(refreshEndpoint, {}, { withCredentials: true });
 
           if (response.data.success) {
-            const actionType =
-              role === "admin"
-                ? "adminAuth/updateToken"
-                : role === "communityAdmin"
-                ? "communityAdminAuth/updateToken"
-                : "userAuth/updateToken";
+            if (role === "admin" || role === "communityAdmin") {
+              const actionType =
+                role === "admin"
+                  ? "adminAuth/updateToken"
+                  : "communityAdminAuth/updateToken";
 
-            store.dispatch({
-              type: actionType,
-              payload: response.data.accessToken,
-            });
+              store.dispatch({
+                type: actionType,
+                payload: response.data.accessToken,
+              });
+            }
 
             return api(originalRequest);
           }
@@ -106,8 +107,8 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
             const role = url.includes("/community-admin")
               ? "communityAdmin"
               : url.includes("/admin")
-              ? "admin"
-              : "user";
+                ? "admin"
+                : "user";
             handleLogout(role);
           }
           return Promise.reject(refreshError);
@@ -119,8 +120,8 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
         const role = url.includes("/community-admin")
           ? "communityAdmin"
           : url.includes("/admin")
-          ? "admin"
-          : "user";
+            ? "admin"
+            : "user";
         handleLogout(role);
       }
 
@@ -132,22 +133,22 @@ export const setupAxiosInterceptors = (store: Store<RootState>) => {
 function handleLogout(role: 'admin' | 'user' | 'communityAdmin') {
   if (!storeInstance) return;
 
-  const actionType = role === 'admin' 
-    ? 'adminAuth/logout' 
+  const actionType = role === 'admin'
+    ? 'adminAuth/logout'
     : role === 'communityAdmin'
-    ? 'communityAdminAuth/logout'
-    : 'userAuth/logout';
+      ? 'communityAdminAuth/logout'
+      : 'userAuth/logout';
 
   storeInstance.dispatch({
     type: actionType,
   });
 
   if (typeof window !== 'undefined') {
-    const redirectPath = role === 'admin' 
-      ? '/admin/login' 
+    const redirectPath = role === 'admin'
+      ? '/admin/login'
       : role === 'communityAdmin'
-      ? '/comms-admin/login'
-      : '/user/login';
+        ? '/comms-admin/login'
+        : '/user/login';
     window.location.href = redirectPath;
   }
 }
