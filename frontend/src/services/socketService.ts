@@ -64,16 +64,7 @@ class SocketService {
 
   connect(token?: string): Promise<void> {
     if (this.socket?.connected) {
-
       return Promise.resolve();
-    }
-
-    // For admin/community admin, token is required. For user, it might be in cookie.
-    // So we relax this check or make it specific. 
-    // If token is provided, validate it.
-    if (token && (typeof token !== 'string' || token.trim().length === 0)) {
-      console.warn('Invalid token provided to socket');
-      // We don't reject immediately, maybe cookies work.
     }
 
     // Return existing connection promise if already connecting
@@ -81,9 +72,16 @@ class SocketService {
       return this.connectionPromise;
     }
 
-
-
     this.connectionPromise = new Promise((resolve, reject) => {
+      // If socket exists but is disconnected, we might be able to just reconnect
+      // BUT we need to update the token if it changed.
+      // So it is safer to destroy the old socket instance if we are doing a fresh connect with potential new credentials.
+      if (this.socket) {
+        this.socket.removeAllListeners();
+        this.socket.disconnect();
+        this.socket = null;
+      }
+
       this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
         auth: (cb) => {
           const state = store.getState();
@@ -91,7 +89,12 @@ class SocketService {
           const storedToken = state.communityAdminAuth?.token ||
             state.adminAuth?.token;
 
-          // For user, storedToken is undefined.
+          // For user, storedToken is undefined. 
+          // If a specific token was passed to connect(), use it.
+          // Otherwise, if we just refreshed, the store might NOT be updated yet for non-redux users (cookies).
+          // However, for sockets, we usually pass the token in auth object.
+          // If cookie-based, the browser handles it, but our backend socket handler checks headers/auth token.
+
           const activeToken = storedToken || token?.trim();
 
           cb({
@@ -125,7 +128,7 @@ class SocketService {
       this.socket.on('connect_error', async (error) => {
         clearTimeout(timeout);
         console.error('❌ Socket connection error:', error.message);
-        this.connectionPromise = null;
+        // Do NOT nullify connectionPromise yet if we are going to retry immediately via refresh
 
         // Check if it's an authentication error
         if (error.message?.includes('Authentication failed') ||
@@ -141,20 +144,39 @@ class SocketService {
             const newToken = await this.refreshToken();
             if (newToken) {
               console.log('✅ Token refreshed successfully for socket, retrying connection...');
-              // The connect() call below will trigger the auth callback again, 
-              // which will pick up the new token from the store
-              this.socket?.connect();
-              return;
+
+              // We successfully refreshed. 
+              // We need to update the socket's auth payload with the new token.
+              // Since we defined auth as a callback, calling connect() *should* re-trigger it.
+              // However, we want to ensure we don't infinitely loop if the new token also fails.
+              // For simplicity, we just call connect() which triggers the auth callback we defined above.
+              // The callback pulls from the store, and refreshToken() updated the store (for Redux) or cookies.
+
+              // CRITICAL: For user (cookie-based), we need to ensure the callback picks up the new token if it's not in Redux.
+              // But our callback logic uses `token` arg or Redux. 
+              // Providing the newToken explicitly to the socket instance might be needed if the callback relies on the closure 'token' variable which is old.
+
+              if (this.socket) {
+                this.socket.auth = { token: newToken };
+                this.socket.connect();
+              }
+              return; // Stay in the promise, wait for 'connect'
             }
           } catch (refreshError) {
             console.error('❌ Socket token refresh failed:', refreshError);
+            this.connectionPromise = null;
             reject(new Error('Authentication failed - token expired and refresh failed'));
             return;
           }
 
           console.error('Authentication failed - check token validity');
+          this.connectionPromise = null;
           reject(new Error('Authentication failed - token may be expired'));
         } else {
+          // For non-auth errors, we let the default reconnect logic happen or fail
+          // If we reject here, the caller sees an error.
+          // Usually socket.io handles retries. 
+          this.connectionPromise = null;
           this.handleReconnect();
           reject(error);
         }
