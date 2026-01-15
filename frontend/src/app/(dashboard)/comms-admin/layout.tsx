@@ -52,7 +52,9 @@ export default function CommunityAdminLayout({ children }: { children: React.Rea
   return (
     <div className="min-h-screen bg-slate-950 relative overflow-hidden">
       <div className="relative z-10 flex h-screen">
-        <Sidebar />
+        <div className="hidden md:block h-full">
+          <Sidebar />
+        </div>
         <div className="flex-1 flex flex-col relative">
           {/* Animated Background for Main Content Only */}
           <div className="absolute inset-0 z-0 pointer-events-none">

@@ -13,6 +13,19 @@ import {
   JoinCommunityResponse,
   FollowResponse
 } from "@/types/user/community-explore.types";
+
+export type {
+  Community,
+  CommunityProfile,
+  CommunityMember,
+  UserSearchResult,
+  UserProfile,
+  SearchResponse,
+  CommunityListResponse,
+  CommunityMemberListResponse,
+  JoinCommunityResponse,
+  FollowResponse
+};
 import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors

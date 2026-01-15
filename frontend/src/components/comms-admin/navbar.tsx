@@ -13,20 +13,39 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Search, LogOut, User, Settings } from "lucide-react";
+import { Bell, Search, LogOut, User, Settings, Menu, Chrome as Home, Users, MessageSquare, HousePlug, Trophy, Crown, ChartBar as BarChart3, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useCommunityAdminAuthActions } from "@/lib/communityAdminAuthActions";
 import { cn } from "@/lib/utils";
 import type { RootState } from "@/redux/store";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useRouter, usePathname } from "next/navigation";
 
 interface NavbarProps {
   className?: string;
 }
 
+const sidebarItems = [
+  { title: "Dashboard", href: COMMUNITY_ADMIN_ROUTES.DASHBOARD, icon: Home },
+  { title: "Community", href: COMMUNITY_ADMIN_ROUTES.COMMUNITY, icon: MessageSquare },
+  { title: "Feed", href: COMMUNITY_ADMIN_ROUTES.FEED, icon: HousePlug },
+  { title: "Profile", href: COMMUNITY_ADMIN_ROUTES.PROFILE, icon: User },
+  { title: "Settings", href: COMMUNITY_ADMIN_ROUTES.SETTINGS, icon: Settings },
+  { title: "Members", href: COMMUNITY_ADMIN_ROUTES.MEMBERS, icon: Users },
+  { title: "ChainCast", href: COMMUNITY_ADMIN_ROUTES.CHAINCAST, icon: BarChart3, requiresPremium: true },
+  { title: "Quests", href: COMMUNITY_ADMIN_ROUTES.QUESTS, icon: Trophy, requiresPremium: true },
+  { title: "Premium", href: COMMUNITY_ADMIN_ROUTES.PREMIUM, icon: Crown },
+];
+
 export function Navbar({ className }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { logout } = useCommunityAdminAuthActions();
-  const { communityAdmin } = useSelector((state: RootState) => state.communityAdminAuth);
+  const { communityAdmin, chainCastAccess, questAccess, subscription } = useSelector((state: RootState) => state.communityAdminAuth);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
   const getInitials = (name: string) => {
     return name
@@ -45,6 +64,72 @@ export function Navbar({ className }: NavbarProps) {
       )}
     >
       <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+        {/* Mobile Menu Trigger */}
+        <div className="md:hidden mr-4">
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 bg-slate-950 border-r border-slate-800 p-0">
+              <div className="p-6 border-b border-slate-800">
+                <h2 className="text-xl font-bold text-white tracking-tight">ChainVerse</h2>
+                <p className="text-xs text-slate-400 font-medium">Community Admin</p>
+              </div>
+              <ScrollArea className="h-[calc(100vh-5rem)]">
+                <div className="p-4 space-y-2">
+                  {sidebarItems.map((item) => {
+                    const isActive = pathname === item.href;
+                    const IconComponent = item.icon;
+                    const isLocked = item.requiresPremium && (
+                      (item.title === "ChainCast" && !chainCastAccess) ||
+                      (item.title === "Quests" && !questAccess)
+                    );
+
+                    if (isLocked) {
+                      return (
+                        <Button
+                          key={item.href}
+                          variant="ghost"
+                          className="w-full justify-start gap-3 h-10 opacity-50 cursor-not-allowed text-slate-400"
+                          disabled
+                        >
+                          <div className="relative">
+                            <IconComponent className="h-5 w-5 mr-2" />
+                            <Lock className="h-3 w-3 absolute -top-1 -right-0.5 text-yellow-400" />
+                          </div>
+                          <span className="font-medium">{item.title}</span>
+                        </Button>
+                      )
+                    }
+
+                    return (
+                      <Button
+                        key={item.href}
+                        onClick={() => {
+                          router.push(item.href);
+                          setIsOpen(false);
+                        }}
+                        variant={isActive ? "default" : "ghost"}
+                        className={cn(
+                          "w-full justify-start gap-3 h-10",
+                          isActive
+                            ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/20"
+                            : "text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors"
+                        )}
+                      >
+                        <IconComponent className="h-5 w-5 mr-2" />
+                        <span className="font-medium">{item.title}</span>
+                      </Button>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+        </div>
+
         {/* Search */}
         <div className="flex items-center gap-4 flex-1 max-w-xs sm:max-w-sm md:max-w-md">
           <div className="relative w-full">
@@ -52,18 +137,18 @@ export function Navbar({ className }: NavbarProps) {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search members, posts, quests..."
+              placeholder="Search..."
               className="pl-10 bg-slate-900/50 border-slate-700 text-slate-200 placeholder:text-slate-500 focus:border-violet-500 focus:ring-violet-500/20 transition-all duration-300"
             />
           </div>
         </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Button
             variant="ghost"
             size="sm"
-            className="relative text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="relative text-slate-400 hover:text-white hover:bg-slate-800 transition-colors hidden sm:flex"
           >
             <Bell className="h-5 w-5" />
             <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-600 text-xs">

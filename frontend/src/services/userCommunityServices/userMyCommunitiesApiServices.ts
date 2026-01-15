@@ -9,6 +9,14 @@ import {
   MyCommunitiesResponse,
   MyCommunitiesActivityResponse
 } from "@/types/user/my-communities.types";
+
+export type {
+  MyCommunity,
+  MyCommunitiesStats,
+  CommunityActivity,
+  MyCommunitiesResponse,
+  MyCommunitiesActivityResponse
+};
 import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors

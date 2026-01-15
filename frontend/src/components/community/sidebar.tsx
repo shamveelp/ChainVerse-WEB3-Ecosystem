@@ -4,53 +4,52 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Chrome as Home, Search, Users, MessageCircle, User, Settings, LogOut, Menu, X, Bell, Bookmark, Loader as Loader2, CircleAlert as AlertCircle } from 'lucide-react'
+import { Chrome as Home, Search, Users, MessageCircle, User, Settings, LogOut, Bell, Shield, PenSquare, MoreHorizontal } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { useCommunityProfile } from '@/hooks/useCommunityProfile'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '@/redux/store'
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { communityApiService } from '@/services/communityApiService'
 import { logout } from '@/redux/slices/userAuthSlice'
-import { COMMON_ROUTES, USER_ROUTES } from '@/routes'
+import { COMMON_ROUTES, USER_ROUTES, COMMUNITY_ADMIN_ROUTES } from '@/routes'
+import Link from 'next/link'
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion'
 
 const navigationItems = [
   { id: 'home', label: 'Home', icon: Home, path: USER_ROUTES.COMMUNITY },
   { id: 'explore', label: 'Explore', icon: Search, path: USER_ROUTES.COMMUNITY_EXPLORE },
+  { id: 'communities', label: 'Communities', icon: Users, path: USER_ROUTES.COMMUNITY_MY_COMMUNITIES },
   { id: 'notifications', label: 'Notifications', icon: Bell, path: USER_ROUTES.COMMUNITY_NOTIFICATIONS },
-  { id: 'communities', label: 'My Communities', icon: Users, path: USER_ROUTES.COMMUNITY_MY_COMMUNITIES },
   { id: 'messages', label: 'Messages', icon: MessageCircle, path: USER_ROUTES.COMMUNITY_MESSAGES },
-  // { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark, path: USER_ROUTES.COMMUNITY_BOOKMARKS },
+  { id: 'profile', label: 'Profile', icon: User, path: '' }, // Profile path handled dynamically
 ]
 
 export default function Sidebar() {
   const router = useRouter()
   const dispatch = useDispatch()
   const pathname = usePathname()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false)
 
   // Get current user from auth state
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
-  const { profile, loading, error, fetchCommunityProfile, clearProfileData, clearError, retry } = useCommunityProfile()
+  const { profile, loading, error, fetchCommunityProfile, clearProfileData, retry } = useCommunityProfile()
 
   // Fetch profile on mount and when user changes
   useEffect(() => {
     if (currentUser && (!profile || profile.username !== currentUser.username)) {
-
-      fetchCommunityProfile(true) // Force refresh to ensure we get the latest data
+      fetchCommunityProfile(true) // Force refresh
     }
   }, [currentUser?._id, currentUser?.username, fetchCommunityProfile])
 
   const handleLogout = () => {
-    clearProfileData() // Clear profile data on logout
+    clearProfileData()
     dispatch(logout())
     router.push(COMMON_ROUTES.HOME)
-    setIsMobileMenuOpen(false)
   }
 
   const handleNavigation = (path: string) => {
-    router.push(path)
-    setIsMobileMenuOpen(false)
+    if (path) router.push(path)
   }
 
   const handleProfileClick = () => {
@@ -59,194 +58,213 @@ export default function Sidebar() {
     }
   }
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full">
-      {/* User Profile Card */}
-      {currentUser && (
-        <div className="p-3 border-b border-slate-700/50">
-          {loading && !profile && (
-            <div className="text-center py-4">
-              <Loader2 className="h-6 w-6 animate-spin text-cyan-500 mx-auto" />
-              <p className="text-slate-400 text-xs mt-2">Loading profile...</p>
-            </div>
-          )}
+  const handleCreatePost = () => {
+    router.push(`/user/community/compose/tweet`)
+    setIsProfileSheetOpen(false)
+  }
 
-          {error && !profile && (
-            <div className="py-2">
-              <Alert className="border-red-500/50 bg-red-500/10 p-2">
-                <AlertCircle className="h-3 w-3 text-red-400" />
-                <AlertDescription className="text-red-300 text-xs">{error}</AlertDescription>
-              </Alert>
-              <Button
-                onClick={retry}
-                variant="outline"
-                size="sm"
-                className="w-full mt-2 border-slate-600 hover:bg-slate-800 text-xs h-7"
-              >
-                Retry
-              </Button>
-            </div>
-          )}
+  // Scroll detection for mobile navbar using framer-motion
+  const { scrollY } = useScroll();
+  const [hidden, setHidden] = useState(false);
 
-          {(profile || (!loading && !error)) && (
-            <div
-              className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors cursor-pointer"
-              onClick={handleProfileClick}
-            >
-              <Avatar className="w-10 h-10 ring-2 ring-cyan-400/30">
-                <AvatarImage
-                  src={profile?.profilePic || ''}
-                  alt={profile?.name || currentUser.name || currentUser.username}
-                />
-                <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
-                  {(profile?.name || currentUser.name || currentUser.username)?.charAt(0)?.toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1">
-                  <p className="font-semibold text-sm text-white truncate">
-                    {profile?.name || currentUser.name || currentUser.username}
-                  </p>
-                  {profile?.isVerified && (
-                    <div className="w-3.5 h-3.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
-                      <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                <p className="text-slate-400 text-xs">@{currentUser.username}</p>
-              </div>
-            </div>
-          )}
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    if (latest > previous && latest > 150) {
+      setHidden(true);
+    } else {
+      setHidden(false);
+    }
+  });
 
-          {profile && (
-            <div className="flex justify-center gap-4 mt-2 text-xs">
-              <div className="text-center">
-                <p className="font-semibold text-white">
-                  {communityApiService.formatStats(profile.followingCount || 0)}
-                </p>
-                <p className="text-slate-400">Following</p>
-              </div>
-              <div className="text-center">
-                <p className="font-semibold text-white">
-                  {communityApiService.formatStats(profile.followersCount || 0)}
-                </p>
-                <p className="text-slate-400">Followers</p>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
+  const DesktopSidebarContent = () => (
+    <div className="flex flex-col h-full px-4 xl:px-6 overflow-y-auto no-scrollbar">
       {/* Navigation */}
-      <nav className="flex-1 p-2 space-y-1">
-        {navigationItems.map((item) => {
+      <nav className="flex-1 py-6 space-y-2">
+        {navigationItems.filter(item => item.id !== 'profile').map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.path
           const hasNotifications = item.id === 'notifications' || item.id === 'messages'
 
           return (
-            <Button
-              key={item.id}
-              variant="ghost"
-              className={cn(
-                "w-full justify-start text-left p-3 h-auto group transition-all duration-200 relative",
-                isActive
-                  ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-              )}
-              onClick={() => handleNavigation(item.path)}
-            >
-              <div className="relative">
-                <Icon className={cn(
-                  "h-5 w-5 mr-3 transition-colors",
-                  isActive ? "text-cyan-400" : "group-hover:text-cyan-400"
-                )} />
-                {hasNotifications && (
-                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-gradient-to-r from-pink-500 to-red-500 rounded-full animate-pulse" />
-                )}
+            <Link key={item.id} href={item.path} className="block group">
+              <div className={cn(
+                "flex items-center gap-5 px-4 py-3.5 rounded-3xl transition-all duration-300 w-fit xl:w-full group-hover:scale-105",
+                isActive ? "bg-white/10 text-white font-semibold backdrop-blur-md shadow-lg shadow-black/5" : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+              )}>
+                <div className="relative">
+                  <Icon className={cn(
+                    "h-[26px] w-[26px] transition-colors",
+                    isActive ? "text-white" : "text-current"
+                  )} />
+                  {hasNotifications && (
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-cyan-500 rounded-full border-2 border-slate-950" />
+                  )}
+                </div>
+                <span className="hidden xl:block text-xl tracking-wide">
+                  {item.label}
+                </span>
               </div>
-              <span className="text-base font-medium">{item.label}</span>
-            </Button>
+            </Link>
           )
         })}
 
-        {/* Profile Navigation Item */}
-        {currentUser?.username && (
-          <Button
-            variant="ghost"
-            className={cn(
-              "w-full justify-start text-left p-3 h-auto group transition-all duration-200 relative",
-              pathname === `${USER_ROUTES.COMMUNITY}/${currentUser.username}`
-                ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30"
-                : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-            )}
-            onClick={handleProfileClick}
-          >
+        {/* Profile Link Desktop */}
+        <div onClick={handleProfileClick} className="cursor-pointer group block">
+          <div className={cn(
+            "flex items-center gap-5 px-4 py-3.5 rounded-3xl transition-all duration-300 w-fit xl:w-full group-hover:scale-105",
+            pathname === `${USER_ROUTES.COMMUNITY}/${currentUser?.username}` ? "bg-white/10 text-white font-semibold backdrop-blur-md" : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+          )}>
             <User className={cn(
-              "h-5 w-5 mr-3 transition-colors",
-              pathname === `${USER_ROUTES.COMMUNITY}/${currentUser.username}` ? "text-cyan-400" : "group-hover:text-cyan-400"
+              "h-[26px] w-[26px] transition-colors",
+              pathname === `${USER_ROUTES.COMMUNITY}/${currentUser?.username}` ? "text-white" : "text-current"
             )} />
-            <span className="text-base font-medium">Profile</span>
-          </Button>
-        )}
-      </nav>
+            <span className="hidden xl:block text-xl tracking-wide">
+              Profile
+            </span>
+          </div>
+        </div>
 
-      {/* Create Post & Settings */}
-      <div className="p-3 border-t border-slate-700/50">
-        <Button className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold py-2 rounded-full mb-3 text-sm">
-          Create Post
-        </Button>
+        {/* More/Settings - simplified for now */}
+        <Link href={USER_ROUTES.COMMUNITY_SETTINGS} className="block group">
+          <div className="flex items-center gap-5 px-4 py-3.5 rounded-3xl text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-all duration-300 w-fit xl:w-full group-hover:scale-105">
+            <Settings className="h-[26px] w-[26px]" />
+            <span className="hidden xl:block text-xl tracking-wide">Settings</span>
+          </div>
+        </Link>
 
-        <div className="space-y-1">
+        {/* Tweet Button via CSS for responsiveness */}
+        <div className="mt-8 px-2 xl:w-full">
           <Button
-            variant="ghost"
-            className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800/50 text-sm"
-            onClick={() => handleNavigation(USER_ROUTES.COMMUNITY_SETTINGS)}
+            onClick={handleCreatePost}
+            className="w-14 h-14 xl:w-full xl:h-14 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white p-0 flex items-center justify-center shadow-lg shadow-cyan-900/20 transition-all hover:scale-105 hover:shadow-cyan-500/30"
           >
-            <Settings className="h-4 w-4 mr-2" />
-            Settings & Privacy
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className="w-full justify-start text-slate-400 hover:text-red-400 hover:bg-red-500/10 text-sm"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
+            <PenSquare className="h-6 w-6 xl:hidden" />
+            <span className="hidden xl:block text-lg font-bold">Post</span>
           </Button>
         </div>
-      </div>
+      </nav>
+
+      {/* User Profile Bottom */}
+      {currentUser && (
+        <div className="mb-8 px-2">
+          <div className="flex items-center gap-3 p-3 rounded-full hover:bg-white/5 transition-all cursor-pointer w-full xl:justify-start justify-center group" onClick={handleProfileClick}>
+            <Avatar className="w-11 h-11 ring-2 ring-transparent group-hover:ring-slate-700 transition-all">
+              <AvatarImage src={profile?.profilePic || ''} />
+              <AvatarFallback className="bg-slate-800 text-slate-200 font-bold">
+                {currentUser.username[0].toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="hidden xl:block flex-1 min-w-0">
+              <p className="font-bold text-white text-[15px] truncate leading-tight">{currentUser.name || currentUser.username}</p>
+              <p className="text-slate-400 text-sm truncate">@{currentUser.username}</p>
+            </div>
+            <MoreHorizontal className="hidden xl:block h-5 w-5 text-slate-500 group-hover:text-slate-300" />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
+  const MobileBottomNav = () => (
+    <div className="fixed bottom-6 inset-x-0 z-50 flex justify-center pointer-events-none px-4">
+      <motion.div
+        variants={{
+          visible: { y: 0, opacity: 1 },
+          hidden: { y: "150%", opacity: 0 },
+        }}
+        initial="visible"
+        animate={hidden ? "hidden" : "visible"}
+        transition={{ duration: 0.35, ease: 'easeInOut' }}
+        className="pointer-events-auto w-full max-w-md bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-2xl shadow-purple-900/20 px-2 h-20 flex items-center justify-around overflow-hidden"
+      >
+        {navigationItems.map((item) => {
+          const Icon = item.icon
+          const isActive = pathname === item.path
+
+          if (item.id === 'profile') {
+            return (
+              <Sheet key={item.id} open={isProfileSheetOpen} onOpenChange={setIsProfileSheetOpen}>
+                <SheetTrigger asChild>
+                  <div className="relative flex flex-col items-center justify-center cursor-pointer group w-14 h-14">
+                    <div className={cn(
+                      "relative z-10 p-3 transition-colors duration-300",
+                      isActive ? "text-white" : "text-slate-400 group-hover:text-white"
+                    )}>
+                      <Icon className="h-6 w-6" />
+                    </div>
+                  </div>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 rounded-t-[2.5rem] pb-10">
+                  <div className="w-12 h-1.5 bg-slate-800 rounded-full mx-auto mb-8 mt-2" />
+                  <div className="flex flex-col gap-2 px-2">
+                    <Button variant="ghost" className="justify-start gap-4 text-lg h-16 rounded-2xl hover:bg-white/5 transition-all active:scale-95" onClick={() => {
+                      handleProfileClick();
+                      setIsProfileSheetOpen(false);
+                    }}>
+                      <User className="h-6 w-6" /> Profile
+                    </Button>
+                    <Button variant="ghost" className="justify-start gap-4 text-lg h-16 rounded-2xl hover:bg-white/5 transition-all active:scale-95" onClick={() => {
+                      handleNavigation(USER_ROUTES.COMMUNITY_SETTINGS);
+                      setIsProfileSheetOpen(false);
+                    }}>
+                      <Settings className="h-6 w-6" /> Settings
+                    </Button>
+                    <Button variant="ghost" className="justify-start gap-4 text-lg h-16 rounded-2xl hover:bg-white/5 transition-all active:scale-95" onClick={handleCreatePost}>
+                      <PenSquare className="h-6 w-6" /> Create Post
+                    </Button>
+                    <Button variant="ghost" className="justify-start gap-4 text-lg h-16 rounded-2xl hover:bg-white/5 text-purple-400 hover:text-purple-300 transition-all active:scale-95" onClick={() => {
+                      handleNavigation(COMMUNITY_ADMIN_ROUTES.GET_STARTED);
+                      setIsProfileSheetOpen(false);
+                    }}>
+                      <Shield className="h-6 w-6" /> Be a Community Admin
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )
+          }
+
+          return (
+            <Link key={item.id} href={item.path} className="w-14 flex justify-center">
+              <div className="relative flex flex-col items-center justify-center group w-14 h-14">
+                <div className={cn(
+                  "relative z-10 p-3 transition-colors duration-300",
+                  isActive ? "text-white" : "text-slate-400 group-hover:text-white"
+                )}>
+                  <Icon className="h-6 w-6" />
+                  {(item.id === 'notifications' || item.id === 'messages') && (
+                    <div className="absolute top-2 right-2.5 w-2 h-2 bg-cyan-500 rounded-full border-2 border-slate-900" />
+                  )}
+                </div>
+
+                {isActive && (
+                  <motion.div
+                    layoutId="community-bubble"
+                    className="absolute inset-0 bg-white/10 rounded-2xl -z-0 shadow-inner"
+                    transition={{
+                      type: 'spring',
+                      bounce: 0.2,
+                      duration: 0.6,
+                    }}
+                  />
+                )}
+              </div>
+            </Link>
+          )
+        })}
+      </motion.div>
     </div>
   )
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="lg:hidden fixed top-3 left-3 z-50 bg-slate-800/80 backdrop-blur-sm"
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-      >
-        {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-      </Button>
-
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex fixed left-0 top-0 w-72 pt-20 bg-slate-900/80 backdrop-blur-xl border-r border-slate-700/50 h-screen z-40 overflow-y-auto scrollbar-hidden">
-        <SidebarContent />
+      <aside className="hidden lg:flex flex-col fixed left-0 top-[4.5rem] h-[calc(100vh-4.5rem)] w-[88px] xl:w-[275px] border-r border-white/5 bg-slate-950/50 backdrop-blur-xl z-40">
+        <DesktopSidebarContent />
       </aside>
 
-      {/* Mobile Sidebar */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="relative w-72 pt-20 bg-slate-900/95 backdrop-blur-xl h-full overflow-y-auto scrollbar-hidden">
-            <SidebarContent />
-          </aside>
-        </div>
-      )}
+      <div className="lg:hidden">
+        <MobileBottomNav />
+      </div>
     </>
   )
 }

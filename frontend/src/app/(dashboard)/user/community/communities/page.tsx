@@ -23,11 +23,8 @@ import {
   Calendar,
   Loader2,
   AlertCircle,
-  ExternalLink,
-  Video,
+  ChevronLeft,
 } from "lucide-react";
-import Sidebar from "@/components/community/sidebar";
-import RightSidebar from "@/components/community/right-sidebar";
 import ChainCastJoinButton from "@/components/chainCast/chainCastJoinButton";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -48,17 +45,9 @@ import {
 } from "@/services/userCommunityServices/userMyCommunitiesApiServices";
 
 const filters = [
-  { id: "all", label: "All Communities", icon: Users },
+  { id: "all", label: "All", icon: Users },
   { id: "admin", label: "Admin", icon: Crown },
-  { id: "moderator", label: "Moderator", icon: Shield },
-  { id: "recent", label: "Recently Joined", icon: Calendar },
-  { id: "active", label: "Recently Active", icon: TrendingUp },
-];
-
-const sortOptions = [
-  { id: "recent", label: "Recently Joined" },
-  { id: "name", label: "Name (A-Z)" },
-  { id: "members", label: "Most Members" },
+  { id: "moderator", label: "Mod", icon: Shield },
 ];
 
 export default function CommunitiesPage() {
@@ -77,15 +66,11 @@ export default function CommunitiesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredCommunities, setFilteredCommunities] = useState<MyCommunity[]>(
-    []
-  );
   const [activeFilter, setActiveFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
 
   const [hasMore, setHasMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | undefined>();
-  const [totalCount, setTotalCount] = useState(0);
 
   const [leavingCommunity, setLeavingCommunity] = useState<string | null>(null);
   const [showLeaveDialog, setShowLeaveDialog] = useState<MyCommunity | null>(
@@ -125,13 +110,10 @@ export default function CommunitiesPage() {
         setStats(response.stats);
         setHasMore(response.hasMore);
         setNextCursor(response.nextCursor);
-        setTotalCount(response.totalCount);
       } catch (err: any) {
         console.error("Failed to load communities:", err);
         setError(err.message || "Failed to load communities");
-        toast.error("Failed to load communities", {
-          description: err.message || "Please try again",
-        });
+        toast.error("Failed to load communities");
       } finally {
         setLoading(false);
         setLoadingMore(false);
@@ -145,33 +127,9 @@ export default function CommunitiesPage() {
     loadCommunities(true);
   }, [activeFilter, sortBy]);
 
-  // Filter and search communities
-  useEffect(() => {
-    let filtered = communities;
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(
-        (community) =>
-          community.communityName.toLowerCase().includes(query) ||
-          community.username.toLowerCase().includes(query) ||
-          community.description.toLowerCase().includes(query) ||
-          community.category.toLowerCase().includes(query)
-      );
-    }
-
-    setFilteredCommunities(filtered);
-  }, [communities, searchQuery]);
-
   // Handle filter change
   const handleFilterChange = (filterId: string) => {
     setActiveFilter(filterId);
-  };
-
-  // Handle sort change
-  const handleSortChange = (sortId: string) => {
-    setSortBy(sortId);
   };
 
   // Handle load more
@@ -183,54 +141,7 @@ export default function CommunitiesPage() {
 
   // Handle community click
   const handleCommunityClick = (community: MyCommunity) => {
-    router.push(`/user/community/communities/${community.username}`);
-  };
-
-  // Handle settings click
-  const handleSettingsClick = (e: React.MouseEvent, community: MyCommunity) => {
-    e.stopPropagation();
-    if (community.memberRole === "admin") {
-      router.push(`/community-admin/${community.username}/dashboard`);
-    } else {
-      // TODO: Open community settings modal for notifications, etc.
-      toast.info("Community settings coming soon");
-    }
-  };
-
-  // Handle notifications toggle
-  const handleNotificationsToggle = async (
-    e: React.MouseEvent,
-    community: MyCommunity
-  ) => {
-    e.stopPropagation();
-
-    try {
-      const newNotificationState = !community.notifications;
-      await userMyCommunitiesApiService.updateCommunityNotifications(
-        community._id,
-        newNotificationState
-      );
-
-      // Update local state
-      setCommunities((prev) =>
-        prev.map((c) =>
-          c._id === community._id
-            ? { ...c, notifications: newNotificationState }
-            : c
-        )
-      );
-
-      toast.success(
-        `Notifications ${newNotificationState ? "enabled" : "disabled"} for ${
-          community.communityName
-        }`
-      );
-    } catch (error: any) {
-      console.error("Toggle notifications error:", error);
-      toast.error("Failed to update notifications", {
-        description: error.message || "Please try again",
-      });
-    }
+    router.push(`/user/community/c/${community.username}`);
   };
 
   // Handle leave community
@@ -260,27 +171,12 @@ export default function CommunitiesPage() {
           prev.filter((c) => c._id !== communityToLeave._id)
         );
 
-        // Update stats
-        setStats((prev) => ({
-          ...prev,
-          totalCommunities: Math.max(0, prev.totalCommunities - 1),
-          [(communityToLeave.memberRole +
-            "Communities") as keyof MyCommunitiesStats]: Math.max(
-            0,
-            (prev as any)[communityToLeave.memberRole + "Communities"] - 1
-          ),
-        }));
-
-        setTotalCount((prev) => Math.max(0, prev - 1));
-
         toast.success(result.message);
         setShowLeaveDialog(null);
       }
     } catch (error: any) {
       console.error("Leave community error:", error);
-      toast.error("Failed to leave community", {
-        description: error.message || "Please try again",
-      });
+      toast.error("Failed to leave community");
     } finally {
       setLeavingCommunity(null);
     }
@@ -288,453 +184,175 @@ export default function CommunitiesPage() {
 
   // Get role badge
   const getRoleBadge = (role: string) => {
-    const colors = userMyCommunitiesApiService.getRoleBadgeColor(role);
     const icons = {
       admin: Crown,
       moderator: Shield,
       member: User,
     };
     const Icon = icons[role as keyof typeof icons] || User;
-
     return (
-      <Badge
-        className={`${colors.bg} ${colors.text} ${colors.border} text-xs border`}
-      >
-        <Icon className="w-3 h-3 mr-1" />
+      <div className="flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-900 px-2 py-0.5 rounded-full border border-slate-800">
+        <Icon className="w-3 h-3" />
         {role.charAt(0).toUpperCase() + role.slice(1)}
-      </Badge>
-    );
+      </div>
+    )
   };
 
-  // Show loading
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-slate-950">
-        <Sidebar />
-        <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen">
-          <div className="max-w-2xl mx-auto h-screen overflow-y-auto">
-            <div className="flex items-center justify-center min-h-screen">
-              <div className="text-center space-y-4">
-                <Loader2 className="h-12 w-12 animate-spin text-cyan-500 mx-auto" />
-                <p className="text-slate-400">Loading your communities...</p>
-              </div>
-            </div>
-          </div>
-        </main>
-        <RightSidebar />
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
       </div>
-    );
+    )
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-950">
-      {/* Left Sidebar */}
-      <Sidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen">
-        <div className="max-w-2xl mx-auto h-screen overflow-y-auto scrollbar-hidden">
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="sticky top-0 bg-slate-950/80 backdrop-blur-xl border-b border-slate-700/50 p-4 z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-white">
-                    My Communities
-                  </h2>
-                  <p className="text-slate-400">
-                    {userMyCommunitiesApiService.formatMemberCount(totalCount)}{" "}
-                    communities joined
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => router.push("/user/community/explore")}
-                    className="border-slate-600 text-slate-400 hover:text-white"
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    onClick={() => router.push("/user/community/explore")}
-                    className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Explore
-                  </Button>
-                </div>
-              </div>
-
-              {/* Live ChainCasts Banner */}
-              <div className="mb-4">
-                <ChainCastJoinButton
-                  variant="card"
-                  showDetails={true}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Stats */}
-              {stats.totalCommunities > 0 && (
-                <div className="grid grid-cols-4 gap-3 mb-4">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-white">
-                      {stats.totalCommunities}
-                    </div>
-                    <div className="text-xs text-slate-400">Total</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-yellow-400">
-                      {stats.adminCommunities}
-                    </div>
-                    <div className="text-xs text-slate-400">Admin</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-blue-400">
-                      {stats.moderatorCommunities}
-                    </div>
-                    <div className="text-xs text-slate-400">Moderator</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-green-400">
-                      {stats.memberCommunities}
-                    </div>
-                    <div className="text-xs text-slate-400">Member</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Search Bar */}
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                <Input
-                  placeholder="Search your communities..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 bg-slate-900/50 border-slate-700/50 text-white placeholder:text-slate-400"
-                />
-              </div>
-
-              {/* Filter and Sort Tabs */}
-              <div className="flex flex-col gap-3">
-                <div className="flex space-x-1 bg-slate-900/50 rounded-lg p-1 overflow-x-auto">
-                  {filters.map((filter) => {
-                    const Icon = filter.icon;
-                    return (
-                      <Button
-                        key={filter.id}
-                        variant={
-                          activeFilter === filter.id ? "secondary" : "ghost"
-                        }
-                        size="sm"
-                        onClick={() => handleFilterChange(filter.id)}
-                        className={`flex-shrink-0 ${
-                          activeFilter === filter.id
-                            ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30"
-                            : "text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        <Icon className="w-4 h-4 mr-1" />
-                        {filter.label}
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-400">Sort by:</span>
-                  <div className="flex space-x-1 bg-slate-900/50 rounded-lg p-1">
-                    {sortOptions.map((option) => (
-                      <Button
-                        key={option.id}
-                        variant={sortBy === option.id ? "secondary" : "ghost"}
-                        size="sm"
-                        onClick={() => handleSortChange(option.id)}
-                        className={`text-xs ${
-                          sortBy === option.id
-                            ? "bg-slate-700 text-white"
-                            : "text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        {option.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+    <div className="min-h-screen">
+      <div className="space-y-0">
+        {/* Header */}
+        <div className="sticky top-[4.5rem] bg-slate-950/80 backdrop-blur-md border-b border-slate-800 p-4 z-10 -mx-[1px] -mt-[1px]">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-white">
+                My Communities
+              </h2>
+              <p className="text-xs text-slate-500">
+                {stats.totalCommunities} Joined
+              </p>
             </div>
+            <Button variant="ghost" size="icon" onClick={() => router.push("/user/community/explore")} className="rounded-full hover:bg-slate-900">
+              <Plus className="h-5 w-5 text-cyan-500" />
+            </Button>
+          </div>
 
-            {/* Communities List */}
-            <div className="px-4 space-y-4 pb-6">
-              {error && communities.length === 0 ? (
-                <Card className="bg-slate-900/50 backdrop-blur-sm border-slate-700/50 p-12">
-                  <div className="text-center space-y-4">
-                    <AlertCircle className="h-12 w-12 text-red-500 mx-auto" />
-                    <p className="text-slate-400">{error}</p>
-                    <Button
-                      onClick={() => loadCommunities(true)}
-                      variant="outline"
-                      className="border-slate-600 hover:bg-slate-800"
-                    >
-                      Try Again
-                    </Button>
-                  </div>
-                </Card>
-              ) : filteredCommunities.length === 0 ? (
-                <Card className="bg-slate-900/50 backdrop-blur-sm border-slate-700/50 p-12">
-                  <div className="text-center space-y-4">
-                    <Users className="h-16 w-16 mx-auto mb-4 text-slate-600" />
-                    <p className="text-lg text-slate-400">
-                      {searchQuery.trim()
-                        ? "No communities found"
-                        : "No communities yet"}
-                    </p>
-                    <p className="text-sm text-slate-500">
-                      {searchQuery.trim()
-                        ? "Try different search terms"
-                        : "Join your first community to get started"}
-                    </p>
-                    {!searchQuery.trim() && (
-                      <Button
-                        onClick={() => router.push("/user/community/explore")}
-                        className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Explore Communities
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              ) : (
-                <>
-                  {filteredCommunities.map((community) => (
-                    <Card
-                      key={community._id}
-                      className="bg-slate-900/50 backdrop-blur-sm border-slate-700/50 hover:border-slate-600/50 transition-all duration-200 cursor-pointer p-6 group"
-                      onClick={() => handleCommunityClick(community)}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="relative">
-                          <Avatar className="w-16 h-16 ring-2 ring-slate-700/50 flex-shrink-0">
-                            <AvatarImage
-                              src={community.logo}
-                              alt={community.communityName}
-                            />
-                            <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-600 text-white">
-                              {userMyCommunitiesApiService.getCommunityAvatarFallback(
-                                community.communityName
-                              )}
-                            </AvatarFallback>
-                          </Avatar>
-                          {community.unreadPosts > 0 && (
-                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                              <span className="text-xs text-white font-bold">
-                                {community.unreadPosts > 9
-                                  ? "9+"
-                                  : community.unreadPosts}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-lg font-semibold text-white group-hover:text-cyan-300 truncate">
-                                  {community.communityName}
-                                </h3>
-                                {community.isVerified && (
-                                  <div className="w-5 h-5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <svg
-                                      className="w-3 h-3 text-white"
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                  </div>
-                                )}
-                              </div>
-                              <p className="text-slate-400 text-sm mb-1">
-                                @{community.username}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) =>
-                                  handleNotificationsToggle(e, community)
-                                }
-                                className="text-slate-400 hover:text-white"
-                                title={
-                                  community.notifications
-                                    ? "Disable notifications"
-                                    : "Enable notifications"
-                                }
-                              >
-                                {community.notifications ? (
-                                  <Bell className="h-4 w-4" />
-                                ) : (
-                                  <BellOff className="h-4 w-4" />
-                                )}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) =>
-                                  handleSettingsClick(e, community)
-                                }
-                                className="text-slate-400 hover:text-white"
-                              >
-                                <Settings className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-
-                          <p className="text-slate-400 text-sm mb-3 line-clamp-2">
-                            {community.description}
-                          </p>
-
-                          {/* ChainCast Join Button for this community */}
-                          <div className="mb-3">
-                            <ChainCastJoinButton
-                              communityId={community._id}
-                              communityUsername={community.username}
-                              variant="inline"
-                              size="sm"
-                            />
-                          </div>
-
-                          <div className="flex items-center gap-4 mb-3 text-sm text-slate-500">
-                            <div className="flex items-center gap-1">
-                              <Users className="w-4 h-4" />
-                              <span>
-                                {userMyCommunitiesApiService.formatMemberCount(
-                                  community.memberCount
-                                )}{" "}
-                                members
-                              </span>
-                            </div>
-                            <Badge
-                              variant="outline"
-                              className="border-slate-600 text-slate-400"
-                            >
-                              <Hash className="w-3 h-3 mr-1" />
-                              {community.category}
-                            </Badge>
-                            {getRoleBadge(community.memberRole)}
-                            <span className="text-xs">
-                              Joined{" "}
-                              {userMyCommunitiesApiService.formatTimeAgo(
-                                community.joinedAt
-                              )}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4 text-sm text-slate-500">
-                              {community.unreadPosts > 0 && (
-                                <div className="flex items-center gap-1 text-cyan-400">
-                                  <MessageCircle className="w-4 h-4" />
-                                  <span className="font-medium">
-                                    {community.unreadPosts} new
-                                  </span>
-                                </div>
-                              )}
-                              {community.lastActiveAt && (
-                                <span>
-                                  Active{" "}
-                                  {userMyCommunitiesApiService.formatTimeAgo(
-                                    community.lastActiveAt
-                                  )}
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              {community.settings.allowGroupChat && (
-                                <Button
-                                  onClick={(e) => {
-                                    e.stopPropagation(); // prevent Card click
-                                    router.push(
-                                      `/user/community/c/${community.username}`
-                                    ); // go to profile
-                                  }}
-                                  variant="outline"
-                                  size="sm"
-                                  className="border-slate-600 hover:bg-slate-700/50"
-                                >
-                                  <MessageCircle className="w-4 h-4 mr-1" />
-                                  Profile
-                                </Button>
-                              )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) =>
-                                  handleLeaveCommunity(e, community)
-                                }
-                                className="border-slate-600 hover:bg-red-600/20 hover:border-red-400 hover:text-red-400"
-                                disabled={leavingCommunity === community._id}
-                              >
-                                {leavingCommunity === community._id && (
-                                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                )}
-                                Leave
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-
-                  {/* Load More Button */}
-                  {hasMore && (
-                    <div className="text-center py-4">
-                      <Button
-                        onClick={handleLoadMore}
-                        disabled={loadingMore}
-                        variant="outline"
-                        className="border-slate-600 hover:bg-slate-800"
-                      >
-                        {loadingMore && (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        )}
-                        Load More Communities
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+          {/* Filter Tabs */}
+          <div className="flex space-x-4 mt-4 overflow-x-auto no-scrollbar">
+            {filters.map((filter) => (
+              <div
+                key={filter.id}
+                onClick={() => handleFilterChange(filter.id)}
+                className={`cursor-pointer border-b-4 py-2 font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${activeFilter === filter.id
+                  ? 'border-cyan-500 text-white'
+                  : 'border-transparent text-slate-500 hover:text-slate-300'
+                  }`}
+              >
+                <filter.icon className="h-4 w-4" />
+                {filter.label}
+              </div>
+            ))}
           </div>
         </div>
-      </main>
 
-      {/* Right Sidebar */}
-      <RightSidebar />
+        {/* Communities List */}
+        <div className="px-0 pb-6">
+          {error && communities.length === 0 ? (
+            <div className="p-8 text-center">
+              <p className="text-red-400 mb-4">{error}</p>
+              <Button onClick={() => loadCommunities(true)} variant="outline">Retry</Button>
+            </div>
+          ) : communities.length === 0 ? (
+            <div className="p-12 text-center">
+              <Users className="h-12 w-12 mx-auto mb-4 text-slate-600" />
+              <p className="text-lg font-bold text-white mb-2">No communities found</p>
+              <p className="text-slate-500 mb-6">
+                Join communities to see them here.
+              </p>
+              <Button
+                onClick={() => router.push("/user/community/explore")}
+                className="bg-cyan-500 hover:bg-cyan-600 rounded-full px-6"
+              >
+                Explore Communities
+              </Button>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-800">
+              {communities.filter(c => c.communityName.toLowerCase().includes(searchQuery.toLowerCase())).map((community) => (
+                <div
+                  key={community._id}
+                  className="group cursor-pointer hover:bg-slate-900/40 p-4 transition-colors"
+                  onClick={() => handleCommunityClick(community)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="relative">
+                      <Avatar className="w-12 h-12 rounded-lg">
+                        <AvatarImage
+                          src={community.logo}
+                          alt={community.communityName}
+                        />
+                        <AvatarFallback className="bg-slate-800 text-white">
+                          {community.communityName.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {community.unreadPosts > 0 && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-500 rounded-full border-2 border-slate-950" />
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-white text-base truncate">
+                            {community.communityName}
+                          </h3>
+                          {getRoleBadge(community.memberRole)}
+                        </div>
+                        <span className="text-xs text-slate-500">
+                          {community.lastActiveAt ? userMyCommunitiesApiService.formatTimeAgo(community.lastActiveAt) : 'Joined just now'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <p className="text-slate-500 text-sm truncate pr-4">
+                          {community.unreadPosts > 0
+                            ? <span className="text-white font-medium">{community.unreadPosts} new posts</span>
+                            : community.description || "No description"}
+                        </p>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => handleLeaveCommunity(e, community)}
+                          className="text-slate-500 hover:text-red-500 h-6 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          Leave
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="text-center py-4 border-t border-slate-800">
+              <Button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                variant="ghost"
+                className="text-cyan-500"
+              >
+                {loadingMore ? <Loader2 className="w-4 h-4 animate-spin" /> : "Show More"}
+              </Button>
+            </div>
+          )}
+
+        </div>
+      </div>
 
       {/* Leave Community Confirmation Dialog */}
       <Dialog
         open={!!showLeaveDialog}
         onOpenChange={() => setShowLeaveDialog(null)}
       >
-        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700">
+        <DialogContent className="sm:max-w-[425px] bg-slate-950 border-slate-700">
           <DialogHeader>
             <DialogTitle className="text-white">
               Leave {showLeaveDialog?.communityName}?
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              You will no longer have access to community posts and discussions.
-              You can rejoin anytime.
+              You will no longer have access to this community.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
@@ -754,7 +372,7 @@ export default function CommunitiesPage() {
               {leavingCommunity && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               )}
-              Leave Community
+              Leave
             </Button>
           </DialogFooter>
         </DialogContent>

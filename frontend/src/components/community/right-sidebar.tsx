@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, Loader2 } from "lucide-react";
+import { Users, Loader2, Shield, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { COMMUNITY_ADMIN_ROUTES, USER_ROUTES } from "@/routes";
@@ -21,7 +20,7 @@ export default function RightSidebar() {
   useEffect(() => {
     const fetchTopCommunities = async () => {
       try {
-        const response = await communityExploreApiService.getPopularCommunities(undefined, 2);
+        const response = await communityExploreApiService.getPopularCommunities(undefined, 3); // Increased to 3 for better fill
         setTopCommunities(response.communities);
       } catch (error) {
         console.error("Failed to fetch popular communities", error);
@@ -66,108 +65,126 @@ export default function RightSidebar() {
   };
 
   return (
-    <aside className="hidden xl:block fixed right-0 top-0 w-72 pt-20 border-l border-slate-700/50 bg-slate-950 h-screen z-30">
-      <div className="h-full overflow-y-auto scrollbar-hidden">
-        <div className="p-3 space-y-4">
-          {/* Popular Communities */}
-          <Card className="bg-slate-900/60 border-slate-700/40">
-            <div className="p-3">
-              <div className="flex items-center gap-2 mb-3">
-                <Users className="h-4 w-4 text-violet-400" />
-                <h3 className="text-base font-semibold text-white">
-                  Popular Communities
-                </h3>
+    <aside className="hidden xl:flex fixed right-0 top-[4.5rem] w-80 h-[calc(100vh-4.5rem)] border-l border-white/5 bg-slate-950/50 backdrop-blur-xl z-30">
+      <div className="h-full w-full overflow-y-auto no-scrollbar px-6 py-6 space-y-8">
+
+        {/* Popular Communities Section */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-white tracking-tight">
+              Popular
+            </h3>
+            <Link href={USER_ROUTES.COMMUNITY_EXPLORE} className="text-xs text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
+              View all
+            </Link>
+          </div>
+
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 text-slate-500 animate-spin" />
+            </div>
+          ) : topCommunities.length > 0 ? (
+            <div className="space-y-4">
+              {topCommunities.map((community) => (
+                <motion.div
+                  key={community._id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="group"
+                >
+                  <div className="flex items-start gap-3">
+                    <Link href={`${USER_ROUTES.COMMUNITY}/c/${community.username}`} className="shrink-0">
+                      <Avatar className="w-10 h-10 ring-2 ring-transparent group-hover:ring-cyan-500/30 transition-all rounded-xl">
+                        <AvatarImage src={community.logo} alt={community.communityName} />
+                        <AvatarFallback className="bg-slate-800 text-slate-200 text-xs font-bold rounded-xl">
+                          {community.communityName.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Link>
+
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <Link href={`${USER_ROUTES.COMMUNITY}/c/${community.username}`} className="block mb-1">
+                        <p className="text-[15px] font-semibold text-slate-200 group-hover:text-white transition-colors truncate leading-none">
+                          {community.communityName}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1 truncate">
+                          {communityExploreApiService.formatMemberCount(community.memberCount)} members
+                        </p>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pl-[3.25rem]">
+                    <Button
+                      size="sm"
+                      className={`w-full text-xs h-8 rounded-lg font-medium transition-all duration-300 ${community.isMember
+                        ? "bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-slate-400"
+                        : "bg-slate-100 hover:bg-white text-slate-900 shadow-lg shadow-white/5"
+                        }`}
+                      variant={community.isMember ? "ghost" : "default"}
+                      onClick={() => handleJoinToggle(community)}
+                      disabled={actionLoading === community._id}
+                    >
+                      {actionLoading === community._id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : community.isMember ? (
+                        "Joined"
+                      ) : (
+                        "Join Community"
+                      )}
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500 text-center py-4 bg-white/5 rounded-xl">
+              No communities found
+            </p>
+          )}
+        </section>
+
+        {/* Admin Promo */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="relative rounded-2xl overflow-hidden group cursor-pointer border border-white/5">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20 group-hover:opacity-100 opacity-50 transition-opacity duration-500" />
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+
+            <div className="relative p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg shadow-lg shadow-violet-500/20">
+                  <Shield className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="font-bold text-white text-lg">Admin Access</h3>
               </div>
 
-              {isLoading ? (
-                <div className="flex justify-center py-4">
-                  <Loader2 className="h-6 w-6 text-violet-500 animate-spin" />
-                </div>
-              ) : topCommunities.length > 0 ? (
-                <div className="space-y-2">
-                  {topCommunities.map((community) => (
-                    <div
-                      key={community._id}
-                      className="flex items-center gap-2 hover:bg-slate-800/30 rounded-md p-2 transition-colors"
-                    >
-                      <Link href={`${USER_ROUTES.COMMUNITY}/c/${community.username}`} className="flex items-center gap-2 flex-1 min-w-0">
-                        <Avatar className="w-8 h-8 border border-slate-700">
-                          <AvatarImage src={community.logo} alt={community.communityName} />
-                          <AvatarFallback className="bg-slate-800 text-slate-200 text-xs">
-                            {community.communityName.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-white truncate font-medium">
-                            {community.communityName}
-                          </p>
-                          <p className="text-xs text-slate-400 truncate">
-                            {communityExploreApiService.formatMemberCount(community.memberCount)} members
-                          </p>
-                        </div>
-                      </Link>
-                      <Button
-                        size="sm"
-                        className={`text-xs px-3 h-7 ${community.isMember
-                          ? "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
-                          : "bg-violet-600 hover:bg-violet-700 text-white"
-                          }`}
-                        variant={community.isMember ? "outline" : "default"}
-                        onClick={() => handleJoinToggle(community)}
-                        disabled={actionLoading === community._id}
-                      >
-                        {actionLoading === community._id ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : community.isMember ? (
-                          "Leave"
-                        ) : (
-                          "Join"
-                        )}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-slate-500 text-center py-2">
-                  No communities found
-                </p>
-              )}
-            </div>
-          </Card>
-
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative max-w-md mx-auto p-[2px] rounded-3xl bg-gradient-to-br from-violet-500 via-purple-500 to-pink-500 shadow-xl hover:shadow-pink-400/50 transition-shadow duration-500"
-          >
-            <div className="relative rounded-3xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 flex flex-col items-center text-center z-10">
-              <h2 className="text-2xl font-bold text-white mb-3">
-                Become a Community Admin
-              </h2>
-              <p className="text-gray-400 mb-6">
-                Lead your own community, manage members, and build an engaging
-                space for everyone.
+              <p className="text-slate-300 text-sm mb-4 leading-relaxed">
+                Unlock tools to manage, grow, and monetize your own Web3 community.
               </p>
 
-              <Link href={COMMUNITY_ADMIN_ROUTES.GET_STARTED} passHref>
-                <motion.button
-                  whileHover={{
-                    scale: 1.05,
-                    boxShadow: "0 0 25px rgba(236, 72, 153, 0.5)",
-                  }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-6 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-fuchsia-500 to-indigo-500 text-white shadow-md hover:shadow-fuchsia-500/50 transition-all duration-300"
-                >
-                  Be a Community Admin
-                </motion.button>
+              <Link href={COMMUNITY_ADMIN_ROUTES.GET_STARTED} className="block">
+                <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white border border-white/10 group-hover:border-violet-500/50 transition-all">
+                  Get Started <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
               </Link>
             </div>
+          </div>
+        </motion.div>
 
-            {/* Glow border effect */}
-            <div className="absolute -inset-[2px] rounded-3xl bg-gradient-to-br from-violet-500 via-pink-500 to-red-500 blur opacity-30 animate-pulse"></div>
-          </motion.div>
-        </div>
+        {/* Footer Links */}
+        <section className="pt-4 border-t border-white/5">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-500">
+            <Link href="#" className="hover:underline hover:text-slate-400">Terms of Service</Link>
+            <Link href="#" className="hover:underline hover:text-slate-400">Privacy Policy</Link>
+            <Link href="#" className="hover:underline hover:text-slate-400">Cookie Policy</Link>
+            <span>© 2024 ChainVerse</span>
+          </div>
+        </section>
       </div>
     </aside>
   );
