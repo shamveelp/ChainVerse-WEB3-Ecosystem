@@ -170,14 +170,14 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                     variant="outline"
                     role="combobox"
                     aria-expanded={communityOpen}
-                    className="w-full justify-between bg-gray-800 border-gray-600 text-white"
+                    className="w-full justify-between bg-slate-800 border-white/10 text-white"
                   >
                     {config.communityName || "Select community..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0 bg-gray-800 border-gray-600">
-                  <Command className="bg-gray-800">
+                <PopoverContent className="w-full p-0 bg-slate-800 border-white/10">
+                  <Command className="bg-slate-800">
                     <CommandInput
                       placeholder="Search communities..."
                       value={communitySearch}
@@ -239,14 +239,14 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                     variant="outline"
                     role="combobox"
                     aria-expanded={userOpen}
-                    className="w-full justify-between bg-gray-800 border-gray-600 text-white"
+                    className="w-full justify-between bg-slate-800 border-white/10 text-white"
                   >
                     {config.targetUsername || "Select user..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0 bg-gray-800 border-gray-600">
-                  <Command className="bg-gray-800">
+                <PopoverContent className="w-full p-0 bg-slate-800 border-white/10">
+                  <Command className="bg-slate-800">
                     <CommandInput
                       placeholder="Search users..."
                       value={userSearch}
@@ -306,14 +306,14 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                 onChange={(e) => updateConfig({ twitterText: e.target.value })}
                 placeholder="Enter the required Twitter post content..."
                 rows={3}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-slate-700 border-white/10 text-white"
               />
             </div>
             <div className="space-y-2">
               <Label>Required Hashtags</Label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {config.twitterHashtags?.map((hashtag, index) => (
-                  <Badge key={index} variant="secondary" className="bg-purple-600 text-white">
+                  <Badge key={index} variant="secondary" className="bg-slate-700 text-white">
                     #{hashtag}
                     <button
                       onClick={() => removeHashtag(hashtag)}
@@ -327,7 +327,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
               <div className="flex gap-2">
                 <Input
                   placeholder="Enter hashtag (without #)"
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-slate-700 border-white/10 text-white"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -353,7 +353,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                 onChange={(e) => updateConfig({ customInstructions: e.target.value })}
                 placeholder="Describe what screenshot users need to upload..."
                 rows={3}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-slate-700 border-white/10 text-white"
               />
             </div>
             <div className="space-y-2">
@@ -362,7 +362,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                 value={config.websiteUrl || ''}
                 onChange={(e) => updateConfig({ websiteUrl: e.target.value })}
                 placeholder="https://example.com"
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-slate-700 border-white/10 text-white"
               />
             </div>
           </div>
@@ -378,7 +378,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                   value={config.contractAddress || ''}
                   onChange={(e) => updateConfig({ contractAddress: e.target.value })}
                   placeholder="0x..."
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-slate-700 border-white/10 text-white"
                 />
               </div>
               <div className="space-y-2">
@@ -398,7 +398,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                 onChange={(e) => updateConfig({ customInstructions: e.target.value })}
                 placeholder="Any additional minting instructions..."
                 rows={3}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-slate-700 border-white/10 text-white"
               />
             </div>
           </div>
@@ -414,7 +414,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                   value={config.tokenAddress || ''}
                   onChange={(e) => updateConfig({ tokenAddress: e.target.value })}
                   placeholder="0x..."
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-slate-700 border-white/10 text-white"
                 />
               </div>
               <div className="space-y-2">
@@ -426,7 +426,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                   value={config.minimumAmount || ''}
                   onChange={(e) => updateConfig({ minimumAmount: parseFloat(e.target.value) || 0 })}
                   placeholder="100"
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-slate-700 border-white/10 text-white"
                 />
               </div>
             </div>
@@ -443,7 +443,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                 onChange={(e) => updateConfig({ customInstructions: e.target.value })}
                 placeholder="Instructions for wallet connection (e.g., connect to ChainVerse, sign a message, etc.)"
                 rows={3}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-slate-700 border-white/10 text-white"
               />
             </div>
           </div>
@@ -459,7 +459,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                 onChange={(e) => updateConfig({ customInstructions: e.target.value })}
                 placeholder="Detailed instructions for the custom task..."
                 rows={4}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-slate-700 border-white/10 text-white"
               />
             </div>
             <div className="space-y-2">
@@ -468,7 +468,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                 value={config.websiteUrl || ''}
                 onChange={(e) => updateConfig({ websiteUrl: e.target.value })}
                 placeholder="https://example.com"
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-slate-700 border-white/10 text-white"
               />
             </div>
           </div>
@@ -484,7 +484,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
       {renderTaskSpecificConfig()}
 
       {/* Common Settings */}
-      <div className="border-t border-gray-600 pt-4 space-y-4">
+      <div className="border-t border-white/10 pt-4 space-y-4">
         <div className="flex items-center space-x-2">
           <Switch
             id="requiresProof"
@@ -501,10 +501,10 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
               value={config.proofType || 'image'}
               onValueChange={(value: 'text' | 'image' | 'link') => updateConfig({ proofType: value })}
             >
-              <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+              <SelectTrigger className="bg-slate-700 border-white/10 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-600">
+              <SelectContent className="bg-slate-800 border-white/10">
                 <SelectItem value="image">Screenshot/Image</SelectItem>
                 <SelectItem value="text">Text Description</SelectItem>
                 <SelectItem value="link">URL/Link</SelectItem>

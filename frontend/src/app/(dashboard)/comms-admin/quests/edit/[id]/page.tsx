@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -16,12 +16,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { 
-  ArrowLeft, 
-  Plus, 
-  Trash2, 
-  Upload, 
-  Trophy, 
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Upload,
+  Trophy,
   Target,
   Save,
   Loader2
@@ -45,7 +45,7 @@ interface UpdateQuestData {
   bannerImage?: string;
   startDate: Date;
   endDate: Date;
-  selectionMethod: 'fcfs' | 'random';
+  selectionMethod: 'fcfs' | 'random' | 'leaderboard';
   participantLimit: number;
   rewardPool: {
     amount: number;
@@ -83,7 +83,7 @@ export default function EditQuestPage() {
   const [saving, setSaving] = useState(false);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string>("");
-  
+
   const [questData, setQuestData] = useState<UpdateQuestData>({
     title: '',
     description: '',
@@ -121,7 +121,7 @@ export default function EditQuestPage() {
           rewardPool: quest.rewardPool,
           tasks: quest.tasks || []
         });
-        
+
         if (quest.bannerImage) {
           setBannerPreview(quest.bannerImage);
         }
@@ -167,7 +167,7 @@ export default function EditQuestPage() {
   const updateTask = (index: number, field: string, value: any) => {
     setQuestData(prev => ({
       ...prev,
-      tasks: prev.tasks.map((task, i) => 
+      tasks: prev.tasks.map((task, i) =>
         i === index ? { ...task, [field]: value } : task
       )
     }));
@@ -199,7 +199,7 @@ export default function EditQuestPage() {
       if (questData.tasks.length === 0) {
         toast({
           variant: "destructive",
-          title: "Error", 
+          title: "Error",
           description: "At least one task is required",
         });
         return;
@@ -207,7 +207,7 @@ export default function EditQuestPage() {
 
       // Update quest
       const response = await communityAdminQuestApiService.updateQuest(questId, questData);
-      
+
       if (response.success && response.data) {
         // Upload banner if provided
         if (bannerFile) {
@@ -263,7 +263,7 @@ export default function EditQuestPage() {
           Back
         </Button>
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold text-white">
             Edit Quest
           </h1>
           <p className="text-gray-400 mt-2">Modify quest details and configuration</p>
@@ -272,7 +272,7 @@ export default function EditQuestPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Basic Information */}
-        <Card className="lg:col-span-2 bg-black/60 backdrop-blur-xl border-purple-800/30">
+        <Card className="lg:col-span-2 bg-slate-900/50 backdrop-blur-xl border-white/10">
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
           </CardHeader>
@@ -345,9 +345,10 @@ export default function EditQuestPage() {
                 <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
+                <SelectContent className="bg-slate-800 border-white/10">
                   <SelectItem value="fcfs">First Come, First Served</SelectItem>
                   <SelectItem value="random">Random Selection</SelectItem>
+                  <SelectItem value="leaderboard">Leaderboard Ranking</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -373,7 +374,7 @@ export default function EditQuestPage() {
         </Card>
 
         {/* Reward Configuration */}
-        <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+        <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
           <CardHeader>
             <CardTitle>Reward Pool</CardTitle>
           </CardHeader>
@@ -447,14 +448,14 @@ export default function EditQuestPage() {
       </div>
 
       {/* Quest Tasks */}
-      <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+      <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Quest Tasks</span>
             <Button
               onClick={addTask}
               size="sm"
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-white text-black hover:bg-slate-200"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Task
@@ -470,10 +471,10 @@ export default function EditQuestPage() {
           ) : (
             <div className="space-y-4">
               {questData.tasks.map((task, index) => (
-                <Card key={task._id || index} className="bg-gray-800/50 border-gray-700">
+                <Card key={task._id || index} className="bg-slate-800/50 border-white/10">
                   <CardContent className="p-4 space-y-4">
                     <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-purple-400 border-purple-600">
+                      <Badge variant="outline" className="text-white border-white">
                         Task {index + 1}
                       </Badge>
                       <Button
@@ -555,7 +556,7 @@ export default function EditQuestPage() {
         <Button
           onClick={handleUpdateQuest}
           disabled={saving}
-          className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white"
+          className="bg-white text-black hover:bg-slate-200"
         >
           {saving ? (
             <>

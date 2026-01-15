@@ -244,7 +244,7 @@ export default function QuestsPage() {
       case 'random':
         return <Badge variant="outline" className="text-green-400 border-green-500">Random Selection</Badge>;
       case 'leaderboard':
-        return <Badge variant="outline" className="text-purple-400 border-purple-500">Leaderboard</Badge>;
+        return <Badge variant="outline" className="text-white border-white">Leaderboard</Badge>;
       default:
         return <Badge variant="outline" className="text-gray-400 border-gray-500">{method}</Badge>;
     }
@@ -273,14 +273,14 @@ export default function QuestsPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-white">
               Quest Management
             </h1>
             <p className="text-slate-400 mt-2 font-light">Create and manage engaging quests for your community</p>
           </div>
           <Button
             onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.QUESTS_CREATE)}
-            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-violet-500/20"
+            className="bg-white text-black hover:bg-slate-200 shadow-none border border-white/10"
           >
             <Plus className="h-4 w-4 mr-2" />
             Create Quest
@@ -290,11 +290,11 @@ export default function QuestsPage() {
         {/* Enhanced Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-violet-500/30 transition-all duration-300">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-white/20 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center">
-                    <Trophy className="h-6 w-6 text-violet-400" />
+                  <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center">
+                    <Trophy className="h-6 w-6 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-400 font-medium">Total Quests</p>
@@ -304,11 +304,11 @@ export default function QuestsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-emerald-500/30 transition-all duration-300">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-white/20 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center">
-                    <Play className="h-6 w-6 text-emerald-400" />
+                  <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center">
+                    <Play className="h-6 w-6 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-400 font-medium">Active Quests</p>
@@ -318,11 +318,11 @@ export default function QuestsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-indigo-500/30 transition-all duration-300">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-white/20 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center">
-                    <Users className="h-6 w-6 text-indigo-400" />
+                  <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center">
+                    <Users className="h-6 w-6 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-400 font-medium">Total Participants</p>
@@ -332,11 +332,11 @@ export default function QuestsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-slate-600/30 transition-all duration-300">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-white/20 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-700/30 rounded-xl flex items-center justify-center">
-                    <Square className="h-6 w-6 text-slate-400" />
+                  <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center">
+                    <Square className="h-6 w-6 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-400 font-medium">Ended Quests</p>
@@ -346,11 +346,11 @@ export default function QuestsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-amber-500/30 transition-all duration-300">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-lg hover:border-white/20 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center">
-                    <DollarSign className="h-6 w-6 text-amber-400" />
+                  <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center">
+                    <DollarSign className="h-6 w-6 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-400 font-medium">Rewards Distributed</p>
@@ -373,13 +373,13 @@ export default function QuestsPage() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && fetchQuests()}
-                  className="pl-10 bg-slate-800/50 border-slate-700 text-white placeholder-slate-500 focus-visible:ring-violet-500 focus-visible:border-violet-500 transition-all duration-300"
+                  className="pl-10 bg-slate-800/50 border-slate-700 text-white placeholder-slate-500 focus-visible:ring-white focus-visible:border-white transition-all duration-300"
                 />
               </div>
               <Button
                 onClick={fetchQuests}
                 variant="outline"
-                className="border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:text-violet-300"
+                className="border-white/10 text-slate-400 hover:bg-white/5 hover:text-white"
               >
                 <Filter className="h-4 w-4 mr-2" />
                 Search
@@ -395,7 +395,7 @@ export default function QuestsPage() {
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="capitalize data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
+                className="capitalize data-[state=active]:bg-white data-[state=active]:text-black rounded-lg transition-all duration-300"
               >
                 {tab}
               </TabsTrigger>
@@ -432,7 +432,7 @@ export default function QuestsPage() {
                   </p>
                   <Button
                     onClick={() => router.push(COMMUNITY_ADMIN_ROUTES.QUESTS_CREATE)}
-                    className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-violet-500/20"
+                    className="bg-white text-black hover:bg-slate-200 shadow-none border border-white/10"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Create Quest
@@ -442,9 +442,9 @@ export default function QuestsPage() {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {quests.map((quest) => (
-                  <Card key={quest._id} className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 hover:border-violet-500/50 transition-all duration-300 group overflow-hidden hover:shadow-2xl hover:shadow-violet-500/10">
+                  <Card key={quest._id} className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 hover:border-white/20 transition-all duration-300 group overflow-hidden">
                     {/* Banner Image with Gradient Overlay */}
-                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-violet-600/20 via-indigo-600/20 to-purple-600/20">
+                    <div className="relative h-48 overflow-hidden bg-slate-900">
                       {quest.bannerImage ? (
                         <>
                           <img
@@ -455,8 +455,8 @@ export default function QuestsPage() {
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
                         </>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-600/30 via-indigo-600/30 to-purple-600/30">
-                          <Trophy className="h-20 w-20 text-violet-400/30" />
+                        <div className="w-full h-full flex items-center justify-center bg-slate-800">
+                          <Trophy className="h-20 w-20 text-white/20" />
                         </div>
                       )}
 
@@ -542,8 +542,8 @@ export default function QuestsPage() {
 
                       {/* Reward Badge at Bottom */}
                       <div className="absolute bottom-4 left-4 right-4">
-                        <div className="flex items-center gap-2 bg-slate-900/90 backdrop-blur-md border border-violet-500/30 rounded-lg px-3 py-2 shadow-lg">
-                          <div className="flex items-center gap-2 text-violet-300">
+                        <div className="flex items-center gap-2 bg-slate-900/90 backdrop-blur-md border border-white/10 rounded-lg px-3 py-2 shadow-lg">
+                          <div className="flex items-center gap-2 text-white">
                             {getRewardTypeIcon(quest.rewardPool.rewardType)}
                             <span className="font-semibold text-sm">{quest.rewardPool.amount} {quest.rewardPool.currency}</span>
                           </div>
@@ -558,7 +558,7 @@ export default function QuestsPage() {
                       <div className="space-y-4">
                         {/* Quest Title & Description */}
                         <div className="space-y-2">
-                          <h3 className="text-xl font-bold text-white truncate group-hover:text-violet-200 transition-colors max-w-full">
+                          <h3 className="text-xl font-bold text-white truncate group-hover:text-slate-300 transition-colors max-w-full">
                             {quest.title}
                           </h3>
                           <p className="text-slate-400 text-sm line-clamp-2 break-words leading-relaxed">
@@ -626,7 +626,7 @@ export default function QuestsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="flex-1 border-violet-500/50 text-violet-300 hover:bg-violet-500/10 hover:border-violet-400 hover:text-violet-200 transition-all"
+                            className="flex-1 border-white/10 text-slate-300 hover:bg-white/5 hover:border-white/20 hover:text-white transition-all"
                             onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS}/${quest._id}`)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
@@ -659,7 +659,7 @@ export default function QuestsPage() {
                           {quest.status === 'ended' && quest.winnersSelected && !quest.rewardsDistributed && (
                             <Button
                               size="sm"
-                              className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/20"
+                              className="flex-1 bg-white text-black hover:bg-slate-200 border border-white/10"
                               onClick={() => router.push(`${COMMUNITY_ADMIN_ROUTES.QUESTS}/${quest._id}`)}
                             >
                               <DollarSign className="h-4 w-4 mr-2" />
@@ -681,7 +681,7 @@ export default function QuestsPage() {
                   variant="outline"
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="border-purple-600/50 text-purple-400 hover:bg-purple-950/30"
+                  className="border-white/10 text-slate-400 hover:bg-white/5"
                 >
                   Previous
                 </Button>
@@ -692,7 +692,7 @@ export default function QuestsPage() {
                   variant="outline"
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="border-purple-600/50 text-purple-400 hover:bg-purple-950/30"
+                  className="border-white/10 text-slate-400 hover:bg-white/5"
                 >
                   Next
                 </Button>

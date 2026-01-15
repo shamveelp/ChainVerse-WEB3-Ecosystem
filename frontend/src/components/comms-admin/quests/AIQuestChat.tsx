@@ -448,10 +448,10 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
 
       case 'banner':
         return (
-          <Card className="bg-purple-950/50 border-purple-600/50 mb-4">
+          <Card className="bg-slate-800/50 border-white/10 mb-4">
             <CardContent className="p-4">
               <div className="space-y-3">
-                <p className="text-purple-200 text-sm">{awaitingInput.prompt}</p>
+                <p className="text-slate-300 text-sm">{awaitingInput.prompt}</p>
 
                 {/* Banner Preview */}
                 {bannerPreview && (
@@ -464,7 +464,7 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
                   <Button
                     onClick={() => fileInputRef.current?.click()}
                     variant="outline"
-                    className="flex-1 border-purple-600/50 text-purple-400"
+                    className="flex-1 border-white/10 text-white"
                   >
                     <Crop className="h-4 w-4 mr-2" />
                     {bannerPreview ? 'Change Banner' : 'Upload & Crop'}
@@ -505,7 +505,7 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
       >
         <div
           className={`max-w-[80%] rounded-lg p-3 ${isUser
-            ? 'bg-purple-600 text-white'
+            ? 'bg-white text-black'
             : isSystem
               ? 'bg-red-900 text-red-200'
               : 'bg-gray-700 text-gray-100'
@@ -546,10 +546,10 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
 
   return (
     <div className="h-full flex flex-col">
-      <Card className="flex-1 flex flex-col bg-black/60 backdrop-blur-xl border-purple-800/30">
+      <Card className="flex-1 flex flex-col bg-slate-900/50 backdrop-blur-xl border-white/10">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Wand2 className="h-5 w-5 text-purple-400" />
+            <Wand2 className="h-5 w-5 text-white" />
             AI Quest Assistant
           </CardTitle>
         </CardHeader>
@@ -565,7 +565,7 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
                     key={index}
                     variant="outline"
                     onClick={() => handleTemplateSelect(template)}
-                    className="p-3 h-auto text-left border-purple-600/30 hover:border-purple-500/50 hover:bg-purple-950/30"
+                    className="p-3 h-auto text-left border-white/10 hover:border-white/20 hover:bg-white/5"
                   >
                     <div>
                       <div className="font-medium text-white text-sm mb-1">
@@ -616,19 +616,19 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
                     <p className="text-xs text-gray-400">Click a field to edit:</p>
                     <div className="flex flex-wrap gap-2">
                       <Badge
-                        className="cursor-pointer hover:bg-purple-600 px-3 py-1"
+                        className="cursor-pointer hover:bg-white/20 px-3 py-1"
                         onClick={() => startFieldEdit('title', 'Title')}
                       >
                         Title
                       </Badge>
                       <Badge
-                        className="cursor-pointer hover:bg-purple-600 px-3 py-1"
+                        className="cursor-pointer hover:bg-white/20 px-3 py-1"
                         onClick={() => startFieldEdit('description', 'Description')}
                       >
                         Description
                       </Badge>
                       <Badge
-                        className="cursor-pointer hover:bg-purple-600 px-3 py-1"
+                        className="cursor-pointer hover:bg-white/20 px-3 py-1"
                         onClick={() => startFieldEdit('participantLimit', 'Winner Limit', 'number')}
                       >
                         Winners
@@ -683,7 +683,7 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
             <Button
               onClick={() => handleSendMessage()}
               disabled={!currentMessage.trim() || isLoading}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-white text-black hover:bg-slate-200"
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>

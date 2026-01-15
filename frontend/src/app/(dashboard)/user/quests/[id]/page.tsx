@@ -455,15 +455,15 @@ export default function QuestDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0b0b0b] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-purple-500 animate-spin" />
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-white animate-spin" />
       </div>
     );
   }
 
   if (!quest) {
     return (
-      <div className="min-h-screen bg-[#0b0b0b]">
+      <div className="min-h-screen bg-slate-950">
         <Navbar />
         <div className="container mx-auto px-4 py-8 text-center text-white">
           <h1 className="text-2xl font-bold mb-4">Quest Not Found</h1>
@@ -478,7 +478,7 @@ export default function QuestDetailPage() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-[#0b0b0b] text-gray-100 font-sans selection:bg-purple-500/30">
+    <div className="min-h-screen bg-slate-950 text-gray-100 font-sans selection:bg-white/20">
       <Navbar />
 
       <main className="container mx-auto px-4 pb-8 pt-28 md:pt-32 max-w-7xl">
@@ -499,7 +499,7 @@ export default function QuestDetailPage() {
           <div className="lg:col-span-8 space-y-8">
 
             {/* 1. Hero / Banner Section */}
-            <div className="relative group rounded-3xl overflow-hidden border border-white/5 bg-[#161616]">
+            <div className="relative group rounded-3xl overflow-hidden border border-white/5 bg-slate-900/50">
               {quest.bannerImage ? (
                 <div className="aspect-[21/9] w-full relative">
                   <img
@@ -507,10 +507,10 @@ export default function QuestDetailPage() {
                     alt={quest.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#161616] via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
                 </div>
               ) : (
-                <div className="aspect-[21/9] w-full bg-gradient-to-br from-purple-900/20 via-blue-900/10 to-[#161616] flex items-center justify-center">
+                <div className="aspect-[21/9] w-full bg-slate-900 flex items-center justify-center">
                   <Trophy className="h-20 w-20 text-white/5" />
                 </div>
               )}
@@ -570,8 +570,8 @@ export default function QuestDetailPage() {
                     disabled={tab === 'Tasks' && !participationStatus?.isParticipating}
                     className="
                       rounded-none border-b-2 border-transparent px-0 py-4 
-                      data-[state=active]:border-purple-500 data-[state=active]:bg-transparent 
-                      data-[state=active]:text-white text-gray-500 font-medium text-base
+                      data-[state=active]:border-white data-[state=active]:bg-transparent 
+                      data-[state=active]:text-white text-slate-500 font-medium text-base
                       hover:text-gray-300 transition-colors
                     "
                   >
@@ -591,15 +591,15 @@ export default function QuestDetailPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card className="bg-[#161616] border-white/5 hover:border-white/10 transition-colors">
+                    <Card className="bg-slate-900/50 border-white/5 hover:border-white/10 transition-colors">
                       <CardContent className="p-5 flex items-start gap-4">
-                        <div className="p-3 bg-purple-500/10 rounded-xl">
-                          <Trophy className="h-6 w-6 text-purple-400" />
+                        <div className="p-3 bg-white/5 rounded-xl">
+                          <Trophy className="h-6 w-6 text-white" />
                         </div>
                         <div>
                           <p className="text-sm text-gray-400 mb-1">Rewards</p>
                           <p className="text-xl font-bold text-white">
-                            {quest.rewardPool.amount} <span className="text-purple-400">{quest.rewardPool.currency}</span>
+                            {quest.rewardPool.amount} <span className="text-slate-300">{quest.rewardPool.currency}</span>
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
                             {quest.rewardPool.rewardType.toUpperCase()}
@@ -608,7 +608,7 @@ export default function QuestDetailPage() {
                       </CardContent>
                     </Card>
 
-                    <Card className="bg-[#161616] border-white/5 hover:border-white/10 transition-colors">
+                    <Card className="bg-slate-900/50 border-white/5 hover:border-white/10 transition-colors">
                       <CardContent className="p-5 flex items-start gap-4">
                         <div className="p-3 bg-blue-500/10 rounded-xl">
                           <Target className="h-6 w-6 text-blue-400" />
@@ -639,7 +639,7 @@ export default function QuestDetailPage() {
                   {/* Task Progress Bar */}
                   <div className="w-full bg-gray-800 rounded-full h-2 mb-8">
                     <div
-                      className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
+                      className="bg-white h-2 rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${progress}%` }}
                     ></div>
                   </div>
@@ -652,14 +652,14 @@ export default function QuestDetailPage() {
                                group relative rounded-xl border p-5 transition-all duration-300
                                ${task.isCompleted
                             ? 'bg-[#121212] border-green-900/30'
-                            : 'bg-[#161616] border-white/5 hover:border-purple-500/30 hover:bg-[#1a1a1a]'
+                            : 'bg-slate-900/50 border-white/5 hover:border-white/20 hover:bg-slate-900'
                           }
                             `}
                       >
                         <div className="flex items-start gap-4">
                           <div className={`
                                   shrink-0 w-10 h-10 rounded-full flex items-center justify-center
-                                  ${task.isCompleted ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-gray-400 group-hover:bg-purple-500/10 group-hover:text-purple-400'}
+                                  ${task.isCompleted ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:text-white'}
                                `}>
                             {task.isCompleted ? <CheckCircle className="h-5 w-5" /> : getTaskIcon(task.taskType)}
                           </div>
@@ -678,7 +678,7 @@ export default function QuestDetailPage() {
 
                           <div className="shrink-0 flex items-center gap-3">
                             {task.privilegePoints && (
-                              <div className="text-xs font-mono text-purple-400 bg-purple-950/20 px-2 py-1 rounded">
+                              <div className="text-xs font-mono text-slate-300 bg-white/5 px-2 py-1 rounded">
                                 +{task.privilegePoints} PTS
                               </div>
                             )}
@@ -705,7 +705,7 @@ export default function QuestDetailPage() {
 
                 {/* LEADERBOARD TAB */}
                 <TabsContent value="leaderboard" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                  <div className="rounded-xl border border-white/5 overflow-hidden bg-[#161616]">
+                  <div className="rounded-xl border border-white/5 overflow-hidden bg-slate-900/50">
                     <div className="grid grid-cols-12 gap-4 p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-white/5">
                       <div className="col-span-1 text-center">Rank</div>
                       <div className="col-span-5">User</div>
@@ -727,7 +727,7 @@ export default function QuestDetailPage() {
                             ) : `#${participant.rank}`}
                           </div>
                           <div className="col-span-5 flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+                            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden">
                               {participant.userId.profilePic ? (
                                 <img src={participant.userId.profilePic} alt={participant.userId.username} className="w-full h-full object-cover" />
                               ) : (
@@ -739,7 +739,7 @@ export default function QuestDetailPage() {
                               <p className="text-xs text-gray-500 truncate">@{participant.userId.username}</p>
                             </div>
                           </div>
-                          <div className="col-span-3 text-right font-mono text-purple-400">
+                          <div className="col-span-3 text-right font-mono text-white">
                             {participant.totalPrivilegePoints}
                           </div>
                           <div className="col-span-3 text-right text-gray-400 text-sm">
@@ -762,11 +762,11 @@ export default function QuestDetailPage() {
           <div className="lg:col-span-4 space-y-6">
             <div className="sticky top-24 space-y-6">
               {/* 1. Main Action Card */}
-              <Card className="border-0 bg-gradient-to-b from-[#1a1a1a] to-[#111111] shadow-2xl shadow-purple-900/10">
+              <Card className="border-white/10 bg-slate-900/50 shadow-none">
                 <CardHeader className="pb-2">
                   <p className="text-sm font-medium text-gray-400 uppercase tracking-widest">Time Remaining</p>
                   <div className="flex items-center gap-2 text-2xl font-mono text-white">
-                    <Clock className="w-6 h-6 text-purple-500" />
+                    <Clock className="w-6 h-6 text-white" />
                     {formatTimeRemaining(quest.timeRemaining)}
                   </div>
                 </CardHeader>
@@ -792,7 +792,7 @@ export default function QuestDetailPage() {
                               w-full h-14 text-lg font-bold rounded-xl transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
                               ${!user
                           ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                          : 'bg-white text-black hover:bg-purple-50 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]'
+                          : 'bg-white text-black hover:bg-slate-200 shadow-none border border-white/10'
                         }
                            `}
                     >
@@ -841,7 +841,7 @@ export default function QuestDetailPage() {
               </Card>
 
               {/* 2. Requirements / Info */}
-              <div className="bg-[#161616] rounded-2xl p-6 border border-white/5 space-y-4">
+              <div className="bg-slate-900/50 rounded-2xl p-6 border border-white/5 space-y-4">
                 <h4 className="font-semibold text-white">Requirements</h4>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3 text-sm text-gray-400">
@@ -867,10 +867,10 @@ export default function QuestDetailPage() {
 
         {/* Task Submission Modal */}
         <Dialog open={showTaskModal} onOpenChange={setShowTaskModal}>
-          <DialogContent className="bg-[#121212] border-white/10 text-white sm:max-w-xl">
+          <DialogContent className="bg-slate-950 border-white/10 text-white sm:max-w-xl">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400">
+                <div className="p-2 bg-white/10 rounded-lg text-white">
                   <Target className="h-5 w-5" />
                 </div>
                 Complete Task
@@ -889,7 +889,7 @@ export default function QuestDetailPage() {
 
                 {/* Dynamic Instructions */}
                 <div className="space-y-4">
-                  <Label className="text-purple-400 text-xs uppercase font-bold tracking-wider">
+                  <Label className="text-white text-xs uppercase font-bold tracking-wider">
                     Action Required
                   </Label>
                   <div className="text-sm text-gray-300">
@@ -902,7 +902,7 @@ export default function QuestDetailPage() {
                   {selectedTask.taskType === 'upload_screenshot' && (
                     <div className="space-y-3">
                       <Label className="text-white">Upload Proof</Label>
-                      <div className="border-2 border-dashed border-gray-700 hover:border-purple-500/50 rounded-xl p-8 text-center transition-colors bg-white/5">
+                      <div className="border-2 border-dashed border-gray-700 hover:border-white/50 rounded-xl p-8 text-center transition-colors bg-white/5">
                         <Input
                           id="task-image"
                           type="file"
@@ -939,7 +939,7 @@ export default function QuestDetailPage() {
                         placeholder="https://twitter.com/..."
                         value={submissionLink}
                         onChange={(e) => setSubmissionLink(e.target.value)}
-                        className="bg-[#0f0f0f] border-gray-800 text-white h-12"
+                        className="bg-slate-900 border-white/10 text-white h-12"
                       />
                     </div>
                   )}
@@ -949,7 +949,7 @@ export default function QuestDetailPage() {
                       {/* Target Link Button */}
                       {(selectedTask.config?.communityId || quest?.communityId || selectedTask.config?.targetUserId) && (
                         <Button
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 gap-2"
+                          className="w-full bg-white text-black hover:bg-slate-200 h-12 gap-2"
                           onClick={() => {
                             let url = '#';
                             if (selectedTask.taskType === 'join_community') {
@@ -1014,7 +1014,7 @@ export default function QuestDetailPage() {
                           placeholder="Your username"
                           value={submissionText}
                           onChange={(e) => setSubmissionText(e.target.value)}
-                          className="bg-[#0f0f0f] border-gray-800 text-white h-12"
+                          className="bg-slate-900 border-white/10 text-white h-12"
                         />
                       </div>
 
@@ -1056,7 +1056,7 @@ export default function QuestDetailPage() {
                         placeholder="https://..."
                         value={submissionLink}
                         onChange={(e) => setSubmissionLink(e.target.value)}
-                        className="bg-[#0f0f0f] border-gray-800 text-white h-12"
+                        className="bg-slate-900 border-white/10 text-white h-12"
                       />
                       <Label className="text-white">Image (Optional)</Label>
                       <Input

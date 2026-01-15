@@ -478,7 +478,7 @@ export default function CreateQuestPage() {
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-white">
               Create New Quest
             </h1>
             <p className="text-gray-400 mt-2">Design engaging quests to grow your community and reward participants</p>
@@ -486,12 +486,12 @@ export default function CreateQuestPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-black/60 backdrop-blur-xl border border-purple-800/30">
-            <TabsTrigger value="manual" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white">
+          <TabsList className="grid w-full grid-cols-2 bg-slate-900/50 backdrop-blur-xl border border-white/10">
+            <TabsTrigger value="manual" className="data-[state=active]:bg-white data-[state=active]:text-black">
               <Trophy className="h-4 w-4 mr-2" />
               Manual Creation
             </TabsTrigger>
-            <TabsTrigger value="ai" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white">
+            <TabsTrigger value="ai" className="data-[state=active]:bg-white data-[state=active]:text-black">
               <Sparkles className="h-4 w-4 mr-2" />
               AI Assistant
             </TabsTrigger>
@@ -501,7 +501,7 @@ export default function CreateQuestPage() {
           <TabsContent value="manual" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Basic Information */}
-              <Card className="lg:col-span-2 bg-black/60 backdrop-blur-xl border-purple-800/30">
+              <Card className="lg:col-span-2 bg-slate-900/50 backdrop-blur-xl border-white/10">
                 <CardHeader>
                   <CardTitle>Basic Information</CardTitle>
                 </CardHeader>
@@ -635,8 +635,8 @@ export default function CreateQuestPage() {
                       </SelectContent>
                     </Select>
                     {questData.selectionMethod === 'leaderboard' && (
-                      <div className="mt-2 p-3 bg-purple-950/30 border border-purple-600/30 rounded-lg">
-                        <div className="flex items-center gap-2 text-purple-400 text-sm">
+                      <div className="mt-2 p-3 bg-slate-800/50 border border-white/10 rounded-lg">
+                        <div className="flex items-center gap-2 text-slate-300 text-sm">
                           <Crown className="h-4 w-4" />
                           <span>Leaderboard Mode: Assign privilege points (1-10) to each task for ranking</span>
                         </div>
@@ -653,7 +653,7 @@ export default function CreateQuestPage() {
                           <img src={bannerPreview} alt="Quest banner" className="h-full w-full object-cover" />
                         ) : (
                           <div className="h-full w-full flex items-center justify-center">
-                            <Badge className="bg-purple-500/20 text-purple-300">No Banner</Badge>
+                            <Badge className="bg-white/10 text-white">No Banner</Badge>
                           </div>
                         )}
                       </div>
@@ -688,7 +688,7 @@ export default function CreateQuestPage() {
               </Card>
 
               {/* Reward Configuration */}
-              <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+              <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
                 <CardHeader>
                   <CardTitle>Reward Pool</CardTitle>
                 </CardHeader>
@@ -804,14 +804,14 @@ export default function CreateQuestPage() {
             </div>
 
             {/* Quest Tasks */}
-            <Card className="bg-black/60 backdrop-blur-xl border-purple-800/30">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Quest Tasks</span>
                   <Button
                     onClick={addTask}
                     size="sm"
-                    className="bg-purple-600 hover:bg-purple-700"
+                    className="bg-white text-black hover:bg-slate-200"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Task
@@ -836,10 +836,10 @@ export default function CreateQuestPage() {
                 ) : (
                   <div className="space-y-4">
                     {questData.tasks.map((task, index) => (
-                      <Card key={index} className="bg-gray-800/50 border-gray-700">
+                      <Card key={index} className="bg-slate-800/50 border-white/10">
                         <CardContent className="p-4 space-y-4">
                           <div className="flex items-center justify-between">
-                            <Badge variant="outline" className="text-purple-400 border-purple-600">
+                            <Badge variant="outline" className="text-white border-white">
                               Task {index + 1}
                             </Badge>
                             <Button
@@ -1005,7 +1005,7 @@ export default function CreateQuestPage() {
               <Button
                 onClick={handleCreateQuest}
                 disabled={loading}
-                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white"
+                className="bg-white text-black hover:bg-slate-200"
               >
                 {loading ? (
                   <>
