@@ -129,7 +129,7 @@ export default function CommunityPage() {
     <div className="w-full min-h-screen">
       <div className="space-y-4">
         {/* Live ChainCasts Banner */}
-        <div className="px-4 pt-4">
+        <div className="px-4 pt-[29px]">
           <ChainCastJoinButton
             variant="card"
             showDetails={true}

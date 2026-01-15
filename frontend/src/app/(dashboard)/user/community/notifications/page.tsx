@@ -66,7 +66,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="sticky top-[4.5rem] bg-slate-950/80 backdrop-blur-md border-b border-slate-800 p-0 z-10 -mx-[1px] -mt-[1px]">
+      <div className="sticky top-[4.5rem] bg-slate-950/80 backdrop-blur-md border-b border-slate-800 p-0 pt-[13px] z-10 -mx-[1px] -mt-[1px]">
         <div className="px-4 py-3">
           <h2 className="text-xl font-bold text-white">Notifications</h2>
         </div>

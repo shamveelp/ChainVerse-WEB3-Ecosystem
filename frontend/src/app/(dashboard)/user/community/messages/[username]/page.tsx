@@ -315,22 +315,25 @@ export default function ChatPage({ params }: ChatPageProps) {
 
   const participant = currentConversation?.participants[0]
 
-  return (
-    <div className="flex min-h-screen bg-slate-950">
-      {/* Left Sidebar */}
-      <Sidebar />
+  // Helper to scroll to bottom
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
 
-      {/* Main Chat Area */}
-      <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen flex flex-col pt-16">
-        {/* Chat Header - Fixed */}
-        <div className="fixed top-16 left-0 right-0 lg:ml-80 xl:mr-80 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/50 p-4 z-30">
+  return (
+    <div className="w-full min-h-screen bg-slate-950 flex justify-center">
+      <div className="w-full max-w-2xl border-x border-slate-800 h-screen flex flex-col bg-slate-950">
+        {/* Chat Header - Sticky */}
+        <div className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/50 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleBack}
-                className="text-slate-400 hover:text-white md:hidden"
+                className="text-slate-400 hover:text-white"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
@@ -386,10 +389,10 @@ export default function ChatPage({ params }: ChatPageProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hidden sm:flex">
                 <Phone className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hidden sm:flex">
                 <Video className="h-4 w-4" />
               </Button>
               <DropdownMenu>
@@ -418,8 +421,8 @@ export default function ChatPage({ params }: ChatPageProps) {
         </div>
 
         {/* Messages Area */}
-        <ScrollArea className="flex-1 pt-16 pb-20" ref={messagesContainerRef}>
-          <div className="p-4 space-y-4 max-w-4xl mx-auto">
+        <ScrollArea className="flex-1" ref={messagesContainerRef}>
+          <div className="p-4 space-y-4">
             {/* Load More Trigger */}
             {currentConversation && hasMoreMessages[currentConversation._id] && (
               <div ref={loadMoreRef} className="flex justify-center py-2">
@@ -449,7 +452,7 @@ export default function ChatPage({ params }: ChatPageProps) {
                   )}
                 >
                   {!isOwnMessage && (
-                    <div className="w-8 flex justify-center">
+                    <div className="w-8 flex justify-center flex-shrink-0">
                       {showAvatar ? (
                         <Avatar className="w-8 h-8">
                           <AvatarImage src={message.sender.profilePic} alt={message.sender.name} />
@@ -462,7 +465,7 @@ export default function ChatPage({ params }: ChatPageProps) {
                   )}
 
                   <div className={cn(
-                    "max-w-xs md:max-w-md lg:max-w-lg group",
+                    "max-w-[75%] md:max-w-[80%] group",
                     isOwnMessage ? "order-2" : "order-1"
                   )}>
                     {editingMessage?.id === message._id ? (
@@ -584,9 +587,9 @@ export default function ChatPage({ params }: ChatPageProps) {
           </div>
         </ScrollArea>
 
-        {/* Message Input Area - Fixed at Bottom */}
-        <div className="fixed bottom-0 left-0 right-0 lg:ml-80 xl:mr-80 bg-slate-900/50 border-t border-slate-700/50 p-4 z-20">
-          <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto">
+        {/* Message Input Area - Bottom */}
+        <div className="bg-slate-900/50 border-t border-slate-700/50 p-4 sticky bottom-0 z-20 backdrop-blur-sm">
+          <form onSubmit={handleSendMessage} className="w-full">
             <div className="flex items-end gap-3">
               <div className="flex-1 relative">
                 <Textarea
@@ -617,37 +620,34 @@ export default function ChatPage({ params }: ChatPageProps) {
             </div>
           </form>
         </div>
-      </main>
 
-      {/* Right Sidebar */}
-      <RightSidebar />
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={!!showDeleteDialog} onOpenChange={() => setShowDeleteDialog(null)}>
-        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700">
-          <DialogHeader>
-            <DialogTitle className="text-white">Delete Message</DialogTitle>
-            <DialogDescription className="text-slate-400">
-              Are you sure you want to delete this message? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteDialog(null)}
-              className="border-slate-600 hover:bg-slate-800"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => showDeleteDialog && handleDeleteMessage(showDeleteDialog)}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={!!showDeleteDialog} onOpenChange={() => setShowDeleteDialog(null)}>
+          <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700">
+            <DialogHeader>
+              <DialogTitle className="text-white">Delete Message</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Are you sure you want to delete this message? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteDialog(null)}
+                className="border-slate-600 hover:bg-slate-800"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => showDeleteDialog && handleDeleteMessage(showDeleteDialog)}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   )
 }

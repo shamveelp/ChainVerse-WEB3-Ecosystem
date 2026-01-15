@@ -44,7 +44,6 @@ export default function CommunityLayout({
     <div className="min-h-screen bg-slate-950">
       <Navbar />
 
-      {/* Sidebars */}
       <Sidebar />
       <RightSidebar />
 
@@ -52,11 +51,11 @@ export default function CommunityLayout({
       <div className={cn(
         "pt-[4.5rem] min-h-screen pb-20 lg:pb-0",
         "lg:ml-[88px] xl:ml-[275px]",
-        !isMessagesPage && "xl:mr-80"
+        "xl:mr-80"
       )}>
         <div className={cn(
-          "mx-auto min-h-screen border-slate-800",
-          isMessagesPage ? "w-full border-0" : "max-w-[600px] w-full border-x"
+          "min-h-screen border-slate-800",
+          isMessagesPage ? "w-full border-0" : "mx-auto max-w-[600px] w-full border-x mb-20 md:mb-0"
         )}>
           {children}
         </div>

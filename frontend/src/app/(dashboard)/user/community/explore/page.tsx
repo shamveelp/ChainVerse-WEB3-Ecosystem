@@ -404,7 +404,7 @@ export default function ExplorePage() {
     <div className="min-h-screen">
       <div className="space-y-0">
         {/* Header */}
-        <div className="sticky top-[4.5rem] bg-slate-950/80 backdrop-blur-md border-b border-slate-800 p-4 z-10 -mx-[1px] -mt-[1px]">
+        <div className="sticky top-[4.5rem] bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-4 pb-2 pt-[29px] z-10 -mx-[1px] -mt-[1px]">
           {/* Search Bar */}
           <div className="relative mb-2">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />

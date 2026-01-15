@@ -215,7 +215,7 @@ export default function PostCard({
     const parts = post.content.split(/(\#\w+|\@\w+|https?:\/\/[^\s]+)/g)
 
     return (
-      <p className="text-white whitespace-pre-wrap leading-relaxed text-base">
+      <p className="text-white whitespace-pre-wrap leading-relaxed text-base break-words">
         {parts.map((part, index) => {
           if (part.startsWith('#')) {
             return (
