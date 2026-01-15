@@ -534,15 +534,21 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
       });
 
       if (socket.userId) {
-        userSocketMap.delete(socket.userId);
-        socketUserMap.delete(socket.id);
+        // Only delete from userSocketMap if the stored socketId matches the disconnecting socket
+        // This prevents removing the mapping for a valid new connection during a race condition
+        const currentSocketId = userSocketMap.get(socket.userId);
+        if (currentSocketId === socket.id) {
+          userSocketMap.delete(socket.userId);
 
-        // Notify others that user is offline
-        socket.broadcast.emit('user_status_changed', {
-          userId: socket.userId,
-          isOnline: false,
-          lastSeen: new Date()
-        });
+          // Notify others that user is offline only if their active socket is gone
+          socket.broadcast.emit('user_status_changed', {
+            userId: socket.userId,
+            isOnline: false,
+            lastSeen: new Date()
+          });
+        }
+
+        socketUserMap.delete(socket.id);
       }
     });
 
