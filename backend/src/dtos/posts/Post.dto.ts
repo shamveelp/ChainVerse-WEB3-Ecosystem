@@ -225,3 +225,21 @@ export class PostStatsDto {
     todayPosts: number | undefined;
     weekPosts: number | undefined;
 }
+
+// Post Liker DTO
+export class PostLikerDto {
+    _id: string | undefined;
+    username: string | undefined;
+    name: string | undefined;
+    profilePic: string | undefined;
+    isVerified: boolean | undefined;
+    likedAt: Date | undefined;
+}
+
+// Likers List Response DTO
+export class LikersListResponseDto {
+    users: PostLikerDto[] | undefined;
+    hasMore: boolean | undefined;
+    nextCursor?: string;
+    totalCount?: number;
+}

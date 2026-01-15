@@ -1,8 +1,11 @@
 import { injectable, inject } from "inversify";
+import { Types } from "mongoose";
 import { TYPES } from "../../core/types/types";
 import { IDexSwapService } from "../../core/interfaces/services/dex/IDexSwap.service";
 import { IDexSwapRepository } from "../../core/interfaces/repositories/dex/IDexSwap.repository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
+import { ISwapTransaction } from "../../models/dexSwap.model";
+import { ITradingPair } from "../../models/tradingPair.model";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
@@ -15,7 +18,9 @@ import {
     ChartDataResponseDto,
     SwapHistoryResponseDto,
     TradingStatsDto,
-    TokenPriceResponseDto
+    TokenPriceResponseDto,
+    DexOverallStatsDto,
+    UserTradingStatsDto
 } from "../../dtos/dex/DexSwap.dto";
 
 @injectable()
@@ -41,7 +46,7 @@ export class DexSwapService implements IDexSwapService {
 
             // Create swap transaction
             const transaction = await this._dexSwapRepository.createSwapTransaction({
-                userId: userId as any,
+                userId: new Types.ObjectId(userId) as unknown as Types.ObjectId,
                 walletAddress: swapData.walletAddress,
                 txHash: swapData.txHash,
                 fromToken: swapData.fromToken,
@@ -265,18 +270,20 @@ export class DexSwapService implements IDexSwapService {
         }
     }
 
-    async getOverallDEXStats(): Promise<any> {
+    async getOverallDEXStats(): Promise<DexOverallStatsDto> {
         try {
-            return await this._dexSwapRepository.getDEXOverallStats();
+            const stats = await this._dexSwapRepository.getDEXOverallStats();
+            return new DexOverallStatsDto(stats);
         } catch (error) {
             logger.error("Get overall DEX stats error:", error);
             throw error instanceof CustomError ? error : new CustomError("Failed to get DEX stats", StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
-    async getUserTradingStats(userId: string): Promise<any> {
+    async getUserTradingStats(userId: string): Promise<UserTradingStatsDto> {
         try {
-            return await this._dexSwapRepository.getUserTradingStats(userId);
+            const stats = await this._dexSwapRepository.getUserTradingStats(userId);
+            return new UserTradingStatsDto(stats);
         } catch (error) {
             logger.error("Get user trading stats error:", error);
             throw error instanceof CustomError ? error : new CustomError("Failed to get user trading stats", StatusCode.INTERNAL_SERVER_ERROR);
@@ -317,7 +324,7 @@ export class DexSwapService implements IDexSwapService {
                     const price = this._calculateTokenPrice(latestSwap, token);
 
                     await this.updateTokenPrice({
-                        token: token as any,
+                        token: token as 'ETH' | 'CoinA' | 'CoinB',
                         priceInETH: token === 'ETH' ? 1 : price,
                         priceInUSD: token === 'ETH' ? 2000 : price * 2000, // Assuming ETH = $2000
                         volume24h: 0,
@@ -357,7 +364,7 @@ export class DexSwapService implements IDexSwapService {
     }
 
     // Private helper methods
-    private async _updateTokenPricesFromSwap(swap: any): Promise<void> {
+    private async _updateTokenPricesFromSwap(swap: ISwapTransaction): Promise<void> {
         try {
             const fromTokenPrice = this._calculateTokenPrice(swap, swap.fromToken);
             const toTokenPrice = this._calculateTokenPrice(swap, swap.toToken);
@@ -387,7 +394,7 @@ export class DexSwapService implements IDexSwapService {
         }
     }
 
-    private async _updateTradingPairFromSwap(swap: any): Promise<void> {
+    private async _updateTradingPairFromSwap(swap: ISwapTransaction): Promise<void> {
         try {
             const symbol = `${swap.fromToken}/${swap.toToken}`;
             const currentPrice = swap.exchangeRate;
@@ -413,7 +420,7 @@ export class DexSwapService implements IDexSwapService {
         }
     }
 
-    private _calculateTokenPrice(swap: any, token: string): number {
+    private _calculateTokenPrice(swap: ISwapTransaction, token: string): number {
         if (token === 'ETH') {
             return 1; // ETH base price
         }
@@ -427,7 +434,7 @@ export class DexSwapService implements IDexSwapService {
         return 0.001; // Default fallback
     }
 
-    private _calculatePairStats(swaps: any[], baseToken: string, quoteToken: string): any {
+    private _calculatePairStats(swaps: ISwapTransaction[], baseToken: string, quoteToken: string): Partial<ITradingPair> {
         const volume24h = swaps.reduce((sum, swap) => {
             return sum + parseFloat(swap.fromToken === baseToken ? swap.actualFromAmount : swap.actualToAmount);
         }, 0);

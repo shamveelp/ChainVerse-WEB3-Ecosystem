@@ -94,3 +94,37 @@ export class GetConversionsAdminQueryDto {
   @IsString({ message: 'Status must be a string' })
   status?: string;
 }
+
+export class ConversionResponseDto {
+  id!: string;
+  user!: {
+    id: string;
+    username: string;
+    email: string;
+    profilePic: string;
+  };
+  pointsConverted!: number;
+  cvcAmount!: number;
+  conversionRate!: number;
+  status!: string;
+  transactionHash?: string;
+  claimFee?: number;
+  walletAddress?: string;
+  adminNote?: string;
+  approvedBy?: string;
+  approvedAt?: Date;
+  claimedAt?: Date;
+  createdAt!: Date;
+}
+
+export class ConversionRateResponseDto {
+  id!: string;
+  pointsPerCVC!: number;
+  minimumPoints!: number;
+  minimumCVC!: number;
+  claimFeeETH!: string;
+  isActive!: boolean;
+  effectiveFrom!: Date;
+  createdBy?: string;
+  createdAt!: Date;
+}

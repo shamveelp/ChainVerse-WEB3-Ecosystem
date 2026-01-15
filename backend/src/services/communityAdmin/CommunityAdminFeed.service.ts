@@ -9,14 +9,19 @@ import { ICommunityAdminRepository } from "../../core/interfaces/repositories/IC
 import { IPostRepository } from "../../core/interfaces/repositories/posts/IPost.repository";
 import { ICommunityRepository } from "../../core/interfaces/repositories/ICommunity.repository";
 import CommunityMemberModel from "../../models/communityMember.model";
+import { IPost } from "../../models/post.models";
+import { IComment } from "../../models/comment.models";
 import {
     CommunityFeedResponseDto,
-    CommunityEngagementStatsDto
+    CommunityEngagementStatsDto,
+    AdminPostResponseDto,
+    MemberActivityDto
 } from "../../dtos/communityAdmin/CommunityAdminFeed.dto";
 import {
     CreateCommentDto,
     LikeResponseDto,
-    ShareResponseDto
+    ShareResponseDto,
+    CommentResponseDto
 } from "../../dtos/posts/Post.dto";
 
 @injectable()
@@ -44,7 +49,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
             const communityId = admin.communityId.toString();
 
-            let postsResult: any;
+            let postsResult: { posts: IPost[]; hasMore: boolean; nextCursor?: string };
 
             switch (type) {
                 case 'allPosts':
@@ -68,7 +73,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
 
             // Transform posts with admin context
             const transformedPosts = await Promise.all(
-                postsResult.posts.map((post: any) => this._transformPostForAdmin(post, adminId))
+                postsResult.posts.map((post: IPost) => this._transformPostForAdmin(post, adminId))
             );
 
             const communityStats = await this._getCommunityStats(communityId);
@@ -145,12 +150,12 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
     }
 
     /**
-     * Creates a comment on a post.
-     * @param {string} adminId - Admin ID.
-     * @param {CreateCommentDto} data - Comment data.
-     * @returns {Promise<any>} Created comment.
+     * 
+     * @param adminId 
+     * @param data 
+     * @returns 
      */
-    async createComment(adminId: string, data: CreateCommentDto): Promise<any> {
+    async createComment(adminId: string, data: CreateCommentDto): Promise<CommentResponseDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -241,7 +246,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
      * @param {string} [period='week'] - Period.
      * @returns {Promise<CommunityEngagementStatsDto>} Engagement stats.
      */
-    async getEngagementStats(adminId: string, period: string = 'week'): Promise<CommunityEngagementStatsDto> {
+    async getEngagementStats(adminId: string, period: 'today' | 'week' | 'month' = 'week'): Promise<CommunityEngagementStatsDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -315,7 +320,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
         }
     }
 
-    async pinPost(adminId: string, postId: string): Promise<any> {
+    async pinPost(adminId: string, postId: string): Promise<{ success: boolean; postId: string; isPinned: boolean; message: string }> {
         try {
 
 
@@ -361,12 +366,12 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
     }
 
     /**
-     * Retrieves a post by its ID.
-     * @param {string} adminId - Admin ID.
-     * @param {string} postId - Post ID.
-     * @returns {Promise<any>} Post object.
+     * 
+     * @param adminId 
+     * @param postId 
+     * @returns 
      */
-    async getPostById(adminId: string, postId: string): Promise<any> {
+    async getPostById(adminId: string, postId: string): Promise<AdminPostResponseDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -387,14 +392,14 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
     }
 
     /**
-     * Retrieves comments for a post.
-     * @param {string} adminId - Admin ID.
-     * @param {string} postId - Post ID.
-     * @param {string} [cursor] - Pagination cursor.
-     * @param {number} [limit=10] - Number of items.
-     * @returns {Promise<any>} Comments data.
+     * 
+     * @param adminId 
+     * @param postId 
+     * @param cursor 
+     * @param limit 
+     * @returns 
      */
-    async getPostComments(adminId: string, postId: string, cursor?: string, limit: number = 10): Promise<any> {
+    async getPostComments(adminId: string, postId: string, cursor?: string, limit: number = 10): Promise<{ comments: CommentResponseDto[]; hasMore: boolean; nextCursor?: string }> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -404,7 +409,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
             const result = await this._postRepository.getPostComments(postId, cursor, limit);
 
             const transformedComments = await Promise.all(
-                result.comments.map((comment: any) => this._transformCommentForAdmin(comment, adminId))
+                result.comments.map((comment: IComment) => this._transformCommentForAdmin(comment, adminId))
             );
 
             return {
@@ -420,13 +425,13 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
     }
 
     /**
-     * Deletes a post.
-     * @param {string} adminId - Admin ID.
-     * @param {string} postId - Post ID.
-     * @param {string} [reason] - Reason for deletion.
-     * @returns {Promise<any>} Deletion response.
+     * 
+     * @param adminId 
+     * @param postId 
+     * @param reason 
+     * @returns 
      */
-    async deletePost(adminId: string, postId: string, reason?: string): Promise<any> {
+    async deletePost(adminId: string, postId: string, reason?: string): Promise<{ success: boolean; postId: string; deletedBy: string; reason: string; message: string }> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -450,7 +455,7 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
                 throw new CustomError(ErrorMessages.POST_NOT_FOUND_OR_UNAUTHORIZED, StatusCode.FORBIDDEN);
             }
 
-            // Delete the post (admin has authority to delete any post in their community)
+            // Delete the post (admin has authority to delete post in their community)
             const success = await this._postRepository.deletePostByAdmin(postId, adminId, reason);
             if (!success) {
                 throw new CustomError(ErrorMessages.FAILED_DELETE_POST, StatusCode.INTERNAL_SERVER_ERROR);
@@ -473,11 +478,11 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
     }
 
     /**
-     * Retrieves internal community stats.
-     * @param {string} communityId - Community ID.
-     * @returns {Promise<any>} Stats object.
+     * 
+     * @param communityId 
+     * @returns 
      */
-    private async _getCommunityStats(communityId: string): Promise<any> {
+    private async _getCommunityStats(communityId: string): Promise<{ totalMembers: number; activeMembersToday: number; postsToday: number; engagementRate: number }> {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -507,34 +512,28 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
     }
 
     /**
-     * Transforms post for admin view.
-     * @param {any} post - Post object.
-     * @param {string} adminId - Admin ID.
-     * @returns {Promise<any>} Transformed post.
+     * 
+     * @param post 
+     * @param adminId 
+     * @returns 
      */
-    private async _transformPostForAdmin(post: any, adminId: string): Promise<any> {
+    private async _transformPostForAdmin(post: IPost, adminId: string): Promise<AdminPostResponseDto> {
         // Check if admin liked the post
         const isLiked = await this._postRepository.checkIfLiked(adminId, post._id.toString());
 
-        return {
+        return new AdminPostResponseDto({
             ...post,
-            isLiked,
-            isOwnPost: false, // Admin is not the post owner
-            canModerate: true, // Admin can moderate all posts in their community
-            author: {
-                ...post.author,
-                isCommunityMember: true
-            }
-        };
+            isLiked
+        });
     }
 
     /**
-     * Transforms comment for admin view.
-     * @param {any} comment - Comment object.
-     * @param {string} adminId - Admin ID.
-     * @returns {Promise<any>} Transformed comment.
+     * 
+     * @param comment 
+     * @param adminId 
+     * @returns 
      */
-    private async _transformCommentForAdmin(comment: any, adminId: string): Promise<any> {
+    private async _transformCommentForAdmin(comment: IComment, adminId: string): Promise<CommentResponseDto> {
         // Check if admin liked the comment
         const isLiked = await this._postRepository.checkIfCommentLiked(adminId, comment._id.toString());
 
@@ -543,16 +542,16 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
             isLiked,
             isOwnComment: false, // Admin is not the comment owner
             canModerate: true // Admin can moderate all comments in their community
-        };
+        } as unknown as CommentResponseDto; // Type assertion needed or mappping
     }
 
     /**
-     * Calculates engagement stats for member list.
-     * @param {string[]} memberIds - Member IDs.
-     * @param {Date} startDate - Start date.
-     * @returns {Promise<any>} Engagement stats.
+     * 
+     * @param memberIds 
+     * @param startDate 
+     * @returns 
      */
-    private async _getEngagementStatsForMembers(memberIds: string[], startDate: Date): Promise<any> {
+    private async _getEngagementStatsForMembers(memberIds: string[], startDate: Date): Promise<{ totalPosts: number; totalLikes: number; totalComments: number; totalShares: number; activeMembers: number }> {
         const postStats = await this._postRepository.getPostStats();
         const postsAfterDate = await this._postRepository.getPostCountByUsersAfterDate(memberIds, startDate);
 
@@ -574,9 +573,9 @@ export class CommunityAdminFeedService implements ICommunityAdminFeedService {
      * @param {string} communityId - Community ID.
      * @param {Date} startDate - Start date.
      * @param {string} period - Period string.
-     * @returns {Promise<any[]>} Activity data array.
+     * @returns {Promise<MemberActivityDto[]>} Activity data array.
      */
-    private async _getMemberActivityData(communityId: string, startDate: Date, period: string): Promise<any[]> {
+    private async _getMemberActivityData(_communityId: string, _startDate: Date, _period: string): Promise<MemberActivityDto[]> {
         // This would generate activity data over time
         // For now, return empty array - implement based on your requirements
         return [];

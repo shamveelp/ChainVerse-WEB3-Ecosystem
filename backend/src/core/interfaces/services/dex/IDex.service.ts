@@ -11,16 +11,16 @@ export interface IDexService {
     transactionHash: string;
     network?: string;
   }): Promise<ITransaction>;
-  
+
   getSwapQuote(fromToken: string, toToken: string, amount: string): Promise<{
     toAmount: string;
     priceImpact: number;
     slippage: number;
   }>;
-  
+
   getTransactionHistory(walletAddress: string, page?: number, limit?: number): Promise<{ transactions: ITransaction[], total: number }>;
   getTransactionDetails(hash: string): Promise<ITransaction | null>;
   getAvailablePairs(): Promise<Array<{ token0: ICoin, token1: ICoin }>>;
-  updateTransactionStatus(hash: string, status: 'completed' | 'failed', additionalData?: any): Promise<ITransaction>;
+  updateTransactionStatus(hash: string, status: 'completed' | 'failed', additionalData?: Partial<ITransaction>): Promise<ITransaction>;
   validateSwapParameters(fromToken: string, toToken: string, amount: string): Promise<boolean>;
 }

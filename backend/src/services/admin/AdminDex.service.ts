@@ -1,5 +1,6 @@
 import { injectable, inject } from "inversify";
 import { IAdminDexService } from "../../core/interfaces/services/admin/IAdminDex.service";
+import { PaginatedPayments } from "../../core/interfaces/repositories/IPayment.repository";
 import { IPaymentRepository } from "../../core/interfaces/repositories/IPayment.repository";
 import { TYPES } from "../../core/types/types";
 import { IPayment } from "../../models/payment.model";
@@ -15,13 +16,13 @@ export class AdminDexService implements IAdminDexService {
   ) { }
 
   /**
-   * Retrieves all payments with pagination.
-   * @param {number} [page=1] - Page number.
-   * @param {number} [limit=10] - Items per page.
-   * @param {string} [status] - Filter by status.
-   * @returns {Promise<any>} Paginated payments.
+   * 
+   * @param page 
+   * @param limit 
+   * @param status 
+   * @returns 
    */
-  async getAllPayments(page: number = 1, limit: number = 10, status?: string) {
+  async getAllPayments(page: number = 1, limit: number = 10, status?: string): Promise<PaginatedPayments> {
     try {
       return await this._paymentRepository.findAllWithPagination(page, limit, status);
     } catch (error) {
@@ -158,11 +159,17 @@ export class AdminDexService implements IAdminDexService {
   }
 
   /**
-   * Retrieves payment statistics.
-   * @returns {Promise<any>} Payment stats.
-   * @throws {CustomError} If retrieval fails.
+   * 
+   * @returns 
    */
-  async getPaymentStats() {
+  async getPaymentStats(): Promise<{
+    totalPayments: number;
+    pendingCount: number;
+    successCount: number;
+    failedCount: number;
+    fulfilledCount: number;
+    rejectedCount: number;
+  }> {
     try {
       const [
         totalPayments,

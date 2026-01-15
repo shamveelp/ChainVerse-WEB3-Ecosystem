@@ -14,6 +14,7 @@ import {
   ConversationResponseDto,
   ParticipantDto,
 } from "../../dtos/chat/Chat.dto";
+import { Types } from "mongoose";
 import logger from "../../utils/logger";
 
 @injectable()
@@ -87,37 +88,45 @@ export class ChatService implements IChatService {
 
       // Create message
       const message = await this._chatRepository.createMessage(
-        conversation._id
-          ? conversation._id.toString()
-          : (conversation as any).id.toString(),
+        conversation._id.toString(),
         senderId,
         content.trim()
       );
 
       // Transform message response
-      const sender = message.sender as any;
+      const populatedMessage = message as unknown as {
+        _id: Types.ObjectId;
+        conversationId: Types.ObjectId;
+        sender: { _id: Types.ObjectId; username: string; name?: string; profilePic?: string; community?: { isVerified: boolean } };
+        content: string;
+        messageType: 'text';
+        readBy: Array<{ user: Types.ObjectId; readAt: Date }>;
+        editedAt?: Date;
+        isDeleted: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+
       const messageResponse: MessageResponseDto = {
-        _id: message._id
-          ? message._id.toString()
-          : (message as any).id.toString(),
-        conversationId: message.conversationId.toString(),
+        _id: populatedMessage._id.toString(),
+        conversationId: populatedMessage.conversationId.toString(),
         sender: {
-          _id: sender._id ? sender._id.toString() : sender.id.toString(),
-          username: sender.username || "",
-          name: sender.name || sender.username || "",
-          profilePic: sender.profilePic || "",
-          isVerified: sender.community?.isVerified || false,
+          _id: populatedMessage.sender._id.toString(),
+          username: populatedMessage.sender.username || "",
+          name: populatedMessage.sender.name || populatedMessage.sender.username || "",
+          profilePic: populatedMessage.sender.profilePic || "",
+          isVerified: populatedMessage.sender.community?.isVerified || false,
         },
-        content: message.content,
-        messageType: message.messageType,
-        readBy: message.readBy.map((r) => ({
+        content: populatedMessage.content,
+        messageType: populatedMessage.messageType,
+        readBy: populatedMessage.readBy.map((r) => ({
           user: r.user.toString(),
           readAt: r.readAt,
         })),
-        editedAt: message.editedAt,
-        isDeleted: message.isDeleted,
-        createdAt: message.createdAt,
-        updatedAt: message.updatedAt,
+        editedAt: populatedMessage.editedAt,
+        isDeleted: populatedMessage.isDeleted,
+        createdAt: populatedMessage.createdAt,
+        updatedAt: populatedMessage.updatedAt,
         isOwnMessage: true,
       };
 
@@ -132,9 +141,7 @@ export class ChatService implements IChatService {
         },
       ];
 
-      const conversationId = conversation._id
-        ? conversation._id.toString()
-        : (conversation as any).id.toString();
+      const conversationId = conversation._id.toString();
       const conversationResponse: ConversationResponseDto = {
         _id: conversationId,
         participants,
@@ -278,9 +285,7 @@ export class ChatService implements IChatService {
       }
 
       // Check if user is the sender - safely get sender ID
-      const senderId = message.sender._id
-        ? message.sender._id.toString()
-        : (message.sender as any).id?.toString();
+      const senderId = (message.sender as unknown as { _id: Types.ObjectId })._id.toString();
       if (senderId !== userId) {
         throw new CustomError(
           ErrorMessages.EDIT_OTHERS_MESSAGE_ERROR,
@@ -309,30 +314,38 @@ export class ChatService implements IChatService {
         );
       }
 
-      // Transform response
-      const sender = editedMessage.sender as any;
+      const populatedEditedMessage = editedMessage as unknown as {
+        _id: Types.ObjectId;
+        conversationId: Types.ObjectId;
+        sender: { _id: Types.ObjectId; username: string; name?: string; profilePic?: string; community?: { isVerified: boolean } };
+        content: string;
+        messageType: 'text';
+        readBy: Array<{ user: Types.ObjectId; readAt: Date }>;
+        editedAt?: Date;
+        isDeleted: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+      };
       return {
-        _id: editedMessage._id
-          ? editedMessage._id.toString()
-          : (editedMessage as any).id.toString(),
-        conversationId: editedMessage.conversationId.toString(),
+        _id: populatedEditedMessage._id.toString(),
+        conversationId: populatedEditedMessage.conversationId.toString(),
         sender: {
-          _id: sender._id ? sender._id.toString() : sender.id.toString(),
-          username: sender.username || "",
-          name: sender.name || sender.username || "",
-          profilePic: sender.profilePic || "",
-          isVerified: sender.community?.isVerified || false,
+          _id: populatedEditedMessage.sender._id.toString(),
+          username: populatedEditedMessage.sender.username || "",
+          name: populatedEditedMessage.sender.name || populatedEditedMessage.sender.username || "",
+          profilePic: populatedEditedMessage.sender.profilePic || "",
+          isVerified: populatedEditedMessage.sender.community?.isVerified || false,
         },
-        content: editedMessage.content,
-        messageType: editedMessage.messageType,
-        readBy: editedMessage.readBy.map((r) => ({
+        content: populatedEditedMessage.content,
+        messageType: populatedEditedMessage.messageType,
+        readBy: populatedEditedMessage.readBy.map((r) => ({
           user: r.user.toString(),
           readAt: r.readAt,
         })),
-        editedAt: editedMessage.editedAt,
-        isDeleted: editedMessage.isDeleted,
-        createdAt: editedMessage.createdAt,
-        updatedAt: editedMessage.updatedAt,
+        editedAt: populatedEditedMessage.editedAt,
+        isDeleted: populatedEditedMessage.isDeleted,
+        createdAt: populatedEditedMessage.createdAt,
+        updatedAt: populatedEditedMessage.updatedAt,
         isOwnMessage: true,
       };
     } catch (error) {
@@ -372,9 +385,7 @@ export class ChatService implements IChatService {
       }
 
       // Check if user is the sender - safely get sender ID
-      const senderId = message.sender._id
-        ? message.sender._id.toString()
-        : (message.sender as any).id?.toString();
+      const senderId = (message.sender as unknown as { _id: Types.ObjectId })._id.toString();
       if (senderId !== userId) {
         throw new CustomError(
           ErrorMessages.DELETE_OTHERS_MESSAGE_ERROR,
@@ -490,7 +501,7 @@ export class ChatService implements IChatService {
       // Safely get the other user's ID
       const otherUserId = otherUser._id
         ? otherUser._id.toString()
-        : (otherUser as any).id?.toString();
+        : (otherUser as unknown as { id?: { toString(): string } }).id?.toString();
 
       if (!otherUserId) {
         throw new CustomError(
@@ -527,7 +538,7 @@ export class ChatService implements IChatService {
       // Get unread count
       const conversationId = conversation._id
         ? conversation._id.toString()
-        : (conversation as any).id.toString();
+        : (conversation as unknown as { id: { toString(): string } }).id.toString();
       const unreadCount = await this._chatRepository.getUnreadCount(
         conversationId,
         userId
@@ -545,31 +556,41 @@ export class ChatService implements IChatService {
           },
         ],
         lastMessage: conversation.lastMessage
-          ? {
-            _id: (conversation.lastMessage as any)._id.toString(),
-            conversationId: conversationId,
-            sender: {
-              _id: (conversation.lastMessage as any).sender._id.toString(),
-              username:
-                (conversation.lastMessage as any).sender.username || "",
-              name: (conversation.lastMessage as any).sender.name || "",
-              profilePic:
-                (conversation.lastMessage as any).sender.profilePic || "",
-              isVerified:
-                (conversation.lastMessage as any).sender.community
-                  ?.isVerified || false,
-            },
-            content: (conversation.lastMessage as any).content,
-            messageType: (conversation.lastMessage as any).messageType,
-            readBy: (conversation.lastMessage as any).readBy || [],
-            editedAt: (conversation.lastMessage as any).editedAt,
-            isDeleted: (conversation.lastMessage as any).isDeleted,
-            createdAt: (conversation.lastMessage as any).createdAt,
-            updatedAt: (conversation.lastMessage as any).updatedAt,
-            isOwnMessage:
-              (conversation.lastMessage as any).sender._id.toString() ===
-              userId,
-          }
+          ? (() => {
+            const lastMsg = conversation.lastMessage as unknown as {
+              _id: Types.ObjectId;
+              sender: { _id: Types.ObjectId; username?: string; name?: string; profilePic?: string; community?: { isVerified: boolean } };
+              content: string;
+              messageType: 'text';
+              readBy: Array<{ user: Types.ObjectId; readAt: Date }>;
+              editedAt?: Date;
+              isDeleted: boolean;
+              createdAt: Date;
+              updatedAt: Date;
+            };
+            return {
+              _id: lastMsg._id.toString(),
+              conversationId: conversationId,
+              sender: {
+                _id: lastMsg.sender._id.toString(),
+                username: lastMsg.sender.username || "",
+                name: lastMsg.sender.name || "",
+                profilePic: lastMsg.sender.profilePic || "",
+                isVerified: lastMsg.sender.community?.isVerified || false,
+              },
+              content: lastMsg.content,
+              messageType: lastMsg.messageType,
+              readBy: lastMsg.readBy.map((r) => ({
+                user: r.user.toString(),
+                readAt: r.readAt,
+              })),
+              editedAt: lastMsg.editedAt,
+              isDeleted: lastMsg.isDeleted,
+              createdAt: lastMsg.createdAt,
+              updatedAt: lastMsg.updatedAt,
+              isOwnMessage: lastMsg.sender._id.toString() === userId,
+            } as MessageResponseDto;
+          })()
           : undefined,
         lastActivity: conversation.lastActivity,
         unreadCount,

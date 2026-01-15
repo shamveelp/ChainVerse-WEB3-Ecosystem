@@ -3,6 +3,7 @@ import { IAdminCommunityManagementService } from "../../core/interfaces/services
 import { IAdminCommunityManagementRepository } from "../../core/interfaces/repositories/admin/IAdminCommunityManagement.repository";
 import { TYPES } from "../../core/types/types";
 import { ICommunity } from "../../models/community.model";
+import { IUser } from "../../models/user.models";
 
 @injectable()
 export class AdminCommunityManagementService implements IAdminCommunityManagementService {
@@ -31,12 +32,12 @@ export class AdminCommunityManagementService implements IAdminCommunityManagemen
         return await this._repository.deleteCommunity(id);
     }
 
-    async getCommunityMembers(communityId: string, page: number, limit: number, search: string): Promise<{ members: any[], total: number, page: number, limit: number }> {
+    async getCommunityMembers(communityId: string, page: number, limit: number, search: string): Promise<{ members: IUser[], total: number, page: number, limit: number }> {
         const { members, total } = await this._repository.getCommunityMembers(communityId, page, limit, search);
         return { members, total, page, limit };
     }
 
-    async updateCommunitySettings(id: string, settings: any): Promise<ICommunity | null> {
+    async updateCommunitySettings(id: string, settings: Partial<ICommunity['settings']>): Promise<ICommunity | null> {
         return await this._repository.updateCommunitySettings(id, settings);
     }
 }

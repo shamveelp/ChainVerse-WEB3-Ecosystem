@@ -1,3 +1,5 @@
+import { IPointsHistory } from "../../../../models/pointsHistory.model";
+
 export interface IPointsService {
   performDailyCheckIn(userId: string): Promise<{
     success: boolean;
@@ -5,13 +7,13 @@ export interface IPointsService {
     streakCount: number;
     message: string;
   }>;
-  
+
   getCheckInStatus(userId: string): Promise<{
     hasCheckedInToday: boolean;
     currentStreak: number;
     nextCheckInAvailable: Date | null;
   }>;
-  
+
   getCheckInCalendar(userId: string, month: number, year: number): Promise<{
     checkIns: Array<{
       date: string;
@@ -19,9 +21,9 @@ export interface IPointsService {
       streakCount: number;
     }>;
   }>;
-  
+
   getPointsHistory(userId: string, page: number, limit: number): Promise<{
-    history: any[];
+    history: IPointsHistory[];
     total: number;
     totalPages: number;
     summary: {

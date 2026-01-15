@@ -18,7 +18,7 @@ export interface IDexRepository {
   // Transaction operations
   createTransaction(transactionData: Partial<ITransaction>): Promise<ITransaction>;
   findTransactionByHash(hash: string): Promise<ITransaction | null>;
-  updateTransactionStatus(hash: string, status: 'completed' | 'failed', additionalData?: any): Promise<ITransaction | null>;
+  updateTransactionStatus(hash: string, status: 'completed' | 'failed', additionalData?: Partial<ITransaction>): Promise<ITransaction | null>;
   getTransactionsByWallet(walletAddress: string, page?: number, limit?: number): Promise<{ transactions: ITransaction[], total: number }>;
   getAllTransactions(page?: number, limit?: number): Promise<{ transactions: ITransaction[], total: number }>;
   getTransactionStats(): Promise<{

@@ -7,7 +7,7 @@ export interface INotificationService {
         title: string,
         message: string,
         link?: string,
-        metadata?: any
+        metadata?: Record<string, unknown>
     ): Promise<INotification>;
 
     getUserNotifications(

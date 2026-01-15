@@ -1,3 +1,5 @@
+import { ConversionResponseDto } from "../../../../dtos/points/PointsConversion.dto";
+
 export interface IPointsConversionService {
   createConversion(userId: string, pointsToConvert: number): Promise<{
     success: boolean;
@@ -7,7 +9,7 @@ export interface IPointsConversionService {
   }>;
 
   getUserConversions(userId: string, page?: number, limit?: number): Promise<{
-    conversions: any[];
+    conversions: ConversionResponseDto[];
     total: number;
     totalPages: number;
     stats: {
@@ -18,7 +20,7 @@ export interface IPointsConversionService {
   }>;
 
   claimCVC(
-    conversionId: string, 
+    conversionId: string,
     userId: string,
     walletAddress: string,
     transactionHash: string

@@ -57,7 +57,7 @@ export class CommunityAdminSubscriptionService implements ICommunityAdminSubscri
         throw new CustomError(ErrorMessages.ACTIVE_SUBSCRIPTION_EXISTS, StatusCode.BAD_REQUEST);
       }
 
-      // Clean up any existing expired or failed orders
+      // Clean up existing expired or failed orders
       if (subscription && ['pending', 'failed', 'expired'].includes(subscription.status)) {
         await this._subscriptionRepository.deleteSubscription(subscription._id!.toString());
       }
@@ -156,7 +156,7 @@ export class CommunityAdminSubscriptionService implements ICommunityAdminSubscri
       await this._communityRepository.updateCommunity(admin.communityId.toString(), {
         isVerified: true,
         subscriptionId: updatedSubscription._id as mongoose.Types.ObjectId,
-        settings: { allowChainCast: true } as any
+        settings: { allowChainCast: true }
       });
 
       logger.info(`ChainCast enabled for community ${admin.communityId} after successful payment`);

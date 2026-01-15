@@ -315,3 +315,26 @@ export class LeaderboardResponseDto extends BaseResponseDto {
     this.pagination = data.pagination;
   }
 }
+
+export class ParticipationStatusResponseDto {
+  isParticipating!: boolean;
+  participation?: any;
+  rank?: number | null;
+  canJoin?: boolean;
+  message?: string;
+}
+
+export class QuestTaskStatusDto {
+  _id!: string;
+  questId!: string;
+  title!: string;
+  description!: string;
+  taskType!: string;
+  isRequired!: boolean;
+  order!: number;
+  privilegePoints!: number;
+  config!: any;
+  isCompleted!: boolean;
+  submission!: any;
+  canSubmit!: boolean;
+}

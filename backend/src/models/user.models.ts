@@ -41,10 +41,10 @@ export interface IUser extends Document {
             github?: string;
         };
         settings: {
-            isProfilePublic: boolean;
-            allowDirectMessages: boolean;
-            showFollowersCount: boolean;
-            showFollowingCount: boolean;
+            isProfilePublic?: boolean;
+            allowDirectMessages?: boolean;
+            showFollowersCount?: boolean;
+            showFollowingCount?: boolean;
         };
     };
     createdAt: Date;

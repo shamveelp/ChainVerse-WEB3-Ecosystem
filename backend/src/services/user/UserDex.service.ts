@@ -83,29 +83,38 @@ export class UserDexService implements IUserDexService {
     }
   }
 
-  async calculateEstimate(amount: number, currency: string = 'INR'): Promise<any> {
+  async calculateEstimate(amount: number, currency: string = 'INR'): Promise<{
+    estimatedEth: number;
+    platformFee: number;
+    otherFees: number;
+    totalFees: number;
+    actualEthToReceive: number;
+    totalFeePercentage: number;
+    ethPriceUsed: number;
+    currency: string;
+  }> {
     try {
       if (currency !== 'INR') {
         throw new CustomError("Only INR is supported currently", StatusCode.BAD_REQUEST);
       }
 
       const ethPrice = await this.getEthPrice();
-      
+
       // Calculate basic ETH amount
       const estimatedEth = amount / ethPrice;
-      
+
       // Calculate fees (20% total)
       const platformFeePercentage = 5; // 5%
       const otherFeesPercentage = 15; // 15%
       const totalFeePercentage = 20; // 20% total
-      
+
       const platformFee = (estimatedEth * platformFeePercentage) / 100;
       const otherFees = (estimatedEth * otherFeesPercentage) / 100;
       const totalFees = (estimatedEth * totalFeePercentage) / 100;
-      
+
       // Calculate actual ETH user will receive
       const actualEthToReceive = estimatedEth - totalFees;
-      
+
       const estimate = {
         estimatedEth,
         platformFee,
@@ -132,7 +141,12 @@ export class UserDexService implements IUserDexService {
     amountInCurrency: number,
     estimatedEth: number,
     ethPriceAtTime: number
-  ): Promise<any> {
+  ): Promise<{
+    orderId: string;
+    amount: number;
+    currency: string;
+    paymentId: string;
+  }> {
     try {
       // Validate input
       if (amountInCurrency < 100) {
@@ -193,9 +207,9 @@ export class UserDexService implements IUserDexService {
 
       return {
         orderId: razorpayOrder.id,
-        amount: razorpayOrder.amount,
+        amount: Number(razorpayOrder.amount),
         currency: razorpayOrder.currency,
-        paymentId: payment._id,
+        paymentId: payment._id.toString(),
       };
     } catch (error) {
       logger.error("Error creating payment order:", error);
@@ -233,12 +247,12 @@ export class UserDexService implements IUserDexService {
       // Verify payment with Razorpay
       try {
         const razorpayPayment = await this.razorpay.payments.fetch(razorpayPaymentId);
-        
+
         if (razorpayPayment.status !== 'captured' && razorpayPayment.status !== 'authorized') {
           await this._paymentRepository.updateStatus(payment._id.toString(), 'failed');
           throw new CustomError("Payment not successful on Razorpay", StatusCode.BAD_REQUEST);
         }
-      } catch (razorpayError:unknown) {
+      } catch (razorpayError: unknown) {
         logger.error("Error fetching payment from Razorpay:", razorpayError);
         // Don't fail if we can't fetch from Razorpay, signature verification is sufficient
       }

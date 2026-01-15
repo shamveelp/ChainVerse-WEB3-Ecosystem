@@ -1,6 +1,11 @@
 import { IsString, IsOptional, IsBoolean, IsNumber, IsEnum, IsDateString, ValidateNested, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
-
+import { BaseResponseDto } from '../base/BaseResponse.dto';
+import { IChainCast } from '../../models/chainCast.model';
+import { IChainCastParticipant } from '../../models/chainCastParticipant.model';
+import { IChainCastModerationRequest } from '../../models/chainCastModerationRequest.model';
+import { IChainCastReaction } from '../../models/chainCastReaction.model';
+import { Types } from 'mongoose';
 
 export class ChainCastSettingsDto {
     @IsOptional()
@@ -19,7 +24,7 @@ export class ChainCastSettingsDto {
     @IsBoolean()
     recordSession?: boolean = false;
 }
-// Base ChainCast DTOs
+
 export class CreateChainCastDto {
     @IsString()
     title!: string;
@@ -69,9 +74,6 @@ export class UpdateChainCastDto {
     settings?: ChainCastSettingsDto;
 }
 
-
-
-// Participant DTOs
 export class JoinChainCastDto {
     @IsString()
     chainCastId!: string;
@@ -98,6 +100,7 @@ export class UpdateParticipantDto {
     @IsBoolean()
     isVideoOff?: boolean;
 }
+
 export class RequestedPermissionsDto {
     @IsBoolean()
     video!: boolean;
@@ -106,7 +109,6 @@ export class RequestedPermissionsDto {
     audio!: boolean;
 }
 
-// Moderation DTOs
 export class RequestModerationDto {
     @IsString()
     chainCastId!: string;
@@ -120,20 +122,18 @@ export class RequestModerationDto {
     message?: string;
 }
 
-
 export class ReviewModerationRequestDto {
     @IsString()
     requestId!: string;
 
-    @IsEnum(['approved', 'rejected'])
-    status!: 'approved' | 'rejected';
+    @IsEnum(['approved', 'rejected', 'pending'])
+    status!: 'approved' | 'rejected' | 'pending';
 
     @IsOptional()
     @IsString()
     reviewMessage?: string;
 }
 
-// Reaction DTOs
 export class AddReactionDto {
     @IsString()
     chainCastId!: string;
@@ -142,7 +142,6 @@ export class AddReactionDto {
     emoji!: string;
 }
 
-// Query DTOs
 export class GetChainCastsQueryDto {
     @IsOptional()
     @IsEnum(['all', 'scheduled', 'live', 'ended'])
@@ -200,7 +199,6 @@ export class GetReactionsQueryDto {
     limit?: number = 50;
 }
 
-// Response DTOs
 export class ChainCastResponseDto {
     _id!: string;
     communityId!: string;
@@ -217,7 +215,12 @@ export class ChainCastResponseDto {
     endTime?: Date;
     maxParticipants!: number;
     currentParticipants!: number;
-    settings!: ChainCastSettingsDto;
+    settings!: {
+        allowReactions: boolean;
+        allowChat: boolean;
+        moderationRequired: boolean;
+        recordSession: boolean;
+    };
     stats!: {
         totalViews: number;
         peakViewers: number;
@@ -232,13 +235,19 @@ export class ChainCastResponseDto {
     createdAt!: Date;
     updatedAt!: Date;
 
-    constructor(chainCast: any, admin: any, userRole?: string, canJoin: boolean = false, canModerate: boolean = false) {
+    constructor(
+        chainCast: IChainCast,
+        admin: { _id?: Types.ObjectId; username?: string; name?: string; profilePic?: string; profilePicture?: string },
+        userRole?: string,
+        canJoin: boolean = false,
+        canModerate: boolean = false
+    ) {
         this._id = chainCast._id?.toString() || '';
         this.communityId = chainCast.communityId?.toString() || '';
         this.admin = {
             _id: admin._id?.toString() || '',
-            name: admin.name || 'Unknown Admin',
-            profilePicture: admin.profilePicture || undefined
+            name: admin.name || admin.username || 'Unknown Admin',
+            profilePicture: admin.profilePicture || admin.profilePic
         };
         this.title = chainCast.title || '';
         this.description = chainCast.description;
@@ -248,7 +257,12 @@ export class ChainCastResponseDto {
         this.endTime = chainCast.endTime;
         this.maxParticipants = chainCast.maxParticipants || 50;
         this.currentParticipants = chainCast.currentParticipants || 0;
-        this.settings = chainCast.settings || {};
+        this.settings = chainCast.settings || {
+            allowReactions: true,
+            allowChat: true,
+            moderationRequired: true,
+            recordSession: false
+        };
         this.stats = chainCast.stats || {
             totalViews: 0,
             peakViewers: 0,
@@ -292,7 +306,7 @@ export class ChainCastParticipantResponseDto {
     watchTime!: number;
     reactionsCount!: number;
 
-    constructor(participant: any, user: any) {
+    constructor(participant: IChainCastParticipant, user: { _id?: Types.ObjectId; username?: string; name?: string; profilePic?: string; isVerified?: boolean }) {
         this._id = participant._id?.toString() || '';
         this.user = {
             _id: user._id?.toString() || '',
@@ -304,8 +318,18 @@ export class ChainCastParticipantResponseDto {
         this.role = participant.role || 'viewer';
         this.joinedAt = participant.joinedAt;
         this.isActive = participant.isActive;
-        this.permissions = participant.permissions || {};
-        this.streamData = participant.streamData || {};
+        this.permissions = participant.permissions || {
+            canStream: false,
+            canModerate: false,
+            canReact: true,
+            canChat: true
+        };
+        this.streamData = participant.streamData || {
+            hasVideo: false,
+            hasAudio: false,
+            isMuted: false,
+            isVideoOff: true
+        };
         this.watchTime = participant.watchTime || 0;
         this.reactionsCount = participant.reactionsCount || 0;
     }
@@ -326,7 +350,7 @@ export class ChainCastModerationRequestResponseDto {
     createdAt!: Date;
     expiresAt!: Date;
 
-    constructor(request: any, user: any) {
+    constructor(request: IChainCastModerationRequest, user: { _id?: Types.ObjectId; username?: string; name?: string; profilePic?: string }) {
         this._id = request._id?.toString() || '';
         this.user = {
             _id: user._id?.toString() || '',
@@ -334,7 +358,7 @@ export class ChainCastModerationRequestResponseDto {
             name: user.name || user.username || 'Unknown',
             profilePic: user.profilePic
         };
-        this.requestedPermissions = request.requestedPermissions || {};
+        this.requestedPermissions = request.requestedPermissions || { video: false, audio: false };
         this.message = request.message;
         this.status = request.status || 'pending';
         this.reviewMessage = request.reviewMessage;
@@ -354,7 +378,7 @@ export class ChainCastReactionResponseDto {
     emoji!: string;
     timestamp!: Date;
 
-    constructor(reaction: any, user: any) {
+    constructor(reaction: IChainCastReaction, user: { _id?: Types.ObjectId; username?: string; name?: string; profilePic?: string }) {
         this._id = reaction._id?.toString() || '';
         this.user = {
             _id: user._id?.toString() || '',
@@ -363,28 +387,29 @@ export class ChainCastReactionResponseDto {
             profilePic: user.profilePic
         };
         this.emoji = reaction.emoji || '';
-        this.timestamp = reaction.timestamp || reaction.createdAt;
+        this.timestamp = (reaction as any).timestamp || (reaction as any).createdAt;
     }
 }
 
-// List Response DTOs
+export interface ChainCastsSummaryDto {
+    live: number;
+    scheduled: number;
+    ended: number;
+}
+
 export class ChainCastsListResponseDto {
     chainCasts!: ChainCastResponseDto[];
     hasMore!: boolean;
     nextCursor?: string;
     totalCount!: number;
-    summary?: {
-        live: number;
-        scheduled: number;
-        ended: number;
-    };
+    summary?: ChainCastsSummaryDto;
 
     constructor(
         chainCasts: ChainCastResponseDto[],
         hasMore: boolean,
         totalCount: number,
         nextCursor?: string,
-        summary?: any
+        summary?: ChainCastsSummaryDto
     ) {
         this.chainCasts = chainCasts;
         this.hasMore = hasMore;
@@ -460,5 +485,23 @@ export class ChainCastModerationRequestsListResponseDto {
         this.nextCursor = nextCursor;
         this.totalCount = totalCount;
         this.pendingCount = pendingCount;
+    }
+}
+
+export class ChainCastAnalyticsResponseDto extends BaseResponseDto {
+    data: {
+        totalChainCasts: number;
+        activeNow: number;
+        totalViews: number;
+        peakViewers: number;
+        totalReactions: number;
+        averageWatchTime: number;
+        statusDistribution: Record<string, number>;
+        growthStats: Array<{ date: string; views: number; participants: number }>;
+    };
+
+    constructor(analytics: any) {
+        super(true, "Analytics retrieved successfully");
+        this.data = analytics;
     }
 }

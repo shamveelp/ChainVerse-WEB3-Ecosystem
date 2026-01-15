@@ -8,7 +8,11 @@ import {
     AIChatResponseDto,
     TradeAnalysisDto,
     ChatHistoryResponseDto,
-    TokenPriceInfoDto
+    TokenPriceInfoDto,
+    ChatContextDto,
+    TradingIntentDto,
+    ActionRequiredDto,
+    TokenPriceDataDto
 } from "../../dtos/aiTrading/AiTrading.dto";
 import logger from "../../utils/logger";
 import axios from 'axios';
@@ -22,20 +26,20 @@ export class AITradingService implements IAITradingService {
     ) { }
 
     /**
-     * Processes a user message for AI trading chat.
-     * @param {string} message - User message.
-     * @param {string} sessionId - Session ID.
-     * @param {string} [userId] - User ID.
-     * @param {string} [walletAddress] - Wallet address.
-     * @param {any} [context] - Additional context.
-     * @returns {Promise<AIChatResponseDto>} AI response.
+     * 
+     * @param message 
+     * @param sessionId 
+     * @param userId 
+     * @param walletAddress 
+     * @param context 
+     * @returns 
      */
     async processMessage(
         message: string,
         sessionId: string,
         userId?: string,
         walletAddress?: string,
-        context?: any
+        context?: ChatContextDto
     ): Promise<AIChatResponseDto> {
         try {
             // Create or get session
@@ -58,7 +62,7 @@ export class AITradingService implements IAITradingService {
 
             // Generate AI response based on intent    
             let aiResponse: string;
-            let actionRequired: any = null;
+            let actionRequired: ActionRequiredDto | undefined = undefined;
             let suggestions: string[] = [];
 
             if (intent.isTradeIntent) {
@@ -280,13 +284,7 @@ export class AITradingService implements IAITradingService {
      * @param {string} message - User message.
      * @returns {Promise<Object>} Detected intent.
      */
-    async detectTradingIntent(message: string): Promise<{
-        isTradeIntent: boolean;
-        fromToken?: string;
-        toToken?: string;
-        amount?: string;
-        action: 'buy' | 'sell' | 'swap' | 'info' | 'general';
-    }> {
+    async detectTradingIntent(message: string): Promise<TradingIntentDto> {
         const lowerMessage = message.toLowerCase();
 
         // Detect tokens - improved detection
@@ -334,14 +332,14 @@ export class AITradingService implements IAITradingService {
     }
 
     /**
-     * Generates smart suggestions based on user message.
-     * @param {string} message - User message.
-     * @param {any} [context] - Context.
-     * @returns {Promise<string[]>} Suggestions.
+     * 
+     * @param message 
+     * @param context 
+     * @returns 
      */
     async generateSmartSuggestions(
         message: string,
-        context?: any
+        context?: ChatContextDto
     ): Promise<string[]> {
         const intent = await this.detectTradingIntent(message);
 
@@ -359,8 +357,8 @@ export class AITradingService implements IAITradingService {
 
     private async handleTradingQuery(
         message: string,
-        intent: any,
-        context?: any,
+        intent: TradingIntentDto,
+        context?: ChatContextDto,
         walletAddress?: string
     ): Promise<string> {
         const aiContext = {
@@ -388,7 +386,7 @@ export class AITradingService implements IAITradingService {
 
     private async handleGeneralQuery(
         message: string,
-        context?: any,
+        context?: ChatContextDto,
         walletAddress?: string
     ): Promise<string> {
         const aiContext = {
@@ -462,7 +460,7 @@ Ready to proceed? Type "**execute trade**" or click the trade button! ✨
         }
     }
 
-    private async generateTradingSuggestions(intent: any, context?: any): Promise<string[]> {
+    private async generateTradingSuggestions(intent: TradingIntentDto, context?: ChatContextDto): Promise<string[]> {
         const suggestions = [];
 
         if (intent.action === 'info') {
@@ -484,7 +482,7 @@ Ready to proceed? Type "**execute trade**" or click the trade button! ✨
         return suggestions;
     }
 
-    private async getCurrentTokenPrices(): Promise<any> {
+    private async getCurrentTokenPrices(): Promise<Record<string, TokenPriceDataDto>> {
         try {
             // Try to fetch real ETH price from CoinGecko
             let ethPriceUSD = 2800;

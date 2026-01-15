@@ -6,9 +6,13 @@ import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { ErrorMessages, SuccessMessages, LoggerMessages, ValidationMessages } from "../../enums/messages.enum";
+import { Types } from "mongoose";
+import { IPost } from "../../models/post.models";
+import { ILike } from "../../models/like.models";
+import { IComment } from "../../models/comment.models";
 import logger from "../../utils/logger";
 import cloudinary from "../../config/cloudinary";
-import { UploadApiResponse } from "cloudinary";
+import { UploadApiResponse, UploadApiOptions } from "cloudinary";
 import {
     CreatePostDto,
     UpdatePostDto,
@@ -23,7 +27,8 @@ import {
     PostStatsDto,
     MediaUploadResponseDto,
     PostAuthorDto,
-    SharePostDto
+    SharePostDto,
+    LikersListResponseDto
 } from "../../dtos/posts/Post.dto";
 
 @injectable()
@@ -32,6 +37,35 @@ export class PostService implements IPostService {
         @inject(TYPES.IPostRepository) private _postRepository: IPostRepository,
         @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository
     ) { }
+
+    // Populated types for internal use
+    private _populatedUserType = {} as {
+        _id: Types.ObjectId;
+        username: string;
+        name: string;
+        profilePic: string;
+        community?: {
+            isVerified: boolean;
+        };
+    };
+
+    private _populatedLikeType = {} as Omit<ILike, 'user'> & {
+        user: typeof this._populatedUserType;
+    };
+
+    private _populatedPostType = {} as Omit<IPost, 'author'> & {
+        author: typeof this._populatedUserType;
+    };
+
+    private _populatedCommentType = {} as Omit<IComment, 'author' | 'community'> & {
+        author: typeof this._populatedUserType;
+        community?: {
+            _id: Types.ObjectId;
+            username: string;
+            name: string;
+            profilePic: string;
+        };
+    };
 
     // Post operations
     /**
@@ -104,11 +138,11 @@ export class PostService implements IPostService {
 
             // Transform comments with like status
             const transformedComments = await Promise.all(
-                commentsResult.comments.map(comment => this.transformToCommentResponse(comment, viewerUserId))
+                commentsResult.comments.map(comment => this.transformToCommentResponse(comment as unknown as typeof this._populatedCommentType, viewerUserId))
             );
 
             // Transform post with like status
-            const transformedPost = await this.transformToPostResponseWithLikeStatus(post, viewerUserId);
+            const transformedPost = await this.transformToPostResponseWithLikeStatus(post as unknown as typeof this._populatedPostType, viewerUserId);
 
             return {
                 post: transformedPost,
@@ -163,7 +197,7 @@ export class PostService implements IPostService {
                 throw new CustomError(ErrorMessages.FAILED_UPDATE_POST, StatusCode.INTERNAL_SERVER_ERROR);
             }
 
-            return this.transformToPostResponse(updatedPost, userId);
+            return this.transformToPostResponse(updatedPost as unknown as typeof this._populatedPostType, userId);
         } catch (error) {
             logger.error(LoggerMessages.UPDATE_POST_ERROR, error);
             if (error instanceof CustomError) {
@@ -221,7 +255,7 @@ export class PostService implements IPostService {
 
             // Transform posts with like status
             const transformedPosts = await Promise.all(
-                result.posts.map(post => this.transformToPostResponseWithLikeStatus(post, userId))
+                result.posts.map(post => this.transformToPostResponseWithLikeStatus(post as unknown as typeof this._populatedPostType, userId))
             );
 
             return {
@@ -257,7 +291,7 @@ export class PostService implements IPostService {
 
             // Transform posts with like status
             const transformedPosts = await Promise.all(
-                result.posts.map(post => this.transformToPostResponseWithLikeStatus(post, viewerUserId))
+                result.posts.map(post => this.transformToPostResponseWithLikeStatus(post as unknown as typeof this._populatedPostType, viewerUserId))
             );
 
             return {
@@ -293,7 +327,7 @@ export class PostService implements IPostService {
 
             // Transform posts with like status
             const transformedPosts = await Promise.all(
-                result.posts.map(post => this.transformToPostResponseWithLikeStatus(post, viewerUserId))
+                result.posts.map(post => this.transformToPostResponseWithLikeStatus(post as unknown as typeof this._populatedPostType, viewerUserId))
             );
 
             return {
@@ -322,7 +356,7 @@ export class PostService implements IPostService {
             const result = await this._postRepository.getTrendingPosts(cursor, limit);
 
             // Transform posts (no like status since no specific viewer)
-            const transformedPosts = result.posts.map(post => this.transformToPostResponse(post));
+            const transformedPosts = result.posts.map(post => this.transformToPostResponse(post as unknown as typeof this._populatedPostType));
 
             return {
                 posts: transformedPosts,
@@ -355,7 +389,7 @@ export class PostService implements IPostService {
             const result = await this._postRepository.getPostsByHashtag(hashtag, cursor, limit);
 
             // Transform posts (no like status since no specific viewer)
-            const transformedPosts = result.posts.map(post => this.transformToPostResponse(post));
+            const transformedPosts = result.posts.map(post => this.transformToPostResponse(post as unknown as typeof this._populatedPostType));
 
             return {
                 posts: transformedPosts,
@@ -388,7 +422,7 @@ export class PostService implements IPostService {
             const result = await this._postRepository.searchPosts(query, cursor, limit);
 
             // Transform posts (no like status since no specific viewer)
-            const transformedPosts = result.posts.map(post => this.transformToPostResponse(post));
+            const transformedPosts = result.posts.map(post => this.transformToPostResponse(post as unknown as typeof this._populatedPostType));
 
             return {
                 posts: transformedPosts,
@@ -520,9 +554,9 @@ export class PostService implements IPostService {
      * @param {string} postId - Post ID.
      * @param {string} [cursor] - Cursor.
      * @param {number} [limit=20] - Limit.
-     * @returns {Promise<any>} List of likers.
+     * @returns {Promise<LikersListResponseDto>} List of likers.
      */
-    async getPostLikers(postId: string, cursor?: string, limit: number = 20): Promise<any> {
+    async getPostLikers(postId: string, cursor?: string, limit: number = 20): Promise<LikersListResponseDto> {
         try {
             if (!postId) {
                 throw new CustomError(ErrorMessages.POST_ID_REQUIRED, StatusCode.BAD_REQUEST);
@@ -531,12 +565,12 @@ export class PostService implements IPostService {
             const result = await this._postRepository.getPostLikes(postId, cursor, limit);
 
             return {
-                users: result.likes.map(like => ({
-                    _id: (like as any).user._id,
-                    username: (like as any).user.username,
-                    name: (like as any).user.name,
-                    profilePic: (like as any).user.profilePic,
-                    isVerified: (like as any).user.community?.isVerified || false,
+                users: (result.likes as unknown as Array<typeof this._populatedLikeType>).map(like => ({
+                    _id: like.user._id.toString(),
+                    username: like.user.username,
+                    name: like.user.name,
+                    profilePic: like.user.profilePic,
+                    isVerified: like.user.community?.isVerified || false,
                     likedAt: like.createdAt
                 })),
                 hasMore: result.hasMore,
@@ -598,7 +632,7 @@ export class PostService implements IPostService {
                 data.parentCommentId
             );
 
-            return this.transformToCommentResponse(comment, userId);
+            return this.transformToCommentResponse(comment as unknown as typeof this._populatedCommentType, userId);
         } catch (error) {
             logger.error(LoggerMessages.CREATE_COMMENT_ERROR, error);
             if (error instanceof CustomError) {
@@ -645,7 +679,7 @@ export class PostService implements IPostService {
                 throw new CustomError(ErrorMessages.FAILED_UPDATE_COMMENT, StatusCode.INTERNAL_SERVER_ERROR);
             }
 
-            return this.transformToCommentResponse(updatedComment, userId);
+            return this.transformToCommentResponse(updatedComment as unknown as typeof this._populatedCommentType, userId);
         } catch (error) {
             logger.error(LoggerMessages.UPDATE_COMMENT_ERROR, error);
             if (error instanceof CustomError) {
@@ -703,7 +737,7 @@ export class PostService implements IPostService {
 
             // Transform comments with like status
             const transformedComments = await Promise.all(
-                result.comments.map(comment => this.transformToCommentResponse(comment, viewerUserId))
+                result.comments.map(comment => this.transformToCommentResponse(comment as unknown as typeof this._populatedCommentType, viewerUserId))
             );
 
             return {
@@ -739,7 +773,7 @@ export class PostService implements IPostService {
 
             // Transform comments with like status
             const transformedComments = await Promise.all(
-                result.comments.map(comment => this.transformToCommentResponse(comment, viewerUserId))
+                result.comments.map(comment => this.transformToCommentResponse(comment as unknown as typeof this._populatedCommentType, viewerUserId))
             );
 
             return {
@@ -789,7 +823,7 @@ export class PostService implements IPostService {
 
             // Upload to Cloudinary
             const result: UploadApiResponse = await new Promise((resolve, reject) => {
-                const uploadOptions: any = {
+                const uploadOptions: UploadApiOptions = {
                     folder: folderName,
                     quality: "auto",
                     fetch_format: "auto"
@@ -914,11 +948,11 @@ export class PostService implements IPostService {
     // Helper methods
     /**
      * Transforms post document to response DTO.
-     * @param {any} post - Post document.
+     * @param {typeof this._populatedPostType} post - Post document.
      * @param {string} [viewerUserId] - Viewer User ID.
      * @returns {PostResponseDto} Post response DTO.
      */
-    private transformToPostResponse(post: any, viewerUserId?: string): PostResponseDto {
+    private transformToPostResponse(post: typeof this._populatedPostType, viewerUserId?: string): PostResponseDto {
         return {
             _id: post._id.toString(),
             author: post.author ? {
@@ -952,11 +986,11 @@ export class PostService implements IPostService {
 
     /**
      * Transforms post document to response DTO with like status.
-     * @param {any} post - Post document.
+     * @param {typeof this._populatedPostType} post - Post document.
      * @param {string} [viewerUserId] - Viewer User ID.
      * @returns {Promise<PostResponseDto>} Post response DTO.
      */
-    private async transformToPostResponseWithLikeStatus(post: any, viewerUserId?: string): Promise<PostResponseDto> {
+    private async transformToPostResponseWithLikeStatus(post: typeof this._populatedPostType, viewerUserId?: string): Promise<PostResponseDto> {
         const baseResponse = this.transformToPostResponse(post, viewerUserId);
 
         // Check if user liked the post
@@ -969,11 +1003,11 @@ export class PostService implements IPostService {
 
     /**
      * Transforms comment document to response DTO.
-     * @param {any} comment - Comment document.
+     * @param {typeof this._populatedCommentType} comment - Comment document.
      * @param {string} [viewerUserId] - Viewer User ID.
      * @returns {Promise<CommentResponseDto>} Comment response DTO.
      */
-    private async transformToCommentResponse(comment: any, viewerUserId?: string): Promise<CommentResponseDto> {
+    private async transformToCommentResponse(comment: typeof this._populatedCommentType, viewerUserId?: string): Promise<CommentResponseDto> {
         let isLiked = false;
 
         // Check if user liked the comment

@@ -56,7 +56,7 @@ export class UserAuthService implements IUserAuthService {
     }
   }
 
-  async verifyAndRegisterUser(username: string, email: string, password: string, name: string, referralCode?: string): Promise<{ user: any; accessToken: string; refreshToken: string }> {
+  async verifyAndRegisterUser(username: string, email: string, password: string, name: string, referralCode?: string): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
     try {
       logger.info(`Creating user account after OTP verification: ${email}, username: ${username}`);
 
@@ -115,14 +115,7 @@ export class UserAuthService implements IUserAuthService {
       );
 
       return {
-        user: {
-          _id: user._id,
-          username: user.username,
-          email: user.email,
-          name: user.name,
-          refferalCode: user.refferalCode,
-          totalPoints: user.totalPoints,
-        },
+        user,
         accessToken,
         refreshToken,
       };

@@ -7,7 +7,9 @@ import {
   ChartDataResponseDto,
   SwapHistoryResponseDto,
   TradingStatsDto,
-  TokenPriceResponseDto
+  TokenPriceResponseDto,
+  DexOverallStatsDto,
+  UserTradingStatsDto
 } from "../../../../dtos/dex/DexSwap.dto";
 
 export interface IDexSwapService {
@@ -24,8 +26,8 @@ export interface IDexSwapService {
 
   // Trading Statistics
   getTradingPairStats(baseToken: string, quoteToken: string): Promise<TradingStatsDto>;
-  getOverallDEXStats(): Promise<any>;
-  getUserTradingStats(userId: string): Promise<any>;
+  getOverallDEXStats(): Promise<DexOverallStatsDto>;
+  getUserTradingStats(userId: string): Promise<UserTradingStatsDto>;
 
   // Market Data
   getTopTradingPairs(): Promise<TradingStatsDto[]>;

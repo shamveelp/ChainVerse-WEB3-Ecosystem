@@ -291,6 +291,13 @@ export class SelectWinnersDto {
   method?: 'fcfs' | 'random' | 'leaderboard';
 }
 
+export class ChatWithAIResponseDto {
+  response!: string;
+  questGenerated!: boolean;
+  questData?: CreateQuestDto;
+  needsInput?: Array<{ type: string; field: string; prompt: string }>;
+}
+
 // Response DTOs
 export class QuestResponseDto extends BaseResponseDto {
   _id: string;
@@ -302,7 +309,7 @@ export class QuestResponseDto extends BaseResponseDto {
   endDate: Date;
   selectionMethod: string;
   participantLimit: number;
-  rewardPool: any;
+  rewardPool: RewardPoolDto;
   status: string;
   totalParticipants: number;
   totalSubmissions: number;
@@ -311,7 +318,7 @@ export class QuestResponseDto extends BaseResponseDto {
   isAIGenerated?: boolean;
   createdAt: Date;
   updatedAt: Date;
-  tasks?: any[];
+  tasks?: QuestTaskDto[];
 
   constructor(quest: any) {
     super(true, "Quest retrieved successfully");
@@ -349,6 +356,58 @@ export class QuestStatsResponseDto extends BaseResponseDto {
     this.activeQuests = stats.activeQuests;
     this.endedQuests = stats.endedQuests;
     this.totalParticipants = stats.totalParticipants;
+    this.totalParticipants = stats.totalParticipants;
     this.totalRewardsDistributed = stats.totalRewardsDistributed || 0;
   }
+}
+
+export class QuestParticipantResponseDto {
+  _id!: string;
+  userId!: string;
+  username!: string;
+  name!: string;
+  profilePic?: string;
+  status!: string;
+  joinedAt!: Date;
+  totalTasksCompleted!: number;
+  totalPrivilegePoints!: number;
+  isWinner!: boolean;
+  rewardClaimed!: boolean;
+}
+
+export class QuestSubmissionDataDto {
+  text?: string;
+  imageUrl?: string;
+  linkUrl?: string;
+  twitterUrl?: string;
+  walletAddress?: string;
+  transactionHash?: string;
+}
+
+export class QuestSubmissionDto {
+  _id!: string;
+  questId!: string;
+  taskId!: string;
+  userId!: string;
+  submissionData!: QuestSubmissionDataDto;
+  status!: string;
+  reviewedBy?: string;
+  reviewComment?: string;
+  submittedAt!: Date;
+  reviewedAt?: Date;
+}
+
+export class QuestParticipantDetailsDto extends QuestParticipantResponseDto {
+  submissions!: QuestSubmissionDto[];
+  walletAddress?: string;
+}
+
+export class QuestWinnerResponseDto {
+  _id!: string;
+  userId!: string;
+  username!: string;
+  name!: string;
+  profilePic?: string;
+  rewardAmount!: number;
+  rewardCurrency!: string;
 }

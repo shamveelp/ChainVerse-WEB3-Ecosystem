@@ -17,7 +17,7 @@ export class NotificationService implements INotificationService {
         title: string,
         message: string,
         link?: string,
-        metadata?: any
+        metadata?: Record<string, unknown>
     ): Promise<INotification> {
         return await this._notificationRepository.createNotification({
             recipient: new Types.ObjectId(recipientId),

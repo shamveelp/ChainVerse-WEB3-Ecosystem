@@ -1,6 +1,8 @@
-import { IsOptional, IsString, IsNumber, IsEnum, Min, Max } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsEnum, Min, Max, IsArray, ArrayMinSize } from 'class-validator';
 import { Type } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
+import { ICommunityMember } from '../../models/communityMember.model';
+import { IUser } from '../../models/user.models';
 
 export class GetCommunityMembersDto {
   @IsOptional()
@@ -66,7 +68,7 @@ export class CommunityMemberDetailDto {
   joinSource: string;
   totalWarnings: number;
 
-  constructor(member: any, user: any) {
+  constructor(member: Partial<ICommunityMember>, user: Partial<IUser>) {
     this._id = member._id.toString();
     this.userId = user._id.toString();
     this.username = user.username;
@@ -87,13 +89,17 @@ export class CommunityMemberDetailDto {
     this.permissions = this.getPermissions(member.role);
     this.bannedUntil = member.bannedUntil;
     this.banReason = member.banReason;
-    this.bannedBy = member.bannedBy ? {
-      _id: member.bannedBy._id?.toString(),
-      name: member.bannedBy.name
+
+    // Handle potential population
+    const bannedBy = member.bannedBy as unknown as { _id: string; name: string } | undefined;
+    this.bannedBy = (bannedBy && bannedBy.name) ? {
+      _id: bannedBy._id,
+      name: bannedBy.name
     } : undefined;
+
     this.activityLevel = this.calculateActivityLevel(member);
-    this.joinSource = member.joinSource || 'direct';
-    this.totalWarnings = member.totalWarnings || 0;
+    this.joinSource = (member as any).joinSource || 'direct';
+    this.totalWarnings = (member as any).totalWarnings || 0;
   }
 
   private getPermissions(role: string) {
@@ -125,8 +131,8 @@ export class CommunityMemberDetailDto {
     }
   }
 
-  private calculateActivityLevel(member: any): 'very_active' | 'active' | 'moderate' | 'inactive' {
-    const daysSinceJoined = (Date.now() - new Date(member.joinedAt).getTime()) / (1000 * 60 * 60 * 24);
+  private calculateActivityLevel(member: Partial<ICommunityMember>): 'very_active' | 'active' | 'moderate' | 'inactive' {
+    const daysSinceJoined = (Date.now() - new Date(member.joinedAt!).getTime()) / (1000 * 60 * 60 * 24);
     const totalPosts = member.totalPosts || 0;
     const postsPerDay = daysSinceJoined > 0 ? totalPosts / daysSinceJoined : 0;
 
@@ -159,7 +165,7 @@ export class CommunityMemberDto {
   bannedUntil?: Date;
   banReason?: string;
 
-  constructor(member: any, user: any) {
+  constructor(member: Partial<ICommunityMember>, user: Partial<IUser>) {
     this._id = member._id.toString();
     this.userId = user._id.toString();
     this.username = user.username;
@@ -222,7 +228,7 @@ export class CommunityMembersListResponseDto extends BaseResponseDto {
     newMembersThisWeek: number;
   };
 
-  constructor(members: CommunityMemberDto[], hasMore: boolean, nextCursor: string | undefined, totalCount: number, summary: any) {
+  constructor(members: CommunityMemberDto[], hasMore: boolean, nextCursor: string | undefined, totalCount: number, summary: MembersSummaryDto) {
     super(true, 'Community members retrieved successfully');
     this.members = members;
     this.hasMore = hasMore;
@@ -231,6 +237,7 @@ export class CommunityMembersListResponseDto extends BaseResponseDto {
     this.summary = summary;
   }
 }
+
 
 export class MemberActionResponseDto extends BaseResponseDto {
   member: CommunityMemberDto;
@@ -248,4 +255,26 @@ export class MemberDetailResponseDto extends BaseResponseDto {
     super(true, message);
     this.member = member;
   }
+}
+export class BulkUpdateMembersDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  memberIds!: string[];
+
+  @IsEnum(['ban', 'unban', 'remove', 'promote_to_moderator', 'demote_to_member'])
+  action!: 'ban' | 'unban' | 'remove' | 'promote_to_moderator' | 'demote_to_member';
+
+  @IsOptional()
+  @IsString()
+  reason?: string;
+}
+
+export class MembersSummaryDto {
+  totalMembers!: number;
+  activeMembers!: number;
+  moderators!: number;
+  premiumMembers!: number;
+  bannedMembers!: number;
+  newMembersThisWeek!: number;
 }

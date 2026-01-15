@@ -12,7 +12,13 @@ import {
   AIQuestGenerationDto,
   SelectWinnersDto,
   QuestResponseDto,
-  QuestStatsResponseDto
+  QuestStatsResponseDto,
+  QuestTaskDto,
+  QuestParticipantResponseDto,
+  QuestParticipantDetailsDto,
+  QuestWinnerResponseDto,
+  ChatWithAIResponseDto,
+  QuestSubmissionDto
 } from "../../dtos/quest/CommunityAdminQuest.dto";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -23,6 +29,7 @@ import mongoose from "mongoose";
 import { IQuestTask } from "../../models/questTask.model";
 import { UserModel } from "../../models/user.models";
 import { PointsHistoryModel } from "../../models/pointsHistory.model";
+import { IQuestParticipant } from "../../models/questParticipant.model";
 
 @injectable()
 export class CommunityAdminQuestService implements ICommunityAdminQuestService {
@@ -159,7 +166,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     }
   }
 
-  private validateTaskData(taskDto: any): void {
+  private validateTaskData(taskDto: QuestTaskDto): void {
     if (!taskDto.title || taskDto.title.trim().length === 0) {
       throw new CustomError("Task title is required", StatusCode.BAD_REQUEST);
     }
@@ -222,7 +229,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       // Ensure admin can only access their community's quests
       let questCommunityId: string;
       if (quest.communityId && typeof quest.communityId === 'object' && '_id' in quest.communityId) {
-        questCommunityId = (quest.communityId as any)._id.toString();
+        questCommunityId = quest.communityId.toString();
       } else {
         questCommunityId = (quest.communityId as mongoose.Types.ObjectId).toString();
       }
@@ -237,7 +244,19 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       const tasks = await this._questRepository.findTasksByQuest(questId);
 
       const questResponse = new QuestResponseDto(quest);
-      questResponse.tasks = tasks;
+      questResponse.tasks = tasks.map(task => {
+        const taskObj = task.toObject ? task.toObject() : task;
+        return {
+          ...taskObj,
+          _id: task._id.toString(),
+          questId: task.questId.toString(),
+          config: task.config ? {
+            ...task.config,
+            communityId: task.config.communityId?.toString(),
+            targetUserId: task.config.targetUserId?.toString()
+          } : undefined
+        } as unknown as QuestTaskDto;
+      });
 
       return questResponse;
     } catch (error) {
@@ -482,11 +501,11 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
             rewardType: 'points',
             customReward: questData.rewardPool?.customReward
           },
-          tasks: questData.tasks ? questData.tasks.map((task: any, index: number) => ({
+          tasks: questData.tasks ? (questData.tasks as unknown as Array<Record<string, unknown>>).map((task, index: number) => ({
             ...task,
             order: index + 1,
-            privilegePoints: task.privilegePoints || 1
-          })) : [],
+            privilegePoints: (task.privilegePoints as number) || 1
+          } as unknown as QuestTaskDto)) : [],
           isAIGenerated: true,
           aiPrompt: aiDto.prompt
         };
@@ -506,7 +525,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     }
   }
 
-  async chatWithAI(communityAdminId: string, message: string, history: any[]): Promise<any> {
+  async chatWithAI(communityAdminId: string, message: string, history: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<ChatWithAIResponseDto> {
     try {
       const admin = await this._adminRepository.findById(communityAdminId);
       if (!admin || !admin.communityId) {
@@ -584,7 +603,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
             const startDate = questData.startDate ? new Date(questData.startDate) : new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
             const endDate = questData.endDate ? new Date(questData.endDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-            const processedQuest = {
+            const processedQuest: CreateQuestDto = {
               title: questData.title || "New Quest",
               description: questData.description || "Quest description",
               startDate,
@@ -597,7 +616,11 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
                 rewardType: 'points',
                 customReward: questData.rewardPool?.customReward
               },
-              tasks: questData.tasks || [],
+              tasks: questData.tasks ? (questData.tasks as unknown as Array<Record<string, unknown>>).map((task, index: number) => ({
+                ...task,
+                order: index + 1,
+                privilegePoints: (task.privilegePoints as number) || 1
+              } as unknown as QuestTaskDto)) : [],
               isAIGenerated: true,
               aiPrompt: message
             };
@@ -636,7 +659,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     }
   }
 
-  async getQuestParticipants(questId: string, communityAdminId: string, query: GetParticipantsQueryDto): Promise<{ participants: any[]; total: number; pages: number }> {
+  async getQuestParticipants(questId: string, communityAdminId: string, query: GetParticipantsQueryDto): Promise<{ participants: QuestParticipantResponseDto[]; total: number; pages: number }> {
     try {
       await this.getQuestById(questId, communityAdminId); // Verify access
 
@@ -644,14 +667,33 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       const { participants, total } = await this._questRepository.findParticipantsByQuest(questId, page, limit, status);
 
       const pages = Math.ceil(total / limit);
-      return { participants, total, pages };
+      return {
+        participants: participants.map(p => {
+          const user = p.userId as unknown as { _id: mongoose.Types.ObjectId; username: string; name: string; profilePic?: string };
+          return {
+            _id: p._id.toString(),
+            userId: user._id?.toString() || p.userId.toString(),
+            username: user.username || 'user',
+            name: user.name || 'User',
+            profilePic: user.profilePic,
+            status: p.status,
+            joinedAt: p.joinedAt,
+            totalTasksCompleted: p.totalTasksCompleted,
+            totalPrivilegePoints: p.totalPrivilegePoints,
+            isWinner: p.isWinner,
+            rewardClaimed: p.rewardClaimed
+          };
+        }),
+        total,
+        pages
+      };
     } catch (error) {
       logger.error("Get quest participants error:", error);
       throw error instanceof CustomError ? error : new CustomError("Failed to get participants", StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async getParticipantDetails(questId: string, participantId: string, communityAdminId: string): Promise<any> {
+  async getParticipantDetails(questId: string, participantId: string, communityAdminId: string): Promise<QuestParticipantDetailsDto> {
     try {
       await this.getQuestById(questId, communityAdminId); // Verify access
 
@@ -661,11 +703,35 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       }
 
       // Get participant's submissions directly using the specific repository method
-      const participantSubmissions = await this._questRepository.findSubmissionsByUserAndQuest(participantId, questId);
+      const participantSubmissions = await this._questRepository.findSubmissionsByUserAndQuest(participant.userId._id.toString(), questId);
+
+      const user = participant.userId as unknown as { _id: mongoose.Types.ObjectId; username: string; name: string; profilePic?: string };
 
       return {
-        ...participant,
-        submissions: participantSubmissions
+        _id: participant._id.toString(),
+        userId: user._id.toString(),
+        username: user.username || 'user',
+        name: user.name || 'User',
+        profilePic: user.profilePic,
+        status: participant.status,
+        joinedAt: participant.joinedAt,
+        totalTasksCompleted: participant.totalTasksCompleted,
+        totalPrivilegePoints: participant.totalPrivilegePoints,
+        isWinner: participant.isWinner,
+        rewardClaimed: participant.rewardClaimed,
+        walletAddress: participant.walletAddress,
+        submissions: participantSubmissions.map(s => ({
+          _id: s._id.toString(),
+          questId: s.questId.toString(),
+          taskId: s.taskId.toString(),
+          userId: s.userId.toString(),
+          submissionData: s.submissionData,
+          status: s.status,
+          reviewedBy: s.reviewedBy?.toString(),
+          reviewComment: s.reviewComment,
+          submittedAt: s.submittedAt,
+          reviewedAt: s.reviewedAt
+        }))
       };
     } catch (error) {
       logger.error("Get participant details error:", error);
@@ -673,7 +739,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     }
   }
 
-  async selectWinners(communityAdminId: string, selectDto: SelectWinnersDto): Promise<{ winners: any[]; message: string }> {
+  async selectWinners(communityAdminId: string, selectDto: SelectWinnersDto): Promise<{ winners: QuestWinnerResponseDto[]; message: string }> {
     try {
       const quest = await this.getQuestById(selectDto.questId, communityAdminId);
 
@@ -685,7 +751,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
         throw new CustomError("Winners have already been selected for this quest", StatusCode.BAD_REQUEST);
       }
 
-      let winners: any[] = [];
+      let winners: IQuestParticipant[] = [];
       const method = selectDto.method || quest.selectionMethod;
       const winnerCount = quest.participantLimit;
 
@@ -734,7 +800,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
               type: 'quest_reward',
               points: pointsPerWinner,
               description: `Reward for winning quest: ${quest.title}`,
-              relatedId: quest._id
+              relatedId: quest._id.toString()
             });
           });
 
@@ -762,7 +828,18 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       });
 
       return {
-        winners,
+        winners: winners.map(w => {
+          const user = w.userId as unknown as { _id: mongoose.Types.ObjectId; username: string; name: string; profilePic?: string };
+          return {
+            _id: w._id.toString(),
+            userId: user._id?.toString() || w.userId.toString(),
+            username: user.username || 'user',
+            name: user.name || 'User',
+            profilePic: user.profilePic,
+            rewardAmount: Math.floor(quest.rewardPool.amount / (quest.participantLimit || 1)),
+            rewardCurrency: quest.rewardPool.currency
+          };
+        }),
         message: `${winners.length} winners selected successfully using ${method} method${rewardMessage}`
       };
     } catch (error) {
@@ -771,7 +848,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     }
   }
 
-  async selectReplacementWinners(questId: string, communityAdminId: string, count: number): Promise<{ winners: any[]; message: string }> {
+  async selectReplacementWinners(questId: string, communityAdminId: string, count: number): Promise<{ winners: QuestWinnerResponseDto[]; message: string }> {
     try {
       const quest = await this.getQuestById(questId, communityAdminId);
 
@@ -794,7 +871,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       }
 
       const replacementCount = Math.min(count, availableParticipants.length);
-      let replacementWinners: any[] = [];
+      let replacementWinners: IQuestParticipant[] = [];
 
       // Use the same selection method as the original quest
       switch (quest.selectionMethod) {
@@ -826,7 +903,18 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       });
 
       return {
-        winners: replacementWinners,
+        winners: replacementWinners.map(w => {
+          const user = w.userId as unknown as { _id: mongoose.Types.ObjectId; username: string; name: string; profilePic?: string };
+          return {
+            _id: w._id.toString(),
+            userId: user._id?.toString() || w.userId.toString(),
+            username: user.username || 'user',
+            name: user.name || 'User',
+            profilePic: user.profilePic,
+            rewardAmount: Math.floor(quest.rewardPool.amount / (quest.participantLimit || 1)),
+            rewardCurrency: quest.rewardPool.currency
+          };
+        }),
         message: `${replacementWinners.length} replacement winners selected successfully`
       };
     } catch (error) {
@@ -904,7 +992,14 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     }
   }
 
-  async getQuestStats(questId: string, communityAdminId: string): Promise<any> {
+  async getQuestStats(questId: string, communityAdminId: string): Promise<{
+    totalParticipants: number;
+    totalSubmissions: number;
+    completedParticipants: number;
+    pendingReviews: number;
+    winnersSelected: number;
+    rewardsDistributed: boolean;
+  }> {
     try {
       await this.getQuestById(questId, communityAdminId); // Verify access
 
@@ -940,7 +1035,7 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       }
 
       // If start date is in the future, set it to now so users can join immediately
-      const updateData: any = { status: 'active' };
+      const updateData: Record<string, unknown> = { status: 'active' };
       if (new Date(quest.startDate) > new Date()) {
         updateData.startDate = new Date();
       }
@@ -1004,11 +1099,25 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
     }
   }
 
-  async getQuestLeaderboard(questId: string, communityAdminId: string): Promise<any[]> {
+  async getQuestLeaderboard(questId: string, communityAdminId: string): Promise<QuestParticipantResponseDto[]> {
     try {
-      await this.getQuestById(questId, communityAdminId); // Verify access
-
-      return await this._questRepository.getQuestLeaderboard(questId);
+      const participants = await this._questRepository.getQuestLeaderboard(questId);
+      return participants.map(p => {
+        const user = p.userId as unknown as { _id: mongoose.Types.ObjectId; username: string; name: string; profilePic?: string };
+        return {
+          _id: p._id.toString(),
+          userId: user._id?.toString() || p.userId.toString(),
+          username: user.username || 'user',
+          name: user.name || 'User',
+          profilePic: user.profilePic,
+          status: p.status,
+          joinedAt: p.joinedAt,
+          totalTasksCompleted: p.totalTasksCompleted,
+          totalPrivilegePoints: p.totalPrivilegePoints,
+          isWinner: p.isWinner,
+          rewardClaimed: p.rewardClaimed
+        };
+      });
     } catch (error) {
       logger.error("Get quest leaderboard error:", error);
       throw error instanceof CustomError ? error : new CustomError("Failed to get quest leaderboard", StatusCode.INTERNAL_SERVER_ERROR);

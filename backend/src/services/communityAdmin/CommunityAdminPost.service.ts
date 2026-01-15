@@ -9,6 +9,7 @@ import { ICommunityAdminPostRepository } from "../../core/interfaces/repositorie
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { IPostRepository } from "../../core/interfaces/repositories/IPost.repository";
 import CommunityMemberModel from "../../models/communityMember.model";
+import { IPost } from "../../models/post.models";
 import {
     CreateCommunityAdminPostDto,
     UpdateCommunityAdminPostDto,
@@ -19,7 +20,8 @@ import {
     GetCommunityAdminPostsQueryDto
 } from "../../dtos/communityAdmin/CommunityAdminPost.dto";
 import {
-    CommunityFeedResponseDto
+    CommunityFeedResponseDto,
+    AdminPostResponseDto
 } from "../../dtos/communityAdmin/CommunityAdminFeed.dto";
 import { LikeResponseDto } from "../../dtos/posts/Post.dto";
 
@@ -384,18 +386,17 @@ export class CommunityAdminPostService implements ICommunityAdminPostService {
 
             // Transform posts for admin context
             const transformedPosts = await Promise.all(
-                postsResult.posts.map(async (post: any) => {
-                    const isLiked = await this._userPostRepository.checkIfLiked(adminId, post._id);
-                    return {
-                        ...post,
-                        isLiked,
-                        isOwnPost: false,
-                        canModerate: true,
-                        author: {
-                            ...post.author,
-                            isCommunityMember: true
-                        }
-                    };
+                postsResult.posts.map(async (post) => {
+                    const isLiked = await this._userPostRepository.checkIfLiked(adminId, post._id.toString());
+                    const postObj = (post as unknown as { toObject: () => IPost }).toObject ? (post as unknown as { toObject: () => IPost }).toObject() : post;
+
+                    // Ensure ID is string
+                    const postWithStringId = { ...postObj, _id: postObj._id.toString() };
+
+                    return new AdminPostResponseDto({
+                        ...postWithStringId,
+                        isLiked
+                    });
                 })
             );
 
@@ -421,9 +422,14 @@ export class CommunityAdminPostService implements ICommunityAdminPostService {
     /**
      * Retrieves statistics for the community.
      * @param {string} communityId - Community ID.
-     * @returns {Promise<any>} Community stats.
+     * @returns {Promise<{ totalMembers: number; activeMembersToday: number; postsToday: number; engagementRate: number; }>} Community stats.
      */
-    private async _getCommunityStats(communityId: string): Promise<any> {
+    private async _getCommunityStats(communityId: string): Promise<{
+        totalMembers: number;
+        activeMembersToday: number;
+        postsToday: number;
+        engagementRate: number;
+    }> {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 

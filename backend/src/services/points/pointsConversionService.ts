@@ -8,7 +8,9 @@ import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { calculateCVCFromPoints, validateConversion, POINTS_CONVERSION_CONFIG } from "../../config/pointsConversion";
+import { Types } from "mongoose";
 import logger from "../../utils/logger";
+import { ConversionResponseDto } from "../../dtos/points/PointsConversion.dto";
 
 @injectable()
 export class PointsConversionService implements IPointsConversionService {
@@ -75,7 +77,7 @@ export class PointsConversionService implements IPointsConversionService {
       // Deduct points from user
       await this._userRepository.update(userId, {
         totalPoints: user.totalPoints - pointsToConvert
-      } as any);
+      } as Record<string, unknown>);
 
       // Record points deduction history
       await this._pointsHistoryRepository.createPointsHistory({
@@ -102,7 +104,7 @@ export class PointsConversionService implements IPointsConversionService {
   }
 
   async getUserConversions(userId: string, page = 1, limit = 10): Promise<{
-    conversions: any[];
+    conversions: ConversionResponseDto[];
     total: number;
     totalPages: number;
     stats: {
@@ -117,7 +119,13 @@ export class PointsConversionService implements IPointsConversionService {
 
       return {
         conversions: result.conversions.map(conversion => ({
-          id: conversion._id,
+          id: conversion._id.toString(),
+          user: {
+            id: userId,
+            username: '', // These would be populated if needed, but for user history they know who they are
+            email: '',
+            profilePic: ''
+          },
           pointsConverted: conversion.pointsConverted,
           cvcAmount: conversion.cvcAmount,
           conversionRate: conversion.conversionRate,
@@ -126,7 +134,7 @@ export class PointsConversionService implements IPointsConversionService {
           claimFee: conversion.claimFee,
           walletAddress: conversion.walletAddress,
           adminNote: conversion.adminNote,
-          approvedBy: conversion.approvedBy,
+          approvedBy: conversion.approvedBy?.toString(),
           approvedAt: conversion.approvedAt,
           claimedAt: conversion.claimedAt,
           createdAt: conversion.createdAt
@@ -159,9 +167,9 @@ export class PointsConversionService implements IPointsConversionService {
       // Handle both populated and non-populated userId
       // When populated by mongoose, userId is an object, when not populated it's an ObjectId
       // Use mongoose's way to get the ObjectId regardless of population
-      const conversionUserId = (conversion.userId as any)?._id
-        ? (conversion.userId as any)._id.toString()
-        : (conversion.userId as any).toString();
+      const conversionUserId = (conversion.userId as unknown as { _id?: Types.ObjectId })._id
+        ? (conversion.userId as unknown as { _id: Types.ObjectId })._id.toString()
+        : (conversion.userId as { toString(): string }).toString();
 
       // Normalize both IDs to strings for comparison
       const normalizedUserId = userId.toString();

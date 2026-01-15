@@ -2,7 +2,9 @@ import {
     AIChatResponseDto,
     TradeAnalysisDto,
     ChatHistoryResponseDto,
-    TokenPriceInfoDto
+    TokenPriceInfoDto,
+    ChatContextDto,
+    TradingIntentDto
 } from "../../../../dtos/aiTrading/AiTrading.dto";
 
 export interface IAITradingService {
@@ -11,7 +13,7 @@ export interface IAITradingService {
         sessionId: string,
         userId?: string,
         walletAddress?: string,
-        context?: any
+        context?: ChatContextDto
     ): Promise<AIChatResponseDto>;
 
     analyzeTradeOpportunity(
@@ -39,16 +41,10 @@ export interface IAITradingService {
         limit?: number
     ): Promise<ChatHistoryResponseDto>;
 
-    detectTradingIntent(message: string): Promise<{
-        isTradeIntent: boolean;
-        fromToken?: string;
-        toToken?: string;
-        amount?: string;
-        action: 'buy' | 'sell' | 'swap' | 'info' | 'general';
-    }>;
+    detectTradingIntent(message: string): Promise<TradingIntentDto>;
 
     generateSmartSuggestions(
         message: string,
-        context?: any
+        context?: ChatContextDto
     ): Promise<string[]>;
 }

@@ -17,11 +17,10 @@ export class AdminAuthService implements IAdminAuthService {
   ) { }
 
   /**
-   * Authenticates an admin user.
-   * @param {string} email - Admin email.
-   * @param {string} password - Admin password.
-   * @returns {Promise<any>} Containing admin details and tokens.
-   * @throws {CustomError} If authentication fails.
+   * 
+   * @param email 
+   * @param password 
+   * @returns 
    */
   async login(email: string, password: string) {
     const admin = await this._adminRepository.findByEmail(email);

@@ -7,11 +7,16 @@ import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPo
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { Types } from "mongoose";
 import logger from "../../utils/logger";
+import {
+  ConversionResponseDto,
+  ConversionRateResponseDto
+} from "../../dtos/points/PointsConversion.dto";
 
 // Type for populated user
 interface PopulatedUser {
-  _id: any;
+  _id: Types.ObjectId;
   username: string;
   email: string;
   profilePic: string;
@@ -31,7 +36,7 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
   ) { }
 
   async getAllConversions(page = 1, limit = 10, status?: string): Promise<{
-    conversions: any[];
+    conversions: ConversionResponseDto[];
     total: number;
     totalPages: number;
   }> {
@@ -45,9 +50,9 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
           const user = conversion.userId as unknown as PopulatedUser;
 
           return {
-            id: conversion._id,
+            id: conversion._id.toString(),
             user: {
-              id: user._id,
+              id: user._id.toString(),
               username: user.username,
               email: user.email,
               profilePic: user.profilePic
@@ -60,7 +65,7 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
             claimFee: conversion.claimFee,
             walletAddress: conversion.walletAddress,
             adminNote: conversion.adminNote,
-            approvedBy: conversion.approvedBy,
+            approvedBy: conversion.approvedBy?.toString(),
             approvedAt: conversion.approvedAt,
             claimedAt: conversion.claimedAt,
             createdAt: conversion.createdAt
@@ -81,7 +86,7 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
     adminNote?: string
   ): Promise<{
     success: boolean;
-    conversion: any;
+    conversion: Partial<ConversionResponseDto>;
     message: string;
   }> {
     try {
@@ -104,7 +109,7 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
       return {
         success: true,
         conversion: {
-          id: updatedConversion!._id,
+          id: updatedConversion!._id.toString(),
           pointsConverted: updatedConversion!.pointsConverted,
           cvcAmount: updatedConversion!.cvcAmount,
           status: updatedConversion!.status,
@@ -127,7 +132,7 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
     reason: string
   ): Promise<{
     success: boolean;
-    conversion: any;
+    conversion: Partial<ConversionResponseDto>;
     message: string;
   }> {
     try {
@@ -141,16 +146,16 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
 
       // Refund points to user
       // Helper to get userId string safely (handling populated vs non-populated)
-      const userId = (conversion.userId as any)?._id
-        ? (conversion.userId as any)._id.toString()
-        : (conversion.userId as any).toString();
+      const userId = (conversion.userId as unknown as { _id?: Types.ObjectId })._id
+        ? (conversion.userId as unknown as { _id: Types.ObjectId })._id.toString()
+        : (conversion.userId as { toString(): string }).toString();
 
       const user = await this._userRepository.findById(userId);
       if (user) {
         // Refund points
         await this._userRepository.update(userId, {
           totalPoints: user.totalPoints + conversion.pointsConverted
-        } as any);
+        } as Record<string, unknown>);
 
         // Record history
         await this._pointsHistoryRepository.createPointsHistory({
@@ -173,7 +178,7 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
       return {
         success: true,
         conversion: {
-          id: updatedConversion!._id,
+          id: updatedConversion!._id.toString(),
           pointsConverted: updatedConversion!.pointsConverted,
           cvcAmount: updatedConversion!.cvcAmount,
           status: updatedConversion!.status,
@@ -196,11 +201,11 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
     totalCVCGenerated: number;
     totalClaimed: number;
     totalPending: number;
-    dailyStats: any[];
+    dailyStats: Array<{ date: string; count: number; amount: number }>;
   }> {
     try {
       const stats = await this._conversionRepository.getConversionStats();
-      const dailyStats: any[] = []; // TODO: Implement aggregation
+      const dailyStats: Array<{ date: string; count: number; amount: number }> = []; // TODO: Implement aggregation
       return { ...stats, dailyStats };
     } catch (error) {
       logger.error("AdminPointsConversionService: Get conversion stats error:", error);
@@ -208,7 +213,7 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
     }
   }
 
-  async getConversionById(conversionId: string): Promise<any> {
+  async getConversionById(conversionId: string): Promise<ConversionResponseDto> {
     try {
       const conversion = await this._conversionRepository.findById(conversionId);
       if (!conversion) {
@@ -218,11 +223,12 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
       const user = conversion.userId as unknown as PopulatedUser;
 
       return {
-        id: conversion._id,
+        id: conversion._id.toString(),
         user: {
-          id: user._id,
+          id: user._id.toString(),
           username: user.username,
-          email: user.email
+          email: user.email,
+          profilePic: user.profilePic
         },
         pointsConverted: conversion.pointsConverted,
         cvcAmount: conversion.cvcAmount,
@@ -232,7 +238,7 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
         claimFee: conversion.claimFee,
         walletAddress: conversion.walletAddress,
         adminNote: conversion.adminNote,
-        approvedBy: conversion.approvedBy,
+        approvedBy: conversion.approvedBy?.toString(),
         approvedAt: conversion.approvedAt,
         claimedAt: conversion.claimedAt,
         createdAt: conversion.createdAt
@@ -257,7 +263,7 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
     }
   ): Promise<{
     success: boolean;
-    rate: any;
+    rate: ConversionRateResponseDto;
     message: string;
   }> {
     try {
@@ -274,13 +280,15 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
       return {
         success: true,
         rate: {
-          id: newRate._id,
+          id: newRate._id.toString(),
           pointsPerCVC: newRate.pointsPerCVC,
           minimumPoints: newRate.minimumPoints,
           minimumCVC: newRate.minimumCVC,
           claimFeeETH: newRate.claimFeeETH,
           isActive: newRate.isActive,
-          effectiveFrom: newRate.effectiveFrom
+          effectiveFrom: newRate.effectiveFrom,
+          createdBy: newRate.createdBy?.toString(),
+          createdAt: newRate.createdAt
         },
         message: "Conversion rate updated successfully"
       };
@@ -291,7 +299,7 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
   }
 
   async getConversionRates(page = 1, limit = 10): Promise<{
-    rates: any[];
+    rates: ConversionRateResponseDto[];
     total: number;
     totalPages: number;
   }> {
@@ -299,14 +307,14 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
       const result = await this._rateRepository.findAll(page, limit);
       return {
         rates: result.rates.map(rate => ({
-          id: rate._id,
+          id: rate._id.toString(),
           pointsPerCVC: rate.pointsPerCVC,
           minimumPoints: rate.minimumPoints,
           minimumCVC: rate.minimumCVC,
           claimFeeETH: rate.claimFeeETH,
           isActive: rate.isActive,
           effectiveFrom: rate.effectiveFrom,
-          createdBy: rate.createdBy,
+          createdBy: rate.createdBy?.toString(),
           createdAt: rate.createdAt
         })),
         total: result.total,
@@ -318,19 +326,19 @@ export class AdminPointsConversionService implements IAdminPointsConversionServi
     }
   }
 
-  async getCurrentRate(): Promise<any> {
+  async getCurrentRate(): Promise<ConversionRateResponseDto | null> {
     try {
       const rate = await this._rateRepository.getCurrentRate();
       if (!rate) return null;
       return {
-        id: rate._id,
+        id: rate._id.toString(),
         pointsPerCVC: rate.pointsPerCVC,
         minimumPoints: rate.minimumPoints,
         minimumCVC: rate.minimumCVC,
         claimFeeETH: rate.claimFeeETH,
         isActive: rate.isActive,
         effectiveFrom: rate.effectiveFrom,
-        createdBy: rate.createdBy,
+        createdBy: rate.createdBy?.toString(),
         createdAt: rate.createdAt
       };
     } catch (error) {

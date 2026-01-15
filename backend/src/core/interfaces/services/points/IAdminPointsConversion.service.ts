@@ -1,6 +1,11 @@
+import {
+  ConversionResponseDto,
+  ConversionRateResponseDto
+} from "../../../../dtos/points/PointsConversion.dto";
+
 export interface IAdminPointsConversionService {
   getAllConversions(page?: number, limit?: number, status?: string): Promise<{
-    conversions: any[];
+    conversions: ConversionResponseDto[];
     total: number;
     totalPages: number;
   }>;
@@ -11,7 +16,7 @@ export interface IAdminPointsConversionService {
     adminNote?: string
   ): Promise<{
     success: boolean;
-    conversion: any;
+    conversion: Partial<ConversionResponseDto>;
     message: string;
   }>;
 
@@ -21,7 +26,7 @@ export interface IAdminPointsConversionService {
     reason: string
   ): Promise<{
     success: boolean;
-    conversion: any;
+    conversion: Partial<ConversionResponseDto>;
     message: string;
   }>;
 
@@ -31,10 +36,10 @@ export interface IAdminPointsConversionService {
     totalCVCGenerated: number;
     totalClaimed: number;
     totalPending: number;
-    dailyStats: any[];
+    dailyStats: Array<{ date: string; count: number; amount: number }>;
   }>;
 
-  getConversionById(conversionId: string): Promise<any>;
+  getConversionById(conversionId: string): Promise<ConversionResponseDto>;
 
   updateConversionRate(
     adminId: string,
@@ -47,15 +52,15 @@ export interface IAdminPointsConversionService {
     }
   ): Promise<{
     success: boolean;
-    rate: any;
+    rate: ConversionRateResponseDto;
     message: string;
   }>;
 
   getConversionRates(page?: number, limit?: number): Promise<{
-    rates: any[];
+    rates: ConversionRateResponseDto[];
     total: number;
     totalPages: number;
   }>;
 
-  getCurrentRate(): Promise<any>;
+  getCurrentRate(): Promise<ConversionRateResponseDto | null>;
 }

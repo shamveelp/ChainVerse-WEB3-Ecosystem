@@ -13,12 +13,16 @@ import {
     CreateCommunityMessageDto,
     UpdateCommunityMessageDto,
     CommunityMessageResponseDto,
-    CommunityMessagesListResponseDto
+    CommunityMessagesListResponseDto,
+    MediaFileDto
 } from "../../dtos/communityChat/CommunityMessage.dto";
 import {
     CommunityGroupMessageResponseDto,
     CommunityGroupMessagesListResponseDto
 } from "../../dtos/communityChat/CommunityGroupMessage.dto";
+import { Types } from "mongoose";
+import { ICommunityMessage } from "../../models/communityMessage.model";
+import { ICommunityGroupMessage } from "../../models/communityGroupMessage.model";
 
 @injectable()
 export class CommunityAdminCommunityService implements ICommunityAdminCommunityService {
@@ -292,13 +296,11 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
         }
     }
 
-    /**
-     * Gets message reactions.
-     * @param {string} adminId - Admin ID.
-     * @param {string} messageId - Message ID.
-     * @returns {Promise<any>} Message reactions.
-     */
-    async getMessageReactions(adminId: string, messageId: string): Promise<any> {
+    async getMessageReactions(adminId: string, messageId: string): Promise<{
+        messageId: string;
+        reactions: Array<{ emoji: string; count: number; users: string[] }>;
+        totalReactions: number;
+    }> {
         try {
             const message = await this._messageRepository.getMessageById(messageId);
             if (!message) {
@@ -312,7 +314,11 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
 
             return {
                 messageId,
-                reactions: message.reactions,
+                reactions: message.reactions.map(r => ({
+                    emoji: r.emoji,
+                    count: r.count,
+                    users: r.users.map(u => u.toString())
+                })),
                 totalReactions: message.totalReactions
             };
         } catch (error) {
@@ -328,9 +334,9 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
      * Uploads media files.
      * @param {string} adminId - Admin ID.
      * @param {Express.Multer.File[]} files - Files to upload.
-     * @returns {Promise<{ mediaFiles: any[] }>} Uploaded media.
+     * @returns {Promise<{ mediaFiles: MediaFileDto[] }>} Uploaded media.
      */
-    async uploadMedia(adminId: string, files: Express.Multer.File[]): Promise<{ mediaFiles: any[] }> {
+    async uploadMedia(adminId: string, files: Express.Multer.File[]): Promise<{ mediaFiles: MediaFileDto[] }> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin) {
@@ -382,58 +388,83 @@ export class CommunityAdminCommunityService implements ICommunityAdminCommunityS
 
     /**
      * Transforms message to DTO.
-     * @param {any} message - Message object.
+     * @param {ICommunityMessage} message - Message object.
      * @param {string} [viewerId] - Viewer ID.
      * @returns {CommunityMessageResponseDto} DTO.
      */
-    private transformToDTO(message: any, viewerId?: string): CommunityMessageResponseDto {
+    private transformToDTO(message: ICommunityMessage, viewerId?: string): CommunityMessageResponseDto {
+        const msg = message as unknown as {
+            _id: Types.ObjectId;
+            communityId: Types.ObjectId;
+            adminId: { _id: Types.ObjectId; name: string; profilePicture?: string };
+            content: string;
+            mediaFiles?: MediaFileDto[];
+            messageType: 'text' | 'media' | 'mixed';
+            isPinned: boolean;
+            reactions: Array<{ emoji: string; count: number; users: Types.ObjectId[] }>;
+            totalReactions: number;
+            isEdited: boolean;
+            editedAt?: Date;
+            createdAt: Date;
+            updatedAt: Date;
+        };
         return {
-            _id: message._id.toString(),
-            communityId: message.communityId.toString(),
+            _id: msg._id.toString(),
+            communityId: msg.communityId.toString(),
             admin: {
-                _id: message.adminId._id.toString(),
-                name: message.adminId.name,
-                profilePicture: message.adminId.profilePicture || ''
+                _id: msg.adminId._id.toString(),
+                name: msg.adminId.name,
+                profilePicture: msg.adminId.profilePicture || ''
             },
-            content: message.content,
-            mediaFiles: message.mediaFiles || [],
-            messageType: message.messageType,
-            isPinned: message.isPinned,
-            reactions: message.reactions.map((reaction: any) => ({
+            content: msg.content,
+            mediaFiles: msg.mediaFiles || [],
+            messageType: msg.messageType,
+            isPinned: msg.isPinned,
+            reactions: msg.reactions.map((reaction) => ({
                 emoji: reaction.emoji,
                 count: reaction.count,
-                userReacted: viewerId ? reaction.users.some((userId: any) => userId.toString() === viewerId) : false
+                userReacted: viewerId ? reaction.users.some(uid => uid.toString() === viewerId) : false
             })),
-            totalReactions: message.totalReactions,
-            isEdited: message.isEdited,
-            editedAt: message.editedAt,
-            createdAt: message.createdAt,
-            updatedAt: message.updatedAt
+            totalReactions: msg.totalReactions,
+            isEdited: msg.isEdited,
+            editedAt: msg.editedAt,
+            createdAt: msg.createdAt,
+            updatedAt: msg.updatedAt
         };
     }
 
     /**
      * Transforms group message to DTO.
-     * @param {any} message - Message object.
+     * @param {ICommunityGroupMessage} message - Message object.
      * @param {string} [viewerId] - Viewer ID.
      * @returns {CommunityGroupMessageResponseDto} DTO.
      */
-    private transformGroupMessageToDTO(message: any, viewerId?: string): CommunityGroupMessageResponseDto {
+    private transformGroupMessageToDTO(message: ICommunityGroupMessage, viewerId?: string): CommunityGroupMessageResponseDto {
+        const msg = message as unknown as {
+            _id: Types.ObjectId;
+            communityId: Types.ObjectId;
+            senderId: { _id: Types.ObjectId; username: string; name: string; profilePic?: string };
+            content: string;
+            isEdited: boolean;
+            editedAt?: Date;
+            createdAt: Date;
+            updatedAt: Date;
+        };
         return {
-            _id: message._id.toString(),
-            communityId: message.communityId.toString(),
+            _id: msg._id.toString(),
+            communityId: msg.communityId.toString(),
             sender: {
-                _id: message.senderId._id.toString(),
-                username: message.senderId.username,
-                name: message.senderId.name,
-                profilePic: message.senderId.profilePic || ''
+                _id: msg.senderId._id.toString(),
+                username: msg.senderId.username,
+                name: msg.senderId.name,
+                profilePic: msg.senderId.profilePic || ''
             },
-            content: message.content,
-            isEdited: message.isEdited,
-            editedAt: message.editedAt,
+            content: msg.content,
+            isEdited: msg.isEdited,
+            editedAt: msg.editedAt,
             isCurrentUser: false, // Admin is always viewing as observer
-            createdAt: message.createdAt,
-            updatedAt: message.updatedAt
+            createdAt: msg.createdAt,
+            updatedAt: msg.updatedAt
         };
     }
 }

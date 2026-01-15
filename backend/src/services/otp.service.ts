@@ -159,7 +159,7 @@ export class OtpService implements IOTPService {
     }
 
     /**
-     * Clears any existing OTP for the given email.
+     * Clears  existing OTP for the given email.
      * @param {string} email - The email address to clear the OTP for.
      * @returns {Promise<void>}
      * @throws {CustomError} If clearing the OTP fails.

@@ -20,8 +20,50 @@ export class GetCommunityFeedDto {
   type?: 'all' | 'trending' | 'recent' = 'all';
 }
 
+export class AdminPostResponseDto {
+  _id: string;
+  content: string;
+  mediaUrls?: string[];
+  mediaType?: string;
+  likesCount: number;
+  commentsCount: number;
+  sharesCount: number;
+  createdAt: Date;
+  author: {
+    _id: string;
+    username: string;
+    name: string;
+    profilePic: string;
+    isCommunityMember: boolean;
+  };
+  isLiked: boolean;
+  isOwnPost: boolean;
+  canModerate: boolean;
+
+  constructor(data: any) {
+    this._id = data._id?.toString();
+    this.content = data.content;
+    this.mediaUrls = data.mediaUrls;
+    this.mediaType = data.mediaType;
+    this.likesCount = data.likesCount || 0;
+    this.commentsCount = data.commentsCount || 0;
+    this.sharesCount = data.sharesCount || 0;
+    this.createdAt = data.createdAt;
+    this.author = {
+      _id: data.author?._id?.toString(),
+      username: data.author?.username,
+      name: data.author?.name,
+      profilePic: data.author?.profilePic || '',
+      isCommunityMember: true
+    };
+    this.isLiked = data.isLiked || false;
+    this.isOwnPost = false;
+    this.canModerate = true;
+  }
+}
+
 export class CommunityFeedResponseDto extends BaseResponseDto {
-  posts: any[];
+  posts: AdminPostResponseDto[];
   hasMore: boolean;
   nextCursor?: string;
   totalCount: number;
@@ -32,7 +74,7 @@ export class CommunityFeedResponseDto extends BaseResponseDto {
     engagementRate: number;
   };
 
-  constructor(posts: any[], hasMore: boolean, nextCursor?: string, totalCount: number = 0, communityStats?: any) {
+  constructor(posts: AdminPostResponseDto[], hasMore: boolean, nextCursor?: string, totalCount: number = 0, communityStats?: any) {
     super(true, 'Community feed retrieved successfully');
     this.posts = posts;
     this.hasMore = hasMore;
@@ -47,6 +89,14 @@ export class CommunityFeedResponseDto extends BaseResponseDto {
   }
 }
 
+export class MemberActivityDto {
+  date!: string;
+  posts!: number;
+  likes!: number;
+  comments!: number;
+  newMembers!: number;
+}
+
 export class CommunityEngagementStatsDto {
   period: 'today' | 'week' | 'month';
   totalPosts: number;
@@ -56,15 +106,9 @@ export class CommunityEngagementStatsDto {
   activeMembers: number;
   engagementRate: number;
   topHashtags: string[];
-  memberActivity: {
-    date: string;
-    posts: number;
-    likes: number;
-    comments: number;
-    newMembers: number;
-  }[];
+  memberActivity: MemberActivityDto[];
 
-  constructor(data: any) {
+  constructor(data: Partial<CommunityEngagementStatsDto>) {
     this.period = data.period || 'today';
     this.totalPosts = data.totalPosts || 0;
     this.totalLikes = data.totalLikes || 0;

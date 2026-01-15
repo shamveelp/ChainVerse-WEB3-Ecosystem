@@ -19,7 +19,17 @@ export interface IChainCastRepository {
     findParticipantByChainCastAndUser(chainCastId: string, userId: string): Promise<IChainCastParticipant | null>;
     findParticipantsByChainCast(chainCastId: string, skip: number, limit: number, filter?: string): Promise<{ participants: IChainCastParticipant[], total: number }>;
     updateParticipant(chainCastId: string, userId: string, data: Partial<IChainCastParticipant>): Promise<IChainCastParticipant | null>;
-    updateParticipantRole(chainCastId: string, userId: string, role: string, permissions: any): Promise<IChainCastParticipant | null>;
+    updateParticipantRole(
+        chainCastId: string,
+        userId: string,
+        role: string,
+        permissions: {
+            canStream: boolean;
+            canModerate: boolean;
+            canReact: boolean;
+            canChat: boolean;
+        }
+    ): Promise<IChainCastParticipant | null>;
     removeParticipant(chainCastId: string, userId: string): Promise<boolean>;
     getActiveParticipantsCount(chainCastId: string): Promise<number>;
     getModeratorsCount(chainCastId: string): Promise<number>;
@@ -40,5 +50,14 @@ export interface IChainCastRepository {
 
     // Analytics operations
     updateChainCastStats(chainCastId: string, stats: Partial<IChainCast['stats']>): Promise<void>;
-    getChainCastAnalytics(communityId: string, startDate?: Date, endDate?: Date): Promise<any>;
+    getChainCastAnalytics(communityId: string, startDate?: Date, endDate?: Date): Promise<{
+        totalChainCasts: number;
+        activeNow: number;
+        totalViews: number;
+        peakViewers: number;
+        totalReactions: number;
+        averageWatchTime: number;
+        statusDistribution: Record<string, number>;
+        growthStats: Array<{ date: string; views: number; participants: number }>;
+    }>;
 }

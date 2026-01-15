@@ -9,6 +9,7 @@ import { IJwtService } from "../../core/interfaces/services/IJwtService";
 import { IOTPService } from "../../core/interfaces/services/IOTP.service";
 import { IMailService } from "../ITempMail";
 import { ICommunityAdmin } from "../../models/communityAdmin.model";
+import { ICommunity } from "../../models/community.model";
 import CommunityModel from "../../models/community.model";
 import CommunityMemberModel from "../../models/communityMember.model";
 import logger from "../../utils/logger";
@@ -25,6 +26,7 @@ import {
   CommunityAdminLoginResponseDto,
   CreateCommunityResponseDto,
   CheckExistenceResponseDto,
+  CommunityDetailsDto,
 } from "../../dtos/communityAdmin/CommunityAdminAuth.dto";
 import {
   ForgotPasswordDto,
@@ -641,9 +643,9 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
   /**
    * Retrieves community details for the admin.
    * @param {string} communityAdminId - Admin ID.
-   * @returns {Promise<any>} Community details.
+   * @returns {Promise<{ success: boolean; community: CommunityDetailsDto }>} Community details.
    */
-  async getCommunityDetails(communityAdminId: string): Promise<any> {
+  async getCommunityDetails(communityAdminId: string): Promise<{ success: boolean; community: CommunityDetailsDto }> {
     try {
       const communityAdmin =
         await this.communityAdminRepo.findById(communityAdminId);
@@ -691,13 +693,13 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
   /**
    * Updates community details.
    * @param {string} communityAdminId - Community Admin ID.
-   * @param {any} updateData - Data to update.
-   * @returns {Promise<any>} Updated community details.
+   * @param {Partial<ICommunity>} updateData - Data to update.
+   * @returns {Promise<{ success: boolean; message: string; community: CommunityDetailsDto }>} Updated community details.
    */
   async updateCommunity(
     communityAdminId: string,
-    updateData: any
-  ): Promise<any> {
+    updateData: Partial<ICommunity>
+  ): Promise<{ success: boolean; message: string; community: CommunityDetailsDto }> {
     try {
       const communityAdmin =
         await this.communityAdminRepo.findById(communityAdminId);
@@ -939,18 +941,18 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
   }
 
   /**
-   * Normalizes rules array.
-   * @param {any} rules - Rules input.
-   * @returns {string[]} Normalized rules.
+   * 
+   * @param rules 
+   * @returns 
    */
-  private _normalizeRules(rules?: any): string[] {
+  private _normalizeRules(rules?: unknown): string[] {
     if (!Array.isArray(rules)) {
       return [];
     }
 
     const normalized: string[] = [];
 
-    rules.forEach((rule: any) => {
+    rules.forEach((rule: unknown) => {
       if (typeof rule === "string") {
         const parts = rule.split(";").map((part) => part.trim()).filter(Boolean);
         normalized.push(...parts);
@@ -961,17 +963,20 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
   }
 
   /**
-   * Normalizes social links object.
-   * @param {any} socialLinks - Social links input.
-   * @returns {Record<string, string>} Normalized social links.
+   * 
+   * @param socialLinks 
+   * @returns 
    */
-  private _normalizeSocialLinks(socialLinks?: any): Record<string, string> {
+  private _normalizeSocialLinks(socialLinks?: unknown): Record<string, string> {
     if (Array.isArray(socialLinks) && socialLinks.length > 0) {
-      return socialLinks[0];
+      const firstItem = socialLinks[0];
+      if (typeof firstItem === 'object' && firstItem !== null) {
+        return firstItem as Record<string, string>;
+      }
     }
 
-    if (typeof socialLinks === "object" && socialLinks !== null) {
-      return socialLinks;
+    if (typeof socialLinks === "object" && socialLinks !== null && !Array.isArray(socialLinks)) {
+      return socialLinks as Record<string, string>;
     }
 
     return {};
@@ -979,10 +984,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
 
   /**
    * Builds community response payload.
-   * @param {any} community - Community object.
-   * @returns {Promise<any>} Community payload.
+   * @param {ICommunity} community - Community object.
+   * @returns {Promise<CommunityDetailsDto>} Community payload.
    */
-  private async _buildCommunityResponse(community: any) {
+  private async _buildCommunityResponse(community: ICommunity): Promise<CommunityDetailsDto> {
     const memberCount = await CommunityMemberModel.countDocuments({
       communityId: community._id,
       isActive: true,

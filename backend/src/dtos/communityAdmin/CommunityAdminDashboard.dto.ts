@@ -12,10 +12,10 @@ export interface CommunityOverviewDto {
     activeMembers: number;
     isVerified: boolean;
     settings: {
-        allowChainCast: boolean;
-        allowGroupChat: boolean;
-        allowPosts: boolean;
-        allowQuests: boolean;
+        allowChainCast?: boolean;
+        allowGroupChat?: boolean;
+        allowPosts?: boolean;
+        allowQuests?: boolean;
     };
     socialLinks: Array<{
         platform: string;

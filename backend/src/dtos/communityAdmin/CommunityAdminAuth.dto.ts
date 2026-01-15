@@ -257,3 +257,27 @@ export class CommunityDetailsResponseDto extends BaseResponseDto {
     };
   }
 }
+export class CommunityDetailsDto {
+  id!: string;
+  communityName!: string;
+  email!: string;
+  username!: string;
+  walletAddress!: string;
+  description!: string;
+  category!: string;
+  rules!: string[];
+  socialLinks!: Record<string, string>;
+  logo!: string;
+  banner!: string;
+  settings!: {
+    allowChainCast?: boolean;
+    allowGroupChat?: boolean;
+    allowPosts?: boolean;
+    allowQuests?: boolean;
+  };
+  status!: string;
+  isVerified!: boolean;
+  memberCount!: number;
+  createdAt!: Date;
+  updatedAt!: Date;
+}

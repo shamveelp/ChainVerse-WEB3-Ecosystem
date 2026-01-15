@@ -29,6 +29,8 @@ import {
   ChainCastReactionResponseDto,
   ChainCastModerationRequestResponseDto,
   UpdateParticipantDto,
+  ChainCastAnalyticsResponseDto,
+  ChainCastsSummaryDto
 } from "../../dtos/chainCast/ChainCast.dto";
 
 @injectable()
@@ -242,9 +244,10 @@ export class ChainCastService implements IChainCastService {
         }
       }
 
+      const populatedAdmin = chainCast.adminId as unknown as { _id: Types.ObjectId; username: string; name: string; profilePic: string };
       return new ChainCastResponseDto(
         chainCast,
-        (chainCast as any).adminId,
+        populatedAdmin,
         userRole,
         canJoin,
         canModerate
@@ -313,7 +316,7 @@ export class ChainCastService implements IChainCastService {
 
       const updatedChainCast = await this._chainCastRepository.updateChainCast(
         chainCastId,
-        updateData as any
+        updateData as unknown as Record<string, unknown>
       );
       if (!updatedChainCast) {
         throw new CustomError(
@@ -609,9 +612,10 @@ export class ChainCastService implements IChainCastService {
           const canModerate = participant?.permissions.canModerate || false;
           const userRole = participant?.role || "viewer";
 
+          const populatedAdmin = chainCast.adminId as unknown as { _id: Types.ObjectId; username: string; name: string; profilePic: string };
           return new ChainCastResponseDto(
             chainCast,
-            (chainCast as any).adminId,
+            populatedAdmin,
             userRole,
             canJoin,
             canModerate
@@ -731,11 +735,12 @@ export class ChainCastService implements IChainCastService {
         await this._chainCastRepository.getActiveParticipantsCount(
           data.chainCastId
         );
-      await this._chainCastRepository.updateChainCast(data.chainCastId, {
+      const updateDataForStats = {
         currentParticipants: newCount,
         "stats.peakViewers": Math.max(chainCast.stats.peakViewers, newCount),
         "stats.totalViews": chainCast.stats.totalViews + 1,
-      } as any);
+      };
+      await this._chainCastRepository.updateChainCast(data.chainCastId, updateDataForStats as unknown as Record<string, unknown>);
 
       return {
         success: true,
@@ -847,7 +852,7 @@ export class ChainCastService implements IChainCastService {
         (participant) =>
           new ChainCastParticipantResponseDto(
             participant,
-            (participant as any).userId
+            participant.userId as unknown as { _id: Types.ObjectId; username: string; name: string; profilePic: string }
           )
       );
 
@@ -1140,7 +1145,7 @@ export class ChainCastService implements IChainCastService {
         (request) =>
           new ChainCastModerationRequestResponseDto(
             request,
-            (request as any).userId
+            request.userId as unknown as { _id: Types.ObjectId; username: string; name: string; profilePic: string }
           )
       );
 
@@ -1357,7 +1362,7 @@ export class ChainCastService implements IChainCastService {
       // Transform to DTOs
       const reactionDtos = reactionsList.map(
         (reaction) =>
-          new ChainCastReactionResponseDto(reaction, (reaction as any).userId)
+          new ChainCastReactionResponseDto(reaction, reaction.userId as unknown as { _id: Types.ObjectId; username: string; name: string; profilePic: string })
       );
 
       return new ChainCastReactionsListResponseDto(
@@ -1381,12 +1386,12 @@ export class ChainCastService implements IChainCastService {
 
   // Analytics
   /**
-   * Retrieves analytics for ChainCasts.
-   * @param {string} adminId - Admin ID.
-   * @param {string} [period] - Time period.
-   * @returns {Promise<any>} Analytics data.
+   * 
+   * @param adminId 
+   * @param period 
+   * @returns 
    */
-  async getChainCastAnalytics(adminId: string, period?: string): Promise<any> {
+  async getChainCastAnalytics(adminId: string, period?: string): Promise<ChainCastAnalyticsResponseDto> {
     try {
       const admin = await this._adminRepository.findById(adminId);
       if (!admin || !admin.communityId) {
@@ -1421,10 +1426,7 @@ export class ChainCastService implements IChainCastService {
         endDate
       );
 
-      return {
-        success: true,
-        data: analytics,
-      };
+      return new ChainCastAnalyticsResponseDto(analytics);
     } catch (error) {
       logger.error(LoggerMessages.GET_CHAINCAST_ANALYTICS_ERROR, error);
       if (error instanceof CustomError) {
@@ -1491,7 +1493,7 @@ export class ChainCastService implements IChainCastService {
     return 0;
   }
 
-  private async _getChainCastsSummary(adminId: string): Promise<any> {
+  private async _getChainCastsSummary(adminId: string): Promise<ChainCastsSummaryDto> {
     return {
       live: 0,
       scheduled: 0,

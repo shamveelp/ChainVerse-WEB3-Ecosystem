@@ -12,10 +12,12 @@ import {
 } from "../../dtos/communityChat/CommunityMessage.dto";
 import {
     SendGroupMessageDto,
-    EditGroupMessageDto,
     CommunityGroupMessageResponseDto,
     CommunityGroupMessagesListResponseDto
 } from "../../dtos/communityChat/CommunityGroupMessage.dto";
+import { Types } from "mongoose";
+import { ICommunityGroupMessage } from "../../models/communityGroupMessage.model";
+import { ICommunityMessage } from "../../models/communityMessage.model";
 
 @injectable()
 export class UserCommunityChatService implements IUserCommunityChatService {
@@ -45,7 +47,7 @@ export class UserCommunityChatService implements IUserCommunityChatService {
                 limit
             );
 
-            const messages = result.messages.map(msg => this.transformChannelMessageToDTO(msg, userId));
+            const messages = result.messages.map(msg => this.transformChannelMessageToDTO(msg as ICommunityMessage, userId));
 
             return {
                 messages,
@@ -61,7 +63,7 @@ export class UserCommunityChatService implements IUserCommunityChatService {
         }
     }
 
-    async reactToMessage(userId: string, messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: any[] }> {
+    async reactToMessage(userId: string, messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: Array<{ emoji: string; count: number; userReacted: boolean }> }> {
         try {
             const message = await this._messageRepository.getMessageById(messageId);
             if (!message) {
@@ -98,7 +100,7 @@ export class UserCommunityChatService implements IUserCommunityChatService {
         }
     }
 
-    async removeReaction(userId: string, messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: any[] }> {
+    async removeReaction(userId: string, messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: Array<{ emoji: string; count: number; userReacted: boolean }> }> {
         try {
             const message = await this._messageRepository.getMessageById(messageId);
             if (!message) {
@@ -165,7 +167,7 @@ export class UserCommunityChatService implements IUserCommunityChatService {
 
             const message = await this._messageRepository.createGroupMessage({
                 communityId: community._id,
-                senderId: userId as any,
+                senderId: new Types.ObjectId(userId) as unknown as Types.ObjectId,
                 content: data.content.trim()
             });
 
@@ -218,7 +220,7 @@ export class UserCommunityChatService implements IUserCommunityChatService {
                 limit
             );
 
-            const messages = result.messages.map(msg => this.transformGroupMessageToDTO(msg, userId));
+            const messages = result.messages.map(msg => this.transformGroupMessageToDTO(msg as ICommunityGroupMessage, userId));
 
             return {
                 messages,
@@ -333,48 +335,56 @@ export class UserCommunityChatService implements IUserCommunityChatService {
         }
     }
 
-    private transformChannelMessageToDTO(message: any, viewerId?: string): CommunityMessageResponseDto {
+    private transformChannelMessageToDTO(message: ICommunityMessage, viewerId?: string): CommunityMessageResponseDto {
+        // We know that adminId is populated due to repository implementation
+        const msg = message as unknown as ICommunityMessage & {
+            adminId: { _id: Types.ObjectId; name: string; profilePicture?: string };
+        };
         return {
-            _id: message._id.toString(),
-            communityId: message.communityId.toString(),
+            _id: msg._id.toString(),
+            communityId: msg.communityId.toString(),
             admin: {
-                _id: message.adminId._id.toString(),
-                name: message.adminId.name,
-                profilePicture: message.adminId.profilePicture || ''
+                _id: msg.adminId._id.toString(),
+                name: msg.adminId.name,
+                profilePicture: msg.adminId.profilePicture || ''
             },
-            content: message.content,
-            mediaFiles: message.mediaFiles || [],
-            messageType: message.messageType,
-            isPinned: message.isPinned,
-            reactions: message.reactions.map((reaction: any) => ({
+            content: msg.content,
+            mediaFiles: msg.mediaFiles || [],
+            messageType: msg.messageType,
+            isPinned: msg.isPinned,
+            reactions: msg.reactions.map((reaction) => ({
                 emoji: reaction.emoji,
                 count: reaction.count,
-                userReacted: viewerId ? reaction.users.some((userId: any) => userId.toString() === viewerId) : false
+                userReacted: viewerId ? reaction.users.some(uid => uid.toString() === viewerId) : false
             })),
-            totalReactions: message.totalReactions,
-            isEdited: message.isEdited,
-            editedAt: message.editedAt,
-            createdAt: message.createdAt,
-            updatedAt: message.updatedAt
+            totalReactions: msg.totalReactions,
+            isEdited: msg.isEdited,
+            editedAt: msg.editedAt,
+            createdAt: msg.createdAt,
+            updatedAt: msg.updatedAt
         };
     }
 
-    private transformGroupMessageToDTO(message: any, viewerId?: string): CommunityGroupMessageResponseDto {
+    private transformGroupMessageToDTO(message: ICommunityGroupMessage, viewerId?: string): CommunityGroupMessageResponseDto {
+        // We know that senderId is populated due to repository implementation
+        const msg = message as unknown as ICommunityGroupMessage & {
+            senderId: { _id: Types.ObjectId; username: string; name: string; profilePic?: string };
+        };
         return {
-            _id: message._id.toString(),
-            communityId: message.communityId.toString(),
+            _id: msg._id.toString(),
+            communityId: msg.communityId.toString(),
             sender: {
-                _id: message.senderId._id.toString(),
-                username: message.senderId.username,
-                name: message.senderId.name,
-                profilePic: message.senderId.profilePic || ''
+                _id: msg.senderId._id.toString(),
+                username: msg.senderId.username,
+                name: msg.senderId.name,
+                profilePic: msg.senderId.profilePic || ''
             },
-            content: message.content,
-            isEdited: message.isEdited,
-            editedAt: message.editedAt,
-            isCurrentUser: viewerId ? message.senderId._id.toString() === viewerId : false,
-            createdAt: message.createdAt,
-            updatedAt: message.updatedAt
+            content: msg.content,
+            isEdited: msg.isEdited,
+            editedAt: msg.editedAt,
+            isCurrentUser: viewerId ? msg.senderId._id.toString() === viewerId : false,
+            createdAt: msg.createdAt,
+            updatedAt: msg.updatedAt
         };
     }
 }

@@ -7,15 +7,17 @@ import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import logger from "../../utils/logger";
 
+import { IReferralHistory } from "../../models/referralHistory.model";
+
 @injectable()
 export class ReferralService implements IReferralService {
   constructor(
     @inject(TYPES.IReferralHistoryRepository) private _referralHistoryRepository: IReferralHistoryRepository,
     @inject(TYPES.IUserRepository) private _userRepository: IUserRepository
-  ) {}
+  ) { }
 
   async getReferralHistory(userId: string, page: number, limit: number): Promise<{
-    referrals: any[];
+    referrals: IReferralHistory[];
     total: number;
     totalPages: number;
     stats: {
@@ -24,11 +26,11 @@ export class ReferralService implements IReferralService {
     };
   }> {
     try {
-      
-      
+
+
       const result = await this._referralHistoryRepository.findByReferrer(userId, page, limit);
       const stats = await this._referralHistoryRepository.getReferralStats(userId);
-      
+
       return {
         referrals: result.referrals,
         total: result.total,
@@ -48,18 +50,18 @@ export class ReferralService implements IReferralService {
     referralLink: string;
   }> {
     try {
-      
-      
+
+
       const user = await this._userRepository.findById(userId);
       if (!user) {
         throw new CustomError("User not found", StatusCode.NOT_FOUND);
       }
 
       const stats = await this._referralHistoryRepository.getReferralStats(userId);
-      
+
       const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
       const referralLink = `${baseUrl}/user/register?ref=${user.refferalCode}`;
-      
+
       return {
         totalReferrals: stats.totalReferrals,
         totalPointsEarned: stats.totalPointsEarned,

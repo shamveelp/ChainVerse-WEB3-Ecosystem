@@ -7,8 +7,8 @@ import { ErrorMessages, SuccessMessages, CommunityAdminMembersMessages } from ".
 import { ICommunityAdminMembersService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminMembers.service";
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
-import CommunityMemberModel from "../../models/communityMember.model";
-import { Types } from "mongoose";
+import CommunityMemberModel, { ICommunityMember } from "../../models/communityMember.model";
+import { Types, FilterQuery } from "mongoose";
 import {
     GetCommunityMembersDto,
     UpdateMemberRoleDto,
@@ -17,8 +17,29 @@ import {
     CommunityMemberDetailDto,
     CommunityMembersListResponseDto,
     MemberActionResponseDto,
-    MemberDetailResponseDto
+    MemberDetailResponseDto,
+    BulkUpdateMembersDto,
+    MembersSummaryDto
 } from "../../dtos/communityAdmin/CommunityAdminMembers.dto";
+
+interface PopulatedUser {
+    _id: Types.ObjectId;
+    username: string;
+    name: string;
+    email: string;
+    profilePic: string;
+}
+
+interface PopulatedMember extends Omit<ICommunityMember, 'userId'> {
+    userId: PopulatedUser;
+}
+
+interface BulkUpdateResult {
+    memberId: string;
+    status: 'success' | 'error';
+    result?: unknown;
+    error?: string;
+}
 
 @injectable()
 export class CommunityAdminMembersService implements ICommunityAdminMembersService {
@@ -41,7 +62,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }
 
             const communityId = admin.communityId.toString();
-            const query: any = { communityId };
+            const query: FilterQuery<ICommunityMember> = { communityId: new Types.ObjectId(communityId) };
 
             // Apply filters
             if (filters.role) {
@@ -72,7 +93,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }
 
             // Build sort
-            let sort: any = { _id: -1 };
+            let sort: Record<string, 1 | -1> = { _id: -1 };
             switch (filters.sortBy) {
                 case 'oldest':
                     sort = { joinedAt: 1 };
@@ -100,10 +121,10 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             const membersList = members.slice(0, filters.limit!);
 
             // Apply search filter if provided (post-query filtering)
-            let filteredMembers = membersList;
+            let filteredMembers = membersList as unknown as PopulatedMember[];
             if (filters.search && filters.search.trim()) {
                 const searchTerm = filters.search.trim().toLowerCase();
-                filteredMembers = membersList.filter((member: any) => {
+                filteredMembers = filteredMembers.filter((member) => {
                     const user = member.userId;
                     return user.username.toLowerCase().includes(searchTerm) ||
                         user.name?.toLowerCase().includes(searchTerm) ||
@@ -112,9 +133,10 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }
 
             // Transform to DTOs
-            const transformedMembers = filteredMembers.map((member: any) =>
-                new CommunityMemberDto(member, member.userId)
-            );
+            // Transform to DTOs
+            const transformedMembers = filteredMembers.map((member) => {
+                return new CommunityMemberDto(member as unknown as Partial<ICommunityMember>, member.userId);
+            });
 
             // Get summary stats
             const summary = await this._getMembersSummary(communityId);
@@ -167,7 +189,8 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 throw new CustomError(ErrorMessages.MEMBER_NOT_FOUND, StatusCode.NOT_FOUND);
             }
 
-            const memberDetailDto = new CommunityMemberDetailDto(member, (member as any).userId);
+            const populatedUser = member.userId as unknown as { _id: Types.ObjectId; username: string; name: string; email: string; profilePic: string };
+            const memberDetailDto = new CommunityMemberDetailDto(member, populatedUser);
             return new MemberDetailResponseDto(memberDetailDto);
         } catch (error) {
             logger.error(CommunityAdminMembersMessages.LOG_GET_MEMBER_DETAILS, error);
@@ -209,7 +232,8 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             member.role = data.role;
             await member.save();
 
-            const updatedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
+            const populatedUser = member.userId as unknown as { _id: Types.ObjectId; username: string; name: string; email: string; profilePic: string };
+            const updatedMemberDto = new CommunityMemberDto(member.toObject(), populatedUser);
             return new MemberActionResponseDto(updatedMemberDto, SuccessMessages.MEMBER_ROLE_UPDATED);
         } catch (error) {
             logger.error(CommunityAdminMembersMessages.LOG_UPDATE_ROLE, error);
@@ -258,7 +282,8 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
             await member.save();
 
-            const bannedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
+            const populatedUser = member.userId as unknown as { _id: Types.ObjectId; username: string; name: string; email: string; profilePic: string };
+            const bannedMemberDto = new CommunityMemberDto(member.toObject(), populatedUser);
             return new MemberActionResponseDto(bannedMemberDto, SuccessMessages.MEMBER_BANNED);
         } catch (error) {
             logger.error(CommunityAdminMembersMessages.LOG_BAN_MEMBER, error);
@@ -299,7 +324,8 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
 
             await member.save();
 
-            const unbannedMemberDto = new CommunityMemberDto(member.toObject(), (member as any).userId);
+            const populatedUser = member.userId as unknown as { _id: Types.ObjectId; username: string; name: string; email: string; profilePic: string };
+            const unbannedMemberDto = new CommunityMemberDto(member.toObject(), populatedUser);
             return new MemberActionResponseDto(unbannedMemberDto, SuccessMessages.MEMBER_UNBANNED);
         } catch (error) {
             logger.error(CommunityAdminMembersMessages.LOG_UNBAN_MEMBER, error);
@@ -311,13 +337,19 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
     }
 
     /**
-     * Removes a member from the community.
-     * @param {string} adminId - The ID of the admin performing the removal.
-     * @param {string} memberId - The ID of the member to remove.
-     * @param {string} [reason] - Reason for removal.
-     * @returns {Promise<any>} Result of the removal action.
+     * 
+     * @param adminId 
+     * @param memberId 
+     * @param reason 
+     * @returns 
      */
-    async removeMember(adminId: string, memberId: string, reason?: string): Promise<any> {
+    async removeMember(adminId: string, memberId: string, reason?: string): Promise<{
+        success: boolean;
+        memberId: string;
+        removedBy: string;
+        reason: string;
+        message: string;
+    }> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -358,13 +390,25 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
     }
 
     /**
-     * Retrieves activity statistics for a member.
-     * @param {string} adminId - The ID of the admin requesting the activity.
-     * @param {string} memberId - The ID of the member.
-     * @param {string} [period='week'] - Time period for activity stats (today, week, month).
-     * @returns {Promise<any>} Activity data.
+     * 
+     * @param adminId 
+     * @param memberId 
+     * @param period 
+     * @returns 
      */
-    async getMemberActivity(adminId: string, memberId: string, period: string = 'week'): Promise<any> {
+    async getMemberActivity(adminId: string, memberId: string, period: string = 'week'): Promise<{
+        member: CommunityMemberDetailDto;
+        period: string;
+        activity: {
+            posts: number;
+            likes: number;
+            comments: number;
+            questsCompleted: number;
+            lastActive: Date;
+            joinDate: Date;
+        };
+        timeline: Record<string, unknown>[];
+    }> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -381,25 +425,19 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }
 
             // Calculate date range
-            const now = new Date();
-            let startDate: Date;
-
+            // const now = new Date();
             switch (period) {
                 case 'today':
-                    startDate = new Date(now.setHours(0, 0, 0, 0));
-                    break;
                 case 'week':
-                    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                    break;
                 case 'month':
-                    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                    break;
                 default:
-                    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    // Logic for time-based filtering would go here if needed for activity timeline
+                    break;
             }
 
+            const populatedUser = member.userId as unknown as { _id: Types.ObjectId; username: string; name: string; email: string; profilePic: string };
             // Create detailed member DTO
-            const memberDetailDto = new CommunityMemberDetailDto(member.toObject(), (member as any).userId);
+            const memberDetailDto = new CommunityMemberDetailDto(member.toObject(), populatedUser);
 
             const activityData = {
                 member: memberDetailDto,
@@ -426,12 +464,20 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
     }
 
     /**
-     * Performs bulk actions on multiple members.
-     * @param {string} adminId - The ID of the admin performing the actions.
-     * @param {any} data - Data containing member IDs, action type, and reason.
-     * @returns {Promise<any>} Summary of the bulk operation.
+     * 
+     * @param adminId 
+     * @param data 
+     * @returns 
      */
-    async bulkUpdateMembers(adminId: string, data: any): Promise<any> {
+    async bulkUpdateMembers(adminId: string, data: BulkUpdateMembersDto): Promise<{
+        success: boolean;
+        totalProcessed: number;
+        successCount: number;
+        errorCount: number;
+        results: BulkUpdateResult[];
+        errors: BulkUpdateResult[];
+        message: string;
+    }> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -439,8 +485,8 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             }
 
             const { memberIds, action, reason } = data;
-            const results = [];
-            const errors = [];
+            const results: BulkUpdateResult[] = [];
+            const errors: BulkUpdateResult[] = [];
 
             for (const memberId of memberIds) {
                 try {
@@ -501,11 +547,11 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
     }
 
     /**
-     * Retrieves a summary of member statistics for the community.
-     * @param {string} communityId - The ID of the community.
-     * @returns {Promise<any>} Summary statistics.
+     * 
+     * @param communityId 
+     * @returns 
      */
-    private async _getMembersSummary(communityId: string): Promise<any> {
+    private async _getMembersSummary(communityId: string): Promise<MembersSummaryDto> {
         const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
         const [totalMembers, activeMembers, moderators, premiumMembers, bannedMembers, newMembersThisWeek] = await Promise.all([

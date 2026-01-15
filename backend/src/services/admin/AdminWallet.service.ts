@@ -21,10 +21,7 @@ export class AdminWalletService implements IAdminWalletService {
   private blockchainService = new BlockchainService();
 
   /**
-   * Retrieves all wallets with pagination.
-   * @param {number} [page=1] - Page number.
-   * @param {number} [limit=20] - Items per page.
-   * @returns {Promise<any>} Paginated wallets.
+   * 
    */
   async getAllWallets(page: number = 1, limit: number = 20): Promise<{
     wallets: IWallet[];
@@ -65,10 +62,10 @@ export class AdminWalletService implements IAdminWalletService {
       // Enrich wallet data with balance from blockchain
       try {
         const balance = await this.blockchainService.getWalletBalance(address);
-        (wallet as any).balance = balance;
+        Object.assign(wallet, { balance });
       } catch (balanceError) {
         logger.warn(`Could not fetch balance for wallet ${address}:`, balanceError);
-        (wallet as any).balance = "0";
+        Object.assign(wallet, { balance: "0" });
       }
 
       return wallet;
@@ -92,11 +89,11 @@ export class AdminWalletService implements IAdminWalletService {
   }
 
   /**
-   * Retrieves transactions for a wallet.
-   * @param {string} address - Wallet address.
-   * @param {number} [page=1] - Page number.
-   * @param {number} [limit=20] - Items per page.
-   * @returns {Promise<any>} List of transactions.
+   * 
+   * @param address 
+   * @param page 
+   * @param limit 
+   * @returns 
    */
   async getWalletTransactions(address: string, page: number = 1, limit: number = 20): Promise<{
     transactions: ITransaction[];
@@ -111,11 +108,11 @@ export class AdminWalletService implements IAdminWalletService {
   }
 
   /**
-   * Retrieves blockchain transactions for a wallet.
-   * @param {string} address - Wallet address.
-   * @param {number} [page=1] - Page number.
-   * @param {number} [limit=20] - Items per page.
-   * @returns {Promise<any>} Blockchain transactions.
+   * 
+   * @param address 
+   * @param page 
+   * @param limit 
+   * @returns 
    */
   async getWalletBlockchainTransactions(address: string, page: number = 1, limit: number = 20): Promise<{
     transactions: BlockchainTransaction[];
@@ -191,10 +188,19 @@ export class AdminWalletService implements IAdminWalletService {
   }
 
   /**
-   * Exports wallet data.
-   * @returns {Promise<any[]>} Exported data.
+   * 
+   * @returns 
    */
-  async exportWalletData(): Promise<any[]> {
+  async exportWalletData(): Promise<Array<{
+    address: string;
+    lastConnected: Date;
+    createdAt: Date;
+    balance: string;
+    transactionCount: number;
+    connectionCount: number;
+    contractInteractions: number;
+    contractInteractionDetails: Array<{ contractName: string; transactionCount: number }>;
+  }>> {
     try {
       const { wallets } = await this._dexRepository.getAllWallets();
 
@@ -213,7 +219,7 @@ export class AdminWalletService implements IAdminWalletService {
               transactionCount: transactionCount.total,
               connectionCount: wallet.connectionCount || 0,
               contractInteractions: contractInteractions.length,
-              contractInteractionDetails: contractInteractions.map((interaction: any) => ({
+              contractInteractionDetails: contractInteractions.map((interaction) => ({
                 contractName: interaction.contractName,
                 transactionCount: interaction.transactionCount
               }))

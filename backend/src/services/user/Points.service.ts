@@ -9,13 +9,15 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import { format, startOfDay, subDays } from "date-fns";
 import logger from "../../utils/logger";
 
+import { IPointsHistory } from "../../models/pointsHistory.model";
+
 @injectable()
 export class PointsService implements IPointsService {
   constructor(
     @inject(TYPES.IDailyCheckInRepository) private _dailyCheckInRepository: IDailyCheckInRepository,
     @inject(TYPES.IPointsHistoryRepository) private _pointsHistoryRepository: IPointsHistoryRepository,
     @inject(TYPES.IUserRepository) private _userRepository: IUserRepository
-  ) {}
+  ) { }
 
   async performDailyCheckIn(userId: string): Promise<{
     success: boolean;
@@ -31,11 +33,11 @@ export class PointsService implements IPointsService {
 
       const lastCheckIn = await this._dailyCheckInRepository.getLastCheckIn(userId);
       let streakCount = 1;
-      
+
       if (lastCheckIn) {
         const yesterday = startOfDay(subDays(new Date(), 1));
         const lastCheckInDate = startOfDay(lastCheckIn.checkInDate);
-        
+
         if (lastCheckInDate.getTime() === yesterday.getTime()) {
           streakCount = lastCheckIn.streakCount + 1;
         }
@@ -65,11 +67,11 @@ export class PointsService implements IPointsService {
           totalPoints: (user.totalPoints || 0) + pointsAwarded,
           'dailyCheckin.lastCheckIn': today,
           'dailyCheckin.streak': streakCount,
-        } as any);
+        } as Record<string, unknown>);
       }
 
-      
-      
+
+
       return {
         success: true,
         pointsAwarded,
@@ -91,11 +93,11 @@ export class PointsService implements IPointsService {
     nextCheckInAvailable: Date | null;
   }> {
     try {
-      
-      
+
+
       const todayCheckIn = await this._dailyCheckInRepository.findTodayCheckIn(userId);
       const currentStreak = await this._dailyCheckInRepository.getStreakCount(userId);
-      
+
       let nextCheckInAvailable = null;
       if (todayCheckIn) {
         const tomorrow = new Date();
@@ -123,10 +125,10 @@ export class PointsService implements IPointsService {
     }>;
   }> {
     try {
-      
-      
+
+
       const checkIns = await this._dailyCheckInRepository.getCheckInHistory(userId, month, year);
-      
+
       const formattedCheckIns = checkIns.map(checkIn => ({
         date: format(checkIn.checkInDate, 'yyyy-MM-dd'),
         points: checkIn.pointsAwarded,
@@ -141,7 +143,7 @@ export class PointsService implements IPointsService {
   }
 
   async getPointsHistory(userId: string, page: number, limit: number): Promise<{
-    history: any[];
+    history: IPointsHistory[];
     total: number;
     totalPages: number;
     summary: {
@@ -156,10 +158,10 @@ export class PointsService implements IPointsService {
     };
   }> {
     try {
-      
-      
+
+
       const result = await this._pointsHistoryRepository.getPointsHistory(userId, page, limit);
-      
+
       const pointsByType = {
         daily_checkin: await this._pointsHistoryRepository.getTotalPointsByType(userId, 'daily_checkin'),
         referral_bonus: await this._pointsHistoryRepository.getTotalPointsByType(userId, 'referral_bonus'),

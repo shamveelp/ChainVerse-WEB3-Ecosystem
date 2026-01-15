@@ -11,7 +11,8 @@ import {
     PostDetailResponseDto,
     ShareResponseDto,
     PostStatsDto,
-    MediaUploadResponseDto
+    MediaUploadResponseDto,
+    LikersListResponseDto
 } from "../../../../dtos/posts/Post.dto";
 
 export interface IPostService {
@@ -32,7 +33,7 @@ export interface IPostService {
     // Like operations
     togglePostLike(userId: string, postId: string): Promise<LikeResponseDto>;
     toggleCommentLike(userId: string, commentId: string): Promise<LikeResponseDto>;
-    getPostLikers(postId: string, cursor?: string, limit?: number): Promise<any>;
+    getPostLikers(postId: string, cursor?: string, limit?: number): Promise<LikersListResponseDto>;
 
     // Comment operations
     createComment(userId: string, data: CreateCommentDto): Promise<CommentResponseDto>;

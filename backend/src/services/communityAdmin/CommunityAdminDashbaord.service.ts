@@ -2,6 +2,7 @@ import { injectable, inject } from "inversify";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { Types } from "mongoose";
 import logger from "../../utils/logger";
 import { ErrorMessages, SuccessMessages, LoggerMessages } from "../../enums/messages.enum";
 import { ICommunityAdminDashboardService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminDashboard.service";
@@ -85,7 +86,7 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
             ]);
 
             // Transform social links
-            const socialLinks = community.socialLinks?.map((link: any) => ({
+            const socialLinks = community.socialLinks?.map((link: Record<string, unknown>) => ({
                 platform: Object.keys(link)[0] as string,
                 url: String(Object.values(link)[0])  // Force string conversion
             })) || [];
@@ -101,7 +102,12 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
                 memberCount: totalMembers,
                 activeMembers,
                 isVerified: community.isVerified,
-                settings: community.settings,
+                settings: {
+                    allowChainCast: community.settings?.allowChainCast || false,
+                    allowGroupChat: community.settings?.allowGroupChat !== false,
+                    allowPosts: community.settings?.allowPosts !== false,
+                    allowQuests: community.settings?.allowQuests || false
+                },
                 socialLinks
             };
 
@@ -230,19 +236,22 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
                 .limit(20)
                 .lean();
 
-            const activities: RecentActivityDto[] = recentMembers.map(member => ({
-                id: member._id.toString(),
-                type: 'join' as const,
-                user: {
-                    _id: (member as any).userId._id.toString(),
-                    username: (member as any).userId.username,
-                    name: (member as any).userId.name || (member as any).userId.username,
-                    profilePic: (member as any).userId.profilePic || '',
-                    isVerified: false
-                },
-                action: 'joined the community',
-                timestamp: member.joinedAt
-            }));
+            const activities: RecentActivityDto[] = recentMembers.map(member => {
+                const populatedUser = member.userId as unknown as { _id: Types.ObjectId; username: string; name: string; profilePic: string };
+                return {
+                    id: member._id.toString(),
+                    type: 'join' as const,
+                    user: {
+                        _id: populatedUser._id.toString(),
+                        username: populatedUser.username,
+                        name: populatedUser.name || populatedUser.username,
+                        profilePic: populatedUser.profilePic || '',
+                        isVerified: false
+                    },
+                    action: 'joined the community',
+                    timestamp: member.joinedAt
+                };
+            });
 
             return activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         } catch (error) {
@@ -263,20 +272,32 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
                 .limit(10)
                 .lean();
 
-            return topMembers.map(member => ({
-                _id: (member as any).userId._id.toString(),
-                username: (member as any).userId.username,
-                name: (member as any).userId.name || (member as any).userId.username,
-                profilePic: (member as any).userId.profilePic || '',
-                isVerified: false,
-                totalPosts: member.totalPosts || 0,
-                totalLikes: member.totalLikes || 0,
-                totalComments: member.totalComments || 0,
-                questsCompleted: member.questsCompleted || 0,
-                joinedAt: member.joinedAt,
-                role: member.role,
-                isPremium: member.isPremium || false
-            }));
+            return topMembers.map(member => {
+                const m = member as unknown as {
+                    userId: { _id: Types.ObjectId; username: string; name: string; profilePic: string };
+                    totalPosts?: number;
+                    totalLikes?: number;
+                    totalComments?: number;
+                    questsCompleted?: number;
+                    joinedAt: Date;
+                    role: string;
+                    isPremium?: boolean;
+                };
+                return {
+                    _id: m.userId._id.toString(),
+                    username: m.userId.username,
+                    name: m.userId.name || m.userId.username,
+                    profilePic: m.userId.profilePic || '',
+                    isVerified: false,
+                    totalPosts: m.totalPosts || 0,
+                    totalLikes: m.totalLikes || 0,
+                    totalComments: m.totalComments || 0,
+                    questsCompleted: m.questsCompleted || 0,
+                    joinedAt: m.joinedAt,
+                    role: m.role as 'member' | 'moderator' | 'admin',
+                    isPremium: m.isPremium || false
+                };
+            });
         } catch (error) {
             return [];
         }

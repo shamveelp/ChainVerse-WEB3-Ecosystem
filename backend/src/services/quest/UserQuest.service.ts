@@ -12,7 +12,9 @@ import {
   MyQuestResponseDto,
   TaskSubmissionResponseDto,
   LeaderboardResponseDto,
-  GetLeaderboardDto
+  GetLeaderboardDto,
+  QuestTaskStatusDto,
+  ParticipationStatusResponseDto
 } from "../../dtos/quest/UserQuest.dto";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -20,6 +22,10 @@ import { ErrorMessages, SuccessMessages, LoggerMessages, ValidationMessages } fr
 import logger from "../../utils/logger";
 import cloudinary from "../../config/cloudinary";
 import mongoose from "mongoose";
+
+import { IQuestTask } from "../../models/questTask.model";
+import { IQuestSubmission } from "../../models/questSubmission.model";
+import { IQuestParticipant } from "../../models/questParticipant.model";
 
 @injectable()
 export class UserQuestService implements IUserQuestService {
@@ -38,7 +44,7 @@ export class UserQuestService implements IUserQuestService {
     try {
       const { page = 1, limit = 12, status = 'active', search, communityId, sortBy = 'createdAt', sortOrder = 'desc', rewardType } = query;
 
-      const filters: any = { status };
+      const filters: Record<string, unknown> = { status };
       if (search) {
         filters.$or = [
           { title: { $regex: search, $options: 'i' } },
@@ -260,7 +266,7 @@ export class UserQuestService implements IUserQuestService {
       const updatedTasksCompleted = participation.totalTasksCompleted + 1;
       const totalTasks = await this._questRepository.findTasksByQuest(submitDto.questId);
 
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         status: updatedTasksCompleted >= totalTasks.length ? 'completed' : 'in_progress',
         totalTasksCompleted: updatedTasksCompleted,
         completedTasks: [...(participation.completedTasks || []), new mongoose.Types.ObjectId(submitDto.taskId)]
@@ -297,7 +303,7 @@ export class UserQuestService implements IUserQuestService {
     }
   }
 
-  async getQuestTasks(questId: string, userId: string): Promise<any[]> {
+  async getQuestTasks(questId: string, userId: string): Promise<QuestTaskStatusDto[]> {
     try {
       const tasks = await this._questRepository.findTasksByQuest(questId);
       const submissions = await this._questRepository.findSubmissionsByUserAndQuest(userId, questId);
@@ -305,19 +311,19 @@ export class UserQuestService implements IUserQuestService {
       // Mark tasks as completed if user has submitted them
       const tasksWithStatus = tasks.map(task => {
         const submission = submissions.find(sub => {
-          const subTaskId = (sub.taskId as any)._id || sub.taskId;
+          const subTaskId = sub.taskId;
           return subTaskId.toString() === task._id.toString();
         });
 
         return {
-          ...task,
+          ...task.toObject(),
           isCompleted: !!submission,
           submission: submission || null,
           canSubmit: !submission // Can submit if no existing submission
         };
       });
 
-      return tasksWithStatus;
+      return tasksWithStatus as unknown as QuestTaskStatusDto[];
     } catch (error) {
       logger.error(LoggerMessages.GET_QUEST_TASKS_ERROR, error);
       throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_GET_QUEST_TASKS, StatusCode.INTERNAL_SERVER_ERROR);
@@ -325,12 +331,12 @@ export class UserQuestService implements IUserQuestService {
   }
 
   /**
-   * Retrieves user's submissions for a quest.
-   * @param {string} userId - ID of the user.
-   * @param {string} questId - ID of the quest.
-   * @returns {Promise<any[]>} List of submissions.
+   * 
+   * @param userId 
+   * @param questId 
+   * @returns 
    */
-  async getMySubmissions(userId: string, questId: string): Promise<any[]> {
+  async getMySubmissions(userId: string, questId: string): Promise<IQuestSubmission[]> {
     try {
       const submissions = await this._questRepository.findSubmissionsByUserAndQuest(userId, questId);
       return submissions;
@@ -340,14 +346,29 @@ export class UserQuestService implements IUserQuestService {
     }
   }
 
-  async getQuestStats(questId: string): Promise<any> {
+  async getQuestStats(questId: string): Promise<{
+    totalParticipants: number;
+    totalSubmissions: number;
+    taskCompletionStats: Array<{
+      taskId: string;
+      completedBy: number;
+      totalParticipants: number;
+      completionRate: number;
+    }>
+  }> {
     try {
       const stats = await this._questRepository.getQuestParticipantStats(questId);
       const taskStats = await this._questRepository.getTaskCompletionStats(questId);
 
       return {
-        ...stats,
-        taskCompletionStats: taskStats
+        totalParticipants: stats.totalParticipants,
+        totalSubmissions: stats.totalSubmissions,
+        taskCompletionStats: taskStats.map(ts => ({
+          taskId: ts.taskId.toString(),
+          completedBy: ts.completedBy,
+          totalParticipants: ts.totalParticipants,
+          completionRate: ts.completionRate
+        }))
       };
     } catch (error) {
       logger.error(LoggerMessages.GET_QUEST_STATS_ERROR, error);
@@ -371,12 +392,12 @@ export class UserQuestService implements IUserQuestService {
   }
 
   /**
-   * Checks participation status of a user in a quest.
-   * @param {string} userId - ID of the user.
-   * @param {string} questId - ID of the quest.
-   * @returns {Promise<any>} Participation status.
+   * 
+   * @param userId 
+   * @param questId 
+   * @returns 
    */
-  async checkParticipationStatus(userId: string, questId: string): Promise<any> {
+  async checkParticipationStatus(userId: string, questId: string): Promise<ParticipationStatusResponseDto> {
     try {
       const participation = await this._questRepository.findParticipantByUserAndQuest(userId, questId);
       if (!participation) {
@@ -396,14 +417,10 @@ export class UserQuestService implements IUserQuestService {
 
       return {
         isParticipating: true,
-        status: participation.status,
-        joinedAt: participation.joinedAt,
-        completedAt: participation.completedAt,
-        totalTasksCompleted: participation.totalTasksCompleted,
-        totalPrivilegePoints: participation.totalPrivilegePoints,
-        isWinner: participation.isWinner,
-        rewardClaimed: participation.rewardClaimed,
-        rank: rank
+        participation,
+        rank,
+        canJoin: false,
+        message: SuccessMessages.QUEST_JOINED
       };
     } catch (error) {
       logger.error(LoggerMessages.CHECK_PARTICIPATION_STATUS_ERROR, error);

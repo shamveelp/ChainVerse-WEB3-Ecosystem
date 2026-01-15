@@ -1,4 +1,5 @@
 import { injectable, inject } from "inversify";
+import { Types } from "mongoose";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -123,7 +124,7 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
                 bannerImage: data.bannerImage || admin.bannerImage
             };
 
-            const updatedAdmin = await this._adminRepository.updateCommunityAdmin(adminId, updateData as any);
+            const updatedAdmin = await this._adminRepository.updateCommunityAdmin(adminId, updateData);
             if (!updatedAdmin) {
                 throw new CustomError(ErrorMessages.FAILED_UPDATE_PROFILE, StatusCode.INTERNAL_SERVER_ERROR);
             }
@@ -209,9 +210,9 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
     /**
      * Retrieves member statistics.
      * @param {string} communityId - Community ID.
-     * @returns {Promise<any>} Member stats (total, active, premium).
+     * @returns {Promise<{ totalMembers: number; activeMembers: number; premiumMembers: number }>} Member stats (total, active, premium).
      */
-    private async _getMemberStats(communityId: string): Promise<any> {
+    private async _getMemberStats(communityId: string): Promise<{ totalMembers: number; activeMembers: number; premiumMembers: number }> {
         const totalMembers = await CommunityMemberModel.countDocuments({ communityId, isActive: true });
         const activeMembers = await CommunityMemberModel.countDocuments({
             communityId,
@@ -235,9 +236,14 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
      * Retrieves member statistics filtered by period.
      * @param {string} communityId - Community ID.
      * @param {Date} startDate - Start date of the period.
-     * @returns {Promise<any>} Member stats with new members count.
+     * @returns {Promise<{ totalMembers: number; activeMembers: number; newMembers: number; premiumMembers: number }>} Member stats with new members count.
      */
-    private async _getMemberStatsWithPeriod(communityId: string, startDate: Date): Promise<any> {
+    private async _getMemberStatsWithPeriod(communityId: string, startDate: Date): Promise<{
+        totalMembers: number;
+        activeMembers: number;
+        newMembers: number;
+        premiumMembers: number;
+    }> {
         const totalMembers = await CommunityMemberModel.countDocuments({ communityId, isActive: true });
         const activeMembers = await CommunityMemberModel.countDocuments({
             communityId,
@@ -265,9 +271,9 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
     /**
      * Retrieves post statistics.
      * @param {string} communityId - Community ID.
-     * @returns {Promise<any>} Post stats (total, engagement rate).
+     * @returns {Promise<{ totalPosts: number; engagementRate: number }>} Post stats (total, engagement rate).
      */
-    private async _getPostStats(communityId: string): Promise<any> {
+    private async _getPostStats(communityId: string): Promise<{ totalPosts: number; engagementRate: number }> {
         // Get community members
         const members = await CommunityMemberModel.find({ communityId, isActive: true }).select('userId');
         const memberIds = members.map(member => member.userId);
@@ -289,9 +295,13 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
      * Retrieves post statistics filtered by period.
      * @param {string} communityId - Community ID.
      * @param {Date} startDate - Start date of the period.
-     * @returns {Promise<any>} Post stats with new posts count.
+     * @returns {Promise<{ totalPosts: number; newPosts: number; engagementRate: number }>} Post stats with new posts count.
      */
-    private async _getPostStatsWithPeriod(communityId: string, startDate: Date): Promise<any> {
+    private async _getPostStatsWithPeriod(communityId: string, startDate: Date): Promise<{
+        totalPosts: number;
+        newPosts: number;
+        engagementRate: number;
+    }> {
         // Get community members
         const members = await CommunityMemberModel.find({ communityId, isActive: true }).select('userId');
         const memberIds = members.map(member => member.userId);
@@ -317,31 +327,41 @@ export class CommunityAdminProfileService implements ICommunityAdminProfileServi
     /**
      * Retrieves top active members based on posts and likes.
      * @param {string} communityId - Community ID.
-     * @returns {Promise<any[]>} List of top members with stats.
+     * @returns {Promise<Array<{ _id: string; username: string; name: string; profilePic: string; totalPosts: number; totalLikes: number }>>} List of top members with stats.
      */
-    private async _getTopActiveMembers(communityId: string): Promise<any[]> {
+    private async _getTopActiveMembers(communityId: string): Promise<Array<{
+        _id: string;
+        username: string;
+        name: string;
+        profilePic: string;
+        totalPosts: number;
+        totalLikes: number;
+    }>> {
         const topMembers = await CommunityMemberModel.find({ communityId, isActive: true })
             .populate('userId', 'username name profilePic')
             .sort({ totalPosts: -1, totalLikes: -1 })
             .limit(10)
             .lean();
 
-        return topMembers.map((member: any) => ({
-            _id: member.userId._id.toString(),
-            username: member.userId.username,
-            name: member.userId.name || member.userId.username,
-            profilePic: member.userId.profilePic || '',
-            totalPosts: member.totalPosts || 0,
-            totalLikes: member.totalLikes || 0
-        }));
+        return topMembers.map((member) => {
+            const user = member.userId as unknown as { _id: Types.ObjectId; username: string; name: string; profilePic: string };
+            return {
+                _id: user._id.toString(),
+                username: user.username,
+                name: user.name || user.username,
+                profilePic: user.profilePic || '',
+                totalPosts: member.totalPosts || 0,
+                totalLikes: member.totalLikes || 0
+            };
+        });
     }
 
     /**
      * Retrieves statistics for admin's own posts.
      * @param {string} adminId - Admin ID.
-     * @returns {Promise<any>} Admin post stats (posts, likes, comments).
+     * @returns {Promise<{ postsCount: number; likesCount: number; commentsCount: number }>} Admin post stats (posts, likes, comments).
      */
-    private async _getAdminPostStats(adminId: string): Promise<any> {
+    private async _getAdminPostStats(adminId: string): Promise<{ postsCount: number; likesCount: number; commentsCount: number }> {
         const [postsCount, likesCount, commentsCount] = await Promise.all([
             CommunityAdminPostModel.countDocuments({ author: adminId, isDeleted: false }),
             CommunityAdminPostLikeModel.countDocuments({ admin: adminId }),

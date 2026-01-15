@@ -296,3 +296,45 @@ export class TokenPriceResponseDto extends BaseResponseDto {
     this.lastUpdated = price.timestamp;
   }
 }
+
+export class DexOverallStatsDto extends BaseResponseDto {
+  totalVolumeUSD!: number;
+  totalTrades!: number;
+  activeUsers24h!: number;
+  topGainer!: {
+    token: string;
+    change: number;
+  };
+  topLoser!: {
+    token: string;
+    change: number;
+  };
+
+  constructor(stats: any) {
+    super(true, "Overall DEX stats retrieved successfully");
+    this.totalVolumeUSD = stats.totalVolumeUSD || 0;
+    this.totalTrades = stats.totalTrades || 0;
+    this.activeUsers24h = stats.activeUsers24h || 0;
+    this.topGainer = stats.topGainer || { token: 'N/A', change: 0 };
+    this.topLoser = stats.topLoser || { token: 'N/A', change: 0 };
+  }
+}
+
+export class UserTradingStatsDto extends BaseResponseDto {
+  userId!: string;
+  totalVolumeUSD!: number;
+  totalTrades!: number;
+  mostTradedToken!: string;
+  profitAndLossUSD!: number;
+  lastTradeAt?: Date;
+
+  constructor(stats: any) {
+    super(true, "User trading stats retrieved successfully");
+    this.userId = stats.userId?.toString();
+    this.totalVolumeUSD = stats.totalVolumeUSD || 0;
+    this.totalTrades = stats.totalTrades || 0;
+    this.mostTradedToken = stats.mostTradedToken || 'N/A';
+    this.profitAndLossUSD = stats.profitAndLossUSD || 0;
+    this.lastTradeAt = stats.lastTradeAt;
+  }
+}

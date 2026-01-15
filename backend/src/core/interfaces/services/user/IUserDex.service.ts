@@ -3,7 +3,7 @@ import { PaginatedPayments } from "../../repositories/IPayment.repository";
 
 export interface IUserDexService {
   getEthPrice(): Promise<number>;
-  
+
   calculateEstimate(
     amount: number,
     currency?: string
@@ -21,7 +21,7 @@ export interface IUserDexService {
   createPaymentOrder(
     userId: string,
     walletAddress: string,
-    currency: string,
+    currency: 'INR' | 'USD' | 'RIY',
     amountInCurrency: number,
     estimatedEth: number,
     ethPriceAtTime: number

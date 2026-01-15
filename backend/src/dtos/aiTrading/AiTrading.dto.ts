@@ -1,6 +1,46 @@
 import { IsString, IsOptional, IsBoolean, IsObject } from "class-validator";
 import { BaseResponseDto } from "../base/BaseResponse.dto";
 
+export interface TokenPriceDataDto {
+    price: number;
+    priceInUSD: string;
+    priceInETH: string;
+    change24h: string;
+    exchangeRate: number;
+}
+
+export interface ChatContextDto {
+    tokenPrices?: Record<string, TokenPriceDataDto>;
+    userBalances?: Record<string, string>;
+    recentTransaction?: string;
+    walletConnected?: boolean;
+    transactionHash?: string;
+    tradeExecuted?: boolean;
+    tradeDetails?: any;
+    timestamp?: string;
+    userAgent?: string;
+    sessionInfo?: {
+        id: string;
+        messageCount: number;
+    };
+    suggestions?: string[];
+    actionRequired?: ActionRequiredDto;
+}
+
+export interface ActionRequiredDto {
+    type: 'connect_wallet' | 'approve_token' | 'execute_trade';
+    message: string;
+    data?: any;
+}
+
+export interface TradingIntentDto {
+    isTradeIntent: boolean;
+    fromToken?: string;
+    toToken?: string;
+    amount?: string;
+    action: 'buy' | 'sell' | 'swap' | 'info' | 'general';
+}
+
 export class SendMessageDto {
     @IsString()
     message!: string;
@@ -18,11 +58,7 @@ export class SendMessageDto {
 
     @IsOptional()
     @IsObject()
-    context?: {
-        tokenPrices?: any;
-        userBalances?: any;
-        recentTransaction?: string;
-    };
+    context?: ChatContextDto;
 }
 
 export class ExecuteTradeDto {
@@ -59,12 +95,7 @@ export class ChatMessageResponseDto {
     role: 'user' | 'assistant';
     content: string;
     timestamp: Date;
-    context?: {
-        walletConnected: boolean;
-        tokenPrices?: any;
-        userBalances?: any;
-        transactionHash?: string;
-    };
+    context?: ChatContextDto;
 
     constructor(message: any) {
         this.role = message.role;
@@ -78,17 +109,13 @@ export class AIChatResponseDto extends BaseResponseDto {
     response: string;
     sessionId: string;
     suggestions?: string[];
-    actionRequired?: {
-        type: 'connect_wallet' | 'approve_token' | 'execute_trade';
-        message: string;
-        data?: any;
-    };
+    actionRequired?: ActionRequiredDto;
 
     constructor(
         response: string,
         sessionId: string,
         suggestions?: string[],
-        actionRequired?: any
+        actionRequired?: ActionRequiredDto
     ) {
         super(true, "AI response generated successfully");
         this.response = response;

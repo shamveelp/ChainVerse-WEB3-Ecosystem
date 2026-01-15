@@ -92,7 +92,7 @@ export interface ICommunityAdminQuestRepository {
     totalRewardsDistributed: number;
   }>;
 
-  getQuestLeaderboard(questId: string, limit?: number): Promise<any[]>;
+  getQuestLeaderboard(questId: string, limit?: number): Promise<IQuestParticipant[]>;
 
   // Utility / Counter methods
   calculateParticipantScore(participantId: string, questId: string): Promise<number>;

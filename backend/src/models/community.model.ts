@@ -18,10 +18,10 @@ export interface ICommunity extends Document {
     // Remove members array - use relationship instead
     communityAdmins: Types.ObjectId[];
     settings: {
-        allowChainCast: boolean;
-        allowGroupChat: boolean;
-        allowPosts: boolean;
-        allowQuests: boolean;
+        allowChainCast?: boolean;
+        allowGroupChat?: boolean;
+        allowPosts?: boolean;
+        allowQuests?: boolean;
     };
     createdAt: Date;
     updatedAt: Date;
@@ -39,10 +39,10 @@ const CommunitySchema: Schema<ICommunity> = new Schema({
     logo: { type: String },
     banner: { type: String },
     socialLinks: [{ type: Object }],
-    status: { 
-        type: String, 
-        enum: ['pending', 'approved', 'rejected'], 
-        default: 'pending' 
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     },
     isVerified: { type: Boolean, default: false },
     communityAdmins: [{ type: Schema.Types.ObjectId, ref: 'CommunityAdmin' }],

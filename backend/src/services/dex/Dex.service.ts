@@ -12,7 +12,7 @@ import logger from "../../utils/logger";
 export class DexService implements IDexService {
   constructor(
     @inject(TYPES.IDexRepository) private _dexRepository: IDexRepository
-  ) {}
+  ) { }
 
   async executeSwap(swapData: {
     walletAddress: string;
@@ -59,7 +59,7 @@ export class DexService implements IDexService {
       // This would integrate with your smart contract to get real quotes
       // For now, returning a mock calculation
       const mockToAmount = (parseFloat(amount) * 0.95).toString(); // 5% slippage
-      
+
       return {
         toAmount: mockToAmount,
         priceImpact: 2.5,
@@ -93,14 +93,14 @@ export class DexService implements IDexService {
     try {
       const coins = await this._dexRepository.getListedCoins();
       const pairs: Array<{ token0: ICoin, token1: ICoin }> = [];
-      
+
       // Create all possible pairs (excluding self-pairs)
       for (let i = 0; i < coins.length; i++) {
         for (let j = i + 1; j < coins.length; j++) {
           pairs.push({ token0: coins[i], token1: coins[j] });
         }
       }
-      
+
       return pairs;
     } catch (error) {
       logger.error("Error getting available pairs:", error);
@@ -108,13 +108,13 @@ export class DexService implements IDexService {
     }
   }
 
-  async updateTransactionStatus(hash: string, status: 'completed' | 'failed', additionalData?: any): Promise<ITransaction> {
+  async updateTransactionStatus(hash: string, status: 'completed' | 'failed', additionalData?: Partial<ITransaction>): Promise<ITransaction> {
     try {
       const transaction = await this._dexRepository.updateTransactionStatus(hash, status, additionalData);
       if (!transaction) {
         throw new CustomError("Transaction not found", StatusCode.NOT_FOUND);
       }
-      
+
       logger.info(`Transaction status updated: ${hash} -> ${status}`);
       return transaction;
     } catch (error) {

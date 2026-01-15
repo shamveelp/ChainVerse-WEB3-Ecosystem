@@ -16,11 +16,11 @@ export class AdminCommunityService implements IAdminCommunityService {
   ) { }
 
   /**
-   * Retrieves all community requests with pagination and search.
-   * @param {number} page - Page number.
-   * @param {number} limit - Items per page.
-   * @param {string} search - Search query.
-   * @returns {Promise<any>} Paginated community requests.
+   * 
+   * @param page 
+   * @param limit 
+   * @param search 
+   * @returns 
    */
   async getAllCommunityRequests(page: number, limit: number, search: string) {
     const result = await this._communityRequestRepo.findAll(page, limit, search);

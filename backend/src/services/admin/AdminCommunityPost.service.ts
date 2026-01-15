@@ -2,7 +2,12 @@ import { injectable, inject } from "inversify";
 import { TYPES } from "../../core/types/types";
 import { IAdminCommunityPostService } from "../../core/interfaces/services/admin/IAdminCommunityPost.service";
 import { IAdminCommunityPostRepository } from "../../core/interfaces/repositories/admin/IAdminCommunityPost.repository";
-import { AdminCommunityPostListResponseDto, AdminPostItemDto } from "../../dtos/admin/AdminCommunityPost.dto";
+import {
+    AdminCommunityPostListResponseDto,
+    AdminPostItemDto,
+    AdminPostCommentDto,
+    AdminPostLikerDto
+} from "../../dtos/admin/AdminCommunityPost.dto";
 
 @injectable()
 export class AdminCommunityPostService implements IAdminCommunityPostService {
@@ -47,44 +52,55 @@ export class AdminCommunityPostService implements IAdminCommunityPostService {
     }
 
     /**
-     * Retrieves details of a specific post.
-     * @param {string} postId - Post ID.
-     * @param {'user' | 'admin'} type - Type of post.
-     * @returns {Promise<any>} Post details.
+     * 
+     * @param postId 
+     * @param type 
+     * @returns 
      */
-    async getPostDetails(postId: string, type: 'user' | 'admin'): Promise<any> {
-        return await this._repository.getPostDetails(postId, type);
+    async getPostDetails(postId: string, type: 'user' | 'admin'): Promise<AdminPostItemDto> {
+        const post = await this._repository.getPostDetails(postId, type);
+        return new AdminPostItemDto(post);
     }
 
     /**
-     * Retrieves comments for a post.
-     * @param {string} postId - Post ID.
-     * @param {'user' | 'admin'} type - Type of post.
-     * @param {string} [cursor] - Pagination cursor.
-     * @param {number} [limit=10] - Items per page.
-     * @returns {Promise<{ comments: any[]; nextCursor?: string; hasMore: boolean; }>} List of comments.
+     * 
+     * @param postId 
+     * @param type 
+     * @param cursor 
+     * @param limit 
+     * @returns 
      */
     async getPostComments(postId: string, type: 'user' | 'admin', cursor?: string, limit: number = 10): Promise<{
-        comments: any[];
+        comments: AdminPostCommentDto[];
         nextCursor?: string;
         hasMore: boolean;
     }> {
-        return await this._repository.getPostComments(postId, type, cursor, limit);
+        const result = await this._repository.getPostComments(postId, type, cursor, limit);
+        return {
+            comments: result.comments.map(comment => new AdminPostCommentDto(comment)),
+            hasMore: result.hasMore,
+            nextCursor: result.nextCursor
+        };
     }
 
     /**
-     * Retrieves likers for a post.
-     * @param {string} postId - Post ID.
-     * @param {'user' | 'admin'} type - Type of post.
-     * @param {string} [cursor] - Pagination cursor.
-     * @param {number} [limit=10] - Items per page.
-     * @returns {Promise<{ likers: any[]; nextCursor?: string; hasMore: boolean; }>} List of likers.
+     * 
+     * @param postId 
+     * @param type 
+     * @param cursor 
+     * @param limit 
+     * @returns 
      */
     async getPostLikers(postId: string, type: 'user' | 'admin', cursor?: string, limit: number = 10): Promise<{
-        likers: any[];
+        likers: AdminPostLikerDto[];
         nextCursor?: string;
         hasMore: boolean;
     }> {
-        return await this._repository.getPostLikers(postId, type, cursor, limit);
+        const result = await this._repository.getPostLikers(postId, type, cursor, limit);
+        return {
+            likers: result.likers.map(liker => new AdminPostLikerDto(liker)),
+            hasMore: result.hasMore,
+            nextCursor: result.nextCursor
+        };
     }
 }

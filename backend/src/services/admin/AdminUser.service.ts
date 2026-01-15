@@ -14,11 +14,11 @@ export class AdminUserService implements IAdminUserService {
   ) { }
 
   /**
-   * Retrieves all users with pagination.
-   * @param {number} page - Page number.
-   * @param {number} limit - Items per page.
-   * @param {string} search - Search query.
-   * @returns {Promise<any>} Paginated users.
+   * 
+   * @param page 
+   * @param limit 
+   * @param search 
+   * @returns 
    */
   async getAllUsers(page: number, limit: number, search: string) {
     const skip = (page - 1) * limit;
