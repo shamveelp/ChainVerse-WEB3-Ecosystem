@@ -10,7 +10,6 @@ export const login = async (email: string, password: string) => {
     return {
       success: true,
       user: response.data.user,
-      token: response.data.accessToken,
       message: response.data.message,
     }
   } catch (error: any) {
@@ -68,7 +67,6 @@ export const signup = async (username: string, email: string, password: string, 
     return {
       success: true,
       user: response.data.user,
-      token: response.data.accessToken,
       message: response.data.message,
     }
   } catch (error: any) {
@@ -200,7 +198,6 @@ export const googleLogin = async (credential: string, referralCode?: string) => 
     return {
       success: true,
       user: response.data.user,
-      token: response.data.accessToken,
       message: response.data.message,
     }
   } catch (error: any) {
