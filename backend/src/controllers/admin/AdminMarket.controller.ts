@@ -7,6 +7,7 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 
 @injectable()
 export class AdminMarketController implements IAdminMarketController {
@@ -22,7 +23,10 @@ export class AdminMarketController implements IAdminMarketController {
    */
   async getCoins(req: Request, res: Response): Promise<void> {
     try {
-      const { page = 1, limit = 10, search, includeUnlisted } = req.query as any;
+      const page = req.query.page as string || "1";
+      const limit = req.query.limit as string || "10";
+      const search = req.query.search as string | undefined;
+      const includeUnlisted = req.query.includeUnlisted as string | undefined;
 
       const result = await this._adminMarketService.getCoins(
         parseInt(page),
@@ -38,7 +42,7 @@ export class AdminMarketController implements IAdminMarketController {
       });
     } catch (error) {
       logger.error(LoggerMessages.GET_MARKET_COINS_ERROR, error);
-      const err = error as any;
+      const err = error as Error;
       const statusCode =
         err instanceof CustomError ? err.statusCode : StatusCode.BAD_REQUEST;
       const message =
@@ -83,7 +87,7 @@ export class AdminMarketController implements IAdminMarketController {
       });
     } catch (error) {
       logger.error(LoggerMessages.UPDATE_COIN_LISTING_ERROR, error);
-      const err = error as any;
+      const err = error as Error;
       const statusCode =
         err instanceof CustomError ? err.statusCode : StatusCode.BAD_REQUEST;
       const message =
@@ -122,7 +126,7 @@ export class AdminMarketController implements IAdminMarketController {
         return;
       }
 
-      const adminId = (req as any).user?.id;
+      const adminId = (req as AuthenticatedRequest).user?.id;
 
       const coin = await this._adminMarketService.createCoinFromExternal(
         { symbol, name, priceUSD, volume24h, marketCap, network },
@@ -136,7 +140,7 @@ export class AdminMarketController implements IAdminMarketController {
       });
     } catch (error) {
       logger.error(LoggerMessages.CREATE_COIN_ERROR, error);
-      const err = error as any;
+      const err = error as Error;
       const statusCode =
         err instanceof CustomError ? err.statusCode : StatusCode.BAD_REQUEST;
       const message =
@@ -167,7 +171,7 @@ export class AdminMarketController implements IAdminMarketController {
       });
     } catch (error) {
       logger.error(LoggerMessages.DELETE_COIN_ERROR, error);
-      const err = error as any;
+      const err = error as Error;
       const statusCode =
         err instanceof CustomError ? err.statusCode : StatusCode.BAD_REQUEST;
       const message =
@@ -180,5 +184,3 @@ export class AdminMarketController implements IAdminMarketController {
     }
   }
 }
-
-

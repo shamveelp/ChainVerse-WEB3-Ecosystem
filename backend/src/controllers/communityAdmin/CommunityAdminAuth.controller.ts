@@ -6,7 +6,9 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import { ICommunityAdminAuthController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminAuth.controller";
 import { ICommunityAdminAuthService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminAuth.service";
 import cloudinary from "../../config/cloudinary";
+import { UploadApiResponse } from "cloudinary";
 import { ErrorMessages, LoggerMessages, Messages } from "../../enums/messages.enum";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 
 @injectable()
 export class CommunityAdminAuthController implements ICommunityAdminAuthController {
@@ -348,7 +350,9 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
      */
     async getProfile(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const result = await this._commAdminAuthService.getProfile(communityAdminId);
             res.status(StatusCode.OK).json(result);
         } catch (error) {
@@ -368,7 +372,9 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
      */
     async getCommunityDetails(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const result = await this._commAdminAuthService.getCommunityDetails(communityAdminId);
             res.status(StatusCode.OK).json(result);
         } catch (error) {
@@ -388,23 +394,25 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
      */
     async updateCommunity(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
-            const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-            const updatePayload: Record<string, any> = { ...req.body };
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
 
-            const parseJsonField = (value: any, fallback: any) => {
+            const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+            const updatePayload: Record<string, unknown> = { ...req.body };
+
+            const parseJsonField = <T>(value: unknown, fallback: T): T => {
                 if (typeof value === 'string' && value.trim() !== '') {
                     try {
-                        return JSON.parse(value);
+                        return JSON.parse(value) as T;
                     } catch {
                         return fallback;
                     }
                 }
-                return value ?? fallback;
+                return (value as T) ?? fallback;
             };
 
             if ('rules' in updatePayload) {
-                const parsedRules = parseJsonField(updatePayload.rules, []);
+                const parsedRules = parseJsonField(updatePayload.rules, [] as string[]);
                 updatePayload.rules = Array.isArray(parsedRules)
                     ? parsedRules.filter((rule: string) => typeof rule === 'string' && rule.trim() !== '')
                     : [];
@@ -425,7 +433,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                 transformation: Record<string, unknown>[]
             ): Promise<string | undefined> => {
                 try {
-                    const result = await new Promise<any>((resolve, reject) => {
+                    const result = await new Promise<UploadApiResponse>((resolve, reject) => {
                         cloudinary.uploader.upload_stream(
                             {
                                 folder,
@@ -435,13 +443,15 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
                                 if (error) {
                                     logger.error(LoggerMessages.COMMUNITY_MEDIA_UPLOAD_ERROR, error);
                                     reject(error);
-                                } else {
+                                } else if (uploadResult) {
                                     resolve(uploadResult);
+                                } else {
+                                    reject(new Error("No result from upload"));
                                 }
                             }
                         ).end(file.buffer);
                     });
-                    return result?.secure_url;
+                    return result.secure_url;
                 } catch (error) {
                     logger.error(LoggerMessages.FAILED_UPLOAD_COMMUNITY_MEDIA, error);
                     return undefined;

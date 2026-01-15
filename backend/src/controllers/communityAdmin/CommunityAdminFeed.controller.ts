@@ -1,4 +1,5 @@
 import { inject, injectable } from "inversify";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -22,7 +23,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async getCommunityFeed(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
             const { cursor, limit = '10', type = 'all' } = req.query;
 
             let validLimit = 10;
@@ -53,7 +54,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             logger.error(LoggerMessages.GET_COMMUNITY_FEED_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
             });
             res.status(statusCode).json({ success: false, error: message });
         }
@@ -66,7 +67,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async togglePostLike(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
             const { postId } = req.params;
 
             const result = await this._feedService.togglePostLike(communityAdminId, postId);
@@ -84,7 +85,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             logger.error(LoggerMessages.TOGGLE_POST_LIKE_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
                 postId: req.params.postId,
             });
             res.status(statusCode).json({ success: false, error: message });
@@ -98,7 +99,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async createComment(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
             const { postId, content, parentCommentId } = req.body;
 
             if (!postId || !content) {
@@ -136,7 +137,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             logger.error(LoggerMessages.CREATE_COMMENT_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
             });
             res.status(statusCode).json({ success: false, error: message });
         }
@@ -149,7 +150,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async sharePost(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
             const { postId } = req.params;
             const { shareText } = req.body;
 
@@ -176,7 +177,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             logger.error(LoggerMessages.SHARE_POST_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
                 postId: req.params.postId,
             });
             res.status(statusCode).json({ success: false, error: message });
@@ -190,7 +191,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async getEngagementStats(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
             const { period = 'week' } = req.query;
 
             const stats = await this._feedService.getEngagementStats(communityAdminId, period as string);
@@ -208,7 +209,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             logger.error(LoggerMessages.GET_ENGAGEMENT_STATS_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
             });
             res.status(statusCode).json({ success: false, error: message });
         }
@@ -221,7 +222,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async pinPost(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
             const { postId } = req.params;
 
             const result = await this._feedService.pinPost(communityAdminId, postId);
@@ -239,7 +240,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             logger.error(LoggerMessages.PIN_POST_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
                 postId: req.params.postId,
             });
             res.status(statusCode).json({ success: false, error: message });
@@ -253,7 +254,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async getPost(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
             const { postId } = req.params;
 
             const post = await this._feedService.getPostById(communityAdminId, postId);
@@ -271,7 +272,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             logger.error(LoggerMessages.GET_POST_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
                 postId: req.params.postId,
             });
             res.status(statusCode).json({ success: false, error: message });
@@ -285,7 +286,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async getPostComments(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
             const { postId } = req.params;
             const { cursor, limit = '20' } = req.query;
 
@@ -317,7 +318,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             logger.error(LoggerMessages.GET_COMMENTS_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
                 postId: req.params.postId,
             });
             res.status(statusCode).json({ success: false, error: message });
@@ -331,7 +332,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async deletePost(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
             const { postId } = req.params;
             const { reason } = req.body;
 
@@ -350,7 +351,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
             logger.error(LoggerMessages.DELETE_POST_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
                 postId: req.params.postId,
             });
             res.status(statusCode).json({ success: false, error: message });

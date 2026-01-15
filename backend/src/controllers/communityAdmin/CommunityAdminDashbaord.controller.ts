@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 import { TYPES } from "../../core/types/types";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/customError";
@@ -22,7 +23,9 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
      */
     async getDashboardData(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const { period = 'week' } = req.query;
 
             const dashboardData = await this._dashboardService.getDashboardData(
@@ -48,7 +51,7 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             logger.error(LoggerMessages.GET_DASHBOARD_DATA_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
             });
 
             res.status(statusCode).json({
@@ -65,7 +68,8 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
      */
     async getCommunityOverview(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
 
             const overview = await this._dashboardService.getCommunityOverview(
                 communityAdminId
@@ -89,7 +93,7 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             logger.error(LoggerMessages.GET_COMMUNITY_OVERVIEW_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
             });
 
             res.status(statusCode).json({
@@ -106,7 +110,9 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
      */
     async getCommunityStats(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const { period = 'week' } = req.query;
 
             const stats = await this._dashboardService.getCommunityStats(
@@ -132,7 +138,7 @@ export class CommunityAdminDashboardController implements ICommunityAdminDashboa
             logger.error(LoggerMessages.GET_COMMUNITY_STATS_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id,
+                adminId: (req as AuthenticatedRequest).user?.id,
             });
 
             res.status(statusCode).json({

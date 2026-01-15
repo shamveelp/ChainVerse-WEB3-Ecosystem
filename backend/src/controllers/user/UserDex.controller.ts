@@ -4,6 +4,7 @@ import { TYPES } from "../../core/types/types";
 import { IUserDexController } from "../../core/interfaces/controllers/user/IUserDex.controller";
 import { IUserDexService } from "../../core/interfaces/services/user/IUserDex.service";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 import logger from "../../utils/logger";
 import { CustomError } from "../../utils/customError";
 import { PaymentResponseDto } from "../../dtos/payment/Payment.dto";
@@ -12,12 +13,12 @@ import { PaymentResponseDto } from "../../dtos/payment/Payment.dto";
 export class UserDexController implements IUserDexController {
   constructor(
     @inject(TYPES.IUserDexService) private _userDexService: IUserDexService
-  ) {}
+  ) { }
 
   getEthPrice = async (req: Request, res: Response) => {
     try {
       const price = await this._userDexService.getEthPrice();
-      
+
       const response = new PaymentResponseDto("ETH price retrieved successfully", { price });
       res.status(StatusCode.OK).json(response);
     } catch (error) {
@@ -63,7 +64,8 @@ export class UserDexController implements IUserDexController {
   createPaymentOrder = async (req: Request, res: Response) => {
     try {
       const { walletAddress, currency, amountInCurrency, estimatedEth, ethPriceAtTime } = req.body;
-      const userId = (req as any).user.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) throw new Error("User ID not found in request");
 
       if (!walletAddress || !currency || !amountInCurrency || !estimatedEth || !ethPriceAtTime) {
         res.status(StatusCode.BAD_REQUEST).json({
@@ -138,8 +140,10 @@ export class UserDexController implements IUserDexController {
 
   getUserPayments = async (req: Request, res: Response) => {
     try {
-      const { page = 1, limit = 10 } = req.query as any;
-      const userId = (req as any).user.id;
+      const page = req.query.page as string || "1";
+      const limit = req.query.limit as string || "10";
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) throw new Error("User ID not found in request");
 
       const payments = await this._userDexService.getUserPayments(
         userId,

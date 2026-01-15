@@ -14,6 +14,7 @@ import {
   GetLeaderboardDto
 } from "../../dtos/quest/UserQuest.dto";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 
 @injectable()
 export class UserQuestController implements IUserQuestController {
@@ -28,8 +29,10 @@ export class UserQuestController implements IUserQuestController {
    */
   async getAvailableQuests(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user?.id;
-      const query: GetAvailableQuestsDto = req.query as any;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) throw new Error("User ID not found in request");
+
+      const query = req.query as unknown as GetAvailableQuestsDto;
 
       const result = await this._questService.getAvailableQuests(userId, query);
 
@@ -50,7 +53,7 @@ export class UserQuestController implements IUserQuestController {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_GET_AVAILABLE_QUESTS;
-      logger.error(LoggerMessages.GET_AVAILABLE_QUESTS_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+      logger.error(LoggerMessages.GET_AVAILABLE_QUESTS_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -65,7 +68,9 @@ export class UserQuestController implements IUserQuestController {
    */
   async getQuest(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       const quest = await this._questService.getQuestById(questId, userId);
@@ -79,7 +84,7 @@ export class UserQuestController implements IUserQuestController {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_GET_QUEST;
-      logger.error(LoggerMessages.GET_QUEST_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+      logger.error(LoggerMessages.GET_QUEST_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -94,8 +99,10 @@ export class UserQuestController implements IUserQuestController {
    */
   async getMyQuests(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const query: GetMyQuestsDto = req.query as any;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) throw new Error("User ID not found in request");
+
+      const query = req.query as unknown as GetMyQuestsDto;
 
       const result = await this._questService.getMyQuests(userId, query);
 
@@ -116,7 +123,7 @@ export class UserQuestController implements IUserQuestController {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_GET_MY_QUESTS;
-      logger.error(LoggerMessages.GET_MY_QUESTS_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+      logger.error(LoggerMessages.GET_MY_QUESTS_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -131,7 +138,9 @@ export class UserQuestController implements IUserQuestController {
    */
   async joinQuest(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) throw new Error("User ID not found in request");
+
       const joinDto: JoinQuestDto = req.body;
 
       const result = await this._questService.joinQuest(userId, joinDto);
@@ -145,7 +154,7 @@ export class UserQuestController implements IUserQuestController {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_JOIN_QUEST;
-      logger.error(LoggerMessages.JOIN_QUEST_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+      logger.error(LoggerMessages.JOIN_QUEST_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -160,7 +169,9 @@ export class UserQuestController implements IUserQuestController {
    */
   async submitTask(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) throw new Error("User ID not found in request");
+
       const submitDto: SubmitTaskDto = req.body;
 
       const result = await this._questService.submitTask(userId, submitDto);
@@ -174,7 +185,7 @@ export class UserQuestController implements IUserQuestController {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_SUBMIT_TASK;
-      logger.error(LoggerMessages.SUBMIT_TASK_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+      logger.error(LoggerMessages.SUBMIT_TASK_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -189,7 +200,9 @@ export class UserQuestController implements IUserQuestController {
    */
   async getQuestTasks(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       const tasks = await this._questService.getQuestTasks(questId, userId);
@@ -203,7 +216,7 @@ export class UserQuestController implements IUserQuestController {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_GET_QUEST_TASKS;
-      logger.error(LoggerMessages.GET_QUEST_TASKS_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+      logger.error(LoggerMessages.GET_QUEST_TASKS_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -218,7 +231,9 @@ export class UserQuestController implements IUserQuestController {
    */
   async getMySubmissions(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       const submissions = await this._questService.getMySubmissions(userId, questId);
@@ -232,7 +247,7 @@ export class UserQuestController implements IUserQuestController {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_GET_SUBMISSIONS;
-      logger.error(LoggerMessages.GET_SUBMISSIONS_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+      logger.error(LoggerMessages.GET_SUBMISSIONS_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -247,7 +262,8 @@ export class UserQuestController implements IUserQuestController {
    */
   async uploadTaskMedia(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) throw new Error("User ID not found in request");
 
       if (!req.file) {
         res.status(StatusCode.BAD_REQUEST).json({
@@ -268,7 +284,7 @@ export class UserQuestController implements IUserQuestController {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_UPLOAD_MEDIA;
-      logger.error(LoggerMessages.UPLOAD_TASK_MEDIA_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+      logger.error(LoggerMessages.UPLOAD_TASK_MEDIA_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -338,7 +354,9 @@ export class UserQuestController implements IUserQuestController {
    */
   async checkParticipationStatus(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       const status = await this._questService.checkParticipationStatus(userId, questId);
@@ -352,7 +370,7 @@ export class UserQuestController implements IUserQuestController {
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_CHECK_PARTICIPATION_STATUS;
-      logger.error(LoggerMessages.CHECK_PARTICIPATION_STATUS_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+      logger.error(LoggerMessages.CHECK_PARTICIPATION_STATUS_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message
@@ -368,7 +386,7 @@ export class UserQuestController implements IUserQuestController {
   async getQuestLeaderboard(req: Request, res: Response): Promise<void> {
     try {
       const { questId } = req.params;
-      const query: GetLeaderboardDto = req.query as any;
+      const query = req.query as unknown as GetLeaderboardDto;
 
       const leaderboard = await this._questService.getQuestLeaderboard(questId, query);
 

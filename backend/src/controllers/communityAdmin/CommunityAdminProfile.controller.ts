@@ -4,10 +4,11 @@ import { TYPES } from "../../core/types/types";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
-import cloudinary from "../../config/cloudinary";
+import cloudinary, { UploadApiResponse } from "../../config/cloudinary";
 import { ICommunityAdminProfileController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminProfile.controller";
 import { ICommunityAdminProfileService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminProfile.service";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 
 @injectable()
 export class CommunityAdminProfileController implements ICommunityAdminProfileController {
@@ -22,8 +23,8 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
      */
     async getProfile(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
-
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
 
             const profile = await this._profileService.getProfile(communityAdminId);
 
@@ -35,7 +36,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_PROFILE;
-            logger.error(LoggerMessages.GET_PROFILE_ERROR, { message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.GET_PROFILE_ERROR, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -50,8 +51,8 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
      */
     async updateProfile(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
-
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
 
             const updatedProfile = await this._profileService.updateProfile(communityAdminId, req.body);
 
@@ -64,7 +65,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_UPDATE_PROFILE;
-            logger.error(LoggerMessages.UPDATE_PROFILE_ERROR, { message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.UPDATE_PROFILE_ERROR, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -79,8 +80,8 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
      */
     async uploadProfilePicture(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
-
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
 
             if (!req.file) {
                 res.status(StatusCode.BAD_REQUEST).json({
@@ -91,7 +92,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             }
 
             // Upload to Cloudinary
-            const result = await new Promise<any>((resolve, reject) => {
+            const result = await new Promise<UploadApiResponse>((resolve, reject) => {
                 cloudinary.uploader.upload_stream(
                     {
                         folder: "chainverse/community-admin-profiles",
@@ -100,12 +101,14 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
                             { quality: "auto", format: "auto" },
                         ],
                     },
-                    (error, result) => {
+                    (error, uploadResult) => {
                         if (error) {
                             logger.error(LoggerMessages.CLOUDINARY_PROFILE_UPLOAD_ERROR, error);
                             reject(new CustomError(ErrorMessages.FAILED_UPLOAD_PROFILE_PICTURE, StatusCode.INTERNAL_SERVER_ERROR));
+                        } else if (uploadResult) {
+                            resolve(uploadResult);
                         } else {
-                            resolve(result);
+                            reject(new Error("No result from upload"));
                         }
                     }
                 ).end(req.file!.buffer);
@@ -114,7 +117,6 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             const updatedProfile = await this._profileService.updateProfile(communityAdminId, {
                 profilePic: result.secure_url
             });
-
 
             res.status(StatusCode.OK).json({
                 success: true,
@@ -125,7 +127,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_UPLOAD_PROFILE_PICTURE;
-            logger.error(LoggerMessages.UPLOAD_PROFILE_PICTURE_ERROR, { message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.UPLOAD_PROFILE_PICTURE_ERROR, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -140,7 +142,8 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
      */
     async uploadBannerImage(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
 
             if (!req.file) {
                 res.status(StatusCode.BAD_REQUEST).json({
@@ -150,7 +153,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
                 return;
             }
 
-            const result = await new Promise<any>((resolve, reject) => {
+            const result = await new Promise<UploadApiResponse>((resolve, reject) => {
                 cloudinary.uploader.upload_stream(
                     {
                         folder: "chainverse/community-admin-banners",
@@ -163,8 +166,10 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
                         if (error) {
                             logger.error(LoggerMessages.CLOUDINARY_BANNER_UPLOAD_ERROR, error);
                             reject(new CustomError(ErrorMessages.FAILED_UPLOAD_BANNER, StatusCode.INTERNAL_SERVER_ERROR));
-                        } else {
+                        } else if (uploadResult) {
                             resolve(uploadResult);
+                        } else {
+                            reject(new Error("No result from upload"));
                         }
                     }
                 ).end(req.file!.buffer);
@@ -183,7 +188,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_UPLOAD_BANNER;
-            logger.error(LoggerMessages.UPLOAD_BANNER_IMAGE_ERROR, { message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.UPLOAD_BANNER_IMAGE_ERROR, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -198,10 +203,10 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
      */
     async getCommunityStats(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const { period = 'week' } = req.query;
-
-
 
             const stats = await this._profileService.getCommunityStats(communityAdminId, period as string);
 
@@ -213,7 +218,7 @@ export class CommunityAdminProfileController implements ICommunityAdminProfileCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_COMMUNITY_STATS;
-            logger.error(LoggerMessages.GET_COMMUNITY_STATS_ERROR, { message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.GET_COMMUNITY_STATS_ERROR, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({
                 success: false,
                 error: message

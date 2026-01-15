@@ -7,6 +7,7 @@ import logger from "../../utils/logger";
 import { ICommunityAdminMembersController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminMembers.controller";
 import { ICommunityAdminMembersService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminMembers.service";
 import { CommunityAdminMembersMessages as Msg } from "../../enums/messages.enum";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 
 @injectable()
 export class CommunityAdminMembersController implements ICommunityAdminMembersController {
@@ -21,7 +22,9 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
      */
     async getCommunityMembers(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const { cursor, limit = Msg.DEFAULT_LIMIT, search, role, status, sortBy = Msg.DEFAULT_SORT } = req.query;
 
             let validLimit = parseInt(Msg.DEFAULT_LIMIT, 10);
@@ -34,9 +37,9 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
                 cursor: cursor as string,
                 limit: validLimit,
                 search: search as string,
-                role: role as any,
-                status: status as any,
-                sortBy: sortBy as any
+                role: role as "member" | "moderator" | "admin" | undefined,
+                status: status as "active" | "inactive" | "banned" | undefined,
+                sortBy: sortBy as "recent" | "oldest" | "most_active" | "most_posts" | undefined
             });
 
             res.status(StatusCode.OK).json({ success: true, data: members });
@@ -44,7 +47,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || Msg.FAILED_FETCH_MEMBERS;
-            logger.error(Msg.LOG_GET_MEMBERS, { message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(Msg.LOG_GET_MEMBERS, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({ success: false, error: message });
         }
     }
@@ -56,7 +59,9 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
      */
     async getMemberDetails(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const { memberId } = req.params;
 
             const member = await this._membersService.getMemberDetails(communityAdminId, memberId);
@@ -65,7 +70,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || Msg.FAILED_FETCH_MEMBER_DETAILS;
-            logger.error(Msg.LOG_GET_MEMBER_DETAILS, { message, stack: err.stack, adminId: (req as any).user?.id, memberId: req.params.memberId });
+            logger.error(Msg.LOG_GET_MEMBER_DETAILS, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id, memberId: req.params.memberId });
             res.status(statusCode).json({ success: false, error: message });
         }
     }
@@ -77,7 +82,9 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
      */
     async updateMemberRole(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const { memberId, role, reason } = req.body;
 
             if (!memberId || !role) {
@@ -91,7 +98,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || Msg.FAILED_UPDATE_ROLE;
-            logger.error(Msg.LOG_UPDATE_ROLE, { message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(Msg.LOG_UPDATE_ROLE, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({ success: false, error: message });
         }
     }
@@ -103,7 +110,9 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
      */
     async banMember(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const { memberId, reason, durationDays } = req.body;
 
             if (!memberId || !reason) {
@@ -117,7 +126,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || Msg.FAILED_BAN_MEMBER;
-            logger.error(Msg.LOG_BAN_MEMBER, { message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(Msg.LOG_BAN_MEMBER, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({ success: false, error: message });
         }
     }
@@ -129,7 +138,9 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
      */
     async unbanMember(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const { memberId } = req.params;
 
             const unbannedMember = await this._membersService.unbanMember(communityAdminId, memberId);
@@ -138,7 +149,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || Msg.FAILED_UNBAN_MEMBER;
-            logger.error(Msg.LOG_UNBAN_MEMBER, { message, stack: err.stack, adminId: (req as any).user?.id, memberId: req.params.memberId });
+            logger.error(Msg.LOG_UNBAN_MEMBER, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id, memberId: req.params.memberId });
             res.status(statusCode).json({ success: false, error: message });
         }
     }
@@ -150,7 +161,9 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
      */
     async removeMember(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const { memberId } = req.params;
             const { reason } = req.body;
 
@@ -160,7 +173,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || Msg.FAILED_REMOVE_MEMBER;
-            logger.error(Msg.LOG_REMOVE_MEMBER, { message, stack: err.stack, adminId: (req as any).user?.id, memberId: req.params.memberId });
+            logger.error(Msg.LOG_REMOVE_MEMBER, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id, memberId: req.params.memberId });
             res.status(statusCode).json({ success: false, error: message });
         }
     }
@@ -172,7 +185,9 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
      */
     async getMemberActivity(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const { memberId } = req.params;
             const { period = Msg.DEFAULT_PERIOD } = req.query;
 
@@ -182,7 +197,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || Msg.FAILED_FETCH_ACTIVITY;
-            logger.error(Msg.LOG_MEMBER_ACTIVITY, { message, stack: err.stack, adminId: (req as any).user?.id, memberId: req.params.memberId });
+            logger.error(Msg.LOG_MEMBER_ACTIVITY, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id, memberId: req.params.memberId });
             res.status(statusCode).json({ success: false, error: message });
         }
     }
@@ -194,7 +209,9 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
      */
     async bulkUpdateMembers(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as any).user.id;
+            const communityAdminId = (req as AuthenticatedRequest).user?.id;
+            if (!communityAdminId) throw new Error("User ID not found in request");
+
             const { memberIds, action, reason } = req.body;
 
             if (!memberIds || !Array.isArray(memberIds) || memberIds.length === 0) {
@@ -213,7 +230,7 @@ export class CommunityAdminMembersController implements ICommunityAdminMembersCo
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || Msg.FAILED_BULK_UPDATE;
-            logger.error(Msg.LOG_BULK_UPDATE, { message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(Msg.LOG_BULK_UPDATE, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({ success: false, error: message });
         }
     }

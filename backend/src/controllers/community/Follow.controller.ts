@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 import { TYPES } from "../../core/types/types";
 import { IFollowController } from "../../core/interfaces/controllers/community/IFollow.controller";
 import { IFollowService } from "../../core/interfaces/services/community/IFollow.service";
@@ -55,7 +56,7 @@ export class FollowController implements IFollowController {
             logger.error(LoggerMessages.FOLLOW_USER_ERROR, {
                 message,
                 stack: err.stack,
-                userId: req.user ? (req.user as any).id : 'unknown',
+                userId: (req as AuthenticatedRequest).user?.id || 'unknown',
                 targetUsername: req.body?.username
             });
 
@@ -107,7 +108,7 @@ export class FollowController implements IFollowController {
             logger.error(LoggerMessages.UNFOLLOW_USER_ERROR, {
                 message,
                 stack: err.stack,
-                userId: req.user ? (req.user as any).id : 'unknown',
+                userId: (req as AuthenticatedRequest).user?.id || 'unknown',
                 targetUsername: req.body?.username
             });
 
@@ -417,7 +418,7 @@ export class FollowController implements IFollowController {
             logger.error(LoggerMessages.GET_FOLLOW_STATS_ERROR, {
                 message,
                 stack: err.stack,
-                userId: req.user ? (req.user as any).id : 'unknown'
+                userId: (req as AuthenticatedRequest).user?.id || 'unknown'
             });
 
             res.status(statusCode).json({

@@ -9,6 +9,7 @@ import logger from "../../utils/logger";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { ErrorMessages, SuccessMessages, LoggerMessages } from "../../enums/messages.enum";
 import { AdminResponseDto, AdminLoginResponseDto } from "../../dtos/admin/AdminAuth.dto";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 
 
 @injectable()
@@ -65,9 +66,12 @@ export class AdminAuthController implements IAdminAuthController {
    */
   async logout(req: Request, res: Response): Promise<void> {
     try {
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) throw new Error("User ID not found in request");
+
       this._jwtService.clearTokens(res);
 
-      await this._adminAuthService.incrementTokenVersion((req as any).user.id);
+      await this._adminAuthService.incrementTokenVersion(adminId);
       res.status(StatusCode.OK).json({
         success: true,
         message: SuccessMessages.ADMIN_LOGGED_OUT,
@@ -202,7 +206,9 @@ export class AdminAuthController implements IAdminAuthController {
    */
   async getProfile(req: Request, res: Response): Promise<void> {
     try {
-      const adminId = (req as any).user.id;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) throw new Error("User ID not found in request");
+
       const admin = await this._adminAuthService.getAdminById(adminId);
 
       if (!admin) {
@@ -235,7 +241,9 @@ export class AdminAuthController implements IAdminAuthController {
    */
   async changePassword(req: Request, res: Response): Promise<void> {
     try {
-      const adminId = (req as any).user.id;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) throw new Error("User ID not found in request");
+
       const { currentPassword, newPassword } = req.body;
 
       if (!currentPassword || !newPassword) {

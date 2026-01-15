@@ -16,6 +16,7 @@ import {
 import { ICommunityAdminQuestController } from "../../core/interfaces/controllers/quest/ICommunityAdminQuest.controller";
 import { validateManualQuestPayload } from "../../validations/questValidation";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 
 @injectable()
 export class CommunityAdminQuestController implements ICommunityAdminQuestController {
@@ -30,7 +31,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async createQuest(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const createDto: CreateQuestDto = req.body;
       const validatedQuest = validateManualQuestPayload(createDto) as CreateQuestDto;
       const quest = await this._questService.createQuest(communityAdminId, validatedQuest);
@@ -48,7 +51,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.CREATE_QUEST_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questData: req.body
       });
 
@@ -66,7 +69,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async getQuest(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       const quest = await this._questService.getQuestById(questId, communityAdminId);
@@ -84,7 +89,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.GET_QUEST_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId
       });
 
@@ -102,8 +107,10 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async getQuests(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
-      const query: GetQuestsQueryDto = req.query as any;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
+      const query = req.query as unknown as GetQuestsQueryDto;
 
       const result = await this._questService.getQuests(communityAdminId, query);
 
@@ -128,7 +135,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.GET_QUESTS_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         query: req.query
       });
 
@@ -146,7 +153,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async updateQuest(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
       const updateDto: UpdateQuestDto = req.body;
 
@@ -165,7 +174,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.UPDATE_QUEST_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId,
         updateData: req.body
       });
@@ -184,7 +193,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async deleteQuest(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       const deleted = await this._questService.deleteQuest(questId, communityAdminId);
@@ -202,7 +213,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.DELETE_QUEST_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId
       });
 
@@ -220,7 +231,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async generateQuestWithAI(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const aiDto: AIQuestGenerationDto = req.body;
 
       const questData = await this._questService.generateQuestWithAI(communityAdminId, aiDto);
@@ -238,7 +251,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.GENERATE_AI_QUEST_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         aiPrompt: req.body.prompt
       });
 
@@ -256,7 +269,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async chatWithAI(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { message, history } = req.body;
 
       const result = await this._questService.chatWithAI(communityAdminId, message, history);
@@ -274,7 +289,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.AI_CHAT_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id
+        adminId: (req as AuthenticatedRequest).user?.id
       });
 
       res.status(statusCode).json({
@@ -291,9 +306,11 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async getQuestParticipants(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
-      const query: GetParticipantsQueryDto = req.query as any;
+      const query = req.query as unknown as GetParticipantsQueryDto;
 
       const result = await this._questService.getQuestParticipants(questId, communityAdminId, query);
 
@@ -318,7 +335,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.GET_PARTICIPANTS_ERROR_LOG, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId
       });
 
@@ -336,7 +353,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async getParticipantDetails(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId, participantId } = req.params;
 
       const participant = await this._questService.getParticipantDetails(questId, participantId, communityAdminId);
@@ -354,7 +373,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.GET_PARTICIPANT_DETAILS_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId,
         participantId: req.params.participantId
       });
@@ -373,7 +392,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async selectWinners(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const selectDto: SelectWinnersDto = req.body;
 
       const result = await this._questService.selectWinners(communityAdminId, selectDto);
@@ -391,7 +412,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.SELECT_WINNERS_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.body.questId
       });
 
@@ -409,7 +430,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async selectReplacementWinners(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
       const { count } = req.body;
 
@@ -428,7 +451,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.SELECT_REPLACEMENT_WINNERS_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId
       });
 
@@ -446,7 +469,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async disqualifyParticipant(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId, participantId } = req.params;
       const { reason } = req.body;
 
@@ -465,7 +490,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.DISQUALIFY_PARTICIPANT_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId,
         participantId: req.params.participantId
       });
@@ -484,7 +509,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async distributeRewards(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       const result = await this._questService.distributeRewards(questId, communityAdminId);
@@ -502,7 +529,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.DISTRIBUTE_REWARDS_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId
       });
 
@@ -520,7 +547,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async getQuestStats(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       const stats = await this._questService.getQuestStats(questId, communityAdminId);
@@ -538,7 +567,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.GET_QUEST_STATS_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId
       });
 
@@ -556,7 +585,8 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async getCommunityQuestStats(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
 
       const stats = await this._questService.getCommunityQuestStats(communityAdminId);
 
@@ -573,7 +603,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.GET_COMMUNITY_QUEST_STATS_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id
+        adminId: (req as AuthenticatedRequest).user?.id
       });
 
       res.status(statusCode).json({
@@ -590,7 +620,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async startQuest(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       const quest = await this._questService.startQuest(questId, communityAdminId);
@@ -608,7 +640,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.START_QUEST_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId
       });
 
@@ -626,7 +658,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async endQuest(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       const quest = await this._questService.endQuest(questId, communityAdminId);
@@ -644,7 +678,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.END_QUEST_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId
       });
 
@@ -662,7 +696,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async uploadQuestBanner(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       if (!req.file) {
@@ -688,7 +724,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.UPLOAD_QUEST_BANNER_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId
       });
 
@@ -706,7 +742,9 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
    */
   async getQuestLeaderboard(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const { questId } = req.params;
 
       const leaderboard = await this._questService.getQuestLeaderboard(questId, communityAdminId);
@@ -724,7 +762,7 @@ export class CommunityAdminQuestController implements ICommunityAdminQuestContro
       logger.error(LoggerMessages.GET_QUEST_LEADERBOARD_ERROR, {
         message,
         stack: err.stack,
-        adminId: (req as any).user?.id,
+        adminId: (req as AuthenticatedRequest).user?.id,
         questId: req.params.questId
       });
 

@@ -26,7 +26,7 @@ export class UserMarketController implements IUserMarketController {
       });
     } catch (error) {
       logger.error(LoggerMessages.GET_LISTED_MARKET_COINS_ERROR, error);
-      const err = error as any;
+      const err = error as Error;
       const statusCode =
         err instanceof CustomError ? err.statusCode : StatusCode.BAD_REQUEST;
       const message =
@@ -41,5 +41,3 @@ export class UserMarketController implements IUserMarketController {
     }
   }
 }
-
-

@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 import { TYPES } from "../../core/types/types";
 import { IUserCommunityChatController } from "../../core/interfaces/controllers/community/IUserCommunityChat.controller";
 import { IUserCommunityChatService } from "../../core/interfaces/services/community/IUserCommunityChat.service";
@@ -65,7 +66,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_CHANNEL_MESSAGES;
-            logger.error(LoggerMessages.GET_CHANNEL_MESSAGES_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.GET_CHANNEL_MESSAGES_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -111,7 +112,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_ADD_REACTION;
-            logger.error(LoggerMessages.REACT_MESSAGE_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.REACT_MESSAGE_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -157,7 +158,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_REMOVE_PARTICIPANT;
-            logger.error(LoggerMessages.REMOVE_REACTION_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.REMOVE_REACTION_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -206,7 +207,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_SEND_GROUP_MESSAGE;
-            logger.error(LoggerMessages.SEND_GROUP_MESSAGE_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.SEND_GROUP_MESSAGE_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -264,7 +265,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_GROUP_MESSAGES;
-            logger.error(LoggerMessages.GET_GROUP_MESSAGES_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.GET_GROUP_MESSAGES_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -310,7 +311,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_EDIT_GROUP_MESSAGE;
-            logger.error(LoggerMessages.EDIT_GROUP_MESSAGE_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.EDIT_GROUP_MESSAGE_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -347,7 +348,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_DELETE_GROUP_MESSAGE;
-            logger.error(LoggerMessages.DELETE_GROUP_MESSAGE_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.DELETE_GROUP_MESSAGE_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -392,7 +393,7 @@ export class UserCommunityChatController implements IUserCommunityChatController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_MARK_READ;
-            logger.error(LoggerMessages.MARK_GROUP_MESSAGES_READ_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.MARK_GROUP_MESSAGES_READ_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message

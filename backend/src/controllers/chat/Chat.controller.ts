@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 import { TYPES } from "../../core/types/types";
 import { IChatController } from "../../core/interfaces/controllers/chat/IChat.controller";
 import { IChatService } from "../../core/interfaces/services/chat/IChat.service";
@@ -71,7 +72,7 @@ export class ChatController implements IChatController {
       logger.error(LoggerMessages.SEND_MESSAGE_ERROR, {
         message,
         stack: err.stack,
-        userId: req.user ? (req.user as any).id : 'unknown'
+        userId: (req as AuthenticatedRequest).user?.id || 'unknown'
       });
 
       res.status(statusCode).json({
@@ -127,7 +128,7 @@ export class ChatController implements IChatController {
       logger.error(LoggerMessages.GET_CONVERSATIONS_ERROR, {
         message,
         stack: err.stack,
-        userId: req.user ? (req.user as any).id : 'unknown'
+        userId: (req as AuthenticatedRequest).user?.id || 'unknown'
       });
 
       res.status(statusCode).json({
@@ -412,7 +413,7 @@ export class ChatController implements IChatController {
       logger.error(LoggerMessages.MARK_READ_ERROR, {
         message,
         stack: err.stack,
-        userId: req.user ? (req.user as any).id : 'unknown'
+        userId: (req as AuthenticatedRequest).user?.id || 'unknown'
       });
 
       res.status(statusCode).json({

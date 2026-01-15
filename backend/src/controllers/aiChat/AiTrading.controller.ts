@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 import { TYPES } from "../../core/types/types";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
@@ -22,7 +23,7 @@ export class AITradingController implements IAITradingController {
     async sendMessage(req: Request, res: Response): Promise<void> {
         try {
             const { message, sessionId, walletAddress, context } = req.body;
-            const userId = (req as any).user?.id; // Optional user ID from auth middleware
+            const userId = (req as AuthenticatedRequest).user?.id; // Optional user ID from auth middleware
 
             if (!message || !sessionId) {
                 res.status(StatusCode.BAD_REQUEST).json({

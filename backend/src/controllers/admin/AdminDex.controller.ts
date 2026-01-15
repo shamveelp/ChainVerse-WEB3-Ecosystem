@@ -8,6 +8,7 @@ import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/mess
 import logger from "../../utils/logger";
 import { CustomError } from "../../utils/customError";
 import { PaymentResponseDto } from "../../dtos/payment/Payment.dto";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 
 @injectable()
 export class AdminDexController implements IAdminDexController {
@@ -22,7 +23,9 @@ export class AdminDexController implements IAdminDexController {
    */
   getAllPayments = async (req: Request, res: Response) => {
     try {
-      const { page = 1, limit = 10, status } = req.query as any;
+      const page = req.query.page as string || "1";
+      const limit = req.query.limit as string || "10";
+      const status = req.query.status as string | undefined;
 
       const payments = await this._adminDexService.getAllPayments(
         parseInt(page),
@@ -52,7 +55,8 @@ export class AdminDexController implements IAdminDexController {
   approvePayment = async (req: Request, res: Response) => {
     try {
       const { paymentId, adminNote, transactionHash } = req.body;
-      const adminId = (req as any).user.id;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) throw new Error("User ID not found in request");
 
       if (!paymentId) {
         res.status(StatusCode.BAD_REQUEST).json({
@@ -91,7 +95,8 @@ export class AdminDexController implements IAdminDexController {
   rejectPayment = async (req: Request, res: Response) => {
     try {
       const { paymentId, reason } = req.body;
-      const adminId = (req as any).user.id;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) throw new Error("User ID not found in request");
 
       if (!paymentId || !reason) {
         res.status(StatusCode.BAD_REQUEST).json({
@@ -129,7 +134,8 @@ export class AdminDexController implements IAdminDexController {
   fulfillPayment = async (req: Request, res: Response) => {
     try {
       const { paymentId, transactionHash } = req.body;
-      const adminId = (req as any).user.id;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) throw new Error("User ID not found in request");
 
       if (!paymentId || !transactionHash) {
         res.status(StatusCode.BAD_REQUEST).json({

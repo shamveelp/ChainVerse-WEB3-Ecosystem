@@ -7,6 +7,7 @@ import logger from "../../utils/logger";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { IDexSwapController } from "../../core/interfaces/controllers/dex/IDexSwap.controller";
 import { IDexSwapService } from "../../core/interfaces/services/dex/IDexSwap.service";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 
 @injectable()
 export class DexSwapController implements IDexSwapController {
@@ -21,7 +22,9 @@ export class DexSwapController implements IDexSwapController {
      */
     async recordSwap(req: Request, res: Response): Promise<void> {
         try {
-            const userId = (req as any).user.id;
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) throw new Error("User ID not found in request");
+
             const swapData = req.body;
 
             const result = await this._dexSwapService.recordSwapTransaction(userId, swapData);
@@ -35,7 +38,7 @@ export class DexSwapController implements IDexSwapController {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_RECORD_SWAP;
-            logger.error(LoggerMessages.RECORD_SWAP_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+            logger.error(LoggerMessages.RECORD_SWAP_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -87,10 +90,12 @@ export class DexSwapController implements IDexSwapController {
      */
     async getSwapHistory(req: Request, res: Response): Promise<void> {
         try {
-            const userId = (req as any).user.id;
-            const filters = req.query;
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) throw new Error("User ID not found in request");
 
-            const result = await this._dexSwapService.getUserSwapHistory(userId, filters as any);
+            const filters = req.query as Record<string, unknown>;
+
+            const result = await this._dexSwapService.getUserSwapHistory(userId, filters);
 
             res.status(StatusCode.OK).json({
                 success: true,
@@ -100,7 +105,7 @@ export class DexSwapController implements IDexSwapController {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_SWAP_HISTORY;
-            logger.error(LoggerMessages.GET_SWAP_HISTORY_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+            logger.error(LoggerMessages.GET_SWAP_HISTORY_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -142,9 +147,9 @@ export class DexSwapController implements IDexSwapController {
      */
     async getChartData(req: Request, res: Response): Promise<void> {
         try {
-            const chartQuery = req.query;
+            const chartQuery = req.query as unknown as Parameters<typeof this._dexSwapService.getChartData>[0];
 
-            const result = await this._dexSwapService.getChartData(chartQuery as any);
+            const result = await this._dexSwapService.getChartData(chartQuery);
 
             res.status(StatusCode.OK).json({
                 success: true,
@@ -242,7 +247,7 @@ export class DexSwapController implements IDexSwapController {
                 return;
             }
 
-            const result = await this._dexSwapService.getTradingPairStats(baseToken as any, quoteToken as any);
+            const result = await this._dexSwapService.getTradingPairStats(baseToken, quoteToken);
 
             res.status(StatusCode.OK).json({
                 success: true,
@@ -292,7 +297,8 @@ export class DexSwapController implements IDexSwapController {
      */
     async getUserTradingStats(req: Request, res: Response): Promise<void> {
         try {
-            const userId = (req as any).user.id;
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) throw new Error("User ID not found in request");
 
             const result = await this._dexSwapService.getUserTradingStats(userId);
 
@@ -304,7 +310,7 @@ export class DexSwapController implements IDexSwapController {
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_USER_TRADING_STATS;
-            logger.error(LoggerMessages.GET_USER_TRADING_STATS_ERROR, { message, stack: err.stack, userId: (req as any).user?.id });
+            logger.error(LoggerMessages.GET_USER_TRADING_STATS_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id });
             res.status(statusCode).json({
                 success: false,
                 error: message

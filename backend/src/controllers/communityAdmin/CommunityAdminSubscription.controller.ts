@@ -8,6 +8,7 @@ import logger from "../../utils/logger";
 import { ICommunityAdminSubscriptionController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminSubscription.controller";
 import { ICommunityAdminSubscriptionService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminSubscription.service";
 import { CreateSubscriptionDto } from "../../dtos/communityAdmin/CommunityAdminSubscription.dto";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 
 @injectable()
 export class CommunityAdminSubscriptionController implements ICommunityAdminSubscriptionController {
@@ -22,7 +23,9 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
    */
   async createOrder(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const createDto: CreateSubscriptionDto = req.body;
       const order = await this._subscriptionService.createOrder(communityAdminId, createDto);
       res.status(StatusCode.OK).json({
@@ -34,7 +37,7 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_CREATE_SUBSCRIPTION_ORDER;
-      logger.error(LoggerMessages.CREATE_SUBSCRIPTION_ORDER_ERROR, { message, stack: err.stack, adminId: (req as any).user?.id });
+      logger.error(LoggerMessages.CREATE_SUBSCRIPTION_ORDER_ERROR, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message,
@@ -49,7 +52,9 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
    */
   async verifyPayment(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const paymentData = req.body;
       const subscription = await this._subscriptionService.verifyPayment(communityAdminId, paymentData);
       res.status(StatusCode.OK).json({
@@ -61,7 +66,7 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_VERIFY_PAYMENT;
-      logger.error(LoggerMessages.VERIFY_SUBSCRIPTION_PAYMENT_ERROR, { message, stack: err.stack, adminId: (req as any).user?.id });
+      logger.error(LoggerMessages.VERIFY_SUBSCRIPTION_PAYMENT_ERROR, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message,
@@ -76,7 +81,9 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
    */
   async getSubscription(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const subscription = await this._subscriptionService.getSubscription(communityAdminId);
 
       if (!subscription) {
@@ -96,7 +103,7 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_GET_SUBSCRIPTION;
-      logger.error(LoggerMessages.GET_SUBSCRIPTION_ERROR, { message, stack: err.stack, adminId: (req as any).user?.id });
+      logger.error(LoggerMessages.GET_SUBSCRIPTION_ERROR, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message,
@@ -111,7 +118,9 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
    */
   async retryPayment(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const order = await this._subscriptionService.retryPayment(communityAdminId);
       res.status(StatusCode.OK).json({
         success: true,
@@ -122,7 +131,7 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
       const err = error as Error;
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_RETRY_PAYMENT;
-      logger.error(LoggerMessages.RETRY_PAYMENT_ERROR, { message, stack: err.stack, adminId: (req as any).user?.id });
+      logger.error(LoggerMessages.RETRY_PAYMENT_ERROR, { message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
       res.status(statusCode).json({
         success: false,
         error: message,
@@ -137,7 +146,9 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
    */
   async getTimeRemaining(req: Request, res: Response): Promise<void> {
     try {
-      const communityAdminId = (req as any).user.id;
+      const communityAdminId = (req as AuthenticatedRequest).user?.id;
+      if (!communityAdminId) throw new Error("User ID not found in request");
+
       const timeRemaining = await this._subscriptionService.getTimeRemaining(communityAdminId);
       res.status(StatusCode.OK).json({
         success: true,
@@ -146,7 +157,7 @@ export class CommunityAdminSubscriptionController implements ICommunityAdminSubs
       });
     } catch (error) {
       const err = error as Error;
-      logger.error(LoggerMessages.GET_TIME_REMAINING_ERROR, { message: err.message, adminId: (req as any).user?.id });
+      logger.error(LoggerMessages.GET_TIME_REMAINING_ERROR, { message: err.message, adminId: (req as AuthenticatedRequest).user?.id });
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         error: ErrorMessages.FAILED_GET_TIME_REMAINING,

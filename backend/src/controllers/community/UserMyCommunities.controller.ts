@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 import { TYPES } from "../../core/types/types";
 import { IUserMyCommunitiesController } from "../../core/interfaces/controllers/community/IUserMyCommunities.controller";
 import { IUserMyCommunitiesService } from "../../core/interfaces/services/community/IUserMyCommunities.service";
@@ -60,7 +61,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_MY_COMMUNITIES;
-            logger.error(LoggerMessages.GET_MY_COMMUNITIES_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.GET_MY_COMMUNITIES_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -95,7 +96,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_COMMUNITIES_STATS;
-            logger.error(LoggerMessages.GET_COMMUNITIES_STATS_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.GET_COMMUNITIES_STATS_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -130,7 +131,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_COMMUNITIES_ACTIVITY;
-            logger.error(LoggerMessages.GET_COMMUNITIES_ACTIVITY_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.GET_COMMUNITIES_ACTIVITY_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -179,7 +180,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_UPDATE_NOTIFICATIONS;
-            logger.error(LoggerMessages.UPDATE_COMMUNITY_NOTIFICATIONS_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.UPDATE_COMMUNITY_NOTIFICATIONS_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message
@@ -224,7 +225,7 @@ export class UserMyCommunitiesController implements IUserMyCommunitiesController
             const err = error as Error;
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_LEAVE_COMMUNITY;
-            logger.error(LoggerMessages.LEAVE_COMMUNITY_ERROR, { message, stack: err.stack, userId: req.user ? (req.user as any).id : 'unknown' });
+            logger.error(LoggerMessages.LEAVE_COMMUNITY_ERROR, { message, stack: err.stack, userId: (req as AuthenticatedRequest).user?.id || 'unknown' });
             res.status(statusCode).json({
                 success: false,
                 error: message

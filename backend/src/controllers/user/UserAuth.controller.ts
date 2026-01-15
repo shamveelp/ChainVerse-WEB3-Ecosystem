@@ -5,10 +5,10 @@ import { IUserAuthController } from "../../core/interfaces/controllers/user/IUse
 import { IUserAuthService } from "../../core/interfaces/services/user/IUserAuth.service";
 import { IOTPService } from "../../core/interfaces/services/IOTP.service";
 import { StatusCode } from "../../enums/statusCode.enum";
-import logger from "../../utils/logger";
-import { OAuth2Client } from "google-auth-library";
 import { IJwtService } from "../../core/interfaces/services/IJwtService";
 import { CustomError } from "../../utils/customError";
+import logger from "../../utils/logger";
+import { OAuth2Client } from "google-auth-library";
 import {
   UserRegisterDto,
   UserLoginDto,
@@ -365,9 +365,10 @@ export class UserAuthController implements IUserAuthController {
           success: false,
           error: ErrorMessages.GOOGLE_ID_TOKEN_REQUIRED
         });
+        return;
       }
 
-      const { user, accessToken, refreshToken } = await this._userAuthService.loginWithGoogle(idToken as any, referralCode);
+      const { user, accessToken, refreshToken } = await this._userAuthService.loginWithGoogle(idToken, referralCode);
       this._jwtService.setTokens(res, accessToken, refreshToken);
 
       const response = new LoginResponseDto(user, SuccessMessages.GOOGLE_LOGIN_SUCCESS);

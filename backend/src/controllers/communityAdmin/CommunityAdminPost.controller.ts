@@ -4,10 +4,11 @@ import { TYPES } from "../../core/types/types";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
-import cloudinary from "../../config/cloudinary";
+import cloudinary, { UploadApiResponse } from "../../config/cloudinary";
 import { ICommunityAdminPostController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminPost.controller";
 import { ICommunityAdminPostService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminPost.service";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 
 @injectable()
 export class CommunityAdminPostController implements ICommunityAdminPostController {
@@ -22,7 +23,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async createPost(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id;
+            if (!adminId) throw new Error("User ID not found in request");
+
             const postData = req.body;
 
             const post = await this._postService.createPost(adminId, postData);
@@ -34,7 +37,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error(LoggerMessages.CREATE_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.CREATE_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_CREATE_POST;
             res.status(statusCode).json({
@@ -51,7 +54,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async getPostById(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id;
+            if (!adminId) throw new Error("User ID not found in request");
+
             const { postId } = req.params;
 
             const post = await this._postService.getPostById(adminId, postId);
@@ -62,7 +67,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error(LoggerMessages.GET_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
+            logger.error(LoggerMessages.GET_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id, postId: req.params.postId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_POST;
             res.status(statusCode).json({
@@ -79,7 +84,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async updatePost(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id;
+            if (!adminId) throw new Error("User ID not found in request");
+
             const { postId } = req.params;
             const updateData = req.body;
 
@@ -92,7 +99,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error(LoggerMessages.UPDATE_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
+            logger.error(LoggerMessages.UPDATE_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id, postId: req.params.postId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_UPDATE_POST;
             res.status(statusCode).json({
@@ -109,7 +116,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async deletePost(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id;
+            if (!adminId) throw new Error("User ID not found in request");
+
             const { postId } = req.params;
 
             const result = await this._postService.deletePost(adminId, postId);
@@ -121,7 +130,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error(LoggerMessages.DELETE_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
+            logger.error(LoggerMessages.DELETE_POST_ERROR, { message: err.message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id, postId: req.params.postId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_DELETE_POST;
             res.status(statusCode).json({
@@ -138,10 +147,12 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async getAdminPosts(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
-            const query = req.query;
+            const adminId = (req as AuthenticatedRequest).user?.id;
+            if (!adminId) throw new Error("User ID not found in request");
 
-            const posts = await this._postService.getAdminPosts(adminId, query as any);
+            const query = req.query as Record<string, unknown>;
+
+            const posts = await this._postService.getAdminPosts(adminId, query);
 
             res.status(StatusCode.OK).json({
                 success: true,
@@ -149,7 +160,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error(LoggerMessages.GET_POSTS_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.GET_POSTS_ERROR, { message: err.message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_POSTS;
             res.status(statusCode).json({
@@ -166,7 +177,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async togglePostLike(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id;
+            if (!adminId) throw new Error("User ID not found in request");
+
             const { postId } = req.params;
 
             const result = await this._postService.togglePostLike(adminId, postId);
@@ -178,7 +191,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error(LoggerMessages.TOGGLE_POST_LIKE_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
+            logger.error(LoggerMessages.TOGGLE_POST_LIKE_ERROR, { message: err.message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id, postId: req.params.postId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_TOGGLE_POST_LIKE;
             res.status(statusCode).json({
@@ -195,7 +208,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async createComment(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id;
+            if (!adminId) throw new Error("User ID not found in request");
+
             const commentData = req.body;
 
             const comment = await this._postService.createComment(adminId, commentData);
@@ -207,7 +222,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error(LoggerMessages.CREATE_COMMENT_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.CREATE_COMMENT_ERROR, { message: err.message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_CREATE_COMMENT;
             res.status(statusCode).json({
@@ -224,7 +239,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async getPostComments(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id;
+            if (!adminId) throw new Error("User ID not found in request");
+
             const { postId } = req.params;
             const { cursor, limit = '10' } = req.query;
 
@@ -238,7 +255,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error(LoggerMessages.GET_COMMENTS_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, postId: req.params.postId });
+            logger.error(LoggerMessages.GET_COMMENTS_ERROR, { message: err.message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id, postId: req.params.postId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_POST_COMMENTS;
             res.status(statusCode).json({
@@ -255,7 +272,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async toggleCommentLike(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id;
+            if (!adminId) throw new Error("User ID not found in request");
+
             const { commentId } = req.params;
 
             const result = await this._postService.toggleCommentLike(adminId, commentId);
@@ -267,7 +286,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error(LoggerMessages.TOGGLE_COMMENT_LIKE_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id, commentId: req.params.commentId });
+            logger.error(LoggerMessages.TOGGLE_COMMENT_LIKE_ERROR, { message: err.message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id, commentId: req.params.commentId });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_TOGGLE_COMMENT_LIKE;
             res.status(statusCode).json({
@@ -284,8 +303,6 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async uploadPostMedia(req: Request, res: Response): Promise<void> {
         try {
-
-
             if (!req.file) {
                 res.status(StatusCode.BAD_REQUEST).json({
                     success: false,
@@ -294,7 +311,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
                 return;
             }
 
-            const result = await new Promise<any>((resolve, reject) => {
+            const result = await new Promise<UploadApiResponse>((resolve, reject) => {
                 cloudinary.uploader.upload_stream(
                     {
                         folder: "chainverse/community-admin-posts",
@@ -304,12 +321,14 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
                             { quality: "auto", format: "auto" },
                         ],
                     },
-                    (error, result) => {
+                    (error, uploadResult) => {
                         if (error) {
                             logger.error(LoggerMessages.CLOUDINARY_UPLOAD_ERROR, error);
                             reject(new CustomError(ErrorMessages.MEDIA_UPLOAD_FAILED, StatusCode.INTERNAL_SERVER_ERROR));
+                        } else if (uploadResult) {
+                            resolve(uploadResult);
                         } else {
-                            resolve(result);
+                            reject(new Error("No result from upload"));
                         }
                     }
                 ).end(req.file!.buffer);
@@ -327,7 +346,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error(LoggerMessages.UPLOAD_MEDIA_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.UPLOAD_MEDIA_ERROR, { message: err.message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.MEDIA_UPLOAD_FAILED;
             res.status(statusCode).json({
@@ -344,7 +363,9 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async getCommunityMembersFeed(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id;
+            if (!adminId) throw new Error("User ID not found in request");
+
             const { cursor, limit = '10' } = req.query;
 
             const validLimit = Math.min(Math.max(parseInt(limit as string, 10) || 10, 1), 20);
@@ -357,7 +378,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
             });
         } catch (error) {
             const err = error as Error;
-            logger.error(LoggerMessages.FETCH_FEED_ERROR, { message: err.message, stack: err.stack, adminId: (req as any).user?.id });
+            logger.error(LoggerMessages.FETCH_FEED_ERROR, { message: err.message, stack: err.stack, adminId: (req as AuthenticatedRequest).user?.id });
             const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
             const message = err.message || ErrorMessages.FAILED_GET_COMMUNITY_MEMBERS_FEED;
             res.status(statusCode).json({

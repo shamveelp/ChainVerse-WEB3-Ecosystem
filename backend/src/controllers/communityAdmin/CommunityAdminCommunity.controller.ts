@@ -1,4 +1,5 @@
 import { inject, injectable } from "inversify";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 import { Request, Response } from "express";
 import { TYPES } from "../../core/types/types";
 import { ICommunityAdminCommunityController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminCommunity.controller";
@@ -25,7 +26,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async sendMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id!;
             const { content, mediaFiles, messageType } = req.body;
 
             if (!content?.trim() && (!mediaFiles || mediaFiles.length === 0)) {
@@ -56,7 +57,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             logger.error(LoggerMessages.SEND_COMMUNITY_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id
+                adminId: (req as AuthenticatedRequest).user?.id
             });
 
             res.status(statusCode).json({ success: false, error: message });
@@ -70,7 +71,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async getMessages(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id!;
             const { cursor, limit = "20" } = req.query;
 
             let validLimit = Math.min(Math.max(parseInt(limit as string, 10) || 20, 1), 50);
@@ -91,7 +92,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             logger.error(LoggerMessages.GET_COMMUNITY_MESSAGES_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id
+                adminId: (req as AuthenticatedRequest).user?.id
             });
 
             res.status(statusCode).json({ success: false, error: message });
@@ -105,7 +106,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async getGroupMessages(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id!;
             const { cursor, limit = "50" } = req.query;
 
             let validLimit = Math.min(Math.max(parseInt(limit as string, 10) || 50, 1), 100);
@@ -126,7 +127,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             logger.error(LoggerMessages.GET_GROUP_MESSAGES_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id
+                adminId: (req as AuthenticatedRequest).user?.id
             });
 
             res.status(statusCode).json({ success: false, error: message });
@@ -140,7 +141,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async deleteGroupMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id!;
             const { messageId } = req.params;
 
             const result = await this._chatService.deleteGroupMessage(adminId, messageId);
@@ -159,7 +160,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             logger.error(LoggerMessages.DELETE_GROUP_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id
+                adminId: (req as AuthenticatedRequest).user?.id
             });
 
             res.status(statusCode).json({ success: false, error: message });
@@ -173,7 +174,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async updateMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id!;
             const { messageId } = req.params;
             const { content } = req.body;
 
@@ -203,7 +204,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             logger.error(LoggerMessages.UPDATE_COMMUNITY_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id
+                adminId: (req as AuthenticatedRequest).user?.id
             });
 
             res.status(statusCode).json({ success: false, error: message });
@@ -217,7 +218,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async deleteMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id!;
             const { messageId } = req.params;
 
             const result = await this._communityService.deleteMessage(adminId, messageId);
@@ -236,7 +237,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             logger.error(LoggerMessages.DELETE_COMMUNITY_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id
+                adminId: (req as AuthenticatedRequest).user?.id
             });
 
             res.status(statusCode).json({ success: false, error: message });
@@ -250,7 +251,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async pinMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id!;
             const { messageId } = req.params;
 
             const result = await this._communityService.pinMessage(adminId, messageId);
@@ -269,7 +270,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             logger.error(LoggerMessages.PIN_COMMUNITY_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id
+                adminId: (req as AuthenticatedRequest).user?.id
             });
 
             res.status(statusCode).json({ success: false, error: message });
@@ -283,7 +284,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async unpinMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id!;
             const { messageId } = req.params;
 
             const result = await this._communityService.unpinMessage(adminId, messageId);
@@ -302,7 +303,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             logger.error(LoggerMessages.UNPIN_COMMUNITY_MESSAGE_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id
+                adminId: (req as AuthenticatedRequest).user?.id
             });
 
             res.status(statusCode).json({ success: false, error: message });
@@ -316,7 +317,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async getMessageReactions(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id!;
             const { messageId } = req.params;
 
             const reactions = await this._communityService.getMessageReactions(adminId, messageId);
@@ -335,7 +336,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             logger.error(LoggerMessages.GET_MESSAGE_REACTIONS_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id
+                adminId: (req as AuthenticatedRequest).user?.id
             });
 
             res.status(statusCode).json({ success: false, error: message });
@@ -349,7 +350,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async uploadMedia(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+            const adminId = (req as AuthenticatedRequest).user?.id!;
             const files = req.files as Express.Multer.File[];
 
             if (!files || files.length === 0) {
@@ -376,7 +377,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
             logger.error(LoggerMessages.COMMUNITY_UPLOAD_MEDIA_ERROR, {
                 message,
                 stack: err.stack,
-                adminId: (req as any).user?.id
+                adminId: (req as AuthenticatedRequest).user?.id
             });
 
             res.status(statusCode).json({ success: false, error: message });

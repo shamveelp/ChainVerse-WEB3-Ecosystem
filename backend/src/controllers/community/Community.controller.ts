@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
 import { TYPES } from "../../core/types/types";
 import { ICommunityController } from "../../core/interfaces/controllers/community/ICommunity.controller";
 import { ICommunityService } from "../../core/interfaces/services/community/ICommunity.service";
@@ -236,7 +237,7 @@ export class CommunityController implements ICommunityController {
             logger.error(LoggerMessages.JOIN_COMMUNITY_ERROR, {
                 message,
                 stack: err.stack,
-                userId: req.user ? (req.user as any).id : 'unknown',
+                userId: (req as AuthenticatedRequest).user?.id || 'unknown',
                 communityUsername: req.body?.communityUsername
             });
             res.status(statusCode).json({
@@ -286,7 +287,7 @@ export class CommunityController implements ICommunityController {
             logger.error(LoggerMessages.LEAVE_COMMUNITY_ERROR, {
                 message,
                 stack: err.stack,
-                userId: req.user ? (req.user as any).id : 'unknown',
+                userId: (req as AuthenticatedRequest).user?.id || 'unknown',
                 communityUsername: req.body?.communityUsername
             });
             res.status(statusCode).json({
