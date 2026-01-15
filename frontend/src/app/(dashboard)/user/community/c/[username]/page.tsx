@@ -263,7 +263,7 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
           </div>
 
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1 min-w-0">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <h1 className="text-2xl md:text-3xl font-bold text-white">{community.communityName}</h1>
@@ -294,7 +294,7 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
               </div>
 
               {community.description && (
-                <p className="text-white text-lg leading-relaxed max-w-2xl">{community.description}</p>
+                <p className="text-white text-lg leading-relaxed max-w-2xl line-clamp-3 md:line-clamp-none break-words">{community.description}</p>
               )}
 
               <div className="flex flex-wrap gap-4 text-slate-400 text-sm">
@@ -324,17 +324,21 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
             <div className="flex gap-3">
               {currentUser ? (
                 <>
-                  {isMember && community.settings?.allowGroupChat && (
-                    <Button variant="outline" className="border-slate-600 hover:bg-slate-800">
+                  {isMember && (
+                    <Button
+                      onClick={() => router.push(`/user/community/c/messages/${username}`)}
+                      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white"
+                    >
                       <MessageCircle className="w-4 h-4 mr-2" />
-                      Chat
+                      Go to Chats
                     </Button>
                   )}
                   <Button
                     onClick={isMember ? handleLeaveClick : handleJoinClick}
                     disabled={joinActionInProgress}
+                    variant={isMember ? "outline" : "default"}
                     className={`${isMember
-                      ? 'bg-slate-800 text-white hover:bg-red-600 hover:text-white border border-slate-600'
+                      ? 'border-slate-600 hover:bg-slate-800 text-slate-300 hover:text-white'
                       : 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white'
                       }`}
                   >
@@ -437,7 +441,7 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
                 <Card className="bg-slate-900/50 backdrop-blur-sm border-slate-700/50 p-6">
                   <h3 className="text-white font-semibold mb-4">About {community.communityName}</h3>
                   <div className="space-y-4 text-slate-300">
-                    <p>{community.description}</p>
+                    <p className="break-words whitespace-pre-wrap">{community.description}</p>
                     <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
                       <div>
                         <p className="text-slate-400 text-sm">Category</p>

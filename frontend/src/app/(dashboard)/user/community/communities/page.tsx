@@ -269,8 +269,8 @@ export default function CommunitiesPage() {
               {communities.filter(c => c.communityName.toLowerCase().includes(searchQuery.toLowerCase())).map((community) => (
                 <div
                   key={community._id}
-                  className="group cursor-pointer hover:bg-slate-900/40 p-4 transition-colors"
-                  onClick={() => handleCommunityClick(community)}
+                  className="group relative cursor-pointer hover:bg-slate-900/40 p-4 transition-colors"
+                  onClick={() => router.push(`/user/community/c/messages/${community.username}`)}
                 >
                   <div className="flex items-start gap-3">
                     <div className="relative">
@@ -308,14 +308,29 @@ export default function CommunitiesPage() {
                             : community.description || "No description"}
                         </p>
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => handleLeaveCommunity(e, community)}
-                          className="text-slate-500 hover:text-red-500 h-6 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          Leave
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {/* Profile Button - Visible on Hover */}
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCommunityClick(community);
+                            }}
+                            className="hidden group-hover:flex bg-slate-800 hover:bg-slate-700 text-white h-7 text-xs"
+                          >
+                            Profile
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleLeaveCommunity(e, community)}
+                            className="text-slate-500 hover:text-red-500 h-6 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            Leave
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
