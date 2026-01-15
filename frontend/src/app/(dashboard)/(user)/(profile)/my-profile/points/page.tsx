@@ -182,40 +182,40 @@ export default function PointsPage() {
   const getPointTypeIcon = (type: string) => {
     switch (type) {
       case "daily_checkin":
-        return <CalendarIcon className="h-4 w-4 text-blue-400" />;
+        return <CalendarIcon className="h-4 w-4 text-white" />;
       case "referral_bonus":
-        return <Gift className="h-4 w-4 text-green-400" />;
+        return <Gift className="h-4 w-4 text-white" />;
       case "quest_reward":
-        return <Target className="h-4 w-4 text-purple-400" />;
+        return <Target className="h-4 w-4 text-white" />;
       case "bonus":
-        return <Trophy className="h-4 w-4 text-yellow-400" />;
+        return <Trophy className="h-4 w-4 text-white" />;
       case "conversion_deduction":
-        return <ArrowRightLeft className="h-4 w-4 text-red-400" />;
+        return <ArrowRightLeft className="h-4 w-4 text-white" />;
       case "conversion_refund":
-        return <ArrowRightLeft className="h-4 w-4 text-green-400" />;
+        return <ArrowRightLeft className="h-4 w-4 text-white" />;
       default:
-        return <Coins className="h-4 w-4 text-gray-400" />;
+        return <Coins className="h-4 w-4 text-slate-400" />;
     }
   };
 
   const getPointTypeColor = (type: string) => {
     switch (type) {
       case "daily_checkin":
-        return "bg-blue-900/50 text-blue-300";
+        return "bg-slate-800 text-white border border-white/10";
       case "referral_bonus":
-        return "bg-green-900/50 text-green-300";
+        return "bg-slate-800 text-white border border-white/10";
       case "quest_reward":
-        return "bg-purple-900/50 text-purple-300";
+        return "bg-slate-800 text-white border border-white/10";
       case "bonus":
-        return "bg-yellow-900/50 text-yellow-300";
+        return "bg-slate-800 text-white border border-white/10";
       case "deduction":
-        return "bg-red-900/50 text-red-300";
+        return "bg-slate-800 text-white border border-white/10";
       case "conversion_deduction":
-        return "bg-red-900/50 text-red-300";
+        return "bg-slate-800 text-white border border-white/10";
       case "conversion_refund":
-        return "bg-green-900/50 text-green-300";
+        return "bg-slate-800 text-white border border-white/10";
       default:
-        return "bg-gray-900/50 text-gray-300";
+        return "bg-slate-800 text-slate-300 border border-white/10";
     }
   };
 
@@ -233,7 +233,7 @@ export default function PointsPage() {
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold text-white">
           Points & Rewards
         </h1>
         <div className="text-6xl font-bold text-white">
@@ -245,7 +245,7 @@ export default function PointsPage() {
         <div className="flex justify-center gap-4 mt-6">
           <Button
             onClick={() => router.push("/my-profile/points-conversion")}
-            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-lg shadow-lg"
+            className="bg-white text-black hover:bg-slate-200 px-6 py-3 rounded-lg shadow-lg"
           >
             <ArrowRightLeft className="h-5 w-5 mr-2" />
             Convert to CVC
@@ -253,7 +253,7 @@ export default function PointsPage() {
           <Button
             onClick={() => router.push("/trade/swap")}
             variant="outline"
-            className="border-blue-800/30 text-blue-300 hover:bg-blue-700/20 px-6 py-3"
+            className="border-white/10 text-white hover:bg-white/10 px-6 py-3"
           >
             <Wallet className="h-5 w-5 mr-2" />
             Buy Crypto
@@ -262,12 +262,12 @@ export default function PointsPage() {
       </div>
 
       {/* Daily Check-in Card */}
-      <Card className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 backdrop-blur-md border-blue-800/30 shadow-lg shadow-blue-500/10">
+      <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
         <CardHeader>
           <CardTitle className="text-white text-xl flex items-center gap-3">
             <Flame className="h-6 w-6 text-orange-400" />
             Daily Check-in
-            <Badge className="bg-orange-900/50 text-orange-300">
+            <Badge className="bg-white/10 text-orange-400 border border-white/10">
               {checkInStatus?.currentStreak || 0} Day Streak
             </Badge>
           </CardTitle>
@@ -285,7 +285,7 @@ export default function PointsPage() {
                     Come back tomorrow for your next 10 points
                   </p>
                   {checkInStatus.nextCheckInAvailable && (
-                    <p className="text-sm text-blue-400 mt-2">
+                    <p className="text-sm text-slate-300 mt-2">
                       Next check-in available:{" "}
                       {format(
                         new Date(checkInStatus.nextCheckInAvailable),
@@ -297,7 +297,7 @@ export default function PointsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                <Clock className="h-16 w-16 text-blue-400 mx-auto" />
+                <Clock className="h-16 w-16 text-white mx-auto" />
                 <div>
                   <h3 className="text-xl font-bold text-white">
                     Ready to Check In!
@@ -308,7 +308,7 @@ export default function PointsPage() {
                   <Button
                     onClick={performDailyCheckIn}
                     disabled={checkingIn}
-                    className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white px-8 py-3 rounded-lg shadow-lg"
+                    className="bg-white text-black hover:bg-slate-200 px-8 py-3 rounded-lg shadow-lg"
                   >
                     {checkingIn ? "Checking In..." : "Check In Now"}
                   </Button>
@@ -320,23 +320,23 @@ export default function PointsPage() {
       </Card>
 
       <Tabs defaultValue="calendar" className="space-y-6">
-        <TabsList className="grid grid-cols-2 w-full bg-slate-800/50">
+        <TabsList className="grid grid-cols-2 w-full bg-slate-900 border border-white/10">
           <TabsTrigger
             value="calendar"
-            className="text-slate-300 data-[state=active]:text-white"
+            className="text-slate-400 data-[state=active]:bg-white data-[state=active]:text-black"
           >
             Check-in Calendar
           </TabsTrigger>
           <TabsTrigger
             value="history"
-            className="text-slate-300 data-[state=active]:text-white"
+            className="text-slate-400 data-[state=active]:bg-white data-[state=active]:text-black"
           >
             Points History
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="calendar">
-          <Card className="bg-slate-800/50 backdrop-blur-md border-blue-800/30">
+          <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
             <CardHeader>
               <CardTitle className="text-white">Check-in Calendar</CardTitle>
             </CardHeader>
@@ -377,7 +377,7 @@ export default function PointsPage() {
         </TabsContent>
 
         <TabsContent value="history">
-          <Card className="bg-slate-800/50 backdrop-blur-md border-blue-800/30">
+          <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
             <CardHeader>
               <CardTitle className="text-white">Points History</CardTitle>
             </CardHeader>
@@ -397,34 +397,34 @@ export default function PointsPage() {
                   {/* Points Summary */}
                   {pointsSummary && (
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-                      <div className="bg-blue-900/30 rounded-lg p-3 text-center">
-                        <div className="text-sm text-blue-300">
+                      <div className="bg-slate-800/50 border border-white/10 rounded-lg p-3 text-center">
+                        <div className="text-sm text-slate-300">
                           Daily Check-in
                         </div>
                         <div className="font-bold text-white">
                           {pointsSummary.pointsByType.daily_checkin}
                         </div>
                       </div>
-                      <div className="bg-green-900/30 rounded-lg p-3 text-center">
-                        <div className="text-sm text-green-300">Referrals</div>
+                      <div className="bg-slate-800/50 border border-white/10 rounded-lg p-3 text-center">
+                        <div className="text-sm text-slate-300">Referrals</div>
                         <div className="font-bold text-white">
                           {pointsSummary.pointsByType.referral_bonus}
                         </div>
                       </div>
-                      <div className="bg-purple-900/30 rounded-lg p-3 text-center">
-                        <div className="text-sm text-purple-300">Quests</div>
+                      <div className="bg-slate-800/50 border border-white/10 rounded-lg p-3 text-center">
+                        <div className="text-sm text-slate-300">Quests</div>
                         <div className="font-bold text-white">
                           {pointsSummary.pointsByType.quest_reward}
                         </div>
                       </div>
-                      <div className="bg-yellow-900/30 rounded-lg p-3 text-center">
-                        <div className="text-sm text-yellow-300">Bonus</div>
+                      <div className="bg-slate-800/50 border border-white/10 rounded-lg p-3 text-center">
+                        <div className="text-sm text-slate-300">Bonus</div>
                         <div className="font-bold text-white">
                           {pointsSummary.pointsByType.bonus}
                         </div>
                       </div>
-                      <div className="bg-red-900/30 rounded-lg p-3 text-center">
-                        <div className="text-sm text-red-300">Deductions</div>
+                      <div className="bg-slate-800/50 border border-white/10 rounded-lg p-3 text-center">
+                        <div className="text-sm text-slate-300">Deductions</div>
                         <div className="font-bold text-white">
                           -{pointsSummary.pointsByType.deduction}
                         </div>
@@ -437,7 +437,7 @@ export default function PointsPage() {
                     {pointsHistory.map((item) => (
                       <div
                         key={item._id}
-                        className="flex items-center justify-between p-4 bg-slate-900/30 rounded-lg border border-slate-700/50 hover:bg-slate-900/50 transition-colors"
+                        className="flex items-center justify-between p-4 bg-slate-800/30 rounded-lg border border-white/10 hover:bg-slate-800/50 transition-colors"
                       >
                         <div className="flex items-center gap-4">
                           <div className="p-2 bg-slate-800 rounded-lg">
@@ -478,7 +478,7 @@ export default function PointsPage() {
                           setHistoryPage((prev) => prev + 1);
                         }}
                         variant="outline"
-                        className="border-blue-800/30 text-blue-300 hover:bg-blue-700/20"
+                        className="border-white/10 text-white hover:bg-white/10"
                       >
                         Load More
                       </Button>

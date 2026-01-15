@@ -34,11 +34,11 @@ export default function ProfileSidebar() {
   const { profile } = useSelector((state: RootState) => state.userProfile)
 
   return (
-    <div className="w-80 bg-slate-800/50 backdrop-blur-md border-r border-blue-800/30 h-screen fixed top-0 left-0 shadow-lg shadow-blue-500/10 pt-16">
+    <div className="hidden lg:block w-80 bg-slate-900/50 backdrop-blur-xl border-r border-white/10 h-screen fixed top-0 left-0 pt-16">
       <div className="p-6 flex flex-col h-full">
         {/* Header */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-white bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold text-white">
             Profile
           </h2>
           <p className="text-sm text-slate-400 mt-1">Manage your account</p>
@@ -57,8 +57,8 @@ export default function ProfileSidebar() {
                 className={cn(
                   "flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300",
                   isActive
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
-                    : "text-slate-300 hover:bg-slate-700/50 hover:text-white hover:shadow-blue-500/20",
+                    ? "bg-white text-black shadow-lg"
+                    : "text-slate-400 hover:bg-white/5 hover:text-white",
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -69,7 +69,7 @@ export default function ProfileSidebar() {
         </nav>
 
         {/* Stats Card */}
-        <div className="mt-6 p-4 bg-slate-900/30 rounded-lg border border-blue-800/30">
+        <div className="mt-6 p-4 bg-slate-800/50 rounded-lg border border-white/10">
           <h3 className="text-sm font-medium text-white mb-3">Quick Stats</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center text-sm">
@@ -87,8 +87,8 @@ export default function ProfileSidebar() {
               </span>
             </div>
             <div className="w-full bg-slate-700 rounded-full h-2">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+              <div
+                className="bg-white h-2 rounded-full transition-all duration-500"
                 style={{ width: `${((profile?.totalPoints || 0) % 100)}%` }}
               ></div>
             </div>

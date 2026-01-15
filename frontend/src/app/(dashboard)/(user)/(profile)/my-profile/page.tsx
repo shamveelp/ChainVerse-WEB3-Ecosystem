@@ -87,10 +87,10 @@ export default function MyProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <Card className="bg-slate-800/50 backdrop-blur-md border-blue-800/30 shadow-lg shadow-blue-500/10">
+      <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            <Avatar className="h-24 w-24 ring-2 ring-blue-500/30">
+            <Avatar className="h-24 w-24 ring-2 ring-white/10">
               <AvatarImage src={profile?.profilePic || "/placeholder.svg"} alt={profile?.name || profile?.username || "User"} />
               <AvatarFallback className="text-2xl bg-slate-700 text-white">
                 {profile?.name?.charAt(0)?.toUpperCase() || profile?.username?.charAt(0)?.toUpperCase() || "?"}
@@ -100,24 +100,24 @@ export default function MyProfilePage() {
             <div className="flex-1 space-y-2">
               <div className="flex flex-col md:flex-row md:items-center gap-2">
                 <h1 className="text-2xl font-bold text-white">{profile?.name || profile?.username || "Unknown"}</h1>
-                <Badge className="bg-blue-900/50 text-blue-300 hover:bg-blue-900/70">@{profile?.username || "N/A"}</Badge>
+                <Badge className="bg-white/5 border border-white/10 text-white hover:bg-white/10">@{profile?.username || "N/A"}</Badge>
               </div>
 
               <div className="flex flex-wrap gap-4 text-sm text-slate-400">
                 {profile?.email && (
                   <div className="flex items-center gap-1">
-                    <Mail className="h-4 w-4 text-blue-400" />
+                    <Mail className="h-4 w-4 text-white" />
                     {profile.email}
                   </div>
                 )}
                 {profile?.phone && (
                   <div className="flex items-center gap-1">
-                    <Phone className="h-4 w-4 text-blue-400" />
+                    <Phone className="h-4 w-4 text-white" />
                     {profile.phone}
                   </div>
                 )}
                 <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4 text-blue-400" />
+                  <Calendar className="h-4 w-4 text-white" />
                   Joined {formattedJoinDate}
                 </div>
               </div>
@@ -129,7 +129,7 @@ export default function MyProfilePage() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-slate-800/50 backdrop-blur-md border-blue-800/30 shadow-md hover:shadow-blue-500/20 transition-all duration-300">
+        <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10 transition-all duration-300">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center mb-2">
               <Flame className="h-8 w-8 text-orange-400" />
@@ -140,7 +140,7 @@ export default function MyProfilePage() {
         </Card>
       </div>
 
-      <Card className="bg-slate-800/50 backdrop-blur-md border-blue-800/30 shadow-lg shadow-blue-500/10">
+      <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
         <CardHeader>
           <CardTitle className="text-white">Profile Information</CardTitle>
         </CardHeader>

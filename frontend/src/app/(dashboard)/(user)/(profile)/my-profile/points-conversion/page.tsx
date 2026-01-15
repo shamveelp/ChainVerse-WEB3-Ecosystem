@@ -114,7 +114,7 @@ export default function PointsConversionPage() {
         });
       }
     } catch (error) {
-      
+
       console.error("Fetch rate error:", error);
       toast.error("Error Loading Data", {
         description: "Failed to load conversion rate. Please try again.",
@@ -391,30 +391,30 @@ export default function PointsConversionPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-400" />;
+        return <Clock className="h-4 w-4 text-white" />;
       case 'approved':
-        return <CheckCircle className="h-4 w-4 text-green-400" />;
+        return <CheckCircle className="h-4 w-4 text-white" />;
       case 'claimed':
-        return <Wallet className="h-4 w-4 text-blue-400" />;
+        return <Wallet className="h-4 w-4 text-white" />;
       case 'rejected':
-        return <XCircle className="h-4 w-4 text-red-400" />;
+        return <XCircle className="h-4 w-4 text-white" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-400" />;
+        return <Clock className="h-4 w-4 text-slate-400" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-900/50 text-yellow-300';
+        return 'bg-slate-800 text-white border border-white/10';
       case 'approved':
-        return 'bg-green-900/50 text-green-300';
+        return 'bg-slate-800 text-white border border-white/10';
       case 'claimed':
-        return 'bg-blue-900/50 text-blue-300';
+        return 'bg-slate-800 text-white border border-white/10';
       case 'rejected':
-        return 'bg-red-900/50 text-red-300';
+        return 'bg-slate-800 text-white border border-white/10';
       default:
-        return 'bg-gray-900/50 text-gray-300';
+        return 'bg-slate-800 text-slate-300 border border-white/10';
     }
   };
 
@@ -429,17 +429,17 @@ export default function PointsConversionPage() {
 
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold text-white">
           Points to CVC Conversion
         </h1>
         <p className="text-slate-400">Convert your earned points to ChainVerse Coins</p>
 
         {conversionRate && (
           <div className="flex items-center justify-center gap-4 text-sm">
-            <Badge className="bg-blue-900/50 text-blue-300">
+            <Badge className="bg-slate-800 text-white border border-white/10">
               1 CVC = {conversionRate.pointsPerCVC} Points
             </Badge>
-            <Badge className="bg-amber-900/50 text-amber-300">
+            <Badge className="bg-slate-800 text-white border border-white/10">
               Fee: {conversionRate.claimFeeETH} ETH
             </Badge>
           </div>
@@ -449,53 +449,53 @@ export default function PointsConversionPage() {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 backdrop-blur-md border-blue-800/30">
+          <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
             <CardHeader className="pb-2">
               <CardTitle className="text-white text-sm font-medium flex items-center gap-2">
-                <ArrowRightLeft className="h-4 w-4 text-blue-400" />
+                <ArrowRightLeft className="h-4 w-4 text-white opacity-80" />
                 Total Converted
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">{stats.totalPointsConverted}</div>
-              <p className="text-blue-300 text-sm">Points Converted</p>
+              <p className="text-slate-400 text-sm">Points Converted</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-emerald-600/20 to-teal-600/20 backdrop-blur-md border-emerald-800/30">
+          <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
             <CardHeader className="pb-2">
               <CardTitle className="text-white text-sm font-medium flex items-center gap-2">
-                <Wallet className="h-4 w-4 text-emerald-400" />
+                <Wallet className="h-4 w-4 text-white opacity-80" />
                 Total Claimed
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">{stats.totalCVCClaimed}</div>
-              <p className="text-emerald-300 text-sm">CVC Claimed</p>
+              <p className="text-slate-400 text-sm">CVC Claimed</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-amber-600/20 to-orange-600/20 backdrop-blur-md border-amber-800/30">
+          <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
             <CardHeader className="pb-2">
               <CardTitle className="text-white text-sm font-medium flex items-center gap-2">
-                <Clock className="h-4 w-4 text-amber-400" />
+                <Clock className="h-4 w-4 text-white opacity-80" />
                 Pending
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">{stats.pendingConversions}</div>
-              <p className="text-amber-300 text-sm">Awaiting Approval</p>
+              <p className="text-slate-400 text-sm">Awaiting Approval</p>
             </CardContent>
           </Card>
         </div>
       )}
 
       <Tabs defaultValue="convert" className="space-y-6">
-        <TabsList className="grid grid-cols-2 w-full bg-slate-800/50">
-          <TabsTrigger value="convert" className="text-slate-300 data-[state=active]:text-white">
+        <TabsList className="grid grid-cols-2 w-full bg-slate-900 border border-white/10">
+          <TabsTrigger value="convert" className="text-slate-400 data-[state=active]:bg-white data-[state=active]:text-black">
             Convert Points
           </TabsTrigger>
-          <TabsTrigger value="history" className="text-slate-300 data-[state=active]:text-white">
+          <TabsTrigger value="history" className="text-slate-400 data-[state=active]:bg-white data-[state=active]:text-black">
             Conversion History
           </TabsTrigger>
         </TabsList>
@@ -503,10 +503,10 @@ export default function PointsConversionPage() {
         <TabsContent value="convert">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Conversion Form */}
-            <Card className="bg-slate-800/50 backdrop-blur-md border-blue-800/30">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Calculator className="h-5 w-5 text-cyan-400" />
+                  <Calculator className="h-5 w-5 text-white opacity-80" />
                   Convert Points to CVC
                 </CardTitle>
               </CardHeader>
@@ -549,11 +549,11 @@ export default function PointsConversionPage() {
                   </div>
 
                   {calculatedCVC > 0 && (
-                    <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30">
+                    <div className="bg-slate-800/50 rounded-xl p-4 border border-white/10">
                       <div className="flex items-center justify-between">
                         <span className="text-slate-300">You will receive:</span>
                         <div className="flex items-center gap-2">
-                          <Coins className="h-5 w-5 text-cyan-400" />
+                          <Coins className="h-5 w-5 text-white" />
                           <span className="text-xl font-bold text-white">{calculatedCVC} CVC</span>
                         </div>
                       </div>
@@ -582,11 +582,11 @@ export default function PointsConversionPage() {
                       calculatedCVC === 0 ||
                       !!validationError
                     }
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3"
+                    className="w-full bg-white text-black hover:bg-slate-200 font-semibold py-3"
                   >
                     {converting ? (
                       <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-white mr-2"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-black mr-2"></div>
                         Creating Conversion...
                       </>
                     ) : (
@@ -610,17 +610,17 @@ export default function PointsConversionPage() {
             </Card>
 
             {/* Info Card */}
-            <Card className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 backdrop-blur-md border-purple-800/30">
+            <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-purple-400" />
+                  <Zap className="h-5 w-5 text-white opacity-80" />
                   How It Works
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center text-white text-sm font-bold">1</div>
+                    <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-sm font-bold">1</div>
                     <div>
                       <h4 className="text-white font-medium">Convert Points</h4>
                       <p className="text-slate-400 text-sm">Submit your points for conversion to CVC tokens</p>
@@ -628,7 +628,7 @@ export default function PointsConversionPage() {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-white text-sm font-bold">2</div>
+                    <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-sm font-bold">2</div>
                     <div>
                       <h4 className="text-white font-medium">Admin Approval</h4>
                       <p className="text-slate-400 text-sm">Wait for admin to review and approve your conversion</p>
@@ -636,7 +636,7 @@ export default function PointsConversionPage() {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">3</div>
+                    <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-sm font-bold">3</div>
                     <div>
                       <h4 className="text-white font-medium">Claim CVC</h4>
                       <p className="text-slate-400 text-sm">Connect your wallet and claim CVC tokens (fee applies)</p>
@@ -644,9 +644,9 @@ export default function PointsConversionPage() {
                   </div>
                 </div>
 
-                <div className="bg-slate-700/30 rounded-lg p-4 mt-6">
+                <div className="bg-slate-800/50 rounded-lg p-4 mt-6 border border-white/10">
                   <h5 className="text-white font-medium mb-2 flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-green-400" />
+                    <TrendingUp className="h-4 w-4 text-white opacity-80" />
                     Benefits
                   </h5>
                   <ul className="text-slate-300 text-sm space-y-1">
@@ -662,18 +662,18 @@ export default function PointsConversionPage() {
         </TabsContent>
 
         <TabsContent value="history">
-          <Card className="bg-slate-800/50 backdrop-blur-md border-blue-800/30">
+          <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
             <CardHeader>
               <CardTitle className="text-white flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-blue-400" />
+                  <Clock className="h-5 w-5 text-white opacity-80" />
                   Conversion History
                 </div>
                 <Button
                   onClick={() => fetchConversions(1)}
                   variant="outline"
                   size="sm"
-                  className="border-blue-800/30 text-blue-300 hover:bg-blue-700/20"
+                  className="border-white/10 text-white hover:bg-white/10"
                 >
                   <RefreshCw className="h-4 w-4" />
                 </Button>
@@ -691,10 +691,10 @@ export default function PointsConversionPage() {
                   {conversions.map((conversion) => (
                     <div
                       key={conversion.id}
-                      className="flex items-center justify-between p-4 bg-slate-900/30 rounded-lg border border-slate-700/50"
+                      className="flex items-center justify-between p-4 bg-slate-800/30 rounded-lg border border-white/10"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="p-2 bg-slate-800 rounded-lg">
+                        <div className="p-2 bg-slate-800 rounded-lg border border-white/10">
                           {getStatusIcon(conversion.status)}
                         </div>
                         <div>
@@ -722,7 +722,7 @@ export default function PointsConversionPage() {
                           <Button
                             onClick={() => handleClaimCVC(conversion)}
                             size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white"
+                            className="bg-white text-black hover:bg-slate-200"
                           >
                             <Wallet className="h-4 w-4 mr-2" />
                             Claim CVC
@@ -733,7 +733,7 @@ export default function PointsConversionPage() {
                             href={`https://sepolia.etherscan.io/tx/${conversion.transactionHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 text-sm underline"
+                            className="text-white opacity-80 hover:opacity-100 text-sm underline"
                           >
                             View Transaction
                           </a>
@@ -747,7 +747,7 @@ export default function PointsConversionPage() {
                       <Button
                         onClick={() => setPage(prev => prev + 1)}
                         variant="outline"
-                        className="border-blue-800/30 text-blue-300 hover:bg-blue-700/20"
+                        className="border-white/10 text-white hover:bg-white/10"
                       >
                         Load More
                       </Button>

@@ -7,12 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { 
-  Copy, 
-  Share2, 
-  Users, 
-  Gift, 
-  TrendingUp, 
+import {
+  Copy,
+  Share2,
+  Users,
+  Gift,
+  TrendingUp,
   Calendar,
   ExternalLink
 } from "lucide-react";
@@ -118,7 +118,7 @@ export default function ReferPage() {
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold text-white">
           Refer & Earn
         </h1>
         <p className="text-slate-400 text-lg max-w-2xl mx-auto">
@@ -128,25 +128,25 @@ export default function ReferPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 backdrop-blur-md border-blue-800/30 shadow-lg hover:shadow-blue-500/20 transition-all duration-300">
+        <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10 transition-all duration-300">
           <CardContent className="p-6 text-center">
-            <Users className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+            <Users className="h-12 w-12 text-white mx-auto mb-4 opacity-80" />
             <div className="text-3xl font-bold text-white">{referralStats?.totalReferrals || 0}</div>
             <div className="text-slate-400">Total Referrals</div>
           </CardContent>
         </Card>
-        
-        <Card className="bg-gradient-to-br from-green-600/20 to-teal-600/20 backdrop-blur-md border-green-800/30 shadow-lg hover:shadow-green-500/20 transition-all duration-300">
+
+        <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10 transition-all duration-300">
           <CardContent className="p-6 text-center">
-            <Gift className="h-12 w-12 text-green-400 mx-auto mb-4" />
+            <Gift className="h-12 w-12 text-white mx-auto mb-4 opacity-80" />
             <div className="text-3xl font-bold text-white">{referralStats?.totalPointsEarned || 0}</div>
             <div className="text-slate-400">Points Earned</div>
           </CardContent>
         </Card>
-        
-        <Card className="bg-gradient-to-br from-orange-600/20 to-yellow-600/20 backdrop-blur-md border-orange-800/30 shadow-lg hover:shadow-orange-500/20 transition-all duration-300">
+
+        <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10 transition-all duration-300">
           <CardContent className="p-6 text-center">
-            <TrendingUp className="h-12 w-12 text-orange-400 mx-auto mb-4" />
+            <TrendingUp className="h-12 w-12 text-white mx-auto mb-4 opacity-80" />
             <div className="text-3xl font-bold text-white">100</div>
             <div className="text-slate-400">Points Per Referral</div>
           </CardContent>
@@ -154,7 +154,7 @@ export default function ReferPage() {
       </div>
 
       {/* Referral Code & Link */}
-      <Card className="bg-slate-800/50 backdrop-blur-md border-blue-800/30 shadow-lg shadow-blue-500/10">
+      <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
         <CardHeader>
           <CardTitle className="text-white text-xl">Your Referral Details</CardTitle>
         </CardHeader>
@@ -163,16 +163,16 @@ export default function ReferPage() {
           <div className="space-y-3">
             <h3 className="text-slate-300 font-medium">Referral Code</h3>
             <div className="flex items-center gap-3">
-              <div className="flex-1 bg-slate-900/50 border border-blue-800/30 rounded-lg p-4">
+              <div className="flex-1 bg-slate-800/50 border border-white/10 rounded-lg p-4">
                 <div className="text-center">
-                  <div className="text-2xl font-mono font-bold text-blue-400 tracking-wider">
+                  <div className="text-2xl font-mono font-bold text-white tracking-wider">
                     {referralStats?.referralCode}
                   </div>
                 </div>
               </div>
               <Button
                 onClick={() => copyToClipboard(referralStats?.referralCode || '', 'Referral code')}
-                className="bg-blue-600 hover:bg-blue-700 px-4"
+                className="bg-white text-black hover:bg-slate-200 px-4"
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -183,7 +183,7 @@ export default function ReferPage() {
           <div className="space-y-3">
             <h3 className="text-slate-300 font-medium">Referral Link</h3>
             <div className="flex items-center gap-3">
-              <div className="flex-1 bg-slate-900/50 border border-blue-800/30 rounded-lg p-3">
+              <div className="flex-1 bg-slate-800/50 border border-white/10 rounded-lg p-3">
                 <div className="text-sm text-slate-300 break-all font-mono">
                   {referralStats?.referralLink}
                 </div>
@@ -192,14 +192,14 @@ export default function ReferPage() {
                 <Button
                   onClick={() => copyToClipboard(referralStats?.referralLink || '', 'Referral link')}
                   variant="outline"
-                  className="border-blue-800/30 text-blue-300 hover:bg-blue-700/20"
+                  className="border-white/10 text-white hover:bg-white/10"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
                 <Button
                   onClick={shareReferralLink}
                   variant="outline"
-                  className="border-green-800/30 text-green-300 hover:bg-green-700/20"
+                  className="border-white/10 text-white hover:bg-white/10"
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
@@ -208,19 +208,19 @@ export default function ReferPage() {
           </div>
 
           {/* How it Works */}
-          <div className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-lg p-4 border border-blue-800/20">
+          <div className="bg-slate-800/50 rounded-lg p-4 border border-white/10">
             <h4 className="text-white font-medium mb-3">How Referrals Work</h4>
             <div className="space-y-2 text-sm text-slate-300">
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-blue-600 text-white rounded-full text-xs flex items-center justify-center font-bold">1</div>
+                <div className="w-6 h-6 bg-white text-black rounded-full text-xs flex items-center justify-center font-bold">1</div>
                 <span>Share your referral code or link with friends</span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-blue-600 text-white rounded-full text-xs flex items-center justify-center font-bold">2</div>
+                <div className="w-6 h-6 bg-white text-black rounded-full text-xs flex items-center justify-center font-bold">2</div>
                 <span>They sign up using your referral code</span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-green-600 text-white rounded-full text-xs flex items-center justify-center font-bold">3</div>
+                <div className="w-6 h-6 bg-white text-black rounded-full text-xs flex items-center justify-center font-bold">3</div>
                 <span>You both earn 100 bonus points!</span>
               </div>
             </div>
@@ -229,7 +229,7 @@ export default function ReferPage() {
       </Card>
 
       {/* Referral History */}
-      <Card className="bg-slate-800/50 backdrop-blur-md border-blue-800/30 shadow-lg shadow-blue-500/10">
+      <Card className="bg-slate-900/50 backdrop-blur-xl border-white/10">
         <CardHeader>
           <CardTitle className="text-white text-xl">Referral History</CardTitle>
         </CardHeader>
@@ -239,9 +239,9 @@ export default function ReferPage() {
               <Users className="h-16 w-16 text-slate-600 mx-auto mb-4" />
               <h3 className="text-xl font-medium text-slate-300 mb-2">No Referrals Yet</h3>
               <p className="text-slate-400 mb-6">Start inviting friends to earn points!</p>
-              <Button 
+              <Button
                 onClick={shareReferralLink}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="bg-white text-black hover:bg-slate-200"
               >
                 <Share2 className="h-4 w-4 mr-2" />
                 Share Referral Link
@@ -252,14 +252,14 @@ export default function ReferPage() {
               {referralHistory.map((referral) => (
                 <div
                   key={referral._id}
-                  className="flex items-center justify-between p-4 bg-slate-900/30 rounded-lg border border-slate-700/50 hover:bg-slate-900/50 transition-colors"
+                  className="flex items-center justify-between p-4 bg-slate-800/30 rounded-lg border border-white/10 hover:bg-slate-800/50 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
                       <AvatarImage src="/placeholder.svg" />
                       <AvatarFallback className="bg-slate-700 text-white">
-                        {referral.referred.name?.charAt(0)?.toUpperCase() || 
-                         referral.referred.username?.charAt(0)?.toUpperCase() || "?"}
+                        {referral.referred.name?.charAt(0)?.toUpperCase() ||
+                          referral.referred.username?.charAt(0)?.toUpperCase() || "?"}
                       </AvatarFallback>
                     </Avatar>
                     <div>
@@ -274,7 +274,7 @@ export default function ReferPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <Badge className="bg-green-900/50 text-green-300 mb-2">
+                    <Badge className="bg-white/10 text-white border border-white/10 mb-2">
                       +{referral.pointsAwarded} Points
                     </Badge>
                     <div className="text-xs text-slate-500">
@@ -283,7 +283,7 @@ export default function ReferPage() {
                   </div>
                 </div>
               ))}
-              
+
               {/* Load More Button */}
               {referralHistory.length < total && (
                 <div className="text-center pt-4">
@@ -291,7 +291,7 @@ export default function ReferPage() {
                     onClick={() => fetchReferralHistory(page + 1)}
                     disabled={historyLoading}
                     variant="outline"
-                    className="border-blue-800/30 text-blue-300 hover:bg-blue-700/20"
+                    className="border-white/10 text-white hover:bg-white/10"
                   >
                     {historyLoading ? "Loading..." : "Load More"}
                   </Button>
