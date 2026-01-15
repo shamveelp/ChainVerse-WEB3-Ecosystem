@@ -1,5 +1,5 @@
-import { IsOptional, IsString, IsNumber, IsBoolean, IsEnum, Min, Max } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { IsOptional, IsString, IsNumber, IsEnum, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
 
 export class GetCommunityMembersDto {

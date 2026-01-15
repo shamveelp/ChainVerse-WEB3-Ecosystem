@@ -9,7 +9,7 @@ import logger from "../../utils/logger";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { ErrorMessages, SuccessMessages, LoggerMessages } from "../../enums/messages.enum";
 import { AdminResponseDto, AdminLoginResponseDto } from "../../dtos/admin/AdminAuth.dto";
-import bcrypt from "bcryptjs";
+
 
 @injectable()
 export class AdminAuthController implements IAdminAuthController {

@@ -1,11 +1,10 @@
-import { 
-  IsString, 
-  IsOptional, 
-  MinLength, 
-  MaxLength, 
-  Matches, 
-  IsUrl,
-  IsPhoneNumber
+import {
+  IsString,
+  IsOptional,
+  MinLength,
+  MaxLength,
+  Matches,
+  IsUrl
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
@@ -22,16 +21,16 @@ export class UpdateProfileDto {
   @IsString({ message: 'Username must be a string' })
   @MinLength(4, { message: 'Username must be at least 4 characters long' })
   @MaxLength(20, { message: 'Username must be at most 20 characters long' })
-  @Matches(/^[a-zA-Z0-9_]+$/, { 
-    message: 'Username can only contain letters, numbers, and underscores' 
+  @Matches(/^[a-zA-Z0-9_]+$/, {
+    message: 'Username can only contain letters, numbers, and underscores'
   })
   @Transform(({ value }) => value?.trim())
   username?: string;
 
   @IsOptional()
   @IsString({ message: 'Phone must be a string' })
-  @Matches(/^[\+]?[1-9][\d]{0,15}$/, { 
-    message: 'Please provide a valid phone number' 
+  @Matches(/^[+]?[1-9][\d]{0,15}$/, {
+    message: 'Please provide a valid phone number'
   })
   @Transform(({ value }) => value?.trim())
   phone?: string;
@@ -45,8 +44,8 @@ export class CheckUsernameDto {
   @IsString({ message: 'Username must be a string' })
   @MinLength(4, { message: 'Username must be at least 4 characters long' })
   @MaxLength(20, { message: 'Username must be at most 20 characters long' })
-  @Matches(/^[a-zA-Z0-9_]+$/, { 
-    message: 'Username can only contain letters, numbers, and underscores' 
+  @Matches(/^[a-zA-Z0-9_]+$/, {
+    message: 'Username can only contain letters, numbers, and underscores'
   })
   @Transform(({ value }) => value?.trim())
   username!: string;

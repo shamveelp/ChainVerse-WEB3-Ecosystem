@@ -313,7 +313,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             const result = await this._commAdminAuthService.refreshToken(req, res);
             res.status(StatusCode.OK).json(result);
         } catch (error) {
-            const err = error as Error;
+
             logger.error(LoggerMessages.REFRESH_TOKEN_ERROR, error);
             res.status(StatusCode.UNAUTHORIZED).json({
                 success: false,
@@ -332,7 +332,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             const result = await this._commAdminAuthService.logout(res);
             res.status(StatusCode.OK).json(result);
         } catch (error) {
-            const err = error as Error;
+
             logger.error(LoggerMessages.LOGOUT_ERROR, error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
@@ -352,7 +352,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             const result = await this._commAdminAuthService.getProfile(communityAdminId);
             res.status(StatusCode.OK).json(result);
         } catch (error) {
-            const err = error as Error;
+
             logger.error(LoggerMessages.GET_PROFILE_ERROR, error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
@@ -372,7 +372,7 @@ export class CommunityAdminAuthController implements ICommunityAdminAuthControll
             const result = await this._commAdminAuthService.getCommunityDetails(communityAdminId);
             res.status(StatusCode.OK).json(result);
         } catch (error) {
-            const err = error as Error;
+
             logger.error(LoggerMessages.GET_COMMUNITY_DETAILS_ERROR, error);
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,

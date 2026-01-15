@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsBoolean, IsNumber, Min } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { BaseResponseDto, PaginatedResponseDto } from '../base/BaseResponse.dto';
+import { PaginatedResponseDto } from '../base/BaseResponse.dto';
 
 export class GetUsersQueryDto {
   @IsOptional()

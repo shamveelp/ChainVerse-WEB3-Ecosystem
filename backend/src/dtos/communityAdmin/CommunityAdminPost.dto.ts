@@ -1,4 +1,4 @@
-import { IsString, IsArray, IsOptional, IsEnum, MaxLength, MinLength, IsMongoId, IsNumber, Min, IsBoolean } from 'class-validator';
+import { IsString, IsArray, IsOptional, IsEnum, MaxLength, MinLength, IsMongoId, IsNumber, Min } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
 
@@ -178,7 +178,7 @@ export class CommunityAdminCommentResponseDto {
         this.createdAt = comment.createdAt;
         this.updatedAt = comment.updatedAt;
         this.editedAt = comment.editedAt;
-        this.replies = comment.replies?.map((reply: any) => 
+        this.replies = comment.replies?.map((reply: any) =>
             new CommunityAdminCommentResponseDto(reply, currentAdminId, isLiked)
         ) || [];
     }

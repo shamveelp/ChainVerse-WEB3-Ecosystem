@@ -246,7 +246,7 @@ What would you like to do today? 🚀`
         try {
             if (!this.chatModel) {
                 // Fallback analysis
-                return this.generateFallbackTradeAnalysis(fromToken, toToken, amount, currentPrices);
+                return this.generateFallbackTradeAnalysis(fromToken, toToken, amount);
             }
 
             const analysisPrompt = `
@@ -267,15 +267,14 @@ Keep it concise and actionable.`;
             return response.content as string;
         } catch (error) {
             console.error('Error generating trade analysis:', error);
-            return this.generateFallbackTradeAnalysis(fromToken, toToken, amount, currentPrices);
+            return this.generateFallbackTradeAnalysis(fromToken, toToken, amount);
         }
     }
 
     private generateFallbackTradeAnalysis(
         fromToken: string,
         toToken: string,
-        amount: string,
-        currentPrices: any
+        amount: string
     ): string {
         const numAmount = parseFloat(amount);
         let estimatedOutput = 0;

@@ -1,8 +1,7 @@
-import { 
-    MyCommunitiesListResponseDto, 
+import {
+    MyCommunitiesListResponseDto,
     MyCommunitiesStatsDto,
-    MyCommunitiesActivityResponseDto,
-    MyCommunityCardDto
+    MyCommunitiesActivityResponseDto
 } from "../../../../dtos/community/MyCommunities.dto";
 
 export interface IUserMyCommunitiesService {

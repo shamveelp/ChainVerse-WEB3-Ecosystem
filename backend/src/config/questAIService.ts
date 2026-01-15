@@ -1,8 +1,8 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { 
-  ChatPromptTemplate, 
-  HumanMessagePromptTemplate, 
-  SystemMessagePromptTemplate 
+import {
+  ChatPromptTemplate,
+  HumanMessagePromptTemplate,
+  SystemMessagePromptTemplate
 } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { RunnableSequence } from "@langchain/core/runnables";
@@ -157,7 +157,7 @@ Create a quest that matches these requirements or ask clarifying questions if ne
             suggestedQuestions: parsed.suggestedQuestions
           };
         }
-      } catch (parseError) {
+      } catch {
         // If JSON parsing fails, treat as conversational response
       }
 
@@ -199,7 +199,7 @@ Analyze the submission and respond with JSON:
     try {
       const response = await this.model.invoke(prompt);
       const jsonMatch = response.content.toString().match(/\{[\s\S]*\}/);
-      
+
       if (jsonMatch) {
         const result = JSON.parse(jsonMatch[0]);
         return {

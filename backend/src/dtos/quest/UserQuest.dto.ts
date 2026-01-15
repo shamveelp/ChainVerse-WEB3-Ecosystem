@@ -1,5 +1,5 @@
-import { IsString, IsNumber, IsEnum, IsBoolean, IsArray, IsOptional, IsDate, ValidateNested, Min, Max } from "class-validator";
-import { Type, Transform } from "class-transformer";      
+import { IsString, IsNumber, IsEnum, IsOptional, ValidateNested, Min, Max } from "class-validator";
+import { Type, Transform } from "class-transformer";
 import { BaseResponseDto } from "../base/BaseResponse.dto";
 
 // Get Available Quests Query DTO
@@ -10,7 +10,7 @@ export class GetAvailableQuestsDto {
   @IsOptional()
   page?: number = 1;
 
-  @Transform(({ value }) => parseInt(value) || 12)        
+  @Transform(({ value }) => parseInt(value) || 12)
   @IsNumber()
   @Min(1)
   @Max(50)
@@ -19,7 +19,7 @@ export class GetAvailableQuestsDto {
 
   @IsEnum(['draft', 'active', 'ended'])
   @IsOptional()
-  status?: 'draft' | 'active' | 'ended' = 'active';       
+  status?: 'draft' | 'active' | 'ended' = 'active';
 
   @IsString()
   @IsOptional()
@@ -39,7 +39,7 @@ export class GetAvailableQuestsDto {
 
   @IsEnum(['token', 'nft', 'points', 'custom'])
   @IsOptional()
-  rewardType?: 'token' | 'nft' | 'points' | 'custom';     
+  rewardType?: 'token' | 'nft' | 'points' | 'custom';
 }
 
 // Get My Quests Query DTO
@@ -50,7 +50,7 @@ export class GetMyQuestsDto {
   @IsOptional()
   page?: number = 1;
 
-  @Transform(({ value }) => parseInt(value) || 12)        
+  @Transform(({ value }) => parseInt(value) || 12)
   @IsNumber()
   @Min(1)
   @Max(50)
@@ -74,7 +74,7 @@ export class GetLeaderboardDto {
   @IsOptional()
   page?: number = 1;
 
-  @Transform(({ value }) => parseInt(value) || 10)        
+  @Transform(({ value }) => parseInt(value) || 10)
   @IsNumber()
   @Min(1)
   @Max(50)
@@ -140,7 +140,7 @@ export class SubmitTaskDto {
 }
 
 // Response DTOs
-export class QuestResponseDto extends BaseResponseDto {   
+export class QuestResponseDto extends BaseResponseDto {
   _id: string;
   communityId: any;
   title: string;
@@ -186,11 +186,11 @@ export class QuestResponseDto extends BaseResponseDto {
     this.startDate = quest.startDate;
     this.endDate = quest.endDate;
     this.selectionMethod = quest.selectionMethod;
-    this.participantLimit = quest.participantLimit;       
+    this.participantLimit = quest.participantLimit;
     this.rewardPool = quest.rewardPool;
     this.status = quest.status;
-    this.totalParticipants = quest.totalParticipants;     
-    this.totalSubmissions = quest.totalSubmissions;       
+    this.totalParticipants = quest.totalParticipants;
+    this.totalSubmissions = quest.totalSubmissions;
     this.winnersSelected = quest.winnersSelected;
     this.isAIGenerated = quest.isAIGenerated;
     this.createdAt = quest.createdAt;
@@ -198,9 +198,9 @@ export class QuestResponseDto extends BaseResponseDto {
     this.tasks = quest.tasks;
     this.community = quest.community;
     this.isParticipating = isParticipating;
-    this.participationStatus = participationData?.status; 
+    this.participationStatus = participationData?.status;
     this.completedTasks = participationData?.totalTasksCompleted || 0;
-    
+
     // Calculate if user can join and join message
     this.canJoin = this.calculateCanJoin();
     this.joinMessage = this.calculateJoinMessage();
@@ -211,11 +211,11 @@ export class QuestResponseDto extends BaseResponseDto {
     if (this.isParticipating) return false;
     if (this.status !== 'active') return false;
     if (this.totalParticipants >= this.participantLimit) return false;
-    
+
     const now = new Date();
     const endDate = new Date(this.endDate);
     if (endDate <= now) return false;
-    
+
     return true;
   }
 
@@ -225,14 +225,14 @@ export class QuestResponseDto extends BaseResponseDto {
     if (this.status === 'draft') return "This quest is still in draft mode";
     if (this.status === 'cancelled') return "This quest has been cancelled";
     if (this.totalParticipants >= this.participantLimit) return "Quest is full - no more participants allowed";
-    
+
     const now = new Date();
     const startDate = new Date(this.startDate);
     const endDate = new Date(this.endDate);
-    
+
     if (startDate > now) return "Quest hasn't started yet";
     if (endDate <= now) return "Quest has ended";
-    
+
     return "Join this quest to start earning rewards!";
   }
 
@@ -240,20 +240,20 @@ export class QuestResponseDto extends BaseResponseDto {
     const now = new Date();
     const endDate = new Date(this.endDate);
     const timeDiff = endDate.getTime() - now.getTime();
-    
+
     if (timeDiff <= 0) {
       return { days: 0, hours: 0, minutes: 0, hasEnded: true };
     }
-    
+
     const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     return { days, hours, minutes, hasEnded: false };
   }
 }
 
-export class MyQuestResponseDto extends BaseResponseDto { 
+export class MyQuestResponseDto extends BaseResponseDto {
   _id: string;
   questId: string;
   quest: any;
@@ -266,16 +266,16 @@ export class MyQuestResponseDto extends BaseResponseDto {
   progress: number;
 
   constructor(participation: any) {
-    super(true, "My quest retrieved successfully");       
+    super(true, "My quest retrieved successfully");
     this._id = participation._id.toString();
-    this.questId = participation.questId.toString();      
+    this.questId = participation.questId.toString();
     this.quest = participation.quest;
     this.status = participation.status;
     this.joinedAt = participation.joinedAt;
     this.completedAt = participation.completedAt;
     this.totalTasksCompleted = participation.totalTasksCompleted;
     this.isWinner = participation.isWinner;
-    this.rewardClaimed = participation.rewardClaimed;     
+    this.rewardClaimed = participation.rewardClaimed;
     this.progress = participation.quest?.tasks?.length > 0 ?
       (participation.totalTasksCompleted / participation.quest.tasks.length) * 100 : 0;
   }
@@ -294,7 +294,7 @@ export class TaskSubmissionResponseDto extends BaseResponseDto {
     this._id = submission._id.toString();
     this.questId = submission.questId.toString();
     this.taskId = submission.taskId.toString();
-    this.submissionData = submission.submissionData;      
+    this.submissionData = submission.submissionData;
     this.status = submission.status;
     this.submittedAt = submission.submittedAt;
   }

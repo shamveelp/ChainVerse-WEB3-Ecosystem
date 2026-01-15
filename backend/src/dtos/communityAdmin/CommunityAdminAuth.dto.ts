@@ -1,14 +1,12 @@
-import { 
-  IsEmail, 
-  IsString, 
-  MinLength, 
-  MaxLength, 
-  IsOptional, 
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  MaxLength,
+  IsOptional,
   IsArray,
-  IsUrl,
   Length,
   Matches,
-  IsObject,
   ValidateNested,
   ArrayMinSize,
   ArrayMaxSize

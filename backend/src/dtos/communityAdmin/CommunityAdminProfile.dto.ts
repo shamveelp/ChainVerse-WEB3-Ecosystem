@@ -1,5 +1,5 @@
-import { IsOptional, IsString, MinLength, MaxLength, IsUrl, ValidateNested, IsBoolean } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { IsOptional, IsString, MinLength, MaxLength, IsUrl } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
 
 export class UpdateCommunityAdminProfileDto {

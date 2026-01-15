@@ -1,5 +1,5 @@
 import { IsNumber, IsOptional, Min, Max } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
 
 export class GetCheckInCalendarDto {

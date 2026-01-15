@@ -128,7 +128,7 @@ export class AdminDexController implements IAdminDexController {
    */
   fulfillPayment = async (req: Request, res: Response) => {
     try {
-      const { paymentId, transactionHash, adminNote } = req.body;
+      const { paymentId, transactionHash } = req.body;
       const adminId = (req as any).user.id;
 
       if (!paymentId || !transactionHash) {

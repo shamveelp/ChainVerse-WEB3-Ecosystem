@@ -1,4 +1,4 @@
-import { IWallet } from "../../../../models/wallet.model";
+
 
 export interface IWalletService {
   // connectWallet(walletData: Partial<IWallet>): Promise<IWallet>;

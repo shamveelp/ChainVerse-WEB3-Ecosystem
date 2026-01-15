@@ -5,12 +5,12 @@ import { IUserProfileController } from "../../core/interfaces/controllers/user/I
 import { IUserService } from "../../core/interfaces/services/user/IUser.service";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { updateProfileSchema, checkUsernameSchema } from "../../validations/User.validation";
+import { updateProfileSchema } from "../../validations/User.validation";
 import { z } from "zod";
 import cloudinary from "../../config/cloudinary";
 import { UploadApiResponse } from "cloudinary";
 import logger from "../../utils/logger";
-import { AuthenticatedRequest } from "../../middlewares/auth.middleware";
+
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 
 @injectable()

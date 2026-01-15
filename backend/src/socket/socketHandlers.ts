@@ -133,7 +133,7 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
       });
       next();
     } catch (error) {
-      let err = error as Error;
+      const err = error as Error;
       logger.error('Socket authentication error', {
         socketId: socket.id,
         error: err.message,

@@ -7,7 +7,7 @@ import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import { UpdateCommunityProfileDto } from "../../dtos/community/CommunityProfile.dto";
-import { z } from "zod";
+
 import cloudinary from "../../config/cloudinary";
 import { UploadApiResponse } from "cloudinary";
 import logger from "../../utils/logger";

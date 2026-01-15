@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength, IsMongoId, IsNumber, Min, IsArray, ValidateNested , IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, MaxLength, IsNumber, Min } from 'class-validator';
 
 export class SendMessageDto {
   @IsString()
@@ -61,7 +61,7 @@ export class ConversationResponseDto {
 }
 
 export class ParticipantDto {
-  _id: string   | undefined;
+  _id: string | undefined;
   username: string | undefined;
   name: string | undefined;
   profilePic: string | undefined;

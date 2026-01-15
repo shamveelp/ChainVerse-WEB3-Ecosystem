@@ -1,6 +1,5 @@
-import { 
-    CommunityProfileResponseDto, 
-    CommunityMemberResponseDto, 
+import {
+    CommunityProfileResponseDto,
     CommunityJoinResponseDto,
     CommunityListResponseDto,
     CommunityMemberListResponseDto,

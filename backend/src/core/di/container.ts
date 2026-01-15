@@ -151,8 +151,7 @@ import { IAdminWalletController } from "../interfaces/controllers/admin/IAdminWa
 import { AdminWalletController } from "../../controllers/admin/AdminWallet.controller"
 import { DexController } from "../../controllers/dex/Dex.controller"
 import { IDexController } from "../interfaces/controllers/dex/IDexController"
-import { WalletController } from "../../controllers/dex/Wallet.controller"
-import { IWalletController } from "../interfaces/controllers/dex/IWalletController"
+
 import { DexService } from "../../services/dex/Dex.service"
 import { IDexService } from "../interfaces/services/dex/IDex.service"
 import { IWalletService } from "../interfaces/services/dex/IWallet.service"

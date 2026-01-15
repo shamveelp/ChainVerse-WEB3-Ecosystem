@@ -1,4 +1,4 @@
-import { IsString, IsEnum, IsNumber, IsOptional, IsBoolean, Min, Max } from "class-validator";
+import { IsString, IsEnum, IsNumber, IsOptional, Min, Max } from "class-validator";
 import { BaseResponseDto } from "../base/BaseResponse.dto";
 import { Type } from "class-transformer";
 

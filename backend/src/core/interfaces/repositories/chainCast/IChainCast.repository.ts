@@ -1,4 +1,4 @@
-import { Types } from "mongoose";
+
 import { IChainCast } from "../../../../models/chainCast.model";
 import { IChainCastParticipant } from "../../../../models/chainCastParticipant.model";
 import { IChainCastReaction } from "../../../../models/chainCastReaction.model";
@@ -13,7 +13,7 @@ export interface IChainCastRepository {
     updateChainCast(id: string, data: Partial<IChainCast>): Promise<IChainCast | null>;
     deleteChainCast(id: string): Promise<boolean>;
     findActiveChainCastByCommunity(communityId: string): Promise<IChainCast | null>;
-    
+
     // Participant operations
     createParticipant(data: Partial<IChainCastParticipant>): Promise<IChainCastParticipant>;
     findParticipantByChainCastAndUser(chainCastId: string, userId: string): Promise<IChainCastParticipant | null>;
@@ -23,13 +23,13 @@ export interface IChainCastRepository {
     removeParticipant(chainCastId: string, userId: string): Promise<boolean>;
     getActiveParticipantsCount(chainCastId: string): Promise<number>;
     getModeratorsCount(chainCastId: string): Promise<number>;
-    
+
     // Reaction operations
     createReaction(data: Partial<IChainCastReaction>): Promise<IChainCastReaction>;
     findReactionsByChainCast(chainCastId: string, skip: number, limit: number): Promise<{ reactions: IChainCastReaction[], total: number }>;
     getReactionsSummary(chainCastId: string): Promise<{ [emoji: string]: number }>;
     deleteReaction(id: string): Promise<boolean>;
-    
+
     // Moderation Request operations
     createModerationRequest(data: Partial<IChainCastModerationRequest>): Promise<IChainCastModerationRequest>;
     findModerationRequestById(id: string): Promise<IChainCastModerationRequest | null>;
@@ -37,7 +37,7 @@ export interface IChainCastRepository {
     findPendingModerationRequestByUser(chainCastId: string, userId: string): Promise<IChainCastModerationRequest | null>;
     updateModerationRequest(id: string, data: Partial<IChainCastModerationRequest>): Promise<IChainCastModerationRequest | null>;
     getPendingModerationRequestsCount(chainCastId: string): Promise<number>;
-    
+
     // Analytics operations
     updateChainCastStats(chainCastId: string, stats: Partial<IChainCast['stats']>): Promise<void>;
     getChainCastAnalytics(communityId: string, startDate?: Date, endDate?: Date): Promise<any>;

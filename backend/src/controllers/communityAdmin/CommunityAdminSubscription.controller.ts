@@ -7,7 +7,7 @@ import { CustomError } from "../../utils/customError";
 import logger from "../../utils/logger";
 import { ICommunityAdminSubscriptionController } from "../../core/interfaces/controllers/communityAdmin/ICommunityAdminSubscription.controller";
 import { ICommunityAdminSubscriptionService } from "../../core/interfaces/services/communityAdmin/ICommunityAdminSubscription.service";
-import { CreateSubscriptionDto, SubscriptionResponseDto, RazorpayOrderResponseDto } from "../../dtos/communityAdmin/CommunityAdminSubscription.dto";
+import { CreateSubscriptionDto } from "../../dtos/communityAdmin/CommunityAdminSubscription.dto";
 
 @injectable()
 export class CommunityAdminSubscriptionController implements ICommunityAdminSubscriptionController {

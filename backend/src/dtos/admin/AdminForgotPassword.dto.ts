@@ -1,6 +1,6 @@
 import { IsEmail, IsString, MinLength, Length, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { BaseResponseDto } from '../base/BaseResponse.dto';
+
 
 export class AdminForgotPasswordDto {
   @IsEmail({}, { message: 'Please provide a valid email address' })
@@ -28,8 +28,8 @@ export class AdminResetPasswordDto {
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    { 
-      message: 'Password must contain at least one uppercase letter, lowercase letter, number, and special character' 
+    {
+      message: 'Password must contain at least one uppercase letter, lowercase letter, number, and special character'
     }
   )
   password: string | undefined;
@@ -44,8 +44,8 @@ export class AdminChangePasswordDto {
   @MinLength(8, { message: 'New password must be at least 8 characters long' })
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    { 
-      message: 'New password must contain at least one uppercase letter, lowercase letter, number, and special character' 
+    {
+      message: 'New password must contain at least one uppercase letter, lowercase letter, number, and special character'
     }
   )
   newPassword: string | undefined;

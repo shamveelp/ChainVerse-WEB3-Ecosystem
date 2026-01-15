@@ -1,5 +1,5 @@
-import { Types } from "mongoose";
-import { IOTP } from "../../../models/otp.model"; 
+
+import { IOTP } from "../../../models/otp.model";
 
 export interface IOtpRepository {
   saveOtp(email: string, otp: string, expiresAt: Date): Promise<IOTP>;

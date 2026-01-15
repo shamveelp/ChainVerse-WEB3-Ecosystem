@@ -22,7 +22,7 @@ export class WalletController {
       }
       const wallet = await this.walletService.saveWallet(address);
       res.status(201).json(wallet);
-    } catch (error) {
+    } catch {
       res.status(500).json({ error: ErrorMessages.SERVER_ERROR });
     }
   }

@@ -1,4 +1,4 @@
-import { IsString, IsArray, IsOptional, IsEnum, MaxLength, MinLength, IsMongoId, IsNumber, Min, IsBoolean, ValidateNested } from 'class-validator';
+import { IsString, IsArray, IsOptional, IsEnum, MaxLength, MinLength, IsMongoId, IsNumber, Min } from 'class-validator';
 
 // Create Post DTO
 export class CreatePostDto {

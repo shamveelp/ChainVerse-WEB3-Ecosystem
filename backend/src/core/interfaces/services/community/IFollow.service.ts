@@ -1,4 +1,4 @@
-import { FollowResponseDto, FollowListResponseDto, UserFollowInfo, FollowStatsDto } from "../../../../dtos/community/Follow.dto";
+import { FollowResponseDto, FollowListResponseDto, FollowStatsDto } from "../../../../dtos/community/Follow.dto";
 
 export interface IFollowService {
     followUser(followerId: string, targetUsername: string): Promise<FollowResponseDto>;

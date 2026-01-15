@@ -170,7 +170,7 @@ export class PointsConversionController implements IPointsConversionController {
       const statusCode = error instanceof CustomError ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR;
       const message = err.message || ErrorMessages.FAILED_GET_CONVERSION_RATE;
 
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+      res.status(statusCode).json({
         success: false,
         error: message
       });

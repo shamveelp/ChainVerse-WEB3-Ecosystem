@@ -1,5 +1,5 @@
-import { IsString, IsOptional, IsBoolean, IsNumber, IsEnum, IsDateString, ValidateNested, Min, Max, IsArray, IsObject } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { IsString, IsOptional, IsBoolean, IsNumber, IsEnum, IsDateString, ValidateNested, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
 
 
 export class ChainCastSettingsDto {

@@ -1,10 +1,8 @@
 import {
-    CommunityMessagesListResponseDto,
-    CommunityMessageResponseDto
+    CommunityMessagesListResponseDto
 } from "../../../../dtos/communityChat/CommunityMessage.dto";
 import {
     SendGroupMessageDto,
-    EditGroupMessageDto,
     CommunityGroupMessageResponseDto,
     CommunityGroupMessagesListResponseDto
 } from "../../../../dtos/communityChat/CommunityGroupMessage.dto";

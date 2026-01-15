@@ -284,7 +284,7 @@ export class CommunityAdminPostController implements ICommunityAdminPostControll
      */
     async uploadPostMedia(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as any).user.id;
+
 
             if (!req.file) {
                 res.status(StatusCode.BAD_REQUEST).json({

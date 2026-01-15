@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsArray, IsNumber, Min, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsNumber, Min, IsEnum } from 'class-validator';
 
 // Search DTOs
 export class SearchCommunitiesDto {
@@ -56,27 +56,27 @@ export class CommunityCardDto {
 }
 
 export class CommunityProfileResponseDto {
-    _id: string        | undefined;
-    communityName: string   | undefined;
-    username: string    | undefined;
-    description: string  | undefined;
-    category: string    | undefined;
-    logo: string        | undefined;
-    banner: string     | undefined;
-    isVerified: boolean  | undefined;
+    _id: string | undefined;
+    communityName: string | undefined;
+    username: string | undefined;
+    description: string | undefined;
+    category: string | undefined;
+    logo: string | undefined;
+    banner: string | undefined;
+    isVerified: boolean | undefined;
     memberCount: number | undefined;
-    rules: string[]   | undefined;
-    socialLinks: any[]  | undefined;
+    rules: string[] | undefined;
+    socialLinks: any[] | undefined;
     settings?: {
         allowChainCast: boolean;
         allowGroupChat: boolean;
         allowPosts: boolean;
         allowQuests: boolean;
     };
-    createdAt: Date   | undefined;
-    isMember: boolean   | undefined;
+    createdAt: Date | undefined;
+    isMember: boolean | undefined;
     memberRole?: string;
-    isAdmin: boolean    | undefined;
+    isAdmin: boolean | undefined;
 }
 
 export class CommunityMemberResponseDto {
@@ -88,18 +88,18 @@ export class CommunityMemberResponseDto {
         profilePic: string;
         isVerified: boolean;
     };
-    role: string    | undefined;
-    joinedAt: Date  | undefined;
-    isActive: boolean   | undefined;
-    totalPosts: number  | undefined;
-    totalLikes: number  | undefined;
-    totalComments: number   | undefined;
+    role: string | undefined;
+    joinedAt: Date | undefined;
+    isActive: boolean | undefined;
+    totalPosts: number | undefined;
+    totalLikes: number | undefined;
+    totalComments: number | undefined;
 }
 
 export class CommunityJoinResponseDto {
-    success: boolean    | undefined;
-    message: string   | undefined;
-    isMember: boolean   | undefined;
+    success: boolean | undefined;
+    message: string | undefined;
+    isMember: boolean | undefined;
     memberCount: number | undefined;
     joinedAt?: Date;
     leftAt?: Date;
@@ -107,34 +107,34 @@ export class CommunityJoinResponseDto {
 
 export class CommunityListResponseDto {
     communities: CommunityCardDto[] | undefined;
-    hasMore: boolean   | undefined;
+    hasMore: boolean | undefined;
     nextCursor?: string;
-    totalCount: number  | undefined;
+    totalCount: number | undefined;
 }
 
 export class CommunityMemberListResponseDto {
-    members: CommunityMemberResponseDto[]   | undefined;
-    hasMore: boolean    | undefined;
-    nextCursor?: string ;
-    totalCount: number  | undefined; 
+    members: CommunityMemberResponseDto[] | undefined;
+    hasMore: boolean | undefined;
+    nextCursor?: string;
+    totalCount: number | undefined;
 }
 
 export class CommunitySearchResponseDto {
-    communities: CommunityCardDto[]     | undefined;
-    users: any[]        | undefined; // Will be populated with user search results
-    hasMore: boolean    | undefined;
-    nextCursor?: string ;
-    totalCount: number  | undefined;
-    searchType: string  | undefined;
+    communities: CommunityCardDto[] | undefined;
+    users: any[] | undefined; // Will be populated with user search results
+    hasMore: boolean | undefined;
+    nextCursor?: string;
+    totalCount: number | undefined;
+    searchType: string | undefined;
 }
 
 export class UserSearchResultDto {
     _id: string | undefined;
-    username: string    | undefined;
-    name: string    | undefined;
-    profilePic: string  | undefined;
+    username: string | undefined;
+    name: string | undefined;
+    profilePic: string | undefined;
     bio: string | undefined;
-    isVerified: boolean  | undefined;
-    followersCount: number  | undefined;
+    isVerified: boolean | undefined;
+    followersCount: number | undefined;
     isFollowing?: boolean;
 }

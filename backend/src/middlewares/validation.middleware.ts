@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { validate, ValidationError } from 'class-validator';
-import { plainToClass, Transform } from 'class-transformer';
+import { plainToClass } from 'class-transformer';
 import { StatusCode } from '../enums/statusCode.enum';
 import logger from '../utils/logger';
 
@@ -21,28 +21,28 @@ export const validateDto = (
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       let dataToValidate = req[source];
-      
+
       // Handle multipart form data
       if (req.headers['content-type']?.includes('multipart/form-data') && source === 'body') {
         dataToValidate = { ...req.body };
-        
+
         // Parse JSON strings back to objects/arrays
         if (dataToValidate.rules && typeof dataToValidate.rules === 'string') {
           try {
             dataToValidate.rules = JSON.parse(dataToValidate.rules);
-          } catch (e) {
+          } catch {
             dataToValidate.rules = [dataToValidate.rules];
           }
         }
-        
+
         if (dataToValidate.socialLinks && typeof dataToValidate.socialLinks === 'string') {
           try {
             dataToValidate.socialLinks = JSON.parse(dataToValidate.socialLinks);
-          } catch (e) {
+          } catch {
             dataToValidate.socialLinks = {};
           }
         }
-        
+
         // Handle file fields - set to empty string if not provided
         if (req.files) {
           const files = req.files as { [fieldname: string]: Express.Multer.File[] };
@@ -50,12 +50,12 @@ export const validateDto = (
           if (!files.banner) dataToValidate.banner = '';
         }
       }
-      
+
       const dto = plainToClass(dtoClass, dataToValidate, {
         enableImplicitConversion: true,
         excludeExtraneousValues: false,
       });
-      
+
       logger.debug(`Validating DTO for ${req.path} [${source}]`, { dto });
 
       const errors: ValidationError[] = await validate(dto, {

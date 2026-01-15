@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, Min, IsBoolean, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsNumber, Min, IsEnum } from 'class-validator';
 
 export class GetMyCommunitiesDto {
     @IsOptional()
@@ -22,57 +22,57 @@ export class GetMyCommunitiesDto {
 
 export class MyCommunitiesStatsDto {
     totalCommunities: number | undefined;
-    adminCommunities: number    | undefined;
-    moderatorCommunities: number    | undefined;
-    memberCommunities: number   | undefined;
+    adminCommunities: number | undefined;
+    moderatorCommunities: number | undefined;
+    memberCommunities: number | undefined;
 }
 
 export class MyCommunityCardDto {
     _id: string | undefined;
-    communityName: string   | undefined;
-    username: string    | undefined;
+    communityName: string | undefined;
+    username: string | undefined;
     description: string | undefined;
-    category: string    | undefined;
-    logo: string    | undefined;
-    banner?: string  | undefined;
+    category: string | undefined;
+    logo: string | undefined;
+    banner?: string | undefined;
     isVerified: boolean | undefined;
     memberCount: number | undefined;
-    memberRole: string  | undefined; // admin, moderator, member
-    joinedAt: Date   | undefined;
+    memberRole: string | undefined; // admin, moderator, member
+    joinedAt: Date | undefined;
     lastActiveAt?: Date | undefined;
     unreadPosts: number | undefined;
-    totalPosts: number  | undefined;
-    isActive: boolean   | undefined;
+    totalPosts: number | undefined;
+    isActive: boolean | undefined;
     settings?: {
         allowChainCast: boolean;
         allowGroupChat: boolean;
         allowPosts: boolean;
         allowQuests: boolean;
     };
-    notifications: boolean  | undefined;
-    createdAt: Date  | undefined;
+    notifications: boolean | undefined;
+    createdAt: Date | undefined;
 }
 
 export class MyCommunitiesListResponseDto {
-    communities: MyCommunityCardDto[]   | undefined;
-    hasMore: boolean    | undefined;
+    communities: MyCommunityCardDto[] | undefined;
+    hasMore: boolean | undefined;
     nextCursor?: string | undefined;
-    totalCount: number  | undefined;
-    stats: MyCommunitiesStatsDto    | undefined;
+    totalCount: number | undefined;
+    stats: MyCommunitiesStatsDto | undefined;
 }
 
 export class CommunityActivityDto {
     communityId: string | undefined;
-    communityName: string   | undefined;
-    username: string    | undefined;
-    logo: string    | undefined;
-    lastActiveAt: Date  | undefined;
+    communityName: string | undefined;
+    username: string | undefined;
+    logo: string | undefined;
+    lastActiveAt: Date | undefined;
     unreadPosts: number | undefined;
-    recentActivity: string  | undefined; // description of recent activity
+    recentActivity: string | undefined; // description of recent activity
 }
 
 export class MyCommunitiesActivityResponseDto {
-    activities: CommunityActivityDto[]  | undefined;
-    totalUnreadPosts: number    | undefined;
-    mostActiveToday: string[]   | undefined; // list of community names
+    activities: CommunityActivityDto[] | undefined;
+    totalUnreadPosts: number | undefined;
+    mostActiveToday: string[] | undefined; // list of community names
 }

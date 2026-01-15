@@ -10,15 +10,15 @@ export const errorHandler = (
     err: any,
     req: Request,
     res: Response,
-    next: NextFunction
+    _next: NextFunction
 ) => {
     logger.error("Global error handler:", {
         error: err.message,
         stack: err.stack,
         path: req.path,
         method: req.method,
-        body: req.method === 'POST' || req.method === 'PUT' ? 
-            { ...req.body, password: req.body.password ? '[REDACTED]' : undefined } : 
+        body: req.method === 'POST' || req.method === 'PUT' ?
+            { ...req.body, password: req.body.password ? '[REDACTED]' : undefined } :
             undefined
     });
 
@@ -95,21 +95,21 @@ export const errorHandler = (
         success: false,
         error: message,
         statusCode,
-        ...(process.env.NODE_ENV === 'development' && { 
+        ...(process.env.NODE_ENV === 'development' && {
             stack: err.stack,
-            details: err 
+            details: err
         })
     });
 };
 
 export class AppError extends Error {
     statusCode: number;
-    
+
     constructor(message: string, statusCode: number) {
         super(message);
         this.statusCode = statusCode;
         this.name = 'AppError';
-        
+
         // Capture stack trace
         Error.captureStackTrace(this, this.constructor);
     }

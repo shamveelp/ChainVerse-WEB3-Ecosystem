@@ -1,8 +1,7 @@
-import { 
-    AIChatResponseDto, 
-    TradeAnalysisDto, 
+import {
+    AIChatResponseDto,
+    TradeAnalysisDto,
     ChatHistoryResponseDto,
-    TradeExecutionResponseDto,
     TokenPriceInfoDto
 } from "../../../../dtos/aiTrading/AiTrading.dto";
 
@@ -14,16 +13,16 @@ export interface IAITradingService {
         walletAddress?: string,
         context?: any
     ): Promise<AIChatResponseDto>;
-    
+
     analyzeTradeOpportunity(
         fromToken: string,
         toToken: string,
         amount: string,
         walletAddress?: string
     ): Promise<TradeAnalysisDto>;
-    
+
     getAvailableTokens(): Promise<TokenPriceInfoDto[]>;
-    
+
     calculateSwapEstimate(
         fromToken: string,
         toToken: string,
@@ -34,12 +33,12 @@ export interface IAITradingService {
         minimumReceived: string;
         gasFee: string;
     }>;
-    
+
     getChatHistory(
         sessionId: string,
         limit?: number
     ): Promise<ChatHistoryResponseDto>;
-    
+
     detectTradingIntent(message: string): Promise<{
         isTradeIntent: boolean;
         fromToken?: string;
@@ -47,7 +46,7 @@ export interface IAITradingService {
         amount?: string;
         action: 'buy' | 'sell' | 'swap' | 'info' | 'general';
     }>;
-    
+
     generateSmartSuggestions(
         message: string,
         context?: any

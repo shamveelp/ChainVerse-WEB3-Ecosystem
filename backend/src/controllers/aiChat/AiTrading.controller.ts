@@ -21,7 +21,7 @@ export class AITradingController implements IAITradingController {
      */
     async sendMessage(req: Request, res: Response): Promise<void> {
         try {
-            const { message, sessionId, walletAddress, walletConnected, context } = req.body;
+            const { message, sessionId, walletAddress, context } = req.body;
             const userId = (req as any).user?.id; // Optional user ID from auth middleware
 
             if (!message || !sessionId) {

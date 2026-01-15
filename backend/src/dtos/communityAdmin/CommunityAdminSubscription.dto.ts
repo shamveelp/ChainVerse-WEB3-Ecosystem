@@ -1,4 +1,4 @@
-import { IsString, IsEnum } from "class-validator";
+import { IsString } from "class-validator";
 import { BaseResponseDto } from "../base/BaseResponse.dto";
 
 export class CreateSubscriptionDto {

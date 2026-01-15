@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsMongoId, IsOptional, IsNumber, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsNumber, Min } from 'class-validator';
 
 export class FollowUserDto {
     @IsString()
@@ -9,7 +9,7 @@ export class FollowUserDto {
 export class UnfollowUserDto {
     @IsString()
     @IsNotEmpty()
-    username: string | undefined; 
+    username: string | undefined;
 }
 
 export class GetFollowersDto {

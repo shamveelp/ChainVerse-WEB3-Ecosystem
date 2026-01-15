@@ -1,5 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsObject, IsArray, ValidateNested } from "class-validator";
-import { Type } from "class-transformer";
+import { IsString, IsOptional, IsBoolean, IsObject } from "class-validator";
 import { BaseResponseDto } from "../base/BaseResponse.dto";
 
 export class SendMessageDto {
@@ -86,9 +85,9 @@ export class AIChatResponseDto extends BaseResponseDto {
     };
 
     constructor(
-        response: string, 
-        sessionId: string, 
-        suggestions?: string[], 
+        response: string,
+        sessionId: string,
+        suggestions?: string[],
         actionRequired?: any
     ) {
         super(true, "AI response generated successfully");

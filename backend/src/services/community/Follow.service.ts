@@ -7,7 +7,6 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import {
     FollowResponseDto,
     FollowListResponseDto,
-    UserFollowInfo,
     FollowStatsDto
 } from "../../dtos/community/Follow.dto";
 
@@ -15,7 +14,7 @@ import {
 export class FollowService implements IFollowService {
     constructor(
         @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository
-    ) {}
+    ) { }
 
     async followUser(followerId: string, targetUsername: string): Promise<FollowResponseDto> {
         try {
