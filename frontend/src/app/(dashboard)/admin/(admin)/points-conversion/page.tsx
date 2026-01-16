@@ -10,9 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { 
-  Coins, 
-  Users, 
+import {
+  Coins,
+  Users,
   TrendingUp,
   Clock,
   CheckCircle,
@@ -28,6 +28,8 @@ import {
 import { adminPointsConversionApiService } from "@/services/points/pointsConversionApiService";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
+import { useCallback } from "react";
+import Image from "next/image";
 
 interface ConversionStats {
   totalConversions: number;
@@ -53,10 +55,17 @@ interface Conversion {
   claimFee: number;
   walletAddress?: string;
   adminNote?: string;
-  approvedBy?: any;
+  approvedBy?: string;
   approvedAt?: string;
   claimedAt?: string;
   createdAt: string;
+}
+
+interface ConversionRate {
+  pointsPerCVC: number;
+  minimumPoints: number;
+  minimumCVC: number;
+  claimFeeETH: string;
 }
 
 export default function AdminPointsConversionPage() {
@@ -76,7 +85,7 @@ export default function AdminPointsConversionPage() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showRateModal, setShowRateModal] = useState(false);
-  const [currentRate, setCurrentRate] = useState<any>(null);
+  const [currentRate, setCurrentRate] = useState<ConversionRate | null>(null);
   const [newRate, setNewRate] = useState({
     pointsPerCVC: 100,
     minimumPoints: 100,
@@ -84,24 +93,7 @@ export default function AdminPointsConversionPage() {
     claimFeeETH: '0.001'
   });
 
-  useEffect(() => {
-    fetchData();
-  }, [statusFilter, page]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([
-        fetchConversionStats(),
-        fetchConversions(),
-        fetchCurrentRate()
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchConversionStats = async () => {
+  const fetchConversionStats = useCallback(async () => {
     try {
       const result = await adminPointsConversionApiService.getConversionStats();
       if (result.success && result.data) {
@@ -111,15 +103,15 @@ export default function AdminPointsConversionPage() {
           description: result.error || "Could not fetch conversion statistics.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Fetch stats error:", error);
       toast.error("Error Loading Statistics", {
         description: "Failed to load conversion statistics. Please try again.",
       });
     }
-  };
+  }, []);
 
-  const fetchConversions = async () => {
+  const fetchConversions = useCallback(async () => {
     try {
       const result = await adminPointsConversionApiService.getAllConversions(
         page,
@@ -135,15 +127,15 @@ export default function AdminPointsConversionPage() {
           description: result.error || "Could not fetch conversion requests.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Fetch conversions error:", error);
       toast.error("Error Loading Conversions", {
         description: "Failed to load conversion requests. Please try again.",
       });
     }
-  };
+  }, [page, statusFilter]);
 
-  const fetchCurrentRate = async () => {
+  const fetchCurrentRate = useCallback(async () => {
     try {
       const result = await adminPointsConversionApiService.getCurrentRate();
       if (result.success && result.data) {
@@ -158,7 +150,24 @@ export default function AdminPointsConversionPage() {
     } catch (error) {
       console.error("Error loading current rate:", error);
     }
-  };
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetchConversionStats(),
+        fetchConversions(),
+        fetchCurrentRate()
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchConversionStats, fetchConversions, fetchCurrentRate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleApproveConversion = async (conversion: Conversion) => {
     setSelectedConversion(conversion);
@@ -201,11 +210,11 @@ export default function AdminPointsConversionPage() {
 
       if (result.success) {
         toast.success(
-          actionType === 'approve' 
-            ? "Conversion Approved Successfully! ✅" 
+          actionType === 'approve'
+            ? "Conversion Approved Successfully! ✅"
             : "Conversion Rejected Successfully! ❌",
           {
-            description: actionType === 'approve' 
+            description: actionType === 'approve'
               ? `User can now claim ${selectedConversion.cvcAmount} CVC tokens.`
               : "The conversion request has been rejected.",
             duration: 5000,
@@ -223,12 +232,13 @@ export default function AdminPointsConversionPage() {
           }
         );
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Action error:", error);
+      const err = error as Error;
       toast.error(
         actionType === 'approve' ? "Approval Error" : "Rejection Error",
         {
-          description: error.message || `An error occurred while ${actionType}ing the conversion.`,
+          description: err.message || `An error occurred while ${actionType}ing the conversion.`,
         }
       );
     } finally {
@@ -240,7 +250,7 @@ export default function AdminPointsConversionPage() {
     try {
       setProcessing(true);
       const result = await adminPointsConversionApiService.updateConversionRate(newRate);
-      
+
       if (result.success) {
         toast.success("Conversion Rate Updated! 🎉", {
           description: `New rate: ${newRate.pointsPerCVC} points = 1 CVC. Claim fee: ${newRate.claimFeeETH} ETH.`,
@@ -253,10 +263,11 @@ export default function AdminPointsConversionPage() {
           description: result.error || "Failed to update conversion rate. Please try again.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Update rate error:", error);
+      const err = error as Error;
       toast.error("Update Error", {
-        description: error.message || "An error occurred while updating the conversion rate.",
+        description: err.message || "An error occurred while updating the conversion rate.",
       });
     } finally {
       setProcessing(false);
@@ -455,165 +466,165 @@ export default function AdminPointsConversionPage() {
                   <Users className="h-5 w-5 text-blue-400" />
                   Conversion Requests
                 </CardTitle>
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-slate-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setPage(1);
-                  // Fetch will be triggered by useEffect
-                }}
-                className="bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-1 text-white text-sm"
-              >
-                <option value="">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="claimed">Claimed</option>
-                <option value="rejected">Rejected</option>
-              </select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {conversions.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="h-16 w-16 text-slate-600 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-slate-300 mb-2">No Conversions Found</h3>
-              <p className="text-slate-400">No conversion requests match the current filter</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {conversions.map((conversion) => (
-                <div
-                  key={conversion.id}
-                  className="flex items-center justify-between p-4 bg-slate-900/30 rounded-lg border border-slate-700/50 hover:bg-slate-900/50 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-slate-800 rounded-lg">
-                      {getStatusIcon(conversion.status)}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <button
-                          onClick={() => router.push(`/admin/user-management/${conversion.user.id}`)}
-                          className="text-white font-medium hover:text-blue-400 hover:underline transition-colors"
-                        >
-                          {conversion.user.username}
-                        </button>
-                        <Badge className={`${getStatusColor(conversion.status)} text-xs`}>
-                          {conversion.status}
-                        </Badge>
-                      </div>
-                      <p className="text-slate-400 text-sm">
-                        {conversion.pointsConverted} Points → {conversion.cvcAmount} CVC
-                      </p>
-                      <p className="text-slate-500 text-xs">
-                        {format(new Date(conversion.createdAt), "MMM dd, yyyy 'at' HH:mm")}
-                      </p>
-                      {conversion.user.email && (
-                        <p className="text-slate-500 text-xs mt-1">
-                          {conversion.user.email}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => viewConversionDetails(conversion)}
-                      size="sm"
-                      variant="outline"
-                      className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    
-                    {conversion.status === 'pending' && (
-                      <>
-                        <Button
-                          onClick={() => handleApproveConversion(conversion)}
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          <ThumbsUp className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          onClick={() => handleRejectConversion(conversion)}
-                          size="sm"
-                          variant="destructive"
-                        >
-                          <ThumbsDown className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-slate-400" />
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => {
+                      setStatusFilter(e.target.value);
+                      setPage(1);
+                      // Fetch will be triggered by useEffect
+                    }}
+                    className="bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-1 text-white text-sm"
+                  >
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="claimed">Claimed</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
                 </div>
-              ))}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {conversions.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="h-16 w-16 text-slate-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-medium text-slate-300 mb-2">No Conversions Found</h3>
+                  <p className="text-slate-400">No conversion requests match the current filter</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {conversions.map((conversion) => (
+                    <div
+                      key={conversion.id}
+                      className="flex items-center justify-between p-4 bg-slate-900/30 rounded-lg border border-slate-700/50 hover:bg-slate-900/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 bg-slate-800 rounded-lg">
+                          {getStatusIcon(conversion.status)}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-3 mb-1">
+                            <button
+                              onClick={() => router.push(`/admin/user-management/${conversion.user.id}`)}
+                              className="text-white font-medium hover:text-blue-400 hover:underline transition-colors"
+                            >
+                              {conversion.user.username}
+                            </button>
+                            <Badge className={`${getStatusColor(conversion.status)} text-xs`}>
+                              {conversion.status}
+                            </Badge>
+                          </div>
+                          <p className="text-slate-400 text-sm">
+                            {conversion.pointsConverted} Points → {conversion.cvcAmount} CVC
+                          </p>
+                          <p className="text-slate-500 text-xs">
+                            {format(new Date(conversion.createdAt), "MMM dd, yyyy 'at' HH:mm")}
+                          </p>
+                          {conversion.user.email && (
+                            <p className="text-slate-500 text-xs mt-1">
+                              {conversion.user.email}
+                            </p>
+                          )}
+                        </div>
+                      </div>
 
-              {/* Pagination */}
-              {total > 0 && (
-                <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
-                  <p className="text-slate-400 text-sm">
-                    Showing {((page - 1) * 10) + 1} to {Math.min(page * 10, total)} of {total} {statusFilter ? `${statusFilter} ` : ''}conversions
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => {
-                        setPage(1);
-                        fetchConversions();
-                      }}
-                      disabled={page === 1}
-                      variant="outline"
-                      size="sm"
-                      className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
-                    >
-                      First
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setPage(prev => Math.max(1, prev - 1));
-                      }}
-                      disabled={page === 1}
-                      variant="outline"
-                      size="sm"
-                      className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-slate-400 text-sm px-3">
-                      Page {page} of {totalPages}
-                    </span>
-                    <Button
-                      onClick={() => {
-                        setPage(prev => Math.min(totalPages, prev + 1));
-                      }}
-                      disabled={page === totalPages}
-                      variant="outline"
-                      size="sm"
-                      className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
-                    >
-                      Next
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setPage(totalPages);
-                        fetchConversions();
-                      }}
-                      disabled={page === totalPages}
-                      variant="outline"
-                      size="sm"
-                      className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
-                    >
-                      Last
-                    </Button>
-                  </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={() => viewConversionDetails(conversion)}
+                          size="sm"
+                          variant="outline"
+                          className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+
+                        {conversion.status === 'pending' && (
+                          <>
+                            <Button
+                              onClick={() => handleApproveConversion(conversion)}
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              <ThumbsUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              onClick={() => handleRejectConversion(conversion)}
+                              size="sm"
+                              variant="destructive"
+                            >
+                              <ThumbsDown className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Pagination */}
+                  {total > 0 && (
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
+                      <p className="text-slate-400 text-sm">
+                        Showing {((page - 1) * 10) + 1} to {Math.min(page * 10, total)} of {total} {statusFilter ? `${statusFilter} ` : ''}conversions
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={() => {
+                            setPage(1);
+                            fetchConversions();
+                          }}
+                          disabled={page === 1}
+                          variant="outline"
+                          size="sm"
+                          className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
+                        >
+                          First
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setPage(prev => Math.max(1, prev - 1));
+                          }}
+                          disabled={page === 1}
+                          variant="outline"
+                          size="sm"
+                          className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
+                        >
+                          Previous
+                        </Button>
+                        <span className="text-slate-400 text-sm px-3">
+                          Page {page} of {totalPages}
+                        </span>
+                        <Button
+                          onClick={() => {
+                            setPage(prev => Math.min(totalPages, prev + 1));
+                          }}
+                          disabled={page === totalPages}
+                          variant="outline"
+                          size="sm"
+                          className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
+                        >
+                          Next
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setPage(totalPages);
+                            fetchConversions();
+                          }}
+                          disabled={page === totalPages}
+                          variant="outline"
+                          size="sm"
+                          className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50"
+                        >
+                          Last
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="claimed">
@@ -726,7 +737,7 @@ export default function AdminPointsConversionPage() {
                     const totalPoints = userConversions.reduce((sum, c) => sum + c.pointsConverted, 0);
                     const totalCVC = userConversions.reduce((sum, c) => sum + c.cvcAmount, 0);
                     const claimedCount = userConversions.filter(c => c.status === 'claimed').length;
-                    
+
                     return (
                       <div
                         key={user.id}
@@ -734,10 +745,12 @@ export default function AdminPointsConversionPage() {
                       >
                         <div className="flex items-center gap-4">
                           {user.profilePic ? (
-                            <img
+                            <Image
                               src={user.profilePic}
                               alt={user.username}
-                              className="w-12 h-12 rounded-full object-cover"
+                              width={48}
+                              height={48}
+                              className="rounded-full object-cover"
                             />
                           ) : (
                             <div className="w-12 h-12 rounded-full bg-purple-600/30 flex items-center justify-center">
@@ -797,12 +810,12 @@ export default function AdminPointsConversionPage() {
               {actionType === 'approve' ? 'Approve' : 'Reject'} Conversion
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              {actionType === 'approve' 
-                ? 'Approve this conversion request. The user will be able to claim CVC tokens.' 
+              {actionType === 'approve'
+                ? 'Approve this conversion request. The user will be able to claim CVC tokens.'
                 : 'Reject this conversion request and provide a reason.'}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedConversion && (
             <div className="space-y-4">
               <div className="bg-slate-800/50 rounded-lg p-4 space-y-2">
@@ -859,11 +872,10 @@ export default function AdminPointsConversionPage() {
                 <Button
                   onClick={executeAction}
                   disabled={processing || (actionType === 'reject' && !rejectionReason.trim())}
-                  className={`flex-1 ${
-                    actionType === 'approve' 
-                      ? 'bg-green-600 hover:bg-green-700' 
+                  className={`flex-1 ${actionType === 'approve'
+                      ? 'bg-green-600 hover:bg-green-700'
                       : 'bg-red-600 hover:bg-red-700'
-                  } text-white`}
+                    } text-white`}
                 >
                   {processing ? (
                     <>
@@ -886,7 +898,7 @@ export default function AdminPointsConversionPage() {
           <DialogHeader>
             <DialogTitle className="text-white">Conversion Details</DialogTitle>
           </DialogHeader>
-          
+
           {selectedConversion && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
@@ -1038,7 +1050,7 @@ export default function AdminPointsConversionPage() {
               Update the points to CVC conversion rate and fees
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -1046,7 +1058,7 @@ export default function AdminPointsConversionPage() {
                 <Input
                   type="number"
                   value={newRate.pointsPerCVC}
-                  onChange={(e) => setNewRate(prev => ({...prev, pointsPerCVC: parseInt(e.target.value)}))}
+                  onChange={(e) => setNewRate(prev => ({ ...prev, pointsPerCVC: parseInt(e.target.value) }))}
                   className="bg-slate-800/50 border-slate-600/50 text-white"
                   min="1"
                 />
@@ -1056,13 +1068,13 @@ export default function AdminPointsConversionPage() {
                 <Input
                   type="number"
                   value={newRate.minimumPoints}
-                  onChange={(e) => setNewRate(prev => ({...prev, minimumPoints: parseInt(e.target.value)}))}
+                  onChange={(e) => setNewRate(prev => ({ ...prev, minimumPoints: parseInt(e.target.value) }))}
                   className="bg-slate-800/50 border-slate-600/50 text-white"
                   min="1"
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">Minimum CVC</label>
@@ -1070,7 +1082,7 @@ export default function AdminPointsConversionPage() {
                   type="number"
                   step="0.01"
                   value={newRate.minimumCVC}
-                  onChange={(e) => setNewRate(prev => ({...prev, minimumCVC: parseFloat(e.target.value)}))}
+                  onChange={(e) => setNewRate(prev => ({ ...prev, minimumCVC: parseFloat(e.target.value) }))}
                   className="bg-slate-800/50 border-slate-600/50 text-white"
                   min="0.01"
                 />
@@ -1080,7 +1092,7 @@ export default function AdminPointsConversionPage() {
                 <Input
                   type="text"
                   value={newRate.claimFeeETH}
-                  onChange={(e) => setNewRate(prev => ({...prev, claimFeeETH: e.target.value}))}
+                  onChange={(e) => setNewRate(prev => ({ ...prev, claimFeeETH: e.target.value }))}
                   className="bg-slate-800/50 border-slate-600/50 text-white"
                   placeholder="0.001"
                 />

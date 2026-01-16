@@ -11,6 +11,9 @@ import { getUserById, toggleUserBan } from "@/services/adminApiService"
 import { getUserReferrals, getUserPointsHistory, getUserCheckInHistory, getUserStats } from "@/services/userDetailsApiService"
 import { useToast } from "@/hooks/use-toast"
 
+import { useCallback } from 'react';
+import { AxiosError } from 'axios';
+
 interface IUser {
   _id: string
   username?: string
@@ -72,89 +75,71 @@ interface CheckInHistoryData {
   createdAt: Date
 }
 
+interface UserStatsData {
+  totalPoints?: number;
+  referralCount?: number;
+  questCount?: number;
+  // Add other stats as needed
+}
+
 export default function UserDetails() {
   const [user, setUser] = useState<IUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Referrals state
   const [referrals, setReferrals] = useState<ReferralData[]>([])
   const [referralsLoading, setReferralsLoading] = useState(false)
   const [referralsPage, setReferralsPage] = useState(1)
   const [referralsTotal, setReferralsTotal] = useState(0)
   const [referralsTotalPages, setReferralsTotalPages] = useState(1)
-  
+
   // Points history state
   const [pointsHistory, setPointsHistory] = useState<PointsHistoryData[]>([])
   const [pointsLoading, setPointsLoading] = useState(false)
   const [pointsPage, setPointsPage] = useState(1)
   const [pointsTotal, setPointsTotal] = useState(0)
   const [pointsTotalPages, setPointsTotalPages] = useState(1)
-  
+
   // Check-in history state
   const [checkInHistory, setCheckInHistory] = useState<CheckInHistoryData[]>([])
   const [checkInLoading, setCheckInLoading] = useState(false)
   const [checkInPage, setCheckInPage] = useState(1)
   const [checkInTotal, setCheckInTotal] = useState(0)
   const [checkInTotalPages, setCheckInTotalPages] = useState(1)
-  
+
   // User stats
-  const [userStats, setUserStats] = useState<any>({})
-  
+  const [userStats, setUserStats] = useState<UserStatsData>({})
+
   const router = useRouter()
   const params = useParams()
   const { toast } = useToast()
   const userId = params.id as string
 
-  useEffect(() => {
-    if (userId) {
-      fetchUserDetails()
-      fetchReferrals()
-      fetchPointsHistory()
-      fetchCheckInHistory()
-    }
-  }, [userId])
-
-  useEffect(() => {
-    if (userId) {
-      fetchReferrals()
-    }
-  }, [userId, referralsPage])
-
-  useEffect(() => {
-    if (userId) {
-      fetchPointsHistory()
-    }
-  }, [userId, pointsPage])
-
-  useEffect(() => {
-    if (userId) {
-      fetchCheckInHistory()
-    }
-  }, [userId, checkInPage])
-
-  const fetchUserDetails = async () => {
+  const fetchUserDetails = useCallback(async () => {
     setLoading(true)
     try {
       const userData = await getUserById(userId)
       setUser(userData)
-      
+
       const statsData = await getUserStats(userId)
       if (statsData.success) {
         setUserStats(statsData.data)
       }
-      
+
       setError(null)
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error fetching user:", err)
-      setError(err.response?.data?.message || "Failed to fetch user details")
+      const axiosError = err as AxiosError<{ message: string }>;
+      const errMessage = axiosError.response?.data?.message || "Failed to fetch user details"
+      setError(errMessage)
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId])
 
-  const fetchReferrals = async () => {
+  const fetchReferrals = useCallback(async () => {
     setReferralsLoading(true)
     try {
       const result = await getUserReferrals(userId, referralsPage, 10)
@@ -165,7 +150,7 @@ export default function UserDetails() {
       } else {
         throw new Error(result.error || "Failed to fetch referrals")
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching referrals:", error)
       toast({
         title: "Error",
@@ -175,9 +160,9 @@ export default function UserDetails() {
     } finally {
       setReferralsLoading(false)
     }
-  }
+  }, [userId, referralsPage, toast])
 
-  const fetchPointsHistory = async () => {
+  const fetchPointsHistory = useCallback(async () => {
     setPointsLoading(true)
     try {
       const result = await getUserPointsHistory(userId, pointsPage, 10)
@@ -188,7 +173,7 @@ export default function UserDetails() {
       } else {
         throw new Error(result.error || "Failed to fetch points history")
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching points history:", error)
       toast({
         title: "Error",
@@ -198,9 +183,9 @@ export default function UserDetails() {
     } finally {
       setPointsLoading(false)
     }
-  }
+  }, [userId, pointsPage, toast])
 
-  const fetchCheckInHistory = async () => {
+  const fetchCheckInHistory = useCallback(async () => {
     setCheckInLoading(true)
     try {
       const result = await getUserCheckInHistory(userId, checkInPage, 10)
@@ -211,7 +196,7 @@ export default function UserDetails() {
       } else {
         throw new Error(result.error || "Failed to fetch check-in history")
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching check-in history:", error)
       toast({
         title: "Error",
@@ -221,11 +206,20 @@ export default function UserDetails() {
     } finally {
       setCheckInLoading(false)
     }
-  }
+  }, [userId, checkInPage, toast])
+
+  useEffect(() => {
+    if (userId) {
+      fetchUserDetails()
+      fetchReferrals()
+      fetchPointsHistory()
+      fetchCheckInHistory()
+    }
+  }, [userId, fetchUserDetails, fetchReferrals, fetchPointsHistory, fetchCheckInHistory])
 
   const handleToggleBan = async () => {
     if (!user) return
-    
+
     setActionLoading(true)
     try {
       const updatedUser = await toggleUserBan(user._id, !user.isBanned)
@@ -235,10 +229,12 @@ export default function UserDetails() {
         description: `${user.name} has been ${!user.isBanned ? 'banned' : 'unbanned'} successfully`,
         className: !user.isBanned ? "bg-red-900/90 border-red-500/50 text-red-100" : "bg-green-900/90 border-green-500/50 text-green-100"
       })
-    } catch (err: any) {
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>;
+      const errMessage = axiosError.response?.data?.message || "Failed to update user status"
       toast({
         title: "Action Failed",
-        description: err.response?.data?.message || "Failed to update user status",
+        description: errMessage,
         variant: "destructive"
       })
     } finally {
@@ -370,7 +366,7 @@ export default function UserDetails() {
                           )}
                         </div>
                       </div>
-                      
+
                       {user.isGoogleUser && (
                         <div className="flex items-center gap-2 p-3 bg-slate-800/30 rounded-lg">
                           <Shield className="h-4 w-4 text-blue-400" />
@@ -403,7 +399,7 @@ export default function UserDetails() {
               <TabsContent value="referrals" className="space-y-4 mt-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-white">Referred Users</h3>
-                  <Button 
+                  <Button
                     onClick={fetchReferrals}
                     variant="outline"
                     size="sm"
@@ -413,7 +409,7 @@ export default function UserDetails() {
                     Refresh
                   </Button>
                 </div>
-                
+
                 {referralsLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
@@ -446,7 +442,7 @@ export default function UserDetails() {
                         </div>
                       ))}
                     </div>
-                    
+
                     {referralsTotalPages > 1 && (
                       <div className="flex items-center justify-between pt-4">
                         <div className="text-sm text-slate-400">
@@ -481,7 +477,7 @@ export default function UserDetails() {
               <TabsContent value="points" className="space-y-4 mt-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-white">Points History</h3>
-                  <Button 
+                  <Button
                     onClick={fetchPointsHistory}
                     variant="outline"
                     size="sm"
@@ -491,7 +487,7 @@ export default function UserDetails() {
                     Refresh
                   </Button>
                 </div>
-                
+
                 {pointsLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
@@ -530,7 +526,7 @@ export default function UserDetails() {
                         </div>
                       ))}
                     </div>
-                    
+
                     {pointsTotalPages > 1 && (
                       <div className="flex items-center justify-between pt-4">
                         <div className="text-sm text-slate-400">
@@ -565,7 +561,7 @@ export default function UserDetails() {
               <TabsContent value="activity" className="space-y-4 mt-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-white">Activity Overview</h3>
-                  <Button 
+                  <Button
                     onClick={fetchCheckInHistory}
                     variant="outline"
                     size="sm"
@@ -575,7 +571,7 @@ export default function UserDetails() {
                     Refresh
                   </Button>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-slate-800/30 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
@@ -584,7 +580,7 @@ export default function UserDetails() {
                     </div>
                     <p className="text-2xl font-bold text-white">{user.dailyCheckin?.streak || 0} days</p>
                   </div>
-                  
+
                   <div className="p-4 bg-slate-800/30 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <Users className="h-4 w-4 text-green-400" />
@@ -592,7 +588,7 @@ export default function UserDetails() {
                     </div>
                     <p className="text-2xl font-bold text-white">{referralsTotal}</p>
                   </div>
-                  
+
                   <div className="p-4 bg-slate-800/30 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <Users className="h-4 w-4 text-blue-400" />
@@ -600,7 +596,7 @@ export default function UserDetails() {
                     </div>
                     <p className="text-2xl font-bold text-white">{user.followersCount || 0}</p>
                   </div>
-                  
+
                   <div className="p-4 bg-slate-800/30 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <Users className="h-4 w-4 text-purple-400" />
@@ -644,7 +640,7 @@ export default function UserDetails() {
                           </div>
                         ))}
                       </div>
-                      
+
                       {checkInTotalPages > 1 && (
                         <div className="flex items-center justify-between pt-4">
                           <div className="text-sm text-slate-400">
@@ -698,7 +694,7 @@ export default function UserDetails() {
                 </div>
                 <span className="text-white font-bold text-lg">{user.totalPoints || 0}</span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Activity className="h-4 w-4 text-cyan-400" />
@@ -706,7 +702,7 @@ export default function UserDetails() {
                 </div>
                 <span className="text-white font-bold text-lg">{user.dailyCheckin?.streak || 0}</span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Role</span>
                 <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
@@ -725,11 +721,10 @@ export default function UserDetails() {
               <Button
                 onClick={handleToggleBan}
                 disabled={actionLoading}
-                className={`w-full ${
-                  user.isBanned
-                    ? 'bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30'
-                    : 'bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30'
-                }`}
+                className={`w-full ${user.isBanned
+                  ? 'bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30'
+                  : 'bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30'
+                  }`}
                 variant="outline"
               >
                 {actionLoading ? (

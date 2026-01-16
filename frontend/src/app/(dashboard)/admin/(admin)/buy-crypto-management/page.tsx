@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import { useActiveAccount } from 'thirdweb/react';
 import type { RootState } from '@/redux/store';
-import { 
-  Search, 
-  CheckCircle, 
-  Clock, 
+import {
+  Search,
+  CheckCircle,
+  Clock,
   DollarSign,
   Eye,
   Send,
@@ -21,39 +21,8 @@ import { toast } from '@/hooks/use-toast';
 import { adminDexApiService } from '@/services/dexApiService';
 import FloatingWalletButton from '@/components/shared/TradeNavbar';
 
-interface Payment {
-  _id: string;
-  userId: {
-    _id: string;
-    username: string;
-    email: string;
-    name: string;
-  };
-  walletAddress: string;
-  currency: string;
-  amountInCurrency: number;
-  estimatedEth: number;
-  actualEthToSend: number;
-  platformFee: number;
-  totalFeePercentage: number;
-  razorpayOrderId: string;
-  razorpayPaymentId?: string;
-  status: 'pending' | 'success' | 'failed' | 'fulfilled';
-  ethPriceAtTime: number;
-  adminNote?: string;
-  approvedBy?: any;
-  transactionHash?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface PaymentStats {
-  totalPayments: number;
-  pendingCount: number;
-  successCount: number;
-  fulfilledCount: number;
-  failedCount: number;
-}
+import { Payment, PaymentStats } from '@/types/payment.types';
+import { AxiosError } from 'axios';
 
 export default function BuyCryptoManagementPage() {
   const account = useActiveAccount();
@@ -83,12 +52,7 @@ export default function BuyCryptoManagementPage() {
     'Processed with standard fee',
   ];
 
-  useEffect(() => {
-    loadStats();
-    loadPayments();
-  }, [activeTab, selectedStatus, currentPage]);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const response = await adminDexApiService.getPaymentStats();
       if (response.success && response.data) {
@@ -102,9 +66,9 @@ export default function BuyCryptoManagementPage() {
         description: "Failed to load payment statistics",
       });
     }
-  };
+  }, []);
 
-  const loadPayments = async () => {
+  const loadPayments = useCallback(async () => {
     try {
       setLoading(true);
       const statusFilter = activeTab === 'requests' ? 'success' : selectedStatus;
@@ -116,18 +80,24 @@ export default function BuyCryptoManagementPage() {
       } else {
         throw new Error('Invalid response format');
       }
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error: string }>;
       console.error('Failed to load payments:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.response?.data?.error || "Failed to load payments",
+        description: axiosError.response?.data?.error || "Failed to load payments",
       });
       setPayments([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, selectedStatus, currentPage]);
+
+  useEffect(() => {
+    loadStats();
+    loadPayments();
+  }, [activeTab, selectedStatus, currentPage, loadPayments, loadStats]);
 
   const sendCryptoAndFulfill = async () => {
     if (!selectedPayment || !account?.address) {
@@ -189,12 +159,13 @@ export default function BuyCryptoManagementPage() {
       } else {
         throw new Error('Transaction failed');
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error('Send crypto failed:', error);
       toast({
         variant: "destructive",
         title: "Transaction Failed",
-        description: error.message || "Failed to send crypto",
+        description: err.message || "Failed to send crypto",
       });
     } finally {
       setActionLoading(false); // Reset loading state
@@ -232,12 +203,13 @@ export default function BuyCryptoManagementPage() {
       } else {
         throw new Error(response.error || 'Failed to fulfill payment');
       }
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error: string }>;
       console.error('Error fulfilling payment:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.response?.data?.error || error.message || "Failed to fulfill payment",
+        description: axiosError.response?.data?.error || (error as Error).message || "Failed to fulfill payment",
       });
     } finally {
       setActionLoading(false);
@@ -290,7 +262,7 @@ export default function BuyCryptoManagementPage() {
     );
   };
 
-  const filteredPayments = payments.filter(payment => 
+  const filteredPayments = payments.filter(payment =>
     payment.userId?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     payment.userId?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     payment.walletAddress?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -307,7 +279,7 @@ export default function BuyCryptoManagementPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 pt-20 px-6">
       <FloatingWalletButton topOffset="top-4" />
-      
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -387,11 +359,10 @@ export default function BuyCryptoManagementPage() {
                 setCurrentPage(1);
                 setSelectedStatus('');
               }}
-              className={`px-6 py-2 rounded-lg font-medium transition-all ${
-                activeTab === 'requests'
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
+              className={`px-6 py-2 rounded-lg font-medium transition-all ${activeTab === 'requests'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                : 'text-gray-400 hover:text-white'
+                }`}
             >
               Pending Requests ({stats?.successCount || 0})
             </button>
@@ -400,11 +371,10 @@ export default function BuyCryptoManagementPage() {
                 setActiveTab('history');
                 setCurrentPage(1);
               }}
-              className={`px-6 py-2 rounded-lg font-medium transition-all ${
-                activeTab === 'history'
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
+              className={`px-6 py-2 rounded-lg font-medium transition-all ${activeTab === 'history'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                : 'text-gray-400 hover:text-white'
+                }`}
             >
               Order History
             </button>
@@ -749,7 +719,7 @@ export default function BuyCryptoManagementPage() {
                         checked={alreadySent}
                         onChange={(e) => setAlreadySent(e.target.checked)}
                         className="h-4 w-4 text-cyan-500 focus:ring-cyan-500 border-gray-700 rounded"
-                        disabled={actionLoading as any || transactionHash}
+                        disabled={actionLoading || !!transactionHash}
                       />
                       <label htmlFor="alreadySent" className="text-gray-400 text-sm">
                         Crypto already sent (enter transaction hash manually)

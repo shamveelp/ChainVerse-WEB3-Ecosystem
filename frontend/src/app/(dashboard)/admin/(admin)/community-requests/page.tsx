@@ -1,24 +1,23 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Users, 
-  Search, 
-  Clock, 
-  Check, 
-  X, 
-  RefreshCw, 
-  ChevronLeft, 
+import {
+  Users,
+  Search,
+  Clock,
+  Check,
+  X,
+  RefreshCw,
+  ChevronLeft,
   ChevronRight,
   Loader2,
   Filter,
-  Download,
   TrendingUp,
   AlertCircle
 } from 'lucide-react';
@@ -35,7 +34,7 @@ export default function CommunityRequestsPage() {
   const [selectedRequest, setSelectedRequest] = useState<CommunityRequest | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
-  
+
   // Filters
   const [filters, setFilters] = useState<CommunityRequestFilters>({
     page: 1,
@@ -44,21 +43,17 @@ export default function CommunityRequestsPage() {
     status: 'all'
   });
   const [searchInput, setSearchInput] = useState('');
-  
+
   // Pagination
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    fetchRequests();
-  }, [filters.page, filters.search, filters.status]);
-
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setLoading(true);
     try {
       const searchParam = filters.status === 'all' ? filters.search : `${filters.search} status:${filters.status}`;
       const result = await getAllCommunityRequests(filters.page, filters.limit, searchParam);
-      
+
       if (result.success) {
         setRequests(result.data || []);
         setTotal(result.total || 0);
@@ -66,25 +61,30 @@ export default function CommunityRequestsPage() {
       } else {
         throw new Error(result.error || "Failed to fetch requests");
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error('Fetch requests error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to fetch community requests",
+        description: err.message || "Failed to fetch community requests",
         variant: "destructive"
       });
       setRequests([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters.page, filters.search, filters.status, filters.limit]);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
   const handleSearch = () => {
     setFilters(prev => ({ ...prev, search: searchInput.trim(), page: 1 }));
   };
 
   const handleStatusFilter = (status: string) => {
-    setFilters(prev => ({ ...prev, status: status as any, page: 1 }));
+    setFilters(prev => ({ ...prev, status: status as 'pending' | 'approved' | 'rejected' | 'all', page: 1 }));
   };
 
   const handleApprove = async (requestId: string) => {
@@ -187,7 +187,7 @@ export default function CommunityRequestsPage() {
             Review and manage community applications with detailed insights
           </p>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="text-right">
             <p className="text-3xl font-bold text-white">{total}</p>
@@ -324,7 +324,7 @@ export default function CommunityRequestsPage() {
             </div>
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
@@ -338,8 +338,8 @@ export default function CommunityRequestsPage() {
               <AlertCircle className="h-12 w-12 text-slate-600 mx-auto" />
               <div>
                 <p className="text-slate-400 text-lg">
-                  {filters.search || filters.status !== 'all' 
-                    ? "No applications found matching your criteria" 
+                  {filters.search || filters.status !== 'all'
+                    ? "No applications found matching your criteria"
                     : "No community applications found"
                   }
                 </p>
@@ -384,7 +384,7 @@ export default function CommunityRequestsPage() {
                   <div className="text-sm text-slate-400">
                     Page {filters.page} of {totalPages} • Total {total} applications
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"

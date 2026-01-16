@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Users, Mail, Shield, Globe, MessageSquare, ExternalLink, Check, X, Clock, Calendar, User, FileText, Image, Link, AlertCircle, Loader2, MapPin, Hash, CreditCard as Edit3 } from 'lucide-react';
+import { ArrowLeft, Mail, Shield, Globe, MessageSquare, ExternalLink, Check, X, Clock, Calendar, User, FileText, Image, Link, AlertCircle, Loader2, Hash, CreditCard as Edit3 } from 'lucide-react';
 import { getCommunityRequestById, approveCommunityRequest, rejectCommunityRequest } from '@/services/adminApiService';
 import { toast } from '@/hooks/use-toast';
 import { CommunityRequest } from '@/types/community';
@@ -24,13 +24,7 @@ export default function CommunityRequestDetailPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  useEffect(() => {
-    if (requestId) {
-      fetchRequestDetails();
-    }
-  }, [requestId]);
-
-  const fetchRequestDetails = async () => {
+  const fetchRequestDetails = useCallback(async () => {
     setLoading(true);
     try {
       const result = await getCommunityRequestById(requestId);
@@ -39,18 +33,25 @@ export default function CommunityRequestDetailPage() {
       } else {
         throw new Error(result.error || "Failed to fetch request details");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Fetch request details error:', error);
+      const err = error as Error;
       toast({
         title: "Error",
-        description: error.message || "Failed to fetch community request details",
+        description: err.message || "Failed to fetch community request details",
         variant: "destructive"
       });
       router.push('/admin/community-requests');
     } finally {
       setLoading(false);
     }
-  };
+  }, [requestId, router]);
+
+  useEffect(() => {
+    if (requestId) {
+      fetchRequestDetails();
+    }
+  }, [requestId, fetchRequestDetails]);
 
   const handleApprove = async () => {
     if (!request) return;
@@ -559,9 +560,8 @@ export default function CommunityRequestDetailPage() {
                 </div>
                 {request.status !== 'pending' && (
                   <div className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full mt-2 ${
-                      request.status === 'approved' ? 'bg-green-400' : 'bg-red-400'
-                    }`}></div>
+                    <div className={`w-2 h-2 rounded-full mt-2 ${request.status === 'approved' ? 'bg-green-400' : 'bg-red-400'
+                      }`}></div>
                     <div>
                       <p className="text-white text-sm font-medium">
                         Application {request.status === 'approved' ? 'Approved' : 'Rejected'}

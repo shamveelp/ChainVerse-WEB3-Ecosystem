@@ -2,20 +2,32 @@
 
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { User, Mail, Shield, Calendar, Key, Edit, Save, X, CheckCircle } from 'lucide-react'
+import { User, Mail, Shield, Calendar, Key, Save, X, CheckCircle } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { getAdminProfile, changeAdminPassword } from '@/services/adminApiService'
-import type { RootState } from '@/redux/store'
+import { getAdminProfile, changeAdminPassword } from '@/services/adminApiService';
+import type { RootState } from '@/redux/store';
+import { useCallback } from 'react';
+import { AxiosError } from 'axios';
+
+interface AdminProfileData {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  lastLogin?: string;
+  isActive: boolean;
+  createdAt: string;
+}
 
 export default function AdminProfile() {
   const { admin } = useSelector((state: RootState) => state.adminAuth)
-  const [profileData, setProfileData] = useState<any>(null)
+  const [profileData, setProfileData] = useState<AdminProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const [passwordData, setPasswordData] = useState({
@@ -26,17 +38,14 @@ export default function AdminProfile() {
   const [passwordLoading, setPasswordLoading] = useState(false)
   const { toast } = useToast()
 
-  useEffect(() => {
-    fetchProfile()
-  }, [])
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const response = await getAdminProfile()
       if (response.success) {
         setProfileData(response.admin)
       }
     } catch (error) {
+      console.error(error);
       toast({
         title: "Error",
         description: "Failed to load profile",
@@ -45,11 +54,15 @@ export default function AdminProfile() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    fetchProfile()
+  }, [fetchProfile])
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
         title: "Error",
@@ -65,7 +78,7 @@ export default function AdminProfile() {
         passwordData.currentPassword,
         passwordData.newPassword
       )
-      
+
       if (response.success) {
         toast({
           title: "Success",
@@ -81,10 +94,11 @@ export default function AdminProfile() {
           variant: "destructive"
         })
       }
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Something went wrong",
+        description: axiosError.response?.data?.message || "Something went wrong",
         variant: "destructive"
       })
     } finally {
@@ -145,7 +159,7 @@ export default function AdminProfile() {
                   </div>
                   <p className="text-white text-lg">{profileData?.name || admin?.name}</p>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-slate-400">
                     <Mail className="h-4 w-4" />
@@ -165,14 +179,14 @@ export default function AdminProfile() {
                     {profileData?.role || 'admin'}
                   </Badge>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-slate-400">
                     <Calendar className="h-4 w-4" />
                     <span className="text-sm">Last Login</span>
                   </div>
                   <p className="text-white">
-                    {profileData?.lastLogin 
+                    {profileData?.lastLogin
                       ? new Date(profileData.lastLogin).toLocaleString()
                       : 'Never'
                     }
@@ -230,7 +244,7 @@ export default function AdminProfile() {
                         id="currentPassword"
                         type="password"
                         value={passwordData.currentPassword}
-                        onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                        onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                         className="bg-slate-800/50 border-slate-600/50 text-slate-100"
                         required
                       />
@@ -241,7 +255,7 @@ export default function AdminProfile() {
                         id="newPassword"
                         type="password"
                         value={passwordData.newPassword}
-                        onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                         className="bg-slate-800/50 border-slate-600/50 text-slate-100"
                         required
                       />
@@ -255,7 +269,7 @@ export default function AdminProfile() {
                         id="confirmNewPassword"
                         type="password"
                         value={passwordData.confirmPassword}
-                        onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                         className="bg-slate-800/50 border-slate-600/50 text-slate-100"
                         required
                       />
@@ -321,7 +335,7 @@ export default function AdminProfile() {
               <div className="space-y-2">
                 <span className="text-slate-400 text-sm">Created</span>
                 <p className="text-white">
-                  {profileData?.createdAt 
+                  {profileData?.createdAt
                     ? new Date(profileData.createdAt).toLocaleDateString()
                     : 'Unknown'
                   }

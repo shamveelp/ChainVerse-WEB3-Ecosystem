@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useDispatch } from "react-redux" 
+import { useDispatch } from "react-redux"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, Eye, ChevronLeft, ChevronRight, Loader2, Users, Wallet, Shield, Zap, Activity, RefreshCw } from 'lucide-react'
+import { Search, Eye, ChevronLeft, ChevronRight, Loader2, Users, Zap, Activity, RefreshCw } from 'lucide-react'
 import { getUsers } from "@/services/adminApiService"
-import { setTotalUsers, setActiveUsers, setBannedUsers } from "@/redux/slices/adminStatistics" 
+import { setTotalUsers, setActiveUsers, setBannedUsers } from "@/redux/slices/adminStatistics"
+
+import { useCallback } from 'react';
 
 interface IUser {
   _id: string
@@ -39,15 +41,6 @@ interface IUser {
   updatedAt: Date
 }
 
-interface UsersResponse {
-  success: boolean
-  data: IUser[]
-  total: number
-  page: number
-  limit: number
-  totalPages: number
-  message?: string
-}
 
 export default function UserManagement() {
   const [users, setUsers] = useState<IUser[]>([])
@@ -60,18 +53,14 @@ export default function UserManagement() {
   const [searchInput, setSearchInput] = useState("")
   const usersPerPage = 15
   const router = useRouter()
-  const dispatch = useDispatch() 
+  const dispatch = useDispatch()
 
-  useEffect(() => {
-    fetchUsers()
-  }, [currentPage, searchQuery])
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const response = await getUsers(currentPage, usersPerPage, searchQuery)
-      
+
       if (response.success) {
         const usersData = response.data || []
         setUsers(usersData)
@@ -80,26 +69,31 @@ export default function UserManagement() {
 
         // Update Redux store with user statistics
         dispatch(setTotalUsers(response.total || 0))
-        
+
         // Calculate active and banned users
         const activeUsers = usersData.filter((user: IUser) => !user.isBanned && !user.isBlocked && user.isActive !== false).length
         const bannedUsers = usersData.filter((user: IUser) => user.isBanned).length
-        
+
         dispatch(setActiveUsers(activeUsers))
         dispatch(setBannedUsers(bannedUsers))
       } else {
         throw new Error(response.error || "Failed to fetch users")
       }
-    } catch (err: any) {
+    } catch (err) {
+      const errMessage = (err as Error).message || "Failed to fetch users. Please try again."
       console.error("Error fetching users:", err)
-      setError(err.message || "Failed to fetch users. Please try again.")
+      setError(errMessage)
       setUsers([])
       setTotalPages(1)
       setTotal(0)
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, searchQuery, dispatch]);
+
+  useEffect(() => {
+    fetchUsers()
+  }, [fetchUsers])
 
   const handleSearch = () => {
     setSearchQuery(searchInput.trim())
@@ -139,10 +133,10 @@ export default function UserManagement() {
     const buttons = []
     const maxButtons = 5
     const halfMax = Math.floor(maxButtons / 2)
-    
+
     let startPage = Math.max(1, currentPage - halfMax)
     let endPage = Math.min(totalPages, startPage + maxButtons - 1)
-    
+
     if (endPage - startPage < maxButtons - 1) {
       startPage = Math.max(1, endPage - maxButtons + 1)
     }
@@ -150,7 +144,7 @@ export default function UserManagement() {
     for (let i = startPage; i <= endPage; i++) {
       buttons.push(i)
     }
-    
+
     return buttons
   }
 
@@ -198,8 +192,8 @@ export default function UserManagement() {
               />
               <div className="absolute inset-0 rounded-md bg-gradient-to-r from-cyan-400/0 via-cyan-400/5 to-cyan-400/0 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
             </div>
-            <Button 
-              onClick={handleSearch} 
+            <Button
+              onClick={handleSearch}
               className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold px-6 transition-all duration-300 shadow-lg hover:shadow-cyan-400/25"
             >
               <Search className="h-4 w-4 mr-2" />
@@ -232,9 +226,9 @@ export default function UserManagement() {
             </div>
           ) : error ? (
             <div className="text-center py-12 space-y-4">
-              <Shield className="h-12 w-12 text-red-400 mx-auto" />
+              <Users className="h-12 w-12 text-red-400 mx-auto" />
               <p className="text-red-400 mb-4">{error}</p>
-              <Button 
+              <Button
                 onClick={fetchUsers}
                 className="bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30"
               >
@@ -249,7 +243,7 @@ export default function UserManagement() {
                 {searchQuery ? `No users found matching "${searchQuery}"` : "No users found in the ecosystem"}
               </p>
               {searchQuery && (
-                <Button 
+                <Button
                   onClick={() => {
                     setSearchInput("")
                     setSearchQuery("")
@@ -279,8 +273,8 @@ export default function UserManagement() {
                   </thead>
                   <tbody>
                     {users.map((user) => (
-                      <tr 
-                        key={user._id} 
+                      <tr
+                        key={user._id}
                         className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors group"
                       >
                         <td className="py-4 px-6">
@@ -384,7 +378,7 @@ export default function UserManagement() {
                       <ChevronLeft className="h-4 w-4 mr-1" />
                       Previous
                     </Button>
-                    
+
                     {/* Page numbers */}
                     <div className="flex items-center gap-1">
                       {getPaginationButtons().map(pageNum => (
@@ -392,8 +386,8 @@ export default function UserManagement() {
                           key={pageNum}
                           variant={currentPage === pageNum ? "default" : "outline"}
                           onClick={() => handlePageChange(pageNum)}
-                          className={currentPage === pageNum 
-                            ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white" 
+                          className={currentPage === pageNum
+                            ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
                             : "bg-slate-800/50 border-slate-600/50 hover:bg-slate-700/50 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-400"
                           }
                           size="sm"

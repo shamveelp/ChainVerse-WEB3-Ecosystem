@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useCallback } from "react"
+import { AxiosError } from "axios"
 import {
   getAdminMarketCoins,
   toggleAdminCoinListing,
@@ -25,6 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+
+
 
 type SortField = "createdAt" | "price" | "marketCap" | "name"
 type SortDirection = "asc" | "desc"
@@ -54,7 +57,7 @@ const MarketManagePage = () => {
   const [sortField, setSortField] = useState<SortField>("createdAt")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
 
-  const fetchCoins = async () => {
+  const fetchCoins = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -63,17 +66,18 @@ const MarketManagePage = () => {
       const res = await getAdminMarketCoins(page, limit, debouncedSearch, includeUnlisted)
       setCoins(res.coins)
       setTotalPages(res.totalPages || 1)
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to load market coins")
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>;
+      const errorMsg = axiosError.response?.data?.message || "Failed to load market coins"
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, limit, debouncedSearch, showOnlyListed])
 
   useEffect(() => {
     fetchCoins()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, debouncedSearch, showOnlyListed])
+  }, [fetchCoins])
 
   useEffect(() => {
     const loadTopCoins = async () => {
@@ -158,8 +162,10 @@ const MarketManagePage = () => {
       setCoins((prev) =>
         prev.map((c) => (c.contractAddress === updated.contractAddress ? updated : c)),
       )
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to update listing status")
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>;
+      const errorMsg = axiosError.response?.data?.message || "Failed to update listing status"
+      setError(errorMsg)
     } finally {
       setToggling(null)
     }
@@ -178,8 +184,10 @@ const MarketManagePage = () => {
         network: "binance",
       })
       await fetchCoins()
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to add coin to market")
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>;
+      const errorMsg = axiosError.response?.data?.message || "Failed to add coin to market"
+      setError(errorMsg)
     } finally {
       setAddingSymbol(null)
     }
@@ -193,8 +201,10 @@ const MarketManagePage = () => {
       setError(null)
       await deleteAdminCoin(coin.contractAddress)
       await fetchCoins()
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to delete coin")
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>;
+      const errorMsg = axiosError.response?.data?.message || "Failed to delete coin"
+      setError(errorMsg)
     } finally {
       setDeleting(null)
     }

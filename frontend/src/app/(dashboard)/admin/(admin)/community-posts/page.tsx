@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminCommunityPostsApiService } from '@/services/admin/adminCommunityPostsApiService';
-import type { AdminPostItem } from '@/types/admin/posts.types';
+import type { AdminPostItem, AdminComment, AdminLiker } from '@/types/admin/posts.types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useDebounce } from 'use-debounce';
+import Image from 'next/image';
 
 export default function AdminCommunityPostsPage() {
     const [posts, setPosts] = useState<AdminPostItem[]>([]);
@@ -34,13 +35,13 @@ export default function AdminCommunityPostsPage() {
     const [detailsTab, setDetailsTab] = useState('overview');
 
     // Comments State
-    const [comments, setComments] = useState<any[]>([]);
+    const [comments, setComments] = useState<AdminComment[]>([]);
     const [commentsLoading, setCommentsLoading] = useState(false);
     const [commentsCursor, setCommentsCursor] = useState<string | undefined>(undefined);
     const [commentsHasMore, setCommentsHasMore] = useState(false);
 
     // Likers State
-    const [likers, setLikers] = useState<any[]>([]);
+    const [likers, setLikers] = useState<AdminLiker[]>([]);
     const [likersLoading, setLikersLoading] = useState(false);
     const [likersCursor, setLikersCursor] = useState<string | undefined>(undefined);
     const [likersHasMore, setLikersHasMore] = useState(false);
@@ -68,16 +69,16 @@ export default function AdminCommunityPostsPage() {
             setLoading(false);
             setLoadingMore(false);
         }
-    }, [activeTab, nextCursor, debouncedSearch]);
+    }, [activeTab, nextCursor, debouncedSearch, loading]);
 
     useEffect(() => {
         setNextCursor(undefined);
         setPosts([]);
         fetchPosts(true);
-    }, [activeTab, debouncedSearch]); // Trigger on tab change or search change
+    }, [activeTab, debouncedSearch, fetchPosts]); // Trigger on tab change or search change
 
     // Fetch Details (Comments/Likers)
-    const fetchComments = async (reset = false) => {
+    const fetchComments = useCallback(async (reset = false) => {
         if (!selectedPost) return;
         try {
             const cursor = reset ? undefined : commentsCursor;
@@ -93,9 +94,9 @@ export default function AdminCommunityPostsPage() {
         } finally {
             setCommentsLoading(false);
         }
-    };
+    }, [selectedPost, commentsCursor]);
 
-    const fetchLikers = async (reset = false) => {
+    const fetchLikers = useCallback(async (reset = false) => {
         if (!selectedPost) return;
         try {
             const cursor = reset ? undefined : likersCursor;
@@ -111,7 +112,7 @@ export default function AdminCommunityPostsPage() {
         } finally {
             setLikersLoading(false);
         }
-    };
+    }, [selectedPost, likersCursor]);
 
     // Reset details state when dialog opens/closes
     useEffect(() => {
@@ -131,7 +132,7 @@ export default function AdminCommunityPostsPage() {
         } else if (detailsTab === 'likes' && likers.length === 0 && selectedPost) {
             fetchLikers(true);
         }
-    }, [detailsTab, selectedPost]);
+    }, [detailsTab, selectedPost, comments.length, likers.length, fetchComments, fetchLikers]);
 
 
     const handleSoftDelete = async (post: AdminPostItem) => {
@@ -199,7 +200,7 @@ export default function AdminCommunityPostsPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <Tabs defaultValue="all" className="w-full sm:w-auto" onValueChange={(val) => setActiveTab(val as any)}>
+                <Tabs defaultValue="all" className="w-full sm:w-auto" onValueChange={(val) => setActiveTab(val as 'all' | 'user' | 'admin')}>
                     <TabsList className="bg-slate-900 border border-slate-800">
                         <TabsTrigger value="all" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white">All Posts</TabsTrigger>
                         <TabsTrigger value="user" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white">User Posts</TabsTrigger>
@@ -245,7 +246,7 @@ export default function AdminCommunityPostsPage() {
                                         </Avatar>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <Link href={`/admin/user-management/${post.author?._id}`} className="hover:underline hover:text-violet-400 transition-colors" onClick={(e) => e.stopPropagation()}>
+                                                <Link href={`/admin/user-management/${post.author?._id}`} className="hover:underline hover:text-violet-400 transition-colors" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                                                     <p className="font-semibold text-sm truncate text-white">
                                                         {post.author?.username || 'Unknown'}
                                                     </p>
@@ -275,7 +276,12 @@ export default function AdminCommunityPostsPage() {
                                         {post.mediaUrls && post.mediaUrls.length > 0 && (
                                             <div className="rounded-md overflow-hidden bg-slate-950/50 border border-slate-800 h-32 flex items-center justify-center relative">
                                                 {post.mediaType === 'image' ? (
-                                                    <img src={post.mediaUrls[0]} alt="Post media" className="h-full w-full object-cover" />
+                                                    <Image
+                                                        src={post.mediaUrls[0]}
+                                                        alt="Post media"
+                                                        fill
+                                                        className="object-cover"
+                                                    />
                                                 ) : (
                                                     <div className="text-slate-500 flex flex-col items-center">
                                                         {post.mediaType === 'video' ? 'Video Content' : 'Media'}
@@ -400,7 +406,12 @@ export default function AdminCommunityPostsPage() {
                                                 {selectedPost.mediaUrls.map((url, index) => (
                                                     <div key={index} className="rounded-lg overflow-hidden border border-slate-800 relative group aspect-video">
                                                         {selectedPost.mediaType === 'image' ? (
-                                                            <img src={url} alt={`Media ${index}`} className="w-full h-full object-cover" />
+                                                            <Image
+                                                                src={url}
+                                                                alt={`Media ${index}`}
+                                                                fill
+                                                                className="object-cover"
+                                                            />
                                                         ) : (
                                                             <video src={url} controls className="w-full h-full bg-black" />
                                                         )}
@@ -551,7 +562,7 @@ export default function AdminCommunityPostsPage() {
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </Dialog>
-        </div>
+            </Dialog >
+        </div >
     );
 }

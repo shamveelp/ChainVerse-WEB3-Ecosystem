@@ -26,10 +26,31 @@ export interface AdminPostsResponse {
     };
 }
 
+export interface AdminComment {
+    _id: string;
+    content: string;
+    author: {
+        _id: string;
+        username: string;
+        profileImage: string;
+    };
+    createdAt: string;
+}
+
+export interface AdminLiker {
+    _id: string;
+    user: {
+        _id: string;
+        username: string;
+        profileImage: string;
+        email: string;
+    };
+}
+
 export interface AdminCommentsResponse {
     success: boolean;
     data: {
-        comments: any[];
+        comments: AdminComment[];
         nextCursor?: string;
         hasMore: boolean;
     };
@@ -38,7 +59,7 @@ export interface AdminCommentsResponse {
 export interface AdminLikersResponse {
     success: boolean;
     data: {
-        likers: any[];
+        likers: AdminLiker[];
         nextCursor?: string;
         hasMore: boolean;
     };

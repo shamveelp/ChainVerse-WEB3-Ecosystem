@@ -36,9 +36,6 @@ import {
     SheetDescription,
     SheetHeader,
     SheetTitle,
-    SheetTrigger,
-    SheetFooter,
-    SheetClose
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import {
@@ -54,7 +51,6 @@ import {
     CheckCircle2,
     XCircle,
     Loader2,
-    Globe,
     Mail
 } from "lucide-react";
 import {
@@ -65,22 +61,10 @@ import {
     deleteCommunity
 } from "@/services/adminCommunityManagementApiService";
 import { format } from "date-fns";
+import { Community } from "@/types/community";
+import { useCallback } from "react";
+import Image from "next/image";
 
-interface Community {
-    _id: string;
-    communityName: string;
-    email: string;
-    username: string;
-    logo: string;
-    banner: string;
-    description: string;
-    status: 'pending' | 'approved' | 'rejected';
-    isVerified: boolean;
-    createdAt: string;
-    communityAdmins: any[];
-    category: string;
-    walletAddress: string;
-}
 
 export default function AdminCommunityManagementPage() {
     const [communities, setCommunities] = useState<Community[]>([]);
@@ -97,7 +81,7 @@ export default function AdminCommunityManagementPage() {
     const router = useRouter();
 
 
-    const fetchCommunities = async () => {
+    const fetchCommunities = useCallback(async () => {
         setLoading(true);
         try {
             const response = await getAllCommunities(page, limit, search, statusFilter, verifiedFilter);
@@ -108,18 +92,19 @@ export default function AdminCommunityManagementPage() {
                 toast.error(response.error || "Failed to fetch communities");
             }
         } catch (error) {
+            console.error(error);
             toast.error("An error occurred while fetching communities");
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, limit, search, statusFilter, verifiedFilter]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             fetchCommunities();
         }, 500); // Debounce search
         return () => clearTimeout(timer);
-    }, [page, limit, search, statusFilter, verifiedFilter]);
+    }, [fetchCommunities]);
 
     const handleStatusUpdate = async (id: string, newStatus: string) => {
         try {
@@ -128,7 +113,7 @@ export default function AdminCommunityManagementPage() {
                 toast.success(`Community status updated to ${newStatus}`);
                 fetchCommunities();
                 if (selectedCommunity?._id === id) {
-                    setSelectedCommunity({ ...selectedCommunity, status: newStatus as any });
+                    setSelectedCommunity({ ...selectedCommunity, status: newStatus });
                 }
             } else {
                 toast.error(response.error);
@@ -407,7 +392,7 @@ export default function AdminCommunityManagementPage() {
                                 {/* Banner & Logo */}
                                 <div className="relative h-32 rounded-lg overflow-hidden bg-muted">
                                     {selectedCommunity.banner ? (
-                                        <img src={selectedCommunity.banner} alt="Banner" className="w-full h-full object-cover" />
+                                        <Image src={selectedCommunity.banner} alt="Banner" fill className="object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-gray-900 text-gray-700">No Banner</div>
                                     )}

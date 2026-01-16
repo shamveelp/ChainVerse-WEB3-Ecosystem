@@ -29,12 +29,9 @@ import {
     ShieldAlert,
     Calendar,
     Users,
-    MessageSquare,
     Globe,
     Settings,
     Loader2,
-    Lock,
-    Unlock,
     Wallet
 } from "lucide-react";
 import { toast } from "sonner";
@@ -45,42 +42,11 @@ import {
 } from "@/services/adminCommunityManagementApiService";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
+import { Community } from "@/types/community";
+import { Member } from "@/types/community/member.types";
+import { useCallback } from "react";
 
-// Interface Definitions
-interface Community {
-    _id: string;
-    communityName: string;
-    email: string;
-    username: string;
-    logo: string;
-    banner: string;
-    description: string;
-    status: string;
-    isVerified: boolean;
-    createdAt: string;
-    category: string;
-    walletAddress: string;
-    settings: {
-        allowChainCast: boolean;
-        allowGroupChat: boolean;
-        allowPosts: boolean;
-        allowQuests: boolean;
-    };
-    socialLinks: any[];
-}
-
-interface Member {
-    _id: string;
-    userId: {
-        _id: string;
-        username: string;
-        email: string;
-        profileImage?: string;
-    };
-    role: string;
-    joinedAt: string;
-    isActive: boolean;
-}
 
 export default function CommunityDetailsPage() {
     const params = useParams();
@@ -95,36 +61,10 @@ export default function CommunityDetailsPage() {
     const [memberTotal, setMemberTotal] = useState(0);
     const [memberSearch, setMemberSearch] = useState("");
 
-    const [settingsLoading, setSettingsLoading] = useState(false);
+    // const [settingsLoading, setSettingsLoading] = useState(false);
 
-    useEffect(() => {
-        fetchCommunityDetails();
-    }, [id]);
-
-    useEffect(() => {
-        if (community) {
-            fetchMembers();
-        }
-    }, [community?._id, memberPage, memberSearch]);
-
-    const fetchCommunityDetails = async () => {
-        setLoading(true);
-        try {
-            const response = await getCommunityById(id);
-            if (response.success) {
-                setCommunity(response.data);
-            } else {
-                toast.error(response.error || "Failed to fetch community details");
-                router.push("/admin/community-management");
-            }
-        } catch (error) {
-            toast.error("An error occurred");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchMembers = async () => {
+    const fetchMembers = useCallback(async () => {
+        if (!community) return;
         setMembersLoading(true);
         try {
             const response = await getCommunityMembers(id, memberPage, 10, memberSearch);
@@ -137,7 +77,33 @@ export default function CommunityDetailsPage() {
         } finally {
             setMembersLoading(false);
         }
-    }
+    }, [community, id, memberPage, memberSearch]);
+
+    const fetchCommunityDetails = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await getCommunityById(id);
+            if (response.success) {
+                setCommunity(response.data);
+            } else {
+                toast.error(response.error || "Failed to fetch community details");
+                router.push("/admin/community-management");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("An error occurred");
+        } finally {
+            setLoading(false);
+        }
+    }, [id, router]);
+
+    useEffect(() => {
+        fetchCommunityDetails();
+    }, [fetchCommunityDetails]);
+
+    useEffect(() => {
+        fetchMembers();
+    }, [fetchMembers]);
 
     const handleSettingChange = async (key: string, value: boolean) => {
         if (!community) return;
@@ -162,6 +128,7 @@ export default function CommunityDetailsPage() {
                 toast.error(response.error);
             }
         } catch (error) {
+            console.error(error);
             setCommunity({ ...community, settings: previousSettings });
             toast.error("Failed to update settings");
         }
@@ -193,7 +160,7 @@ export default function CommunityDetailsPage() {
             <div className="relative rounded-xl overflow-hidden bg-card/50 border border-white/5">
                 <div className="h-48 md:h-64 bg-muted/20 relative">
                     {community.banner ? (
-                        <img src={community.banner} alt="Banner" className="w-full h-full object-cover" />
+                        <Image src={community.banner} alt="Banner" fill className="object-cover" />
                     ) : (
                         <div className="w-full h-full bg-gradient-to-r from-gray-900 to-gray-800 flex items-center justify-center text-gray-700">
                             No Banner

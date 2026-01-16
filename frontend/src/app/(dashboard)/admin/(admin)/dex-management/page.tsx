@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { useActiveAccount } from 'thirdweb/react';
 import { Plus, AlertCircle, RefreshCw, Coins, Activity } from 'lucide-react';
@@ -11,7 +11,6 @@ import { TokenBalance, LiquidityForm, PoolData } from '@/types/types-dex';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import FloatingWalletButton from '@/components/shared/TradeNavbar';
 
 export default function AdminDexManagementPage() {
@@ -32,7 +31,7 @@ export default function AdminDexManagementPage() {
   });
   const [error, setError] = useState('');
 
-  const loadUserBalances = async () => {
+  const loadUserBalances = useCallback(async () => {
     if (!account?.address || !window.ethereum) return;
 
     try {
@@ -44,7 +43,7 @@ export default function AdminDexManagementPage() {
       console.error('Failed to load balances:', error);
       setError('Failed to load balances');
     }
-  };
+  }, [account?.address]);
 
   const getTestTokens = async () => {
     if (!account?.address || !window.ethereum) return;
@@ -85,8 +84,9 @@ export default function AdminDexManagementPage() {
       });
 
       await loadUserBalances();
-    } catch (error: any) {
-      console.error('Get test tokens failed:', error);
+    } catch (error) {
+      const err = error as Error;
+      console.error('Get test tokens failed:', err);
       const errorMessage = 'Failed to claim test tokens (you might not be the owner)';
       setError(errorMessage);
       toast({
@@ -189,9 +189,10 @@ export default function AdminDexManagementPage() {
         coinAAmount: '',
         coinBAmount: '',
       });
-    } catch (error: any) {
-      console.error('Add liquidity failed:', error);
-      const errorMessage = error.reason || error.message || 'Unknown error';
+    } catch (error) {
+      const err = error as Error & { reason?: string };
+      console.error('Add liquidity failed:', err);
+      const errorMessage = err.reason || err.message || 'Unknown error';
       setError(`Add liquidity failed: ${errorMessage}`);
       toast({
         variant: 'destructive',
@@ -207,14 +208,14 @@ export default function AdminDexManagementPage() {
     if (account?.address) {
       loadUserBalances();
     }
-  }, [account?.address]);
+  }, [loadUserBalances, account?.address]);
 
   useEffect(() => {
     if (account?.address) {
       const interval = setInterval(loadUserBalances, 30000);
       return () => clearInterval(interval);
     }
-  }, [account?.address]);
+  }, [loadUserBalances, account?.address]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pt-20 px-6">
@@ -401,7 +402,7 @@ export default function AdminDexManagementPage() {
           <CardContent className="p-6">
             <div className="grid md:grid-cols-3 gap-6">
               {Object.entries(poolsData).map(([key, pool]) => {
-                let poolName = key === 'coinA' ? 'ETH / CoinA' : key === 'coinB' ? 'ETH / CoinB' : 'CoinA / CoinB';
+                const poolName = key === 'coinA' ? 'ETH / CoinA' : key === 'coinB' ? 'ETH / CoinB' : 'CoinA / CoinB';
                 return (
                   <div key={key} className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
                     <h4 className="font-semibold text-white mb-4 text-center">{poolName}</h4>
