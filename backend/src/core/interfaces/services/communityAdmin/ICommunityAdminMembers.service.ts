@@ -4,7 +4,11 @@ import {
     BanMemberDto,
     CommunityMembersListResponseDto,
     MemberActionResponseDto,
-    MemberDetailResponseDto
+    MemberDetailResponseDto,
+    BulkUpdateMembersDto,
+    RemoveMemberResponseDto,
+    MemberActivityResponseDto,
+    BulkUpdateMembersResponseDto
 } from "../../../../dtos/communityAdmin/CommunityAdminMembers.dto";
 
 export interface ICommunityAdminMembersService {
@@ -13,7 +17,7 @@ export interface ICommunityAdminMembersService {
     updateMemberRole(adminId: string, data: UpdateMemberRoleDto): Promise<MemberActionResponseDto>;
     banMember(adminId: string, data: BanMemberDto): Promise<MemberActionResponseDto>;
     unbanMember(adminId: string, memberId: string): Promise<MemberActionResponseDto>;
-    removeMember(adminId: string, memberId: string, reason?: string): Promise<any>;
-    getMemberActivity(adminId: string, memberId: string, period?: string): Promise<any>;
-    bulkUpdateMembers(adminId: string, data: any): Promise<any>;
+    removeMember(adminId: string, memberId: string, reason?: string): Promise<RemoveMemberResponseDto>;
+    getMemberActivity(adminId: string, memberId: string, period?: string): Promise<MemberActivityResponseDto>;
+    bulkUpdateMembers(adminId: string, data: BulkUpdateMembersDto): Promise<BulkUpdateMembersResponseDto>;
 }

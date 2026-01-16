@@ -12,7 +12,8 @@ import {
     ChatContextDto,
     TradingIntentDto,
     ActionRequiredDto,
-    TokenPriceDataDto
+    TokenPriceDataDto,
+    IChatHistory
 } from "../../dtos/aiTrading/AiTrading.dto";
 import logger from "../../utils/logger";
 import axios from 'axios';
@@ -272,7 +273,7 @@ export class AITradingService implements IAITradingService {
                 throw new Error(ErrorMessages.CHAT_SESSION_NOT_FOUND);
             }
 
-            return new ChatHistoryResponseDto(chatHistory);
+            return new ChatHistoryResponseDto(chatHistory as unknown as IChatHistory);
         } catch (error) {
             logger.error(LoggerMessages.GET_CHAT_HISTORY_ERROR, error);
             throw error;

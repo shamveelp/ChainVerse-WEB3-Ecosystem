@@ -12,8 +12,8 @@ export interface IAIChatHistory extends Document {
         timestamp: Date;
         context?: {
             walletConnected: boolean;
-            tokenPrices?: any;
-            userBalances?: any;
+            tokenPrices?: Record<string, unknown>;
+            userBalances?: Record<string, unknown>;
             transactionHash?: string;
         };
     }[];

@@ -41,7 +41,7 @@ export class BlockchainService {
   constructor() {
     this.etherscanApiKey = process.env.ETHERSCAN_API_KEY || '';
     this.etherscanBaseUrl = process.env.ETHERSCAN_BASE_URL || 'https://api-sepolia.etherscan.io/api';
-    
+
     this.contractAddresses = {
       coinA: process.env.COIN_A_ADDRESS || '0xBcAA134722eb7307Ff50770bB3334eC4752f8067',
       coinB: process.env.COIN_B_ADDRESS || '0x994f607b3601Ba8B01163e7BD038baf138Ed7a30',
@@ -63,7 +63,7 @@ export class BlockchainService {
   }> {
     try {
       const offset = (page - 1) * limit;
-      
+
       const response = await axios.get(this.etherscanBaseUrl, {
         params: {
           module: 'account',
@@ -87,14 +87,14 @@ export class BlockchainService {
       }
 
       const allTransactions = response.data.result || [];
-      
+
       // Filter transactions related to our contracts
-      const contractTransactions = allTransactions.filter((tx: any) => 
+      const contractTransactions = allTransactions.filter((tx: BlockchainTransaction) =>
         this.isContractInteraction(tx)
       );
 
       // Add transaction type classification
-      const classifiedTransactions = contractTransactions.map((tx: any) => ({
+      const classifiedTransactions = contractTransactions.map((tx: BlockchainTransaction) => ({
         ...tx,
         transactionType: this.classifyTransaction(tx)
       }));
@@ -123,13 +123,13 @@ export class BlockchainService {
   async getContractInteractions(address: string): Promise<ContractInteraction[]> {
     try {
       const { transactions } = await this.getWalletTransactions(address, 1, 1000);
-      
+
       const interactions: { [key: string]: ContractInteraction } = {};
 
       transactions.forEach((tx) => {
         const contractAddress = tx.to.toLowerCase();
         const contractName = this.getContractName(contractAddress);
-        
+
         if (!interactions[contractAddress]) {
           interactions[contractAddress] = {
             contractAddress,
@@ -138,7 +138,7 @@ export class BlockchainService {
             transactions: []
           };
         }
-        
+
         interactions[contractAddress].transactionCount++;
         interactions[contractAddress].transactions.push(tx);
       });
@@ -170,7 +170,7 @@ export class BlockchainService {
       // Convert from wei to ETH
       const balanceWei = response.data.result;
       const balanceEth = (parseInt(balanceWei) / Math.pow(10, 18)).toFixed(4);
-      
+
       return balanceEth;
     } catch (error) {
       logger.error('Error fetching wallet balance:', error);
@@ -178,19 +178,19 @@ export class BlockchainService {
     }
   }
 
-  private isContractInteraction(transaction: any): boolean {
+  private isContractInteraction(transaction: BlockchainTransaction): boolean {
     const toAddress = transaction.to?.toLowerCase();
     const fromAddress = transaction.from?.toLowerCase();
-    
+
     const contractAddresses = Object.values(this.contractAddresses).map(addr => addr.toLowerCase());
-    
+
     return contractAddresses.includes(toAddress) || contractAddresses.includes(fromAddress);
   }
 
-  private classifyTransaction(transaction: any): string {
+  private classifyTransaction(transaction: BlockchainTransaction): string {
     const toAddress = transaction.to?.toLowerCase();
     const fromAddress = transaction.from?.toLowerCase();
-    
+
     if (toAddress === this.contractAddresses.dex.toLowerCase() || fromAddress === this.contractAddresses.dex.toLowerCase()) {
       return 'DEX';
     }
@@ -203,13 +203,13 @@ export class BlockchainService {
     if (toAddress === this.contractAddresses.coinB.toLowerCase() || fromAddress === this.contractAddresses.coinB.toLowerCase()) {
       return 'TOKEN_B';
     }
-    
+
     return 'OTHER';
   }
 
   private getContractName(contractAddress: string): string {
     const lowerAddress = contractAddress.toLowerCase();
-    
+
     if (lowerAddress === this.contractAddresses.dex.toLowerCase()) {
       return 'DEX Contract';
     }
@@ -222,7 +222,7 @@ export class BlockchainService {
     if (lowerAddress === this.contractAddresses.coinB.toLowerCase()) {
       return 'Token B';
     }
-    
+
     return 'Unknown Contract';
   }
 

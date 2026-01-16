@@ -568,7 +568,7 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
 };
 
 // Helper function to emit to user
-export const emitToUser = (io: SocketIOServer, userId: string, event: string, data: any) => {
+export const emitToUser = (io: SocketIOServer, userId: string, event: string, data: unknown) => {
   const socketId = userSocketMap.get(userId);
   if (socketId) {
     io.to(socketId).emit(event, data);

@@ -16,8 +16,42 @@ export interface QuestGenerationRequest {
   conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
 }
 
+export interface QuestTaskConfig {
+  requiresProof?: boolean;
+  proofType?: string;
+  [key: string]: unknown;
+}
+
+export interface QuestTask {
+  title: string;
+  description: string;
+  taskType: string;
+  isRequired: boolean;
+  order: number;
+  config: QuestTaskConfig;
+}
+
+export interface QuestRewardPool {
+  amount: number;
+  currency: string;
+  rewardType: string;
+}
+
+export interface QuestData {
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  selectionMethod: string;
+  participantLimit: number;
+  rewardPool: QuestRewardPool;
+  tasks: QuestTask[];
+  isAIGenerated: boolean;
+  aiPrompt: string;
+}
+
 export interface QuestGenerationResponse {
-  questData?: any;
+  questData?: QuestData;
   response: string;
   needsMoreInfo?: boolean;
   suggestedQuestions?: string[];
@@ -176,7 +210,7 @@ Create a quest that matches these requirements or ask clarifying questions if ne
     }
   }
 
-  async verifyTaskCompletion(taskType: string, submissionData: any, taskConfig: any): Promise<{
+  async verifyTaskCompletion(taskType: string, submissionData: Record<string, unknown>, taskConfig: Record<string, unknown>): Promise<{
     isValid: boolean;
     autoVerified: boolean;
     message: string;

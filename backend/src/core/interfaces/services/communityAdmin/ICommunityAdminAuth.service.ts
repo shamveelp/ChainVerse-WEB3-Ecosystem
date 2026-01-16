@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { ICommunity } from "../../../../models/community.model";
 import {
   CreateCommunityDto,
   SetPasswordDto,
@@ -7,7 +8,8 @@ import {
   CommunityAdminResponseDto,
   CommunityAdminLoginResponseDto,
   CreateCommunityResponseDto,
-  CheckExistenceResponseDto
+  CheckExistenceResponseDto,
+  CommunityDetailsDto
 } from "../../../../dtos/communityAdmin/CommunityAdminAuth.dto";
 import { ForgotPasswordDto, VerifyOtpDto as AdminVerifyOtpDto, ResetPasswordDto } from "../../../../dtos/ForgotPassword.dto";
 
@@ -35,8 +37,8 @@ export interface ICommunityAdminAuthService {
 
   // Profile & Community management
   getProfile(communityAdminId: string): Promise<{ success: boolean; communityAdmin: CommunityAdminResponseDto }>;
-  getCommunityDetails(communityAdminId: string): Promise<any>;
-  updateCommunity(communityAdminId: string, updateData: any): Promise<any>;
+  getCommunityDetails(communityAdminId: string): Promise<{ success: boolean; community: CommunityDetailsDto }>;
+  updateCommunity(communityAdminId: string, updateData: Partial<ICommunity>): Promise<{ success: boolean; message: string; community: CommunityDetailsDto }>;
 
   // Admin operations
   createCommunityFromRequest(requestId: string): Promise<void>;

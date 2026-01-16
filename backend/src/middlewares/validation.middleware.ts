@@ -9,13 +9,16 @@ export interface ValidationErrorResponse {
   error: string;
   details?: Array<{
     field: string;
-    value: any;
+    value: unknown;
     constraints: Record<string, string>;
   }>;
 }
 
+// Define signature for class constructor
+type ClassConstructor<T = object> = new (...args: unknown[]) => T;
+
 export const validateDto = (
-  dtoClass: any,
+  dtoClass: ClassConstructor,
   source: 'body' | 'query' | 'params' = 'body'
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -110,11 +113,11 @@ export const validateDto = (
   };
 };
 
-export const validateQuery = (dtoClass: any) => validateDto(dtoClass, 'query');
-export const validateParams = (dtoClass: any) => validateDto(dtoClass, 'params');
-export const validateBody = (dtoClass: any) => validateDto(dtoClass, 'body');
+export const validateQuery = (dtoClass: ClassConstructor) => validateDto(dtoClass, 'query');
+export const validateParams = (dtoClass: ClassConstructor) => validateDto(dtoClass, 'params');
+export const validateBody = (dtoClass: ClassConstructor) => validateDto(dtoClass, 'body');
 
 // Helper function to create validation decorators
-export const createValidationMiddleware = (dtoClass: any) => {
+export const createValidationMiddleware = (dtoClass: ClassConstructor) => {
   return validateBody(dtoClass);
 };

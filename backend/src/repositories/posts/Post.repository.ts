@@ -1,7 +1,7 @@
 import { injectable } from "inversify";
 import { IPostRepository } from "../../core/interfaces/repositories/posts/IPost.repository";
 import { PostModel, IPost } from "../../models/post.models";
-import { LikeModel } from "../../models/like.models";
+import { LikeModel, ILike } from "../../models/like.models";
 import { CommentModel, IComment } from "../../models/comment.models";
 import { CommentLikeModel } from "../../models/commentLikes.model";
 import CommunityMemberModel from "../../models/communityMember.model";
@@ -226,7 +226,7 @@ export class PostRepository implements IPostRepository {
             })
             .lean();
 
-        const posts = likes.map(like => (like as any).post).filter(post => post && !post.isDeleted);
+        const posts = likes.map(like => (like as unknown as { post: IPost }).post).filter(post => post && !post.isDeleted);
 
         let postsToReturn = posts;
         let hasMore = false;
@@ -409,8 +409,8 @@ export class PostRepository implements IPostRepository {
         return !!like;
     }
 
-    async getPostLikes(postId: string, cursor?: string, limit: number = 20): Promise<any> {
-        const query: any = { post: postId };
+    async getPostLikes(postId: string, cursor?: string, limit: number = 20): Promise<{ likes: ILike[]; hasMore: boolean; nextCursor?: string }> {
+        const query: FilterQuery<typeof LikeModel> = { post: postId };
 
         if (cursor) {
             query._id = { $lt: new Types.ObjectId(cursor) };
@@ -427,7 +427,7 @@ export class PostRepository implements IPostRepository {
         const nextCursor = hasMore ? likesToReturn[likesToReturn.length - 1]._id.toString() : undefined;
 
         return {
-            likes: likesToReturn,
+            likes: likesToReturn as unknown as ILike[],
             hasMore,
             nextCursor
         };
@@ -495,8 +495,8 @@ export class PostRepository implements IPostRepository {
         return result.modifiedCount > 0;
     }
 
-    async getPostComments(postId: string, cursor?: string, limit: number = 10): Promise<any> {
-        const query: any = {
+    async getPostComments(postId: string, cursor?: string, limit: number = 10): Promise<{ comments: IComment[]; hasMore: boolean; nextCursor?: string }> {
+        const query: FilterQuery<IComment> = {
             post: postId,
             isDeleted: false,
             parentComment: null // Only top-level comments
@@ -517,14 +517,14 @@ export class PostRepository implements IPostRepository {
         const nextCursor = hasMore ? commentsToReturn[commentsToReturn.length - 1]._id.toString() : undefined;
 
         return {
-            comments: commentsToReturn,
+            comments: commentsToReturn as unknown as IComment[],
             hasMore,
             nextCursor
         };
     }
 
-    async getCommentReplies(commentId: string, cursor?: string, limit: number = 10): Promise<any> {
-        const query: any = {
+    async getCommentReplies(commentId: string, cursor?: string, limit: number = 10): Promise<{ comments: IComment[]; hasMore: boolean; nextCursor?: string }> {
+        const query: FilterQuery<IComment> = {
             parentComment: commentId,
             isDeleted: false
         };
@@ -544,7 +544,7 @@ export class PostRepository implements IPostRepository {
         const nextCursor = hasMore ? commentsToReturn[commentsToReturn.length - 1]._id.toString() : undefined;
 
         return {
-            comments: commentsToReturn,
+            comments: commentsToReturn as unknown as IComment[],
             hasMore,
             nextCursor
         };
@@ -704,11 +704,11 @@ export class PostRepository implements IPostRepository {
         return { hashtags, mentions };
     }
 
-    getGlobalPosts(cursor?: string, limit?: number): Promise<any> {
-        // Placeholder implementation
-        // if (cursor === undefined) {}
-        // if (limit === undefined) {}
-        return fetch("", {})
-
+    async getGlobalPosts(cursor?: string, limit?: number): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
+        return {
+            posts: [],
+            hasMore: false,
+            nextCursor: undefined
+        };
     }
 }

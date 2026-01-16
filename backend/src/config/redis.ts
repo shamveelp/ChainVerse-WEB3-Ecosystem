@@ -42,7 +42,7 @@ class RedisClient {
     return result === 1;
   }
 
-  async setHash(key: string, data: Record<string, any>, ttl?: number): Promise<void> {
+  async setHash(key: string, data: Record<string, unknown>, ttl?: number): Promise<void> {
     await this.client.hmset(key, data);
     if (ttl) {
       await this.client.expire(key, ttl);
@@ -62,7 +62,7 @@ class RedisClient {
   }
 
   // Community-specific methods
-  async setCommunityApplication(email: string, data: any, ttl: number = 3600): Promise<void> {
+  async setCommunityApplication(email: string, data: Record<string, unknown>, ttl: number = 3600): Promise<void> {
     const key = `community_app:${email}`;
     await this.setHash(key, {
       ...data,
@@ -71,7 +71,7 @@ class RedisClient {
     }, ttl);
   }
 
-  async getCommunityApplication(email: string): Promise<any> {
+  async getCommunityApplication(email: string): Promise<Record<string, string> | null> {
     const key = `community_app:${email}`;
     const data = await this.getHash(key);
     return Object.keys(data).length > 0 ? data : null;
@@ -102,7 +102,7 @@ class RedisClient {
   async checkRateLimit(identifier: string, maxAttempts: number = 5, windowMinutes: number = 15): Promise<{ allowed: boolean; attemptsLeft: number }> {
     const key = `rate_limit:${identifier}`;
     const attempts = await this.incr(key, windowMinutes * 60);
-    
+
     return {
       allowed: attempts <= maxAttempts,
       attemptsLeft: Math.max(0, maxAttempts - attempts)

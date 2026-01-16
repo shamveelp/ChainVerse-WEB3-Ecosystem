@@ -3,7 +3,7 @@ import type { Response } from "express"
 import { injectable } from "inversify"
 import { CustomError } from "./customError"
 import { StatusCode } from "../enums/statusCode.enum"
-import { IJwtService } from "../core/interfaces/services/IJwtService"
+import { IJwtService, JwtPayload } from "../core/interfaces/services/IJwtService"
 
 
 
@@ -30,28 +30,28 @@ export class JwtService implements IJwtService {
     return jwt.sign({ id, role, tokenVersion }, JWT_REFRESH_SECRET, { expiresIn: "7d" })
   }
 
-  static verifyToken(token: string): any {
+  static verifyToken(token: string): string | jwt.JwtPayload {
     if (!JWT_ACCESS_SECRET) {
       throw new CustomError("JWT_ACCESS_SECRET is not defined", StatusCode.INTERNAL_SERVER_ERROR)
     }
     try {
       return jwt.verify(token, JWT_ACCESS_SECRET)
-    } catch (error: any) {
-      if (error.name === "TokenExpiredError") {
+    } catch (error: unknown) {
+      if ((error as Error).name === "TokenExpiredError") {
         throw new CustomError("Access token expired", StatusCode.UNAUTHORIZED)
       }
       throw new CustomError("Invalid access token", StatusCode.UNAUTHORIZED)
     }
   }
 
-  verifyRefreshToken(token: string): any {
+  verifyRefreshToken(token: string): JwtPayload {
     if (!JWT_REFRESH_SECRET) {
       throw new CustomError("JWT_REFRESH_SECRET is not defined", StatusCode.INTERNAL_SERVER_ERROR)
     }
     try {
-      return jwt.verify(token, JWT_REFRESH_SECRET)
-    } catch (error: any) {
-      if (error.name === "TokenExpiredError") {
+      return jwt.verify(token, JWT_REFRESH_SECRET) as JwtPayload
+    } catch (error: unknown) {
+      if ((error as Error).name === "TokenExpiredError") {
         throw new CustomError("Refresh token expired", StatusCode.UNAUTHORIZED)
       }
       throw new CustomError("Invalid refresh token", StatusCode.UNAUTHORIZED)
@@ -105,7 +105,7 @@ export class JwtService implements IJwtService {
 
   static getTokenExpiration(token: string): Date | null {
     try {
-      const decoded = jwt.decode(token) as any;
+      const decoded = jwt.decode(token) as jwt.JwtPayload;
       if (decoded && decoded.exp) {
         return new Date(decoded.exp * 1000);
       }
@@ -127,7 +127,7 @@ export class JwtService implements IJwtService {
   }
 
   // Helper method for socket authentication
-  static verifySocketToken(token: string): any {
+  static verifySocketToken(token: string): string | jwt.JwtPayload {
     try {
       // Remove 'Bearer ' prefix if present
       const cleanToken = token.startsWith('Bearer ') ? token.substring(7) : token;

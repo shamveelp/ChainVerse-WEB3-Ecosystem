@@ -278,3 +278,74 @@ export class MembersSummaryDto {
   bannedMembers!: number;
   newMembersThisWeek!: number;
 }
+
+export class RemoveMemberResponseDto extends BaseResponseDto {
+  memberId: string;
+  removedBy: string;
+  reason: string;
+
+  constructor(memberId: string, removedBy: string, reason: string, message: string) {
+    super(true, message);
+    this.memberId = memberId;
+    this.removedBy = removedBy;
+    this.reason = reason;
+  }
+}
+
+export class MemberActivityResponseDto {
+  member: CommunityMemberDetailDto;
+  period: string;
+  activity: {
+    posts: number;
+    likes: number;
+    comments: number;
+    questsCompleted: number;
+    lastActive: Date;
+    joinDate: Date;
+  };
+  timeline: MemberActivityTimelineEvent[];
+
+  constructor(data: MemberActivityResponseDto) {
+    this.member = data.member;
+    this.period = data.period;
+    this.activity = data.activity;
+    this.timeline = data.timeline;
+  }
+}
+
+export interface MemberActivityTimelineEvent {
+  date: Date;
+  action: string;
+  details?: string;
+}
+
+export interface BulkUpdateResult {
+  memberId: string;
+  status: 'success' | 'error';
+  result?: MemberActionResponseDto | RemoveMemberResponseDto;
+  error?: string;
+}
+
+export class BulkUpdateMembersResponseDto extends BaseResponseDto {
+  totalProcessed: number;
+  successCount: number;
+  errorCount: number;
+  results: BulkUpdateResult[];
+  errors: BulkUpdateResult[];
+
+  constructor(
+    totalProcessed: number,
+    successCount: number,
+    errorCount: number,
+    results: BulkUpdateResult[],
+    errors: BulkUpdateResult[],
+    message: string
+  ) {
+    super(true, message);
+    this.totalProcessed = totalProcessed;
+    this.successCount = successCount;
+    this.errorCount = errorCount;
+    this.results = results;
+    this.errors = errors;
+  }
+}

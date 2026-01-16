@@ -41,7 +41,7 @@ export class PostRepository implements IPostRepository {
       });
 
       return await post.save();
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while creating post",
@@ -63,7 +63,7 @@ export class PostRepository implements IPostRepository {
         .populate("author", "_id username name profilePic community.isVerified")
         .lean()
         .exec();
-    } catch (error) {
+    } catch (error: unknown) {
       throw new CustomError(
         "Database error while fetching post",
         StatusCode.INTERNAL_SERVER_ERROR
@@ -94,7 +94,7 @@ export class PostRepository implements IPostRepository {
       )
         .populate("author", "_id username name profilePic community.isVerified")
         .exec();
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while updating post",
@@ -131,7 +131,7 @@ export class PostRepository implements IPostRepository {
       ).exec();
 
       return !!result;
-    } catch (error) {
+    } catch (error: unknown) {
       throw new CustomError(
         "Database error while deleting post",
         StatusCode.INTERNAL_SERVER_ERROR
@@ -219,7 +219,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching feed posts",
@@ -259,7 +259,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching global posts",
@@ -322,7 +322,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching community members posts",
@@ -371,7 +371,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching user posts",
@@ -428,7 +428,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching liked posts",
@@ -469,7 +469,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching trending posts",
@@ -515,7 +515,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching posts by hashtag",
@@ -559,7 +559,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while searching posts",
@@ -589,8 +589,8 @@ export class PostRepository implements IPostRepository {
       await this.updatePostCounts(postId, "likesCount", 1);
 
       return savedLike;
-    } catch (error) {
-      if (error.code === 11000) {
+    } catch (error: unknown) {
+      if ((error as { code?: number }).code === 11000) {
         throw new CustomError("Post already liked", StatusCode.BAD_REQUEST);
       }
       throw new CustomError(
@@ -621,7 +621,7 @@ export class PostRepository implements IPostRepository {
       }
 
       return false;
-    } catch (error) {
+    } catch (error: unknown) {
       throw new CustomError(
         "Database error while unliking post",
         StatusCode.INTERNAL_SERVER_ERROR
@@ -644,7 +644,7 @@ export class PostRepository implements IPostRepository {
         .exec();
 
       return !!like;
-    } catch (error) {
+    } catch (error: unknown) {
       return false;
     }
   }
@@ -685,7 +685,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching post likes",
@@ -750,7 +750,7 @@ export class PostRepository implements IPostRepository {
       }
 
       return savedComment;
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while creating comment",
@@ -772,7 +772,7 @@ export class PostRepository implements IPostRepository {
         .populate("author", "_id username name profilePic community.isVerified")
         .lean()
         .exec();
-    } catch (error) {
+    } catch (error: unknown) {
       throw new CustomError(
         "Database error while fetching comment",
         StatusCode.INTERNAL_SERVER_ERROR
@@ -801,7 +801,7 @@ export class PostRepository implements IPostRepository {
       )
         .populate("author", "_id username name profilePic community.isVerified")
         .exec();
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while updating comment",
@@ -857,7 +857,7 @@ export class PostRepository implements IPostRepository {
       }
 
       return false;
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while deleting comment",
@@ -910,7 +910,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching post comments",
@@ -959,7 +959,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching comment replies",
@@ -992,8 +992,8 @@ export class PostRepository implements IPostRepository {
       await this.updateCommentCounts(commentId, "likesCount", 1);
 
       return savedLike;
-    } catch (error) {
-      if (error.code === 11000) {
+    } catch (error: unknown) {
+      if ((error as { code?: number }).code === 11000) {
         throw new CustomError("Comment already liked", StatusCode.BAD_REQUEST);
       }
       throw new CustomError(
@@ -1027,7 +1027,7 @@ export class PostRepository implements IPostRepository {
       }
 
       return false;
-    } catch (error) {
+    } catch (error: unknown) {
       throw new CustomError(
         "Database error while unliking comment",
         StatusCode.INTERNAL_SERVER_ERROR
@@ -1056,7 +1056,7 @@ export class PostRepository implements IPostRepository {
         .exec();
 
       return !!like;
-    } catch (error) {
+    } catch (error: unknown) {
       return false;
     }
   }
@@ -1077,7 +1077,7 @@ export class PostRepository implements IPostRepository {
         { $inc: { [field]: increment } },
         { new: true }
       ).exec();
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while updating post counts",
@@ -1101,7 +1101,7 @@ export class PostRepository implements IPostRepository {
         { $inc: { [field]: increment } },
         { new: true }
       ).exec();
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while updating comment counts",
@@ -1159,7 +1159,7 @@ export class PostRepository implements IPostRepository {
         todayPosts: result.todayPosts || 0,
         weekPosts: result.weekPosts || 0,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       throw new CustomError(
         "Database error while fetching post stats",
         StatusCode.INTERNAL_SERVER_ERROR
@@ -1184,7 +1184,7 @@ export class PostRepository implements IPostRepository {
       ]);
 
       return hashtags.map((h) => h._id);
-    } catch (error) {
+    } catch (error: unknown) {
       throw new CustomError(
         "Database error while fetching popular hashtags",
         StatusCode.INTERNAL_SERVER_ERROR
@@ -1212,7 +1212,7 @@ export class PostRepository implements IPostRepository {
         .sort({ createdAt: -1 })
         .lean()
         .exec();
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching user posts",
@@ -1240,7 +1240,7 @@ export class PostRepository implements IPostRepository {
       );
 
       return result.modifiedCount > 0;
-    } catch (error) {
+    } catch (error: unknown) {
       throw new CustomError(
         "Database error while bulk deleting posts",
         StatusCode.INTERNAL_SERVER_ERROR
@@ -1282,7 +1282,7 @@ export class PostRepository implements IPostRepository {
       });
 
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
       throw new CustomError(
         "Database error while fetching post count by users",
         StatusCode.INTERNAL_SERVER_ERROR
@@ -1314,7 +1314,7 @@ export class PostRepository implements IPostRepository {
       await post.save();
 
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while deleting post",
@@ -1362,18 +1362,21 @@ export class PostRepository implements IPostRepository {
     const finalPosts = posts.slice(0, limit);
 
     // Transform IPost to PostResponseDto with proper type assertion
-    const transformedPosts: PostResponseDto[] = finalPosts.map((post: any) => {
+    const transformedPosts: PostResponseDto[] = finalPosts.map((post: unknown) => {
       // Type assertion for populated author
-      const author = post.author as {
-        _id: Types.ObjectId;
-        username: string;
-        name: string;
-        profilePic: string;
-        community?: { isVerified: boolean };
+      const postWithAuthor = post as IPost & {
+        author: {
+          _id: Types.ObjectId;
+          username: string;
+          name: string;
+          profilePic: string;
+          community?: { isVerified: boolean };
+        }
       };
+      const author = postWithAuthor.author;
 
       return {
-        _id: post._id.toString(),
+        _id: postWithAuthor._id.toString(),
         author: {
           _id: author._id.toString(),
           username: author.username,
@@ -1381,20 +1384,20 @@ export class PostRepository implements IPostRepository {
           profilePic: author.profilePic,
           isVerified: author.community?.isVerified || false
         },
-        content: post.content,
-        mediaUrls: post.mediaUrls || [],
-        mediaType: post.mediaType,
-        hashtags: post.hashtags || [],
-        mentions: post.mentions || [],
-        likesCount: post.likesCount || 0,
-        commentsCount: post.commentsCount || 0,
-        sharesCount: post.sharesCount || 0,
+        content: postWithAuthor.content,
+        mediaUrls: postWithAuthor.mediaUrls || [],
+        mediaType: postWithAuthor.mediaType,
+        hashtags: postWithAuthor.hashtags || [],
+        mentions: postWithAuthor.mentions || [],
+        likesCount: postWithAuthor.likesCount || 0,
+        commentsCount: postWithAuthor.commentsCount || 0,
+        sharesCount: postWithAuthor.sharesCount || 0,
         // Default values for required fields (can be overridden in service layer)
         isLiked: false,
         isOwnPost: false,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
-        editedAt: post.editedAt
+        createdAt: postWithAuthor.createdAt,
+        updatedAt: postWithAuthor.updatedAt,
+        editedAt: postWithAuthor.editedAt
       };
     });
 

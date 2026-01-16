@@ -49,6 +49,6 @@ export interface IAdminWalletService {
   getWalletContractInteractions(address: string): Promise<ContractInteraction[]>;
   getWalletHistoryFromEtherscan(address: string, page?: number, limit?: number): Promise<WalletHistoryResponse>;
   getWalletAppHistory(address: string, page?: number, limit?: number): Promise<WalletHistoryResponse>;
-  exportWalletData(): Promise<any[]>;
+  exportWalletData(): Promise<Record<string, unknown>[]>;
   refreshWalletData(address: string): Promise<IWallet | null>;
 }

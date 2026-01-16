@@ -10,8 +10,8 @@ import {
 export interface IUserCommunityChatService {
     // Community Channel
     getChannelMessages(userId: string, communityUsername: string, cursor?: string, limit?: number): Promise<CommunityMessagesListResponseDto>;
-    reactToMessage(userId: string, messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: any[] }>;
-    removeReaction(userId: string, messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: any[] }>;
+    reactToMessage(userId: string, messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: Record<string, unknown>[] }>;
+    removeReaction(userId: string, messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: Record<string, unknown>[] }>;
 
     // Community Group Chat
     sendGroupMessage(userId: string, data: SendGroupMessageDto): Promise<CommunityGroupMessageResponseDto>;

@@ -20,7 +20,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': 'off',
       // 'semi': ['error', 'always'],
       'no-console': ['error', { allow: ['warn', 'error'] }],
-      '@typescript-eslint/no-explicit-any': 'off',
+      // '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-non-null-asserted-optional-chain': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/no-wrapper-object-types': 'off',

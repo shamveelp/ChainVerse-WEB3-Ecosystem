@@ -106,7 +106,7 @@ export class AdminCommunityPostService implements IAdminCommunityPostService {
     }> {
         const result = await this._repository.getPostLikers(postId, type, cursor, limit);
         return {
-            likers: result.likers.map(liker => new AdminPostLikerDto(liker.user as CombinedUser)),
+            likers: result.likers.map(liker => new AdminPostLikerDto(liker.user as unknown as CombinedUser)),
             hasMore: result.hasMore,
             nextCursor: result.nextCursor
         };

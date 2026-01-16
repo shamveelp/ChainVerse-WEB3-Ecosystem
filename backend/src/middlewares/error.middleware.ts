@@ -6,15 +6,25 @@ import { ErrorMessages } from "../enums/messages.enum";
 import { CustomError } from "../utils/customError";
 
 
+// Define an interface for the error object shape we expect
+interface ExtendedError extends Error {
+    statusCode?: number;
+    status?: number;
+    code?: string;
+    constraints?: Record<string, string>;
+    name: string;
+}
+
 export const errorHandler = (
-    err: any,
+    err: unknown,
     req: Request,
     res: Response,
     _next: NextFunction
 ) => {
+    const error = err as ExtendedError;
     logger.error("Global error handler:", {
-        error: err.message,
-        stack: err.stack,
+        error: error.message,
+        stack: error.stack,
         path: req.path,
         method: req.method,
         body: req.method === 'POST' || req.method === 'PUT' ?
@@ -41,8 +51,8 @@ export const errorHandler = (
     }
 
     // Handle MongoDB/Mongoose Errors
-    if (err.name === 'MongoError' || err.name === 'MongooseError') {
-        logger.error("Database error:", err);
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+        logger.error("Database error:", error);
         return res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             error: ErrorMessages.DATABASE_ERROR
@@ -50,14 +60,14 @@ export const errorHandler = (
     }
 
     // Handle JWT Errors
-    if (err.name === 'JsonWebTokenError') {
+    if (error.name === 'JsonWebTokenError') {
         return res.status(StatusCode.UNAUTHORIZED).json({
             success: false,
             error: ErrorMessages.INVALID_TOKEN
         });
     }
 
-    if (err.name === 'TokenExpiredError') {
+    if (error.name === 'TokenExpiredError') {
         return res.status(StatusCode.UNAUTHORIZED).json({
             success: false,
             error: ErrorMessages.TOKEN_EXPIRED
@@ -65,14 +75,14 @@ export const errorHandler = (
     }
 
     // Handle Multer Errors (File Upload)
-    if (err.code === 'LIMIT_FILE_SIZE') {
+    if (error.code === 'LIMIT_FILE_SIZE') {
         return res.status(StatusCode.BAD_REQUEST).json({
             success: false,
             error: ErrorMessages.FILE_TOO_LARGE
         });
     }
 
-    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+    if (error.code === 'LIMIT_UNEXPECTED_FILE') {
         return res.status(StatusCode.BAD_REQUEST).json({
             success: false,
             error: ErrorMessages.INVALID_FILE_TYPE
@@ -80,7 +90,7 @@ export const errorHandler = (
     }
 
     // Handle Rate Limiting
-    if (err.status === StatusCode.TOO_MANY_REQUESTS) {
+    if (error.status === StatusCode.TOO_MANY_REQUESTS) {
         return res.status(StatusCode.TOO_MANY_REQUESTS).json({
             success: false,
             error: ErrorMessages.RATE_LIMIT_EXCEEDED
@@ -88,16 +98,16 @@ export const errorHandler = (
     }
 
     // Default server error
-    const statusCode = err.statusCode || StatusCode.INTERNAL_SERVER_ERROR;
-    const message = err.message || ErrorMessages.SERVER_ERROR;
+    const statusCode = error.statusCode || StatusCode.INTERNAL_SERVER_ERROR;
+    const message = error.message || ErrorMessages.SERVER_ERROR;
 
     res.status(statusCode).json({
         success: false,
         error: message,
         statusCode,
         ...(process.env.NODE_ENV === 'development' && {
-            stack: err.stack,
-            details: err
+            stack: error.stack,
+            details: error
         })
     });
 };

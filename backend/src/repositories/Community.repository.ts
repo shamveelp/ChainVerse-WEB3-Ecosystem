@@ -177,8 +177,8 @@ export class CommunityRepository implements ICommunityRepository {
       });
 
       await follow.save();
-    } catch (error: any) {
-      if (error.code === 11000) {
+    } catch (error: unknown) {
+      if ((error as { code?: number }).code === 11000) {
         throw new CustomError(
           "Already following this user",
           StatusCode.BAD_REQUEST
@@ -749,8 +749,8 @@ export class CommunityRepository implements ICommunityRepository {
       });
 
       await membership.save();
-    } catch (error: any) {
-      if (error.code === 11000) {
+    } catch (error: unknown) {
+      if ((error as { code?: number }).code === 11000) {
         throw new CustomError("Already a member of this community", StatusCode.BAD_REQUEST);
       }
       if (error instanceof CustomError) throw error;
@@ -1027,7 +1027,17 @@ export class CommunityRepository implements ICommunityRepository {
       });
 
       return {
-        memberships: formattedMemberships as any, // Keeping 'any' here as the return type is complex to match exactly without DTO interface
+        memberships: formattedMemberships as unknown as Array<{
+          community: ICommunity;
+          role: string;
+          joinedAt: Date;
+          lastActiveAt: Date;
+          unreadPosts: number;
+          totalPosts: number;
+          isActive: boolean;
+          notifications: boolean;
+          memberCount: number;
+        }>,
         hasMore,
         nextCursor: hasMore && resultMemberships.length > 0
           ? resultMemberships[resultMemberships.length - 1]._id.toString()

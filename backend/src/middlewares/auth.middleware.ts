@@ -8,6 +8,9 @@ import { IUserRepository } from "../core/interfaces/repositories/IUser.repositor
 import { IAdminRepository } from "../core/interfaces/repositories/IAdmin.repository";
 import { ICommunityAdminRepository } from "../core/interfaces/repositories/ICommunityAdminRepository";
 import { TYPES } from "../core/types/types";
+import { IUser } from "../models/user.models";
+import { IAdmin } from "../models/admin.model";
+import { ICommunityAdmin } from "../models/communityAdmin.model";
 import container from "../core/di/container";
 
 export interface AuthenticatedRequest extends Request {
@@ -52,7 +55,7 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
     const adminRepo = container.get<IAdminRepository>(TYPES.IAdminRepository);
     const communityAdminRepo = container.get<ICommunityAdminRepository>(TYPES.ICommunityAdminRepository);
 
-    let account: any;
+    let account: IUser | IAdmin | ICommunityAdmin | null;
     try {
       switch (decoded.role) {
         case "user":
@@ -93,7 +96,7 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
     }
 
     // Check if account is banned
-    if (account.isBanned) {
+    if ((account as unknown as { isBanned?: boolean }).isBanned) {
       return res.status(StatusCode.FORBIDDEN).json({
         success: false,
         message: "Account is banned"
@@ -101,7 +104,7 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
     }
 
     // Check if admin is active
-    if (decoded.role === 'admin' && !account.isActive) {
+    if (decoded.role === 'admin' && !(account as unknown as { isActive?: boolean }).isActive) {
       return res.status(StatusCode.FORBIDDEN).json({
         success: false,
         message: "Admin account is inactive"
@@ -109,7 +112,7 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
     }
 
     // Set user in request
-    (req as any).user = {
+    (req as AuthenticatedRequest).user = {
       id: decoded.id,
       role: decoded.role,
       tokenVersion: decoded.tokenVersion,
@@ -126,8 +129,7 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
 export const roleMiddleware = (allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-
-      const user = (req as any).user as { id: string; role: string };
+      const user = (req as AuthenticatedRequest).user;
       if (!user) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,

@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import logger from '../utils/logger';
 
 interface QuestSuggestion {
@@ -16,14 +16,14 @@ interface QuestSuggestion {
     title: string;
     description: string;
     type: string;
-    requirements?: any;
+    requirements?: Record<string, unknown>;
     points: number;
   }>;
 }
 
 export class GeminiAiService {
   private genAI: GoogleGenerativeAI;
-  private model: any;
+  private model: GenerativeModel;
 
   constructor() {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -34,7 +34,7 @@ export class GeminiAiService {
     communityName: string,
     communityCategory: string,
     userPrompt: string,
-    conversationHistory: Array<{role: 'user' | 'assistant', content: string}> = []
+    conversationHistory: Array<{ role: 'user' | 'assistant', content: string }> = []
   ): Promise<{ response: string; questSuggestion?: QuestSuggestion }> {
     try {
       // Build conversation context
@@ -86,10 +86,10 @@ Be conversational, helpful, and ask follow-up questions to create the perfect qu
       contextPrompt += `\nCurrent Admin Request: ${userPrompt}`;
 
       // Check if we should generate a complete quest structure
-      const shouldGenerateQuest = userPrompt.toLowerCase().includes('generate') || 
-                                 userPrompt.toLowerCase().includes('create quest') ||
-                                 userPrompt.toLowerCase().includes('finalize') ||
-                                 conversationHistory.length >= 3;
+      const shouldGenerateQuest = userPrompt.toLowerCase().includes('generate') ||
+        userPrompt.toLowerCase().includes('create quest') ||
+        userPrompt.toLowerCase().includes('finalize') ||
+        conversationHistory.length >= 3;
 
       if (shouldGenerateQuest) {
         contextPrompt += `\n\nPLEASE PROVIDE:
@@ -137,7 +137,7 @@ QUEST_JSON_END`;
       // Extract quest JSON if present
       let questSuggestion: QuestSuggestion | undefined;
       const jsonMatch = response.match(/QUEST_JSON_START\s*([\s\S]*?)\s*QUEST_JSON_END/);
-      
+
       if (jsonMatch) {
         try {
           questSuggestion = JSON.parse(jsonMatch[1].trim());
@@ -159,7 +159,7 @@ QUEST_JSON_END`;
     }
   }
 
-  async improveQuestDescription(questData: any): Promise<string> {
+  async improveQuestDescription(questData: QuestSuggestion): Promise<string> {
     try {
       const prompt = `Improve this quest description to be more engaging and clear:
       

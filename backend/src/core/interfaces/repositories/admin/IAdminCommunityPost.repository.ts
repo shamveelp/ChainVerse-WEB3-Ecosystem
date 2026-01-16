@@ -4,9 +4,9 @@ import { IComment } from "../../../../models/comment.models";
 import { ICommunityAdminComment } from "../../../../models/communityAdminComment.model";
 
 export interface IUnifiedLiker {
-    _id: any;
+    _id: string;
     likedAt: Date;
-    user: any;
+    user: Record<string, unknown>;
 }
 
 export interface IAdminCommunityPostRepository {

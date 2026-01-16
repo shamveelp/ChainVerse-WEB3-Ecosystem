@@ -19,7 +19,11 @@ import {
     MemberActionResponseDto,
     MemberDetailResponseDto,
     BulkUpdateMembersDto,
-    MembersSummaryDto
+    MembersSummaryDto,
+    RemoveMemberResponseDto,
+    MemberActivityResponseDto,
+    BulkUpdateMembersResponseDto,
+    BulkUpdateResult
 } from "../../dtos/communityAdmin/CommunityAdminMembers.dto";
 
 interface PopulatedUser {
@@ -34,12 +38,7 @@ interface PopulatedMember extends Omit<ICommunityMember, 'userId'> {
     userId: PopulatedUser;
 }
 
-interface BulkUpdateResult {
-    memberId: string;
-    status: 'success' | 'error';
-    result?: unknown;
-    error?: string;
-}
+
 
 @injectable()
 export class CommunityAdminMembersService implements ICommunityAdminMembersService {
@@ -337,19 +336,13 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
     }
 
     /**
-     * 
-     * @param adminId 
-     * @param memberId 
-     * @param reason 
-     * @returns 
+     * Removes a member from the community.
+     * @param {string} adminId - The ID of the admin performing the removal.
+     * @param {string} memberId - The ID of the member to remove.
+     * @param {string} [reason] - Reason for removal.
+     * @returns {Promise<RemoveMemberResponseDto>} Result of the removal action.
      */
-    async removeMember(adminId: string, memberId: string, reason?: string): Promise<{
-        success: boolean;
-        memberId: string;
-        removedBy: string;
-        reason: string;
-        message: string;
-    }> {
+    async removeMember(adminId: string, memberId: string, reason?: string): Promise<RemoveMemberResponseDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -373,13 +366,12 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             // Remove member from community
             await CommunityMemberModel.findByIdAndDelete(memberId);
 
-            return {
-                success: true,
+            return new RemoveMemberResponseDto(
                 memberId,
-                removedBy: adminId,
-                reason: reason || "Removed by community admin",
-                message: CommunityAdminMembersMessages.MEMBER_REMOVED_SUCCESS
-            };
+                adminId,
+                reason || "Removed by community admin",
+                CommunityAdminMembersMessages.MEMBER_REMOVED_SUCCESS
+            );
         } catch (error) {
             logger.error(CommunityAdminMembersMessages.LOG_REMOVE_MEMBER, error);
             if (error instanceof CustomError) {
@@ -390,25 +382,13 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
     }
 
     /**
-     * 
-     * @param adminId 
-     * @param memberId 
-     * @param period 
-     * @returns 
+     * Retrieves a member's activity stats.
+     * @param {string} adminId - The ID of the admin requesting the activity.
+     * @param {string} memberId - The ID of the member.
+     * @param {string} [period='week'] - The period for activity calculation.
+     * @returns {Promise<MemberActivityResponseDto>} Member activity stats.
      */
-    async getMemberActivity(adminId: string, memberId: string, period: string = 'week'): Promise<{
-        member: CommunityMemberDetailDto;
-        period: string;
-        activity: {
-            posts: number;
-            likes: number;
-            comments: number;
-            questsCompleted: number;
-            lastActive: Date;
-            joinDate: Date;
-        };
-        timeline: Record<string, unknown>[];
-    }> {
+    async getMemberActivity(adminId: string, memberId: string, period: string = 'week'): Promise<MemberActivityResponseDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -439,7 +419,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
             // Create detailed member DTO
             const memberDetailDto = new CommunityMemberDetailDto(member.toObject(), populatedUser);
 
-            const activityData = {
+            return new MemberActivityResponseDto({
                 member: memberDetailDto,
                 period,
                 activity: {
@@ -451,9 +431,7 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                     joinDate: member.joinedAt
                 },
                 timeline: [] // TODO: Implement activity timeline
-            };
-
-            return activityData;
+            });
         } catch (error) {
             logger.error(CommunityAdminMembersMessages.LOG_MEMBER_ACTIVITY, error);
             if (error instanceof CustomError) {
@@ -464,20 +442,12 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
     }
 
     /**
-     * 
-     * @param adminId 
-     * @param data 
-     * @returns 
+     * Performs bulk updates on multiple members.
+     * @param {string} adminId - The ID of the admin performing the updates.
+     * @param {BulkUpdateMembersDto} data - Data containing member IDs and action to perform.
+     * @returns {Promise<BulkUpdateMembersResponseDto>} Result of the bulk update action.
      */
-    async bulkUpdateMembers(adminId: string, data: BulkUpdateMembersDto): Promise<{
-        success: boolean;
-        totalProcessed: number;
-        successCount: number;
-        errorCount: number;
-        results: BulkUpdateResult[];
-        errors: BulkUpdateResult[];
-        message: string;
-    }> {
+    async bulkUpdateMembers(adminId: string, data: BulkUpdateMembersDto): Promise<BulkUpdateMembersResponseDto> {
         try {
             const admin = await this._adminRepository.findById(adminId);
             if (!admin || !admin.communityId) {
@@ -528,15 +498,14 @@ export class CommunityAdminMembersService implements ICommunityAdminMembersServi
                 }
             }
 
-            return {
-                success: true,
-                totalProcessed: memberIds.length,
-                successCount: results.length,
-                errorCount: errors.length,
+            return new BulkUpdateMembersResponseDto(
+                memberIds.length,
+                results.length,
+                errors.length,
                 results,
                 errors,
-                message: `Bulk ${action} completed. ${results.length} successful, ${errors.length} failed.`
-            };
+                `Bulk ${action} completed. ${results.length} successful, ${errors.length} failed.`
+            );
         } catch (error) {
             logger.error(CommunityAdminMembersMessages.LOG_BULK_UPDATE, error);
             if (error instanceof CustomError) {

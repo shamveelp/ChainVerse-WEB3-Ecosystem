@@ -35,7 +35,7 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
 
       // "Liberal" Token Handling: Just decode, don't verify signature.
       // This trusts the client's claim about who they are.
-      const decoded = jwt.decode(token) as any;
+      const decoded = jwt.decode(token) as jwt.JwtPayload;
 
       if (decoded && decoded.id) {
         socket.userId = decoded.id;
@@ -116,7 +116,7 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
       });
 
       // Gather current participants
-      const currentParticipants: any[] = [];
+      const currentParticipants: Record<string, unknown>[] = [];
       const roomSocketIds = chainCastSocketMap.get(chainCastId);
       if (roomSocketIds) {
         for (const sId of roomSocketIds) {
@@ -178,7 +178,7 @@ export const setupChainCastSocketHandlers = (io: SocketIOServer) => {
 
     // --- WebRTC Signaling (Relay) ---
     // Simple relay mechanism for P2P connection
-    const relaySignal = (event: string, data: any) => {
+    const relaySignal = (event: string, data: { toUserId: string; chainCastId: string } & Record<string, unknown>) => {
       const { toUserId, chainCastId } = data;
       const targetSocketId = participantSocketMap.get(toUserId);
       if (targetSocketId) {

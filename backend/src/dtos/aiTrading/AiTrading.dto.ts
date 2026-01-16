@@ -25,6 +25,7 @@ export interface ChatContextDto {
     };
     suggestions?: string[];
     actionRequired?: ActionRequiredDto;
+    [key: string]: unknown;
 }
 
 export interface ITradeDetails {

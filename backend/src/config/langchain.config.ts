@@ -111,7 +111,7 @@ RESPONSE:`);
         };
     }
 
-    private generateFallbackResponse(prompt: string): any {
+    private generateFallbackResponse(prompt: string): { content: string } {
         const userMessage = this.extractUserMessage(prompt);
 
         // Simple rule-based responses for common queries
@@ -206,8 +206,8 @@ What would you like to do today? 🚀`
         userMessage: string,
         context: {
             walletConnected: boolean;
-            tokenPrices?: any;
-            userBalances?: any;
+            tokenPrices?: Record<string, unknown>;
+            userBalances?: Record<string, unknown>;
             recentTransaction?: string;
         }
     ): Promise<string> {
@@ -241,7 +241,7 @@ What would you like to do today? 🚀`
         fromToken: string,
         toToken: string,
         amount: string,
-        currentPrices: any
+        currentPrices: Record<string, unknown>
     ): Promise<string> {
         try {
             if (!this.chatModel) {

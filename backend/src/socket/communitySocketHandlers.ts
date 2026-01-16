@@ -11,6 +11,7 @@ import { emitToUser } from './socketHandlers';
 import { CommunityMemberModel } from '../models/communityMember.model';
 import { NotificationModel } from '../models/notification.model';
 import { CommunityModel } from '../models/community.model';
+import { MediaFileDto } from '../dtos/communityChat/CommunityMessage.dto';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -45,7 +46,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
       let decoded;
       try {
         decoded = JwtService.verifySocketToken(token) as { id: string; role: string };
-      } catch (error: any) {
+      } catch (err: unknown) {
+        const error = err as Error;
         logger.error('Token verification failed', {
           socketId: socket.id,
           error: error.message
@@ -91,7 +93,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           socket.username = user.username;
           socket.userType = 'user';
         }
-      } catch (dbError: any) {
+      } catch (err: unknown) {
+        const dbError = err as Error;
         logger.error('Database error during socket authentication', {
           socketId: socket.id,
           error: dbError.message
@@ -107,7 +110,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
         communityId: socket.communityId
       });
       next();
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       logger.error('Socket authentication unexpected error', {
         error: error.message
       });
@@ -223,7 +227,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
     // Admin send message to community channel
     socket.on('send_channel_message', async (data: {
       content: string;
-      mediaFiles?: any[];
+      mediaFiles?: unknown[];
       messageType?: 'text' | 'media' | 'mixed';
     }) => {
       try {
@@ -238,7 +242,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           const communityService = container.get<ICommunityAdminCommunityService>(TYPES.ICommunityAdminCommunityService);
           message = await communityService.sendMessage(socket.userId!, {
             content: data.content?.trim() || '',
-            mediaFiles: data.mediaFiles || [],
+            mediaFiles: (data.mediaFiles as MediaFileDto[]) || [],
             messageType: data.messageType
           });
         } else {
@@ -275,7 +279,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           messageId: message._id
         }, socket.userId);
 
-      } catch (error: any) {
+      } catch (err: unknown) {
+        const error = err as Error;
         logger.error('Send channel message error', {
           socketId: socket.id,
           userId: socket.userId,
@@ -330,7 +335,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           emoji: data.emoji
         });
 
-      } catch (error: any) {
+      } catch (err: unknown) {
+        const error = err as Error;
         logger.error('React to channel message error', {
           socketId: socket.id,
           userId: socket.userId,
@@ -386,7 +392,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           }, socket.userId);
         }
 
-      } catch (error: any) {
+      } catch (err: unknown) {
+        const error = err as Error;
         logger.error('Send group message error', {
           socketId: socket.id,
           userId: socket.userId,
@@ -445,7 +452,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           messageId: data.messageId
         });
 
-      } catch (error: any) {
+      } catch (err: unknown) {
+        const error = err as Error;
         logger.error('Edit group message error', {
           socketId: socket.id,
           userId: socket.userId,
@@ -488,7 +496,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           messageId: data.messageId
         });
 
-      } catch (error: any) {
+      } catch (err: unknown) {
+        const error = err as Error;
         logger.error('Delete group message error', {
           socketId: socket.id,
           userId: socket.userId,
@@ -531,7 +540,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           messageId: data.messageId
         });
 
-      } catch (error: any) {
+      } catch (err: unknown) {
+        const error = err as Error;
         logger.error('Admin delete group message error', {
           socketId: socket.id,
           adminId: socket.userId,
@@ -618,7 +628,7 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
 };
 
 // Helper function to emit to community - More robust
-export const emitToCommunity = (io: SocketIOServer, communityId: string, event: string, data: any, room?: 'channel' | 'chat') => {
+export const emitToCommunity = (io: SocketIOServer, communityId: string, event: string, data: unknown, room?: 'channel' | 'chat') => {
   try {
     const communityNamespace = io.of('/community');
     const roomName = room ? `community:${communityId}:${room}` : `community:${communityId}`;
@@ -635,14 +645,14 @@ export const getCommunityConnections = (communityId: string): number => {
 };
 
 // Helper function to notify all community members
-export const notifyCommunityMembers = async (io: SocketIOServer, communityId: string, notification: any, excludeUserId?: string) => {
+export const notifyCommunityMembers = async (io: SocketIOServer, communityId: string, notification: Record<string, unknown>, excludeUserId?: string) => {
   try {
     const members = await CommunityMemberModel.find({
       communityId,
       isActive: true
     }).select('userId').lean();
 
-    const notificationsToCreate: any[] = [];
+    const notificationsToCreate: Record<string, unknown>[] = [];
 
     for (const member of members) {
       if (excludeUserId && member.userId.toString() === excludeUserId) continue;

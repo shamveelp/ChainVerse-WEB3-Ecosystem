@@ -167,9 +167,9 @@ export class AdminCommunityPostRepository implements IAdminCommunityPostReposito
                 .lean();
             // Map to unified liker structure
             likers = likes.map(l => ({
-                _id: l._id,
+                _id: l._id.toString(),
                 likedAt: l.createdAt,
-                user: l.user
+                user: l.user as unknown as Record<string, unknown>
             }));
         } else {
             // Re-cast query for AdminPostLike if needed, structure is similar
@@ -182,9 +182,9 @@ export class AdminCommunityPostRepository implements IAdminCommunityPostReposito
                 .lean();
             // Map to unified liker structure
             likers = likes.map(l => ({
-                _id: l._id,
+                _id: l._id.toString(),
                 likedAt: l.createdAt,
-                user: l.admin // Alias admin as user for frontend consistency
+                user: l.admin as unknown as Record<string, unknown> // Alias admin as user for frontend consistency
             }));
         }
 

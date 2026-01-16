@@ -4,6 +4,7 @@ import { inject, injectable } from "inversify";
 import { TYPES } from "../core/types/types";
 import { IUserRepository } from "../core/interfaces/repositories/IUser.repository";
 import logger from "../utils/logger";
+import { IUser } from "../models/user.models";
 
 
 @injectable()
@@ -32,7 +33,7 @@ export class PassportConfig {
                                 role: "user",
                             })
                         }
-                        return done(null, user as any);
+                        return done(null, user);
                     } catch (error) {
                         logger.error("Google Strategy: Error", error);
                         return done(error);
@@ -41,7 +42,7 @@ export class PassportConfig {
             )
         );
 
-        passport.serializeUser((user: any, done) => {
+        passport.serializeUser((user: IUser, done) => {
             done(null, user.id);
         });
 
