@@ -1,20 +1,27 @@
 import { injectable } from "inversify";
-import { IUserQuestRepository } from "../../core/interfaces/repositories/quest/IUserQuest.repository";
+import {
+  IUserQuestRepository,
+  IParticipantStats,
+  IQuestLeaderboardResult,
+  IMyQuestResult
+} from "../../core/interfaces/repositories/quest/IUserQuest.repository";
 import QuestModel, { IQuest } from "../../models/quest.model";
 import QuestTaskModel, { IQuestTask } from "../../models/questTask.model";
 import QuestParticipantModel, { IQuestParticipant } from "../../models/questParticipant.model";
 import QuestSubmissionModel, { IQuestSubmission } from "../../models/questSubmission.model";
-import mongoose from "mongoose";
+import mongoose, { FilterQuery, SortOrder } from "mongoose";
 
 @injectable()
 export class UserQuestRepository implements IUserQuestRepository {
   // Quest operations
-  async findAvailableQuests(page: number, limit: number, filters: any = {}): Promise<{ quests: IQuest[]; total: number }> {
+  async findAvailableQuests(page: number, limit: number, filters: FilterQuery<IQuest> = {}): Promise<{ quests: IQuest[]; total: number }> {
     const skip = (page - 1) * limit;
     const { sortBy = 'createdAt', sortOrder = 'desc', ...queryFilters } = filters;
 
-    const sortOptions: any = {};
-    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
+    const sortOptions: Record<string, SortOrder> = {};
+    if (sortBy) {
+      sortOptions[sortBy as string] = sortOrder === 'asc' ? 1 : -1;
+    }
 
     const [quests, total] = await Promise.all([
       QuestModel.find(queryFilters)
@@ -63,9 +70,9 @@ export class UserQuestRepository implements IUserQuestRepository {
     ).lean();
   }
 
-  async findMyQuests(userId: string, page: number, limit: number, status?: string): Promise<{ quests: any[]; total: number }> {
+  async findMyQuests(userId: string, page: number, limit: number, status?: string): Promise<IMyQuestResult> {
     const skip = (page - 1) * limit;
-    const filter: any = { userId };
+    const filter: FilterQuery<IQuestParticipant> = { userId };
 
     if (status) {
       filter.status = status;
@@ -89,10 +96,10 @@ export class UserQuestRepository implements IUserQuestRepository {
 
     const questsWithDetails = participations.map(participation => ({
       ...participation,
-      quest: participation.questId
+      quest: participation.questId as unknown as IQuest
     }));
 
-    return { quests: questsWithDetails, total };
+    return { quests: questsWithDetails as unknown as (IQuestParticipant & { quest: IQuest })[], total };
   }
 
   // Task operations
@@ -129,12 +136,13 @@ export class UserQuestRepository implements IUserQuestRepository {
   }
 
   // Enhanced analytics
-  async getQuestParticipantStats(questId: string): Promise<any> {
-    const [totalParticipants, completedParticipants, inProgressParticipants, winnerCount] = await Promise.all([
+  async getQuestParticipantStats(questId: string): Promise<IParticipantStats> {
+    const [totalParticipants, completedParticipants, inProgressParticipants, winnerCount, totalSubmissions] = await Promise.all([
       QuestParticipantModel.countDocuments({ questId }),
       QuestParticipantModel.countDocuments({ questId, status: 'completed' }),
       QuestParticipantModel.countDocuments({ questId, status: 'in_progress' }),
-      QuestParticipantModel.countDocuments({ questId, isWinner: true })
+      QuestParticipantModel.countDocuments({ questId, isWinner: true }),
+      QuestSubmissionModel.countDocuments({ questId })
     ]);
 
     return {
@@ -142,12 +150,13 @@ export class UserQuestRepository implements IUserQuestRepository {
       completedParticipants,
       inProgressParticipants,
       winnerCount,
+      totalSubmissions,
       completionRate: totalParticipants > 0 ? (completedParticipants / totalParticipants) * 100 : 0
     };
   }
 
   // Enhanced leaderboard with pagination and proper scoring
-  async getQuestLeaderboard(questId: string, page: number = 1, limit: number = 10): Promise<{ participants: any[]; total: number; pages: number }> {
+  async getQuestLeaderboard(questId: string, page: number = 1, limit: number = 10): Promise<IQuestLeaderboardResult> {
     const skip = (page - 1) * limit;
 
     // Get quest details to determine selection method
@@ -156,7 +165,7 @@ export class UserQuestRepository implements IUserQuestRepository {
       return { participants: [], total: 0, pages: 0 };
     }
 
-    let sortCriteria: any = {};
+    let sortCriteria: Record<string, SortOrder> = {};
 
     // Different sorting based on quest selection method
     if (quest.selectionMethod === 'leaderboard') {
@@ -204,7 +213,7 @@ export class UserQuestRepository implements IUserQuestRepository {
       rank: skip + index + 1
     }));
 
-    return { participants: participantsWithRank, total, pages };
+    return { participants: participantsWithRank as unknown as (IQuestParticipant & { rank: number })[], total, pages };
   }
 
   // Check if quest supports leaderboard
@@ -231,7 +240,7 @@ export class UserQuestRepository implements IUserQuestRepository {
     const quest = await QuestModel.findById(questId).lean();
     if (!quest) return 0;
 
-    let sortCriteria: any = {};
+    let sortCriteria: Record<string, SortOrder> = {};
 
     if (quest.selectionMethod === 'leaderboard') {
       sortCriteria = {
@@ -295,50 +304,55 @@ export class UserQuestRepository implements IUserQuestRepository {
   }
 
   // Validate task submission based on task type
-  async validateTaskSubmission(taskId: string, submissionData: any): Promise<{ valid: boolean; message?: string }> {
+  async validateTaskSubmission(taskId: string, submissionData: IQuestSubmission['submissionData']): Promise<{ valid: boolean; message?: string }> {
     const task = await QuestTaskModel.findById(taskId).lean();
     if (!task) {
       return { valid: false, message: "Task not found" };
     }
 
+    // Cast submissionData to Record to allow flexible access
+    const data = submissionData as Record<string, string>;
+
     switch (task.taskType) {
       case 'join_community':
-        if (!submissionData.communityId) {
+        if (!data?.communityId) {
           return { valid: false, message: "Community ID is required" };
         }
         break;
       case 'follow_user':
-        if (!submissionData.targetUserId) {
+        if (!data?.targetUserId) {
           return { valid: false, message: "Target user ID is required" };
         }
         break;
-      case 'twitter_post':
-        if (!submissionData.twitterUrl) {
+      case 'twitter_post': {
+        if (!data?.twitterUrl) {
           return { valid: false, message: "Twitter post URL is required" };
         }
         // Validate Twitter URL format
         const twitterUrlPattern = /^https:\/\/(twitter\.com|x\.com)\/\w+\/status\/\d+/;
-        if (!twitterUrlPattern.test(submissionData.twitterUrl)) {
+        if (!twitterUrlPattern.test(data.twitterUrl)) {
           return { valid: false, message: "Please provide a valid Twitter post URL" };
         }
         break;
+      }
       case 'upload_screenshot':
-        if (!submissionData.imageUrl) {
+        if (!data?.imageUrl) {
           return { valid: false, message: "Screenshot image is required" };
         }
         break;
-      case 'wallet_connect':
-        if (!submissionData.walletAddress) {
+      case 'wallet_connect': {
+        if (!data?.walletAddress) {
           return { valid: false, message: "Wallet address is required" };
         }
         // Validate Ethereum address format
         const ethAddressPattern = /^0x[a-fA-F0-9]{40}$/;
-        if (!ethAddressPattern.test(submissionData.walletAddress)) {
+        if (!ethAddressPattern.test(data.walletAddress)) {
           return { valid: false, message: "Please provide a valid Ethereum wallet address" };
         }
         break;
+      }
       case 'custom':
-        if (!submissionData.text && !submissionData.linkUrl && !submissionData.imageUrl) {
+        if (!data?.text && !data?.linkUrl && !data?.imageUrl) {
           return { valid: false, message: "Please provide some form of submission (text, link, or image)" };
         }
         break;

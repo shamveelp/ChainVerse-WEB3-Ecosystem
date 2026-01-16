@@ -44,12 +44,18 @@ export class DailyCheckInResponseDto extends BaseResponseDto {
   }
 }
 
+export interface ICheckInStatus {
+  hasCheckedInToday: boolean;
+  currentStreak: number;
+  nextCheckInAvailable: Date | null;
+}
+
 export class CheckInStatusResponseDto extends BaseResponseDto {
   hasCheckedInToday: boolean;
   currentStreak: number;
   nextCheckInAvailable: Date | null;
 
-  constructor(status: any) {
+  constructor(status: ICheckInStatus) {
     super(true, 'Check-in status retrieved successfully');
     this.hasCheckedInToday = status.hasCheckedInToday;
     this.currentStreak = status.currentStreak;

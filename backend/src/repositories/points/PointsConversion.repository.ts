@@ -1,12 +1,12 @@
 import { injectable } from "inversify";
 import { IPointsConversionRepository } from "../../core/interfaces/repositories/points/IPointsConversion.repository";
 import { PointsConversionModel, IPointsConversion } from "../../models/pointsConversion.model";
-import { Types } from "mongoose";
+import { Types, UpdateQuery } from "mongoose";
 import logger from "../../utils/logger";
 
 @injectable()
 export class PointsConversionRepository implements IPointsConversionRepository {
-  
+
   async create(data: {
     userId: string;
     pointsConverted: number;
@@ -22,7 +22,7 @@ export class PointsConversionRepository implements IPointsConversionRepository {
         conversionRate: data.conversionRate,
         claimFee: data.claimFee
       });
-      
+
       return await conversion.save();
     } catch (error) {
       logger.error("Error creating points conversion:", error);
@@ -49,9 +49,9 @@ export class PointsConversionRepository implements IPointsConversionRepository {
   }> {
     try {
       const skip = (page - 1) * limit;
-      
-      const conversions = await PointsConversionModel.find({ 
-        userId: new Types.ObjectId(userId) 
+
+      const conversions = await PointsConversionModel.find({
+        userId: new Types.ObjectId(userId)
       })
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -59,8 +59,8 @@ export class PointsConversionRepository implements IPointsConversionRepository {
         .populate('approvedBy', 'username')
         .exec();
 
-      const total = await PointsConversionModel.countDocuments({ 
-        userId: new Types.ObjectId(userId) 
+      const total = await PointsConversionModel.countDocuments({
+        userId: new Types.ObjectId(userId)
       });
 
       return {
@@ -81,10 +81,10 @@ export class PointsConversionRepository implements IPointsConversionRepository {
   }> {
     try {
       const skip = (page - 1) * limit;
-      
+
       // If status is 'all', don't filter by status
       const query = status === 'all' ? {} : { status };
-      
+
       const conversions = await PointsConversionModel.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -107,7 +107,7 @@ export class PointsConversionRepository implements IPointsConversionRepository {
   }
 
   async updateStatus(
-    id: string, 
+    id: string,
     status: 'pending' | 'approved' | 'rejected' | 'claimed',
     updateData?: {
       adminNote?: string;
@@ -119,8 +119,8 @@ export class PointsConversionRepository implements IPointsConversionRepository {
     }
   ): Promise<IPointsConversion | null> {
     try {
-      const updateObj: any = { status };
-      
+      const updateObj: UpdateQuery<IPointsConversion> = { status };
+
       if (updateData) {
         if (updateData.adminNote) updateObj.adminNote = updateData.adminNote;
         if (updateData.approvedBy) updateObj.approvedBy = new Types.ObjectId(updateData.approvedBy);
@@ -131,7 +131,7 @@ export class PointsConversionRepository implements IPointsConversionRepository {
       }
 
       return await PointsConversionModel.findByIdAndUpdate(
-        id, 
+        id,
         updateObj,
         { new: true }
       )

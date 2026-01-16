@@ -1,13 +1,17 @@
 import { injectable } from "inversify";
 import { IAdminCommunityManagementRepository } from "../../core/interfaces/repositories/admin/IAdminCommunityManagement.repository";
 import CommunityModel, { ICommunity } from "../../models/community.model";
-import CommunityMemberModel from "../../models/communityMember.model";
+import CommunityMemberModel, { ICommunityMember } from "../../models/communityMember.model";
+import { FilterQuery, PipelineStage, Types } from "mongoose";
+import { IUser } from "../../models/user.models";
+
+type PopulatedCommunityMember = Omit<ICommunityMember, 'userId'> & { userId: IUser | null };
 
 @injectable()
 export class AdminCommunityManagementRepository implements IAdminCommunityManagementRepository {
 
     async getAllCommunities(page: number, limit: number, search: string, status?: string, isVerified?: boolean | string): Promise<{ communities: ICommunity[], total: number }> {
-        const query: any = {};
+        const query: FilterQuery<ICommunity> = {};
 
         if (search) {
             query.$or = [
@@ -54,58 +58,10 @@ export class AdminCommunityManagementRepository implements IAdminCommunityManage
         return !!result;
     }
 
-    async getCommunityMembers(communityId: string, page: number, limit: number, search: string): Promise<{ members: any[], total: number }> {
-        const query: any = { communityId };
+    async getCommunityMembers(communityId: string, page: number, limit: number, search: string): Promise<{ members: ICommunityMember[], total: number }> {
+        const query: FilterQuery<ICommunityMember> = { communityId };
 
-        if (search) {
-            // Find users matching search
-            // This requires importing UserModel, or doing an aggregation.
-            // Let's us aggregation for better performance.
-            const aggregationPipeline: any[] = [
-                { $match: { communityId: new Object(communityId) } }, // This might fail if communityId is string, need to convert to ObjectId
-                {
-                    $lookup: {
-                        from: 'users',
-                        localField: 'userId',
-                        foreignField: '_id',
-                        as: 'user'
-                    }
-                },
-                { $unwind: '$user' },
-                {
-                    $match: {
-                        $or: [
-                            { 'user.username': { $regex: search, $options: 'i' } },
-                            { 'user.email': { $regex: search, $options: 'i' } }
-                        ]
-                    }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        joinedAt: 1,
-                        role: 1,
-                        isActive: 1,
-                        totalPosts: 1,
-                        user: {
-                            _id: 1,
-                            username: 1,
-                            email: 1,
-                            profileImage: 1
-                        }
-                    }
-                },
-                { $skip: (page - 1) * limit },
-                { $limit: limit }
-            ];
-
-            // We actually need aggregation for total count as well if search is applied
-            // But for simplicity let's implement basic population first if search is simple, or aggregation.
-        }
-
-        // Implementation with Populate for basic listing + Basic filtering if needed.
-        // Since I don't have UserModel imported here easily, I will use Populate and in-memory filter if search is present (not efficient for large data)
-        // OR better: use aggregation.
+        // Note: The previous unused aggregation code was removed for cleanliness and type safety.
 
         const skip = (page - 1) * limit;
 
@@ -120,16 +76,15 @@ export class AdminCommunityManagementRepository implements IAdminCommunityManage
             } : {}
         };
 
-        // If we use match in populate, it returns null for userId if not matched.
-        // We then have to filter out nulls.
-
         let members = await CommunityMemberModel.find(query)
             .populate(populateOptions)
-            .sort({ joinedAt: -1 });
+            .sort({ joinedAt: -1 })
+            .lean() as unknown as ICommunityMember[];
 
         // Filter out where userId is null (didn't match search)
         if (search) {
-            members = members.filter(m => m.userId);
+            const populatedMembers = members as unknown as PopulatedCommunityMember[];
+            members = populatedMembers.filter((m) => m.userId) as unknown as ICommunityMember[];
         }
 
         const total = members.length; // Approximate total after search
@@ -143,17 +98,16 @@ export class AdminCommunityManagementRepository implements IAdminCommunityManage
                 .populate('userId', 'username email profileImage')
                 .skip(skip)
                 .limit(limit)
-                .sort({ joinedAt: -1 });
+                .sort({ joinedAt: -1 })
+                .lean();
 
-            // Count total documents
-            // total = await CommunityMemberModel.countDocuments(query); // Already defined above but variable scoping...
-            return { members, total: await CommunityMemberModel.countDocuments(query) };
+            return { members: members as unknown as ICommunityMember[], total: await CommunityMemberModel.countDocuments(query) };
         }
 
-        return { members, total };
+        return { members: members as unknown as ICommunityMember[], total };
     }
 
-    async updateCommunitySettings(id: string, settings: any): Promise<ICommunity | null> {
+    async updateCommunitySettings(id: string, settings: ICommunity['settings']): Promise<ICommunity | null> {
         return await CommunityModel.findByIdAndUpdate(id, { settings }, { new: true });
     }
 }

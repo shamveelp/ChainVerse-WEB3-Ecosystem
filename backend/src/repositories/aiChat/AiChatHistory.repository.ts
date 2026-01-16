@@ -1,18 +1,19 @@
 import { injectable } from "inversify";
 import { IAIChatHistoryRepository } from "../../core/interfaces/repositories/aiChat/IAIChatHistory.repository";
 import { AIChatHistoryModel, IAIChatHistory } from "../../models/aiChatHistory.model";
+import { UpdateQuery, Types } from "mongoose";
 import logger from "../../utils/logger";
 
 @injectable()
 export class AIChatHistoryRepository implements IAIChatHistoryRepository {
     async createOrUpdateSession(
-        sessionId: string, 
-        userId?: string, 
+        sessionId: string,
+        userId?: string,
         walletAddress?: string
     ): Promise<IAIChatHistory> {
         try {
             let chatHistory = await AIChatHistoryModel.findOne({ sessionId });
-            
+
             if (!chatHistory) {
                 chatHistory = new AIChatHistoryModel({
                     sessionId,
@@ -33,7 +34,7 @@ export class AIChatHistoryRepository implements IAIChatHistoryRepository {
                 // Update user/wallet info if provided
                 let updated = false;
                 if (userId && !chatHistory.userId) {
-                    chatHistory.userId = userId as any;
+                    chatHistory.userId = new Types.ObjectId(userId);
                     updated = true;
                 }
                 if (walletAddress && !chatHistory.walletAddress) {
@@ -44,7 +45,7 @@ export class AIChatHistoryRepository implements IAIChatHistoryRepository {
                     await chatHistory.save();
                 }
             }
-            
+
             return chatHistory;
         } catch (error) {
             logger.error('Error creating/updating chat session:', error);
@@ -56,7 +57,7 @@ export class AIChatHistoryRepository implements IAIChatHistoryRepository {
         sessionId: string,
         role: 'user' | 'assistant',
         content: string,
-        context?: any
+        context?: { walletConnected: boolean;[key: string]: unknown }
     ): Promise<IAIChatHistory> {
         try {
             const chatHistory = await AIChatHistoryModel.findOne({ sessionId });
@@ -68,8 +69,8 @@ export class AIChatHistoryRepository implements IAIChatHistoryRepository {
                 role,
                 content,
                 timestamp: new Date(),
-                context: context || {}
-            } as any);
+                context: context || { walletConnected: false }
+            });
 
             // Update metadata
             chatHistory.metadata.totalMessages = chatHistory.messages.length;
@@ -93,16 +94,16 @@ export class AIChatHistoryRepository implements IAIChatHistoryRepository {
     ): Promise<IAIChatHistory | null> {
         try {
             const chatHistory = await AIChatHistoryModel.findOne({ sessionId });
-            
+
             if (chatHistory && limit > 0) {
                 // Limit messages if specified
                 const messages = chatHistory.messages.slice(-limit);
                 return {
                     ...chatHistory.toObject(),
                     messages
-                } as any;
+                } as unknown as IAIChatHistory;
             }
-            
+
             return chatHistory;
         } catch (error) {
             logger.error('Error getting session history:', error);
@@ -147,11 +148,11 @@ export class AIChatHistoryRepository implements IAIChatHistoryRepository {
         successful: boolean
     ): Promise<void> {
         try {
-            const update: any = {};
+            const update: UpdateQuery<IAIChatHistory> = {};
             if (successful) {
                 update['$inc'] = { 'metadata.successfulTrades': 1 };
             }
-            
+
             await AIChatHistoryModel.findOneAndUpdate(
                 { sessionId },
                 update
@@ -181,10 +182,10 @@ export class AIChatHistoryRepository implements IAIChatHistoryRepository {
 
     private detectTradingKeywords(content: string): boolean {
         const tradingKeywords = [
-            'swap', 'trade', 'buy', 'sell', 'exchange', 
+            'swap', 'trade', 'buy', 'sell', 'exchange',
             'price', 'token', 'eth', 'coina', 'coinb'
         ];
-        
+
         const lowerContent = content.toLowerCase();
         return tradingKeywords.some(keyword => lowerContent.includes(keyword));
     }

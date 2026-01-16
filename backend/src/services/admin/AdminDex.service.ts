@@ -1,4 +1,5 @@
 import { injectable, inject } from "inversify";
+import { Types } from "mongoose";
 import { IAdminDexService } from "../../core/interfaces/services/admin/IAdminDex.service";
 import { PaginatedPayments } from "../../core/interfaces/repositories/IPayment.repository";
 import { IPaymentRepository } from "../../core/interfaces/repositories/IPayment.repository";
@@ -60,7 +61,7 @@ export class AdminDexService implements IAdminDexService {
         paymentId,
         'fulfilled',
         {
-          approvedBy: adminId,
+          approvedBy: new Types.ObjectId(adminId),
           approvedAt: new Date(),
           adminNote,
           transactionHash
@@ -102,7 +103,7 @@ export class AdminDexService implements IAdminDexService {
         paymentId,
         'rejected',
         {
-          approvedBy: adminId,
+          approvedBy: new Types.ObjectId(adminId),
           rejectedAt: new Date(),
           adminNote: reason
         }
@@ -143,7 +144,7 @@ export class AdminDexService implements IAdminDexService {
         paymentId,
         'fulfilled',
         {
-          approvedBy: adminId,
+          approvedBy: new Types.ObjectId(adminId),
           fulfilledAt: new Date(),
           transactionHash,
           adminNote: 'Payment fulfilled and crypto sent'

@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { Types } from "mongoose";
+import { Types, FilterQuery } from "mongoose";
 import { ICommunityAdminPostRepository } from "../../core/interfaces/repositories/communityAdmin/ICommunityAdminPost.repository";
 import CommunityAdminPostModel, { ICommunityAdminPost } from "../../models/communityAdminPost.model";
 import CommunityAdminPostLikeModel from "../../models/communityAdminPostLike.model";
@@ -10,7 +10,7 @@ import { StatusCode } from "../../enums/statusCode.enum";
 
 @injectable()
 export class CommunityAdminPostRepository implements ICommunityAdminPostRepository {
-    
+
     // Post CRUD operations
     async createPost(adminId: string, content: string, mediaUrls: string[] = [], mediaType: 'none' | 'image' | 'video' = 'none'): Promise<ICommunityAdminPost> {
         try {
@@ -33,7 +33,8 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
 
             const savedPost = await post.save();
             return await this.findPostById(savedPost._id.toString()) as ICommunityAdminPost;
-        } catch (error: any) {
+        } catch (error) {
+
             if (error instanceof CustomError) throw error;
             throw new CustomError("Database error while creating post", StatusCode.INTERNAL_SERVER_ERROR);
         }
@@ -78,10 +79,10 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
             }
 
             const updatedPost = await CommunityAdminPostModel.findOneAndUpdate(
-                { 
-                    _id: new Types.ObjectId(postId), 
+                {
+                    _id: new Types.ObjectId(postId),
                     author: new Types.ObjectId(adminId),
-                    isDeleted: false 
+                    isDeleted: false
                 },
                 { $set: updateData },
                 { new: true, runValidators: true }
@@ -97,7 +98,7 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
                 .exec();
 
             return updatedPost;
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof CustomError) throw error;
             throw new CustomError("Database error while updating post", StatusCode.INTERNAL_SERVER_ERROR);
         }
@@ -141,7 +142,7 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
             }
 
             const validLimit = Math.min(Math.max(limit, 1), 20);
-            const query: any = {
+            const query: FilterQuery<ICommunityAdminPost> = {
                 author: new Types.ObjectId(adminId),
                 isDeleted: false
             };
@@ -180,7 +181,7 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
                 hasMore,
                 nextCursor
             };
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof CustomError) throw error;
             throw new CustomError("Database error while fetching admin posts", StatusCode.INTERNAL_SERVER_ERROR);
         }
@@ -200,7 +201,7 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
 
             await like.save();
             await this.updatePostCounts(postId, 'likesCount', 1);
-        } catch (error: any) {
+        } catch (error) {
             if (error.code === 11000) {
                 throw new CustomError("Post already liked", StatusCode.BAD_REQUEST);
             }
@@ -273,7 +274,7 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
             }
 
             return await this.findCommentById(savedComment._id.toString()) as ICommunityAdminComment;
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof CustomError) throw error;
             throw new CustomError("Database error while creating comment", StatusCode.INTERNAL_SERVER_ERROR);
         }
@@ -315,7 +316,7 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
             }
 
             const validLimit = Math.min(Math.max(limit, 1), 50);
-            const query: any = {
+            const query: FilterQuery<ICommunityAdminComment> = {
                 post: new Types.ObjectId(postId),
                 isDeleted: false,
                 parentComment: null // Only top-level comments
@@ -350,7 +351,7 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
                 hasMore,
                 nextCursor
             };
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof CustomError) throw error;
             throw new CustomError("Database error while fetching comments", StatusCode.INTERNAL_SERVER_ERROR);
         }
@@ -369,7 +370,7 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
 
             await like.save();
             await this.updateCommentCounts(commentId, 'likesCount', 1);
-        } catch (error: any) {
+        } catch (error) {
             if (error.code === 11000) {
                 throw new CustomError("Comment already liked", StatusCode.BAD_REQUEST);
             }
@@ -427,7 +428,7 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
                 { $inc: { [field]: increment } },
                 { new: true }
             ).exec();
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof CustomError) throw error;
             throw new CustomError("Database error while updating post counts", StatusCode.INTERNAL_SERVER_ERROR);
         }
@@ -444,7 +445,7 @@ export class CommunityAdminPostRepository implements ICommunityAdminPostReposito
                 { $inc: { [field]: increment } },
                 { new: true }
             ).exec();
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof CustomError) throw error;
             throw new CustomError("Database error while updating comment counts", StatusCode.INTERNAL_SERVER_ERROR);
         }

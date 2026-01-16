@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-duplicate-enum-values */
 // ===== \ChainVerse 002\backend\src\enums\messages.enum.ts =====
 
 export enum Messages {

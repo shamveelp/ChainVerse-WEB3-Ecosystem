@@ -5,7 +5,16 @@ import { LikeModel } from "../../models/like.models";
 import { CommentModel, IComment } from "../../models/comment.models";
 import { CommentLikeModel } from "../../models/commentLikes.model";
 import CommunityMemberModel from "../../models/communityMember.model";
-import { Types } from "mongoose";
+import { Types, FilterQuery } from "mongoose";
+
+export interface IPostStats {
+    totalPosts: number;
+    totalLikes: number;
+    totalComments: number;
+    totalShares: number;
+    todayPosts: number;
+    weekPosts: number;
+}
 
 @injectable()
 export class PostRepository implements IPostRepository {
@@ -31,11 +40,11 @@ export class PostRepository implements IPostRepository {
             .lean();
     }
 
-    async updatePost(postId: string, updateData: any): Promise<IPost | null> {
+    async updatePost(postId: string, updateData: Partial<IPost>): Promise<IPost | null> {
         const post = await PostModel.findOneAndUpdate(
             { _id: postId, isDeleted: false },
-            { 
-                ...updateData, 
+            {
+                ...updateData,
                 editedAt: new Date(),
                 hashtags: updateData.content ? this.extractHashtags(updateData.content) : undefined,
                 mentions: updateData.content ? this.extractMentions(updateData.content) : undefined
@@ -57,8 +66,8 @@ export class PostRepository implements IPostRepository {
     async deletePostByAdmin(postId: string, adminId: string, reason?: string): Promise<boolean> {
         const result = await PostModel.updateOne(
             { _id: postId, isDeleted: false },
-            { 
-                isDeleted: true, 
+            {
+                isDeleted: true,
                 deletedAt: new Date(),
                 deletedBy: adminId,
                 deletionReason: reason
@@ -67,8 +76,8 @@ export class PostRepository implements IPostRepository {
         return result.modifiedCount > 0;
     }
 
-    async getFeedPosts(userId: string, cursor?: string, limit: number = 10): Promise<any> {
-        const query: any = { isDeleted: false };
+    async getFeedPosts(userId: string, cursor?: string, limit: number = 10): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
+        const query: FilterQuery<IPost> = { isDeleted: false };
 
         if (cursor) {
             query._id = { $lt: new Types.ObjectId(cursor) };
@@ -91,11 +100,11 @@ export class PostRepository implements IPostRepository {
         };
     }
 
-    async getCommunityFeedPosts(communityId: string, cursor?: string, limit: number = 10): Promise<any> {
+    async getCommunityFeedPosts(communityId: string, cursor?: string, limit: number = 10): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
         // Get all community members
-        const members = await CommunityMemberModel.find({ 
-            communityId, 
-            isActive: true 
+        const members = await CommunityMemberModel.find({
+            communityId,
+            isActive: true
         }).select('userId');
 
         const memberIds = members.map(member => member.userId);
@@ -108,7 +117,7 @@ export class PostRepository implements IPostRepository {
             };
         }
 
-        const query: any = { 
+        const query: FilterQuery<IPost> = {
             isDeleted: false,
             author: { $in: memberIds }
         };
@@ -134,10 +143,10 @@ export class PostRepository implements IPostRepository {
         };
     }
 
-    async getCommunityMembersPosts(communityId: string, cursor?: string, limit: number = 10): Promise<any> {
+    async getCommunityMembersPosts(communityId: string, cursor?: string, limit: number = 10): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
         // Get only active community members (not including banned/inactive)
-        const activeMembers = await CommunityMemberModel.find({ 
-            communityId, 
+        const activeMembers = await CommunityMemberModel.find({
+            communityId,
             isActive: true,
             bannedUntil: { $exists: false }
         }).select('userId');
@@ -152,7 +161,7 @@ export class PostRepository implements IPostRepository {
             };
         }
 
-        const query: any = { 
+        const query: FilterQuery<IPost> = {
             isDeleted: false,
             author: { $in: memberIds }
         };
@@ -178,10 +187,10 @@ export class PostRepository implements IPostRepository {
         };
     }
 
-    async getUserPosts(targetUserId: string, viewerUserId?: string, cursor?: string, limit: number = 10): Promise<any> {
-        const query: any = { 
+    async getUserPosts(targetUserId: string, viewerUserId?: string, cursor?: string, limit: number = 10): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
+        const query: FilterQuery<IPost> = {
             author: targetUserId,
-            isDeleted: false 
+            isDeleted: false
         };
 
         if (cursor) {
@@ -205,7 +214,7 @@ export class PostRepository implements IPostRepository {
         };
     }
 
-    async getLikedPosts(targetUserId: string, viewerUserId?: string, cursor?: string, limit: number = 10): Promise<any> {
+    async getLikedPosts(targetUserId: string, viewerUserId?: string, cursor?: string, limit: number = 10): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
         const likes = await LikeModel.find({ user: targetUserId })
             .sort({ createdAt: -1 })
             .populate({
@@ -243,8 +252,8 @@ export class PostRepository implements IPostRepository {
         };
     }
 
-    async getTrendingPosts(cursor?: string, limit: number = 10): Promise<any> {
-        const query: any = { isDeleted: false };
+    async getTrendingPosts(cursor?: string, limit: number = 10): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
+        const query: FilterQuery<IPost> = { isDeleted: false };
 
         if (cursor) {
             query._id = { $lt: new Types.ObjectId(cursor) };
@@ -267,8 +276,8 @@ export class PostRepository implements IPostRepository {
         };
     }
 
-    async getPostsByHashtag(hashtag: string, cursor?: string, limit: number = 10): Promise<any> {
-        const query: any = { 
+    async getPostsByHashtag(hashtag: string, cursor?: string, limit: number = 10): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
+        const query: FilterQuery<IPost> = {
             isDeleted: false,
             hashtags: hashtag.toLowerCase()
         };
@@ -294,8 +303,8 @@ export class PostRepository implements IPostRepository {
         };
     }
 
-    async searchPosts(query: string, cursor?: string, limit: number = 10): Promise<any> {
-        const searchQuery: any = {
+    async searchPosts(query: string, cursor?: string, limit: number = 10): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
+        const searchQuery: FilterQuery<IPost> = {
             isDeleted: false,
             $or: [
                 { content: { $regex: query, $options: 'i' } },
@@ -325,8 +334,8 @@ export class PostRepository implements IPostRepository {
         };
     }
 
-    async getPostsByUserIds(userIds: string[], cursor?: string, limit: number = 10): Promise<any> {
-        const query: any = { 
+    async getPostsByUserIds(userIds: string[], cursor?: string, limit: number = 10): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
+        const query: FilterQuery<IPost> = {
             isDeleted: false,
             author: { $in: userIds.map(id => new Types.ObjectId(id)) }
         };
@@ -487,8 +496,8 @@ export class PostRepository implements IPostRepository {
     }
 
     async getPostComments(postId: string, cursor?: string, limit: number = 10): Promise<any> {
-        const query: any = { 
-            post: postId, 
+        const query: any = {
+            post: postId,
             isDeleted: false,
             parentComment: null // Only top-level comments
         };
@@ -515,8 +524,8 @@ export class PostRepository implements IPostRepository {
     }
 
     async getCommentReplies(commentId: string, cursor?: string, limit: number = 10): Promise<any> {
-        const query: any = { 
-            parentComment: commentId, 
+        const query: any = {
+            parentComment: commentId,
             isDeleted: false
         };
 
@@ -597,10 +606,10 @@ export class PostRepository implements IPostRepository {
     }
 
     // Analytics
-    async getPostStats(userId?: string): Promise<any> {
+    async getPostStats(userId?: string): Promise<IPostStats> {
         const baseQuery = { isDeleted: false };
         if (userId) {
-            (baseQuery as any).author = userId;
+            (baseQuery as FilterQuery<IPost>).author = userId;
         }
 
         const today = new Date();
@@ -696,9 +705,10 @@ export class PostRepository implements IPostRepository {
     }
 
     getGlobalPosts(cursor?: string, limit?: number): Promise<any> {
-        if (cursor === undefined) {}
-        if (limit === undefined) {}
+        // Placeholder implementation
+        // if (cursor === undefined) {}
+        // if (limit === undefined) {}
         return fetch("", {})
-        
+
     }
 }

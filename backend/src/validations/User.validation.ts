@@ -34,7 +34,7 @@ export const updateProfileSchema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores")
     .optional(),
   phone: z.string()
-    .regex(/^\+?[\d\s\-\(\)]+$/, "Invalid phone number format")
+    .regex(/^\+?[\d\s\-()]+$/, "Invalid phone number format")
     .min(10, "Phone number must be at least 10 digits")
     .max(15, "Phone number must be at most 15 digits")
     .optional()

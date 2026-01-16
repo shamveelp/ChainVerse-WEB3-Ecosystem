@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
-import { Types } from "mongoose";
-import { IChainCastRepository } from "../../core/interfaces/repositories/chainCast/IChainCast.repository";
+import { Types, FilterQuery, PipelineStage } from "mongoose";
+import { IChainCastRepository, IChainCastAnalytics } from "../../core/interfaces/repositories/chainCast/IChainCast.repository";
 import ChainCastModel, { IChainCast } from "../../models/chainCast.model";
 import ChainCastParticipantModel, { IChainCastParticipant } from "../../models/chainCastParticipant.model";
 import ChainCastReactionModel, { IChainCastReaction } from "../../models/chainCastReaction.model";
@@ -8,7 +8,7 @@ import ChainCastModerationRequestModel, { IChainCastModerationRequest } from "..
 
 @injectable()
 export class ChainCastRepository implements IChainCastRepository {
-    
+
     // ChainCast operations
     async createChainCast(data: Partial<IChainCast>): Promise<IChainCast> {
         const chainCast = new ChainCastModel(data);
@@ -23,13 +23,13 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async findChainCastsByAdmin(
-        adminId: string, 
-        skip: number, 
-        limit: number, 
+        adminId: string,
+        skip: number,
+        limit: number,
         status?: string
     ): Promise<{ chainCasts: IChainCast[], total: number }> {
-        const query: any = { adminId, isActive: true };
-        
+        const query: FilterQuery<IChainCast> = { adminId, isActive: true };
+
         if (status && status !== 'all') {
             query.status = status;
         }
@@ -49,13 +49,13 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async findChainCastsByCommunity(
-        communityId: string, 
-        skip: number, 
-        limit: number, 
+        communityId: string,
+        skip: number,
+        limit: number,
         status?: string
     ): Promise<{ chainCasts: IChainCast[], total: number }> {
-        const query: any = { communityId, isActive: true };
-        
+        const query: FilterQuery<IChainCast> = { communityId, isActive: true };
+
         if (status && status !== 'all') {
             query.status = status;
         }
@@ -104,7 +104,7 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async findParticipantByChainCastAndUser(
-        chainCastId: string, 
+        chainCastId: string,
         userId: string
     ): Promise<IChainCastParticipant | null> {
         return await ChainCastParticipantModel.findOne({
@@ -115,13 +115,13 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async findParticipantsByChainCast(
-        chainCastId: string, 
-        skip: number, 
-        limit: number, 
+        chainCastId: string,
+        skip: number,
+        limit: number,
         filter?: string
     ): Promise<{ participants: IChainCastParticipant[], total: number }> {
-        const query: any = { chainCastId, isActive: true };
-        
+        const query: FilterQuery<IChainCastParticipant> = { chainCastId, isActive: true };
+
         if (filter === 'moderators') {
             query.role = { $in: ['moderator', 'admin'] };
         } else if (filter === 'active') {
@@ -142,8 +142,8 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async updateParticipant(
-        chainCastId: string, 
-        userId: string, 
+        chainCastId: string,
+        userId: string,
         data: Partial<IChainCastParticipant>
     ): Promise<IChainCastParticipant | null> {
         return await ChainCastParticipantModel.findOneAndUpdate(
@@ -154,17 +154,17 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async updateParticipantRole(
-        chainCastId: string, 
-        userId: string, 
-        role: string, 
-        permissions: any
+        chainCastId: string,
+        userId: string,
+        role: string,
+        permissions: IChainCastParticipant['permissions']
     ): Promise<IChainCastParticipant | null> {
         return await ChainCastParticipantModel.findOneAndUpdate(
             { chainCastId, userId, isActive: true },
-            { 
-                role, 
-                permissions, 
-                updatedAt: new Date() 
+            {
+                role,
+                permissions,
+                updatedAt: new Date()
             },
             { new: true }
         ).populate('userId', 'username name profilePic isVerified');
@@ -173,8 +173,8 @@ export class ChainCastRepository implements IChainCastRepository {
     async removeParticipant(chainCastId: string, userId: string): Promise<boolean> {
         const result = await ChainCastParticipantModel.findOneAndUpdate(
             { chainCastId, userId, isActive: true },
-            { 
-                isActive: false, 
+            {
+                isActive: false,
                 leftAt: new Date(),
                 updatedAt: new Date()
             }
@@ -205,8 +205,8 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async findReactionsByChainCast(
-        chainCastId: string, 
-        skip: number, 
+        chainCastId: string,
+        skip: number,
         limit: number
     ): Promise<{ reactions: IChainCastReaction[], total: number }> {
         const [reactions, total] = await Promise.all([
@@ -223,15 +223,15 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async getReactionsSummary(chainCastId: string): Promise<{ [emoji: string]: number }> {
-        const pipeline = [
+        const pipeline: PipelineStage[] = [
             { $match: { chainCastId: new Types.ObjectId(chainCastId), isActive: true } },
             { $group: { _id: '$emoji', count: { $sum: 1 } } },
             { $sort: { count: -1 } }
         ];
 
-        const results = await ChainCastReactionModel.aggregate(pipeline as any);
+        const results = await ChainCastReactionModel.aggregate(pipeline);
         const summary: { [emoji: string]: number } = {};
-        
+
         results.forEach(result => {
             summary[result._id] = result.count;
         });
@@ -261,13 +261,13 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async findModerationRequestsByChainCast(
-        chainCastId: string, 
-        skip: number, 
-        limit: number, 
+        chainCastId: string,
+        skip: number,
+        limit: number,
         status?: string
     ): Promise<{ requests: IChainCastModerationRequest[], total: number }> {
-        const query: any = { chainCastId, isActive: true };
-        
+        const query: FilterQuery<IChainCastModerationRequest> = { chainCastId, isActive: true };
+
         if (status && status !== 'all') {
             query.status = status;
         }
@@ -287,7 +287,7 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async findPendingModerationRequestByUser(
-        chainCastId: string, 
+        chainCastId: string,
         userId: string
     ): Promise<IChainCastModerationRequest | null> {
         return await ChainCastModerationRequestModel.findOne({
@@ -300,7 +300,7 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async updateModerationRequest(
-        id: string, 
+        id: string,
         data: Partial<IChainCastModerationRequest>
     ): Promise<IChainCastModerationRequest | null> {
         return await ChainCastModerationRequestModel.findByIdAndUpdate(
@@ -323,7 +323,7 @@ export class ChainCastRepository implements IChainCastRepository {
     async updateChainCastStats(chainCastId: string, stats: Partial<IChainCast['stats']>): Promise<void> {
         await ChainCastModel.findByIdAndUpdate(
             chainCastId,
-            { 
+            {
                 $inc: stats,
                 updatedAt: new Date()
             }
@@ -331,17 +331,17 @@ export class ChainCastRepository implements IChainCastRepository {
     }
 
     async getChainCastAnalytics(
-        communityId: string, 
-        startDate?: Date, 
+        communityId: string,
+        startDate?: Date,
         endDate?: Date
-    ): Promise<any> {
-        const matchQuery: any = { communityId: new Types.ObjectId(communityId) };
-        
+    ): Promise<IChainCastAnalytics> {
+        const matchQuery: FilterQuery<IChainCast> = { communityId: new Types.ObjectId(communityId) };
+
         if (startDate && endDate) {
             matchQuery.createdAt = { $gte: startDate, $lte: endDate };
         }
 
-        const pipeline = [
+        const pipeline: PipelineStage[] = [
             { $match: matchQuery },
             {
                 $group: {
@@ -362,7 +362,7 @@ export class ChainCastRepository implements IChainCastRepository {
         ];
 
         const results = await ChainCastModel.aggregate(pipeline);
-        return results[0] || {
+        return (results[0] || {
             totalChainCasts: 0,
             liveChainCasts: 0,
             completedChainCasts: 0,
@@ -370,6 +370,6 @@ export class ChainCastRepository implements IChainCastRepository {
             totalReactions: 0,
             averageViewers: 0,
             averageWatchTime: 0
-        };
+        }) as IChainCastAnalytics;
     }
 }

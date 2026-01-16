@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
+import { IUser } from '../../models/user.models';
 
 export class UserRegisterDto {
   @IsString({ message: 'Username must be a string' })
@@ -189,10 +190,10 @@ export class UserResponseDto {
   role: string;
   isEmailVerified: boolean;
   createdAt: Date;
-  lastLogin?: Date;
+  lastLogin?: Date; // Note: lastLogin is not in IUser interface explicitly, checking model... it's not in the shared code but might be in the actual model or inferred.
 
-  constructor(user: any) {
-    this._id = user._id;
+  constructor(user: IUser) {
+    this._id = user._id.toString();
     this.username = user.username;
     this.email = user.email;
     this.name = user.name;
@@ -202,14 +203,14 @@ export class UserResponseDto {
     this.role = user.role;
     this.isEmailVerified = user.isEmailVerified;
     this.createdAt = user.createdAt;
-    this.lastLogin = user.lastLogin;
+    this.lastLogin = (user as unknown as { lastLogin?: Date }).lastLogin;
   }
 }
 
 export class LoginResponseDto extends BaseResponseDto {
   user: UserResponseDto;
 
-  constructor(user: any, message: string = 'Login successful') {
+  constructor(user: IUser, message: string = 'Login successful') {
     super(true, message);
     this.user = new UserResponseDto(user);
   }

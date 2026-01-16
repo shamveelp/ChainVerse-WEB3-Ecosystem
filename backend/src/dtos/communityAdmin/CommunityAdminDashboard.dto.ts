@@ -48,7 +48,7 @@ export interface RecentActivityDto {
     };
     action: string;
     timestamp: Date;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
 }
 
 export interface TopMemberDto {

@@ -50,7 +50,7 @@ export class CommunityAdminSubscriptionService implements ICommunityAdminSubscri
         throw new CustomError(ErrorMessages.CHAINCAST_ALREADY_ENABLED, StatusCode.BAD_REQUEST);
       }
 
-      let subscription = await this._subscriptionRepository.findByCommunityId(createDto.communityId);
+      const subscription = await this._subscriptionRepository.findByCommunityId(createDto.communityId);
 
       // If active subscription exists, don't allow new order
       if (subscription && subscription.status === "active") {

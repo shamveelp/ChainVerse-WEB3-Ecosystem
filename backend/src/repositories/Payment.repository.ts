@@ -2,7 +2,7 @@ import { injectable } from "inversify";
 import { PaymentModel, IPayment } from "../models/payment.model";
 import { IPaymentRepository, PaginatedPayments } from "../core/interfaces/repositories/IPayment.repository";
 import logger from "../utils/logger";
-import { Model } from "mongoose";
+import { Model, FilterQuery } from "mongoose";
 
 @injectable()
 export class PaymentRepository implements IPaymentRepository {
@@ -86,8 +86,8 @@ export class PaymentRepository implements IPaymentRepository {
   async findAllWithPagination(page: number, limit: number, status?: string): Promise<PaginatedPayments> {
     try {
       const skip = (page - 1) * limit;
-      const query = status ? { status } : {};
-      
+      const query: FilterQuery<IPayment> = status ? { status } : {};
+
       const payments = await this.model
         .find(query)
         .populate('userId', 'username email name')
@@ -107,10 +107,10 @@ export class PaymentRepository implements IPaymentRepository {
     }
   }
 
-  async updateStatus(id: string, status: string, updateData?: any): Promise<IPayment | null> {
+  async updateStatus(id: string, status: string, updateData?: Partial<IPayment>): Promise<IPayment | null> {
     try {
-      const updateObj = { status, ...updateData };
-      
+      const updateObj: Record<string, unknown> = { status, ...updateData };
+
       if (status === 'fulfilled') {
         updateObj.fulfilledAt = new Date();
       } else if (status === 'rejected') {

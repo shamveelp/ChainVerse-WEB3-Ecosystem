@@ -7,8 +7,9 @@ import { ICommentLike, CommentLikeModel } from "../models/commentLikes.model";
 import { FollowModel } from "../models/follow.models";
 import { CustomError } from "../utils/customError";
 import { StatusCode } from "../enums/statusCode.enum";
-import { Types } from "mongoose";
+import { Types, FilterQuery } from "mongoose";
 import { PostResponseDto, PostsListResponseDto, PostStatsDto } from "../dtos/posts/Post.dto";
+import { ICommunityMember } from "../models/communityMember.model";
 
 import { CommunityMemberModel } from "../models/communityMember.model";
 
@@ -40,7 +41,7 @@ export class PostRepository implements IPostRepository {
       });
 
       return await post.save();
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while creating post",
@@ -93,7 +94,7 @@ export class PostRepository implements IPostRepository {
       )
         .populate("author", "_id username name profilePic community.isVerified")
         .exec();
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while updating post",
@@ -153,7 +154,7 @@ export class PostRepository implements IPostRepository {
       const userObjectId = new Types.ObjectId(userId);
 
       // Build base query
-      const baseQuery: any = { isDeleted: false };
+      const baseQuery: FilterQuery<IPost> = { isDeleted: false };
       if (cursor && Types.ObjectId.isValid(cursor)) {
         baseQuery._id = { $lt: new Types.ObjectId(cursor) };
       }
@@ -218,7 +219,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching feed posts",
@@ -233,7 +234,7 @@ export class PostRepository implements IPostRepository {
   ): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
     try {
       const validLimit = Math.min(Math.max(limit, 1), 20);
-      const query: any = { isDeleted: false }; // Fetch all non-deleted posts
+      const query: FilterQuery<IPost> = { isDeleted: false }; // Fetch all non-deleted posts
 
       if (cursor && Types.ObjectId.isValid(cursor)) {
         query._id = { $lt: new Types.ObjectId(cursor) };
@@ -258,7 +259,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching global posts",
@@ -293,7 +294,7 @@ export class PostRepository implements IPostRepository {
       }
 
       // 2. Fetch posts from these members
-      const query: any = {
+      const query: FilterQuery<IPost> = {
         author: { $in: memberIds },
         isDeleted: false
       };
@@ -321,7 +322,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching community members posts",
@@ -342,7 +343,7 @@ export class PostRepository implements IPostRepository {
       }
 
       const validLimit = Math.min(Math.max(limit, 1), 20);
-      const query: any = {
+      const query: FilterQuery<IPost> = {
         author: new Types.ObjectId(userId),
         isDeleted: false,
       };
@@ -370,7 +371,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching user posts",
@@ -391,7 +392,7 @@ export class PostRepository implements IPostRepository {
       }
 
       const validLimit = Math.min(Math.max(limit, 1), 20);
-      const query: any = { user: new Types.ObjectId(userId) };
+      const query: FilterQuery<ILike> = { user: new Types.ObjectId(userId) };
 
       if (cursor && Types.ObjectId.isValid(cursor)) {
         query._id = { $lt: new Types.ObjectId(cursor) };
@@ -416,7 +417,7 @@ export class PostRepository implements IPostRepository {
       const hasMore = validLikes.length > validLimit;
       const finalLikes = validLikes.slice(0, validLimit);
 
-      const posts = finalLikes.map((like) => like.post as any);
+      const posts = finalLikes.map((like) => like.post as unknown as IPost);
       const nextCursor =
         hasMore && finalLikes.length > 0
           ? finalLikes[finalLikes.length - 1]._id.toString()
@@ -427,7 +428,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching liked posts",
@@ -442,7 +443,7 @@ export class PostRepository implements IPostRepository {
   ): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
     try {
       const validLimit = Math.min(Math.max(limit, 1), 20);
-      const query: any = { isDeleted: false };
+      const query: FilterQuery<IPost> = { isDeleted: false };
 
       if (cursor && Types.ObjectId.isValid(cursor)) {
         query._id = { $lt: new Types.ObjectId(cursor) };
@@ -468,7 +469,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching trending posts",
@@ -486,7 +487,7 @@ export class PostRepository implements IPostRepository {
       const validLimit = Math.min(Math.max(limit, 1), 20);
       const cleanHashtag = hashtag.toLowerCase().replace("#", "");
 
-      const query: any = {
+      const query: FilterQuery<IPost> = {
         hashtags: cleanHashtag,
         isDeleted: false,
       };
@@ -514,7 +515,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching posts by hashtag",
@@ -530,7 +531,7 @@ export class PostRepository implements IPostRepository {
   ): Promise<{ posts: IPost[]; hasMore: boolean; nextCursor?: string }> {
     try {
       const validLimit = Math.min(Math.max(limit, 1), 20);
-      const searchQuery: any = {
+      const searchQuery: FilterQuery<IPost> = {
         $text: { $search: query },
         isDeleted: false,
       };
@@ -558,7 +559,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while searching posts",
@@ -588,7 +589,7 @@ export class PostRepository implements IPostRepository {
       await this.updatePostCounts(postId, "likesCount", 1);
 
       return savedLike;
-    } catch (error: any) {
+    } catch (error) {
       if (error.code === 11000) {
         throw new CustomError("Post already liked", StatusCode.BAD_REQUEST);
       }
@@ -659,7 +660,7 @@ export class PostRepository implements IPostRepository {
       }
 
       const validLimit = Math.min(Math.max(limit, 1), 50);
-      const query: any = { post: new Types.ObjectId(postId) };
+      const query: FilterQuery<ILike> = { post: new Types.ObjectId(postId) };
 
       if (cursor && Types.ObjectId.isValid(cursor)) {
         query._id = { $lt: new Types.ObjectId(cursor) };
@@ -684,7 +685,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching post likes",
@@ -720,13 +721,13 @@ export class PostRepository implements IPostRepository {
         );
       }
 
-      const commentData: any = {
+      const commentData: Partial<IComment> = {
         post: new Types.ObjectId(postId),
         author: new Types.ObjectId(authorId),
         content: content.trim(),
         parentComment: parentCommentId
           ? new Types.ObjectId(parentCommentId)
-          : null,
+          : undefined, // Changed from null to undefined for Partial
         postedAsCommunity,
       };
 
@@ -749,7 +750,7 @@ export class PostRepository implements IPostRepository {
       }
 
       return savedComment;
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while creating comment",
@@ -800,7 +801,7 @@ export class PostRepository implements IPostRepository {
       )
         .populate("author", "_id username name profilePic community.isVerified")
         .exec();
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while updating comment",
@@ -856,7 +857,7 @@ export class PostRepository implements IPostRepository {
       }
 
       return false;
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while deleting comment",
@@ -877,13 +878,13 @@ export class PostRepository implements IPostRepository {
       }
 
       const validLimit = Math.min(Math.max(limit, 1), 50);
-      const query: any = {
+      const query: FilterQuery<IComment> = {
         post: new Types.ObjectId(postId),
         isDeleted: false,
         parentComment: parentCommentId
           ? new Types.ObjectId(parentCommentId)
           : null,
-      };
+      } as FilterQuery<IComment>; // Explicit cast for parentComment: null
 
       if (cursor && Types.ObjectId.isValid(cursor)) {
         query._id = { $lt: new Types.ObjectId(cursor) };
@@ -909,7 +910,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching post comments",
@@ -929,7 +930,7 @@ export class PostRepository implements IPostRepository {
       }
 
       const validLimit = Math.min(Math.max(limit, 1), 50);
-      const query: any = {
+      const query: FilterQuery<IComment> = {
         parentComment: new Types.ObjectId(commentId),
         isDeleted: false,
       };
@@ -958,7 +959,7 @@ export class PostRepository implements IPostRepository {
         hasMore,
         nextCursor,
       };
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching comment replies",
@@ -991,7 +992,7 @@ export class PostRepository implements IPostRepository {
       await this.updateCommentCounts(commentId, "likesCount", 1);
 
       return savedLike;
-    } catch (error: any) {
+    } catch (error) {
       if (error.code === 11000) {
         throw new CustomError("Comment already liked", StatusCode.BAD_REQUEST);
       }
@@ -1076,7 +1077,7 @@ export class PostRepository implements IPostRepository {
         { $inc: { [field]: increment } },
         { new: true }
       ).exec();
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while updating post counts",
@@ -1100,7 +1101,7 @@ export class PostRepository implements IPostRepository {
         { $inc: { [field]: increment } },
         { new: true }
       ).exec();
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while updating comment counts",
@@ -1201,7 +1202,7 @@ export class PostRepository implements IPostRepository {
         throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
       }
 
-      const query: any = { author: new Types.ObjectId(userId) };
+      const query: FilterQuery<IPost> = { author: new Types.ObjectId(userId) };
       if (!includeDeleted) {
         query.isDeleted = false;
       }
@@ -1211,7 +1212,7 @@ export class PostRepository implements IPostRepository {
         .sort({ createdAt: -1 })
         .lean()
         .exec();
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while fetching user posts",
@@ -1287,10 +1288,6 @@ export class PostRepository implements IPostRepository {
         StatusCode.INTERNAL_SERVER_ERROR
       );
     }
-    return PostModel.countDocuments({
-      author: { $in: userIds },
-      createdAt: { $gte: date },
-    })
   }
 
   async deletePostByAdmin(
@@ -1311,18 +1308,13 @@ export class PostRepository implements IPostRepository {
         throw new CustomError("Post not found", StatusCode.NOT_FOUND);
       }
 
-      if (post.author.toString() !== adminId) {
-        post.isDeleted = true;
-        post.deletedAt = new Date();
-        await post.save();
-      } else {
-        post.isDeleted = true;
-        post.deletedAt = new Date();
-        await post.save();
-      }
+      // Logic seems to be just deleting, checking adminId just for validation maybe?
+      post.isDeleted = true;
+      post.deletedAt = new Date();
+      await post.save();
 
       return true;
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         "Database error while deleting post",
@@ -1348,7 +1340,7 @@ export class PostRepository implements IPostRepository {
       };
     }
 
-    const query: any = {
+    const query: FilterQuery<IPost> = {
       author: { $in: validUserIds },
       isDeleted: false
     };
@@ -1424,6 +1416,4 @@ export class PostRepository implements IPostRepository {
     const count = await PostModel.countDocuments({ author: { $in: userIds } });
     return count;
   }
-
-
 }

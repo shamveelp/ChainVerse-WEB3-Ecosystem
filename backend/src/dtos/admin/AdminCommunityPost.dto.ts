@@ -1,3 +1,25 @@
+import { IPost } from "../../models/post.models";
+import { ICommunityAdminPost } from "../../models/communityAdminPost.model";
+import { IComment } from "../../models/comment.models";
+import { ICommunityAdminComment } from "../../models/communityAdminComment.model";
+import { IUser } from "../../models/user.models";
+import { ICommunityAdmin } from "../../models/communityAdmin.model";
+
+// Define combined types for flexibility
+export type CombinedPost = (IPost & { postType: 'user' }) | (ICommunityAdminPost & { postType: 'admin' });
+// Comment author can be User or CommunityAdmin
+export type CombinedComment = IComment | ICommunityAdminComment;
+// User or Admin for Likers and Authors
+export type CombinedUser = IUser | ICommunityAdmin;
+
+type AuthorUnion = {
+    _id: { toString(): string };
+    username?: string;
+    name?: string;
+    email?: string;
+    profileImage?: string;
+    profilePic?: string;
+};
 
 export class AdminCommunityPostListResponseDto {
     constructor(
@@ -24,15 +46,19 @@ export class AdminPostItemDto {
     public isDeleted: boolean;
     public postType: 'user' | 'admin';
 
-    constructor(data: any) {
-        this._id = data._id?.toString() || data._id;
+    constructor(data: CombinedPost) {
+        this._id = data._id?.toString();
         this.content = data.content;
+
+        // Author handling
+        const author = (data as unknown as { author: AuthorUnion }).author; // populated
         this.author = {
-            _id: data.author?._id?.toString() || data.author?._id,
-            username: data.author?.username || 'unknown',
-            email: data.author?.email || '',
-            profileImage: data.author?.profileImage || data.author?.profilePic
+            _id: author?._id?.toString(),
+            username: author?.username || author?.name || 'unknown', // CommunityAdmin has name, User has username
+            email: author?.email || '',
+            profileImage: author?.profileImage || author?.profilePic // User has profilePic(maybe), Admin has profilePic
         };
+
         this.mediaUrls = data.mediaUrls || [];
         this.mediaType = data.mediaType;
         this.likesCount = data.likesCount || 0;
@@ -53,13 +79,18 @@ export class AdminPostCommentDto {
     };
     public createdAt: Date;
 
-    constructor(data: any) {
-        this._id = data._id?.toString() || data._id;
+    constructor(data: CombinedComment) {
+        this._id = data._id?.toString();
         this.content = data.content;
+
+        // Handle author/userId ambiguity
+        // If populated, author field holds the user/admin document
+        const author = (data as unknown as { author: AuthorUnion }).author || (data as unknown as { userId: AuthorUnion }).userId;
+
         this.author = {
-            _id: data.userId?._id?.toString() || data.userId,
-            username: data.userId?.username || 'unknown',
-            profileImage: data.userId?.profilePic
+            _id: author?._id?.toString(),
+            username: author?.username || author?.name || 'unknown',
+            profileImage: author?.profilePic || author?.profileImage
         };
         this.createdAt = data.createdAt;
     }
@@ -70,9 +101,11 @@ export class AdminPostLikerDto {
     public username: string;
     public profileImage?: string;
 
-    constructor(data: any) {
-        this._id = data._id?.toString() || data._id;
-        this.username = data.username || 'unknown';
-        this.profileImage = data.profilePic;
+    constructor(data: CombinedUser) {
+        this._id = data._id?.toString();
+        // User has username, Admin has name. Fallback.
+        const typedData = data as unknown as AuthorUnion;
+        this.username = typedData.username || typedData.name || 'unknown';
+        this.profileImage = typedData.profilePic || typedData.profileImage;
     }
 }

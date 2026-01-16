@@ -13,6 +13,8 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
+import { ICommunityAdmin } from '../../models/communityAdmin.model';
+import { ICommunity } from '../../models/community.model';
 
 class SocialLinksDto {
   @IsOptional()
@@ -187,12 +189,12 @@ export class CommunityAdminResponseDto {
   isActive: boolean;
   lastLogin?: Date;
 
-  constructor(admin: any) {
+  constructor(admin: ICommunityAdmin, token?: string) {
     this._id = admin._id.toString();
     this.email = admin.email;
     this.name = admin.name;
     this.role = admin.role;
-    this.token = admin.token;
+    this.token = token;
     this.communityId = admin.communityId?.toString();
     this.isActive = admin.isActive;
     this.lastLogin = admin.lastLogin;
@@ -203,9 +205,10 @@ export class CommunityAdminLoginResponseDto extends BaseResponseDto {
   communityAdmin: CommunityAdminResponseDto;
   token?: string;
 
-  constructor(admin: any, message: string = 'Login successful') {
+  constructor(admin: ICommunityAdmin, token?: string, message: string = 'Login successful') {
     super(true, message);
-    this.communityAdmin = new CommunityAdminResponseDto(admin);
+    this.communityAdmin = new CommunityAdminResponseDto(admin, token);
+    this.token = token;
   }
 }
 
@@ -241,7 +244,7 @@ export class CommunityDetailsResponseDto extends BaseResponseDto {
     status: string;
   };
 
-  constructor(community: any, memberCount: number = 0) {
+  constructor(community: ICommunity, memberCount: number = 0) {
     super(true, 'Community details retrieved successfully');
     this.community = {
       id: community._id?.toString(),

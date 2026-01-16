@@ -34,7 +34,11 @@ export class AdminCommunityManagementService implements IAdminCommunityManagemen
 
     async getCommunityMembers(communityId: string, page: number, limit: number, search: string): Promise<{ members: IUser[], total: number, page: number, limit: number }> {
         const { members, total } = await this._repository.getCommunityMembers(communityId, page, limit, search);
-        return { members, total, page, limit };
+
+        // Map ICommunityMember to IUser (extract populated user from userId field)
+        const users = members.map(member => member.userId as unknown as IUser).filter(user => user);
+
+        return { members: users, total, page, limit };
     }
 
     async updateCommunitySettings(id: string, settings: Partial<ICommunity['settings']>): Promise<ICommunity | null> {

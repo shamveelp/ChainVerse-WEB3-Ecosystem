@@ -1,6 +1,7 @@
 import { IsString, IsNumber, IsEnum, IsBoolean, IsArray, IsOptional, IsDate, ValidateNested, Min, Max } from "class-validator";
 import { Type, Transform } from "class-transformer";
 import { BaseResponseDto } from "../base/BaseResponse.dto";
+import { IQuest } from "../../models/quest.model";
 
 export class RewardPoolDto {
   @IsNumber()
@@ -320,7 +321,7 @@ export class QuestResponseDto extends BaseResponseDto {
   updatedAt: Date;
   tasks?: QuestTaskDto[];
 
-  constructor(quest: any) {
+  constructor(quest: IQuest) {
     super(true, "Quest retrieved successfully");
     this._id = quest._id.toString();
     this.communityId = quest.communityId.toString();
@@ -343,6 +344,14 @@ export class QuestResponseDto extends BaseResponseDto {
   }
 }
 
+export interface IQuestStats {
+  totalQuests: number;
+  activeQuests: number;
+  endedQuests: number;
+  totalParticipants: number;
+  totalRewardsDistributed?: number;
+}
+
 export class QuestStatsResponseDto extends BaseResponseDto {
   totalQuests: number;
   activeQuests: number;
@@ -350,12 +359,11 @@ export class QuestStatsResponseDto extends BaseResponseDto {
   totalParticipants: number;
   totalRewardsDistributed: number;
 
-  constructor(stats: any) {
+  constructor(stats: IQuestStats) {
     super(true, "Quest stats retrieved successfully");
     this.totalQuests = stats.totalQuests;
     this.activeQuests = stats.activeQuests;
     this.endedQuests = stats.endedQuests;
-    this.totalParticipants = stats.totalParticipants;
     this.totalParticipants = stats.totalParticipants;
     this.totalRewardsDistributed = stats.totalRewardsDistributed || 0;
   }

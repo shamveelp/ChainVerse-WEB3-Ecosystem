@@ -1,12 +1,11 @@
-
 import { injectable } from "inversify";
-import { IAdminCommunityPostRepository } from "../../core/interfaces/repositories/admin/IAdminCommunityPost.repository";
-import { PostModel } from "../../models/post.models";
-import { CommunityAdminPostModel } from "../../models/communityAdminPost.model";
-import { CommentModel } from "../../models/comment.models";
-import { CommunityAdminCommentModel } from "../../models/communityAdminComment.model";
-import { LikeModel } from "../../models/like.models";
-import { CommunityAdminPostLikeModel } from "../../models/communityAdminPostLike.model";
+import { IAdminCommunityPostRepository, IUnifiedLiker } from "../../core/interfaces/repositories/admin/IAdminCommunityPost.repository";
+import { PostModel, IPost } from "../../models/post.models";
+import { CommunityAdminPostModel, ICommunityAdminPost } from "../../models/communityAdminPost.model";
+import { CommentModel, IComment } from "../../models/comment.models";
+import { CommunityAdminCommentModel, ICommunityAdminComment } from "../../models/communityAdminComment.model";
+import { LikeModel, ILike } from "../../models/like.models";
+import { CommunityAdminPostLikeModel, ICommunityAdminPostLike } from "../../models/communityAdminPostLike.model";
 import { UserModel } from "../../models/user.models";
 import { CommunityAdminModel } from "../../models/communityAdmin.model";
 import { FilterQuery } from "mongoose";
@@ -14,13 +13,13 @@ import { FilterQuery } from "mongoose";
 @injectable()
 export class AdminCommunityPostRepository implements IAdminCommunityPostRepository {
     async getAllPosts(cursor?: string, limit: number = 10, type: 'all' | 'user' | 'admin' = 'all', search?: string): Promise<{
-        posts: any[];
+        posts: ((IPost & { postType: 'user' }) | (ICommunityAdminPost & { postType: 'admin' }))[];
         nextCursor?: string;
         hasMore: boolean;
     }> {
         // Base query
-        let userPostQuery: FilterQuery<any> = {};
-        let adminPostQuery: FilterQuery<any> = {};
+        let userPostQuery: FilterQuery<IPost> = {};
+        let adminPostQuery: FilterQuery<ICommunityAdminPost> = {};
 
         // If search is provided, build search conditions
         if (search) {
@@ -67,8 +66,8 @@ export class AdminCommunityPostRepository implements IAdminCommunityPostReposito
         const [userPosts, adminPosts] = await Promise.all([fetchUserPosts, fetchAdminPosts]);
 
         // Tag with type
-        const typedUserPosts = (userPosts as any[]).map(p => ({ ...p, postType: 'user' }));
-        const typedAdminPosts = (adminPosts as any[]).map(p => ({ ...p, postType: 'admin' }));
+        const typedUserPosts = (userPosts as unknown as IPost[]).map(p => ({ ...p, postType: 'user' as const }));
+        const typedAdminPosts = (adminPosts as unknown as ICommunityAdminPost[]).map(p => ({ ...p, postType: 'admin' as const }));
 
         // Merge and Sort
         const allPosts = [...typedUserPosts, ...typedAdminPosts].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -78,7 +77,8 @@ export class AdminCommunityPostRepository implements IAdminCommunityPostReposito
         const posts = hasMore ? allPosts.slice(0, limit) : allPosts;
         const nextCursor = posts.length > 0 ? posts[posts.length - 1].createdAt.toISOString() : undefined;
 
-        return { posts, nextCursor, hasMore };
+        // Force cast to satisfy interface if needed, but the structure matches
+        return { posts: posts as ((IPost & { postType: 'user' }) | (ICommunityAdminPost & { postType: 'admin' }))[], nextCursor, hasMore };
     }
 
     async softDeletePost(postId: string, type: 'user' | 'admin'): Promise<boolean> {
@@ -101,7 +101,7 @@ export class AdminCommunityPostRepository implements IAdminCommunityPostReposito
         }
     }
 
-    async getPostDetails(postId: string, type: 'user' | 'admin'): Promise<any> {
+    async getPostDetails(postId: string, type: 'user' | 'admin'): Promise<IPost | ICommunityAdminPost | null> {
         if (type === 'user') {
             return await PostModel.findById(postId).populate('author', 'username email profileImage').lean();
         } else {
@@ -110,16 +110,20 @@ export class AdminCommunityPostRepository implements IAdminCommunityPostReposito
     }
 
     async getPostComments(postId: string, type: 'user' | 'admin', cursor?: string, limit: number = 10): Promise<{
-        comments: any[];
+        comments: (IComment | ICommunityAdminComment)[];
         nextCursor?: string;
         hasMore: boolean;
     }> {
-        const query: FilterQuery<any> = { post: postId, isDeleted: false };
+        // We use  for query temporarily to allow adding $lt to createdAt which might not be strictly in FilterQuery if strict
+        // But FilterQuery<IComment> usually allows it.
+        // To be safe and avoid "Unexpected ", we explicitly construct the filter.
+
+        let query: FilterQuery<IComment> | FilterQuery<ICommunityAdminComment> = { post: postId, isDeleted: false };
         if (cursor) {
-            query.createdAt = { $lt: new Date(cursor) };
+            query = { ...query, createdAt: { $lt: new Date(cursor) } };
         }
 
-        let comments: any[] = [];
+        let comments: (IComment | ICommunityAdminComment)[] = [];
 
         if (type === 'user') {
             comments = await CommentModel.find(query)
@@ -139,24 +143,24 @@ export class AdminCommunityPostRepository implements IAdminCommunityPostReposito
         const validComments = hasMore ? comments.slice(0, limit) : comments;
         const nextCursor = validComments.length > 0 ? validComments[validComments.length - 1].createdAt.toISOString() : undefined;
 
-        return { comments: validComments, nextCursor, hasMore };
+        // explicit cast to ensure compatibility with usage of 'comments' variable that holds union array
+        return { comments: validComments as (IComment | ICommunityAdminComment)[], nextCursor, hasMore };
     }
 
     async getPostLikers(postId: string, type: 'user' | 'admin', cursor?: string, limit: number = 10): Promise<{
-        likers: any[];
+        likers: IUnifiedLiker[];
         nextCursor?: string;
         hasMore: boolean;
     }> {
-        const query: FilterQuery<any> = { post: postId };
+        const query: FilterQuery<ILike> = { post: postId };
         if (cursor) {
             query.createdAt = { $lt: new Date(cursor) };
         }
 
-        let likes: any[] = [];
-        let likers: any[] = [];
+        let likers: IUnifiedLiker[] = [];
 
         if (type === 'user') {
-            likes = await LikeModel.find(query)
+            const likes = await LikeModel.find(query)
                 .sort({ createdAt: -1 })
                 .limit(limit + 1)
                 .populate('user', 'username email profileImage')
@@ -168,7 +172,10 @@ export class AdminCommunityPostRepository implements IAdminCommunityPostReposito
                 user: l.user
             }));
         } else {
-            likes = await CommunityAdminPostLikeModel.find(query)
+            // Re-cast query for AdminPostLike if needed, structure is similar
+            const adminQuery: FilterQuery<ICommunityAdminPostLike> = { post: postId, ...(cursor ? { createdAt: { $lt: new Date(cursor) } } : {}) };
+
+            const likes = await CommunityAdminPostLikeModel.find(adminQuery)
                 .sort({ createdAt: -1 })
                 .limit(limit + 1)
                 .populate('admin', 'username email profileImage')

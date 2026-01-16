@@ -32,36 +32,36 @@ export class UpdateTransactionStatusDto {
   blockNumber?: number;
 }
 
-export class CoinResponseDto {
+export class CoinResponseDto<T = unknown> {
   success: boolean;
   message: string;
-  data?: any;
+  data?: T;
 
-  constructor(data: any, message: string = "Success") {
+  constructor(data: T, message: string = "Success") {
     this.success = true;
     this.message = message;
     this.data = data;
   }
 }
 
-export class TransactionResponseDto {
+export class TransactionResponseDto<T = unknown> {
   success: boolean;
   message: string;
-  data?: any;
+  data?: T;
 
-  constructor(data: any, message: string = "Success") {
+  constructor(data: T, message: string = "Success") {
     this.success = true;
     this.message = message;
     this.data = data;
   }
 }
 
-export class WalletResponseDto {
+export class WalletResponseDto<T = unknown> {
   success: boolean;
   message: string;
-  data?: any;
+  data?: T;
 
-  constructor(data: any, message: string = "Success") {
+  constructor(data: T, message: string = "Success") {
     this.success = true;
     this.message = message;
     this.data = data;

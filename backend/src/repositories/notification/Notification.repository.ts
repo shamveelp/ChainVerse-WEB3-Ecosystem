@@ -1,6 +1,7 @@
 import { injectable } from "inversify";
 import { INotificationRepository } from "../../core/interfaces/repositories/notification/INotification.repository";
 import NotificationModel, { INotification } from "../../models/notification.model";
+import { FilterQuery } from "mongoose";
 
 @injectable()
 export class NotificationRepository implements INotificationRepository {
@@ -15,7 +16,7 @@ export class NotificationRepository implements INotificationRepository {
         limit: number,
         unreadOnly?: boolean
     ): Promise<{ notifications: INotification[], total: number }> {
-        const query: any = { recipient: userId };
+        const query: FilterQuery<INotification> = { recipient: userId };
         if (unreadOnly) {
             query.read = false;
         }

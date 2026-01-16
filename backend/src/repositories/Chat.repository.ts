@@ -4,7 +4,7 @@ import { IConversation, IMessage, ConversationModel, MessageModel } from "../mod
 import { IUser, UserModel } from "../models/user.models";
 import { CustomError } from "../utils/customError";
 import { StatusCode } from "../enums/statusCode.enum";
-import { Types } from "mongoose";
+import { Types, FilterQuery } from "mongoose";
 import {
   ConversationListResponseDto,
   MessageListResponseDto,
@@ -15,7 +15,7 @@ import {
 
 @injectable()
 export class ChatRepository implements IChatRepository {
-  
+
   async findConversationByParticipants(participant1: string, participant2: string): Promise<IConversation | null> {
     try {
       if (!Types.ObjectId.isValid(participant1) || !Types.ObjectId.isValid(participant2)) {
@@ -44,7 +44,7 @@ export class ChatRepository implements IChatRepository {
   async createConversation(participants: string[]): Promise<IConversation> {
     try {
       const validParticipants = participants.filter(p => Types.ObjectId.isValid(p));
-      
+
       if (validParticipants.length !== 2) {
         throw new CustomError("Invalid participants", StatusCode.BAD_REQUEST);
       }
@@ -70,7 +70,7 @@ export class ChatRepository implements IChatRepository {
         throw new CustomError("Invalid conversation ID", StatusCode.BAD_REQUEST);
       }
 
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         lastActivity: new Date()
       };
 
@@ -103,7 +103,7 @@ export class ChatRepository implements IChatRepository {
       }
 
       const validLimit = Math.min(Math.max(limit, 1), 50);
-      const query: any = {
+      const query: FilterQuery<IConversation> = {
         participants: new Types.ObjectId(userId)
       };
 
@@ -137,9 +137,10 @@ export class ChatRepository implements IChatRepository {
 
       // Transform conversations
       const transformedConversations: ConversationResponseDto[] = [];
-      
+
       for (const conv of conversationsList) {
-        const otherParticipants = (conv.participants as any[]).filter(
+        // Safe cast for populated participants
+        const otherParticipants = (conv.participants as unknown as IUser[]).filter(
           p => p && p._id.toString() !== userId
         );
 
@@ -148,11 +149,11 @@ export class ChatRepository implements IChatRepository {
         // Apply search filter if provided
         if (search && search.trim()) {
           const searchTerm = search.trim().toLowerCase();
-          const matchesSearch = otherParticipants.some(p => 
+          const matchesSearch = otherParticipants.some(p =>
             p.username?.toLowerCase().includes(searchTerm) ||
             p.name?.toLowerCase().includes(searchTerm)
           );
-          
+
           if (!matchesSearch) continue;
         }
 
@@ -168,7 +169,7 @@ export class ChatRepository implements IChatRepository {
 
         let lastMessage;
         if (conv.lastMessage) {
-          const msg = conv.lastMessage as any;
+          const msg = conv.lastMessage as unknown as IMessage & { sender: IUser };
           lastMessage = {
             _id: msg._id.toString(),
             conversationId: conv._id.toString(),
@@ -177,6 +178,7 @@ export class ChatRepository implements IChatRepository {
               username: msg.sender.username || '',
               name: msg.sender.name || msg.sender.username || '',
               profilePic: msg.sender.profilePic || '',
+              // Access property safely via casting if needed or standard if defined
               isVerified: msg.sender.community?.isVerified || false
             },
             content: msg.content,
@@ -239,7 +241,7 @@ export class ChatRepository implements IChatRepository {
       });
 
       const savedMessage = await message.save();
-      
+
       await this.updateConversationLastActivity(conversationId, savedMessage.id.toString());
 
       return await MessageModel.findById(savedMessage._id)
@@ -267,7 +269,7 @@ export class ChatRepository implements IChatRepository {
       }
 
       const validLimit = Math.min(Math.max(limit, 1), 100);
-      const query: any = {
+      const query: FilterQuery<IMessage> = {
         conversationId: new Types.ObjectId(conversationId),
         isDeleted: false
       };
@@ -289,7 +291,7 @@ export class ChatRepository implements IChatRepository {
 
       // Transform messages
       const transformedMessages: MessageResponseDto[] = messagesList.map(msg => {
-        const sender = msg.sender as any;
+        const sender = msg.sender as unknown as IUser;
         return {
           _id: msg._id.toString(),
           conversationId: msg.conversationId.toString(),

@@ -23,7 +23,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async getCommunityFeed(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
+            const communityAdminId = (req as AuthenticatedRequest).user!.id;
             const { cursor, limit = '10', type = 'all' } = req.query;
 
             let validLimit = 10;
@@ -67,7 +67,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async togglePostLike(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
+            const communityAdminId = (req as AuthenticatedRequest).user!.id;
             const { postId } = req.params;
 
             const result = await this._feedService.togglePostLike(communityAdminId, postId);
@@ -99,7 +99,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async createComment(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
+            const communityAdminId = (req as AuthenticatedRequest).user!.id;
             const { postId, content, parentCommentId } = req.body;
 
             if (!postId || !content) {
@@ -150,7 +150,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async sharePost(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
+            const communityAdminId = (req as AuthenticatedRequest).user!.id;
             const { postId } = req.params;
             const { shareText } = req.body;
 
@@ -191,7 +191,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async getEngagementStats(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
+            const communityAdminId = (req as AuthenticatedRequest).user!.id;
             const { period = 'week' } = req.query;
 
             const stats = await this._feedService.getEngagementStats(communityAdminId, period as string);
@@ -222,7 +222,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async pinPost(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
+            const communityAdminId = (req as AuthenticatedRequest).user!.id;
             const { postId } = req.params;
 
             const result = await this._feedService.pinPost(communityAdminId, postId);
@@ -254,7 +254,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async getPost(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
+            const communityAdminId = (req as AuthenticatedRequest).user!.id;
             const { postId } = req.params;
 
             const post = await this._feedService.getPostById(communityAdminId, postId);
@@ -286,7 +286,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async getPostComments(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
+            const communityAdminId = (req as AuthenticatedRequest).user!.id;
             const { postId } = req.params;
             const { cursor, limit = '20' } = req.query;
 
@@ -332,7 +332,7 @@ export class CommunityAdminFeedController implements ICommunityAdminFeedControll
      */
     async deletePost(req: Request, res: Response): Promise<void> {
         try {
-            const communityAdminId = (req as AuthenticatedRequest).user?.id!;
+            const communityAdminId = (req as AuthenticatedRequest).user!.id;
             const { postId } = req.params;
             const { reason } = req.body;
 

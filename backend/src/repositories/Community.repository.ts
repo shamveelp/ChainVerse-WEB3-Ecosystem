@@ -1,10 +1,10 @@
 import { injectable } from "inversify";
 import { ICommunityRepository } from "../core/interfaces/repositories/ICommunity.repository";
 import { IUser, UserModel } from "../models/user.models";
-import { FollowModel } from "../models/follow.models";
+import { FollowModel, IFollow } from "../models/follow.models";
 import { CustomError } from "../utils/customError";
 import { StatusCode } from "../enums/statusCode.enum";
-import { Types } from "mongoose";
+import { Types, FilterQuery, SortOrder, UpdateQuery } from "mongoose";
 import {
   FollowListResponseDto,
   UserFollowInfo,
@@ -51,9 +51,9 @@ export class CommunityRepository implements ICommunityRepository {
         throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
       }
 
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
       Object.keys(data).forEach((key) => {
-        updateData[`community.${key}`] = (data as any)[key];
+        updateData[`community.${key}`] = (data as Record<string, unknown>)[key];
       });
 
       return await UserModel.findByIdAndUpdate(
@@ -166,7 +166,7 @@ export class CommunityRepository implements ICommunityRepository {
       if (!followerExists) {
         throw new CustomError("Follower user not found", StatusCode.NOT_FOUND);
       }
-      
+
       if (!followingExists) {
         throw new CustomError("User to follow not found", StatusCode.NOT_FOUND);
       }
@@ -259,7 +259,7 @@ export class CommunityRepository implements ICommunityRepository {
         throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
       }
 
-      const query: any = { following: new Types.ObjectId(userId) };
+      const query: FilterQuery<typeof FollowModel> = { following: new Types.ObjectId(userId) };
 
       // Add cursor-based pagination
       if (cursor && Types.ObjectId.isValid(cursor)) {
@@ -283,12 +283,12 @@ export class CommunityRepository implements ICommunityRepository {
       // Check follow status for viewer in batch
       const users: UserFollowInfo[] = [];
       let followStatusMap: { [key: string]: boolean } = {};
-      
+
       if (viewerUserId && Types.ObjectId.isValid(viewerUserId)) {
         const userIds = followersList
-          .map((follow: any) => follow.follower?._id?.toString())
+          .map((follow) => (follow.follower as unknown as IUser)?._id?.toString())
           .filter(Boolean);
-          
+
         if (userIds.length > 0) {
           const viewerFollowing = await FollowModel.find({
             follower: new Types.ObjectId(viewerUserId),
@@ -297,7 +297,7 @@ export class CommunityRepository implements ICommunityRepository {
             .select('following')
             .lean()
             .exec();
-          
+
           followStatusMap = viewerFollowing.reduce((acc, follow) => {
             acc[follow.following.toString()] = true;
             return acc;
@@ -306,9 +306,9 @@ export class CommunityRepository implements ICommunityRepository {
       }
 
       for (const follow of followersList) {
-        const follower = follow.follower as any;
+        const follower = follow.follower as unknown as IUser;
         if (!follower) continue; // Skip if follower was deleted
-        
+
         const isFollowing = viewerUserId ? (followStatusMap[follower._id.toString()] || false) : false;
 
         users.push({
@@ -356,7 +356,7 @@ export class CommunityRepository implements ICommunityRepository {
         throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
       }
 
-      const query: any = { follower: new Types.ObjectId(userId) };
+      const query: FilterQuery<typeof FollowModel> = { follower: new Types.ObjectId(userId) };
 
       // Add cursor-based pagination
       if (cursor && Types.ObjectId.isValid(cursor)) {
@@ -380,12 +380,12 @@ export class CommunityRepository implements ICommunityRepository {
       // Check follow status for viewer in batch
       const users: UserFollowInfo[] = [];
       let followStatusMap: { [key: string]: boolean } = {};
-      
+
       if (viewerUserId && Types.ObjectId.isValid(viewerUserId)) {
         const userIds = followingList
-          .map((follow: any) => follow.following?._id?.toString())
+          .map((follow) => (follow.following as unknown as IUser)?._id?.toString())
           .filter(Boolean);
-          
+
         if (userIds.length > 0) {
           const viewerFollowing = await FollowModel.find({
             follower: new Types.ObjectId(viewerUserId),
@@ -394,7 +394,7 @@ export class CommunityRepository implements ICommunityRepository {
             .select('following')
             .lean()
             .exec();
-          
+
           followStatusMap = viewerFollowing.reduce((acc, follow) => {
             acc[follow.following.toString()] = true;
             return acc;
@@ -403,9 +403,9 @@ export class CommunityRepository implements ICommunityRepository {
       }
 
       for (const follow of followingList) {
-        const following = follow.following as any;
+        const following = follow.following as unknown as IUser;
         if (!following) continue; // Skip if following user was deleted
-        
+
         const isFollowing = viewerUserId ? (followStatusMap[following._id.toString()] || false) : false;
 
         users.push({
@@ -449,7 +449,7 @@ export class CommunityRepository implements ICommunityRepository {
       }
 
       await UserModel.findByIdAndUpdate(
-        userId, 
+        userId,
         { $inc: { followersCount: 1 } },
         { new: true, upsert: false }
       ).exec();
@@ -496,7 +496,7 @@ export class CommunityRepository implements ICommunityRepository {
       }
 
       await UserModel.findByIdAndUpdate(
-        userId, 
+        userId,
         { $inc: { followingCount: 1 } },
         { new: true, upsert: false }
       ).exec();
@@ -556,9 +556,9 @@ export class CommunityRepository implements ICommunityRepository {
       if (!username || typeof username !== 'string') {
         return null;
       }
-      return await CommunityModel.findOne({ 
+      return await CommunityModel.findOne({
         username: username.trim(),
-        status: 'approved' 
+        status: 'approved'
       }).exec();
     } catch (error) {
       throw new CustomError(
@@ -575,7 +575,7 @@ export class CommunityRepository implements ICommunityRepository {
     totalCount: number;
   }> {
     try {
-      const searchQuery: any = {
+      const searchQuery: FilterQuery<ICommunity> = {
         status: 'approved',
         $or: [
           { communityName: { $regex: query, $options: 'i' } },
@@ -632,8 +632,8 @@ export class CommunityRepository implements ICommunityRepository {
     totalCount: number;
   }> {
     try {
-      const query: any = { status: 'approved' };
-      
+      const query: FilterQuery<ICommunity> = { status: 'approved' };
+
       if (category && category.trim() !== '') {
         query.category = category.trim();
       }
@@ -678,7 +678,7 @@ export class CommunityRepository implements ICommunityRepository {
       if (!Types.ObjectId.isValid(communityId)) {
         return 0;
       }
-      
+
       return await CommunityMemberModel.countDocuments({
         communityId: new Types.ObjectId(communityId),
         isActive: true
@@ -735,7 +735,7 @@ export class CommunityRepository implements ICommunityRepository {
       if (!userExists) {
         throw new CustomError("User not found", StatusCode.NOT_FOUND);
       }
-      
+
       if (!communityExists) {
         throw new CustomError("Community not found", StatusCode.NOT_FOUND);
       }
@@ -795,9 +795,9 @@ export class CommunityRepository implements ICommunityRepository {
         throw new CustomError("Invalid community ID", StatusCode.BAD_REQUEST);
       }
 
-      const query: any = { 
+      const query: FilterQuery<ICommunityMember> = {
         communityId: new Types.ObjectId(communityId),
-        isActive: true 
+        isActive: true
       };
 
       // Add cursor-based pagination
@@ -835,7 +835,7 @@ export class CommunityRepository implements ICommunityRepository {
       });
 
       return {
-        members: resultMembers as any,
+        members: resultMembers as unknown as ICommunityMember[],
         hasMore,
         nextCursor: hasMore && resultMembers.length > 0
           ? resultMembers[resultMembers.length - 1]._id.toString()
@@ -858,7 +858,7 @@ export class CommunityRepository implements ICommunityRepository {
     totalCount: number;
   }> {
     try {
-      const searchQuery: any = {
+      const searchQuery: FilterQuery<IUser> = {
         $or: [
           { username: { $regex: query, $options: 'i' } },
           { name: { $regex: query, $options: 'i' } },
@@ -927,9 +927,9 @@ export class CommunityRepository implements ICommunityRepository {
         throw new CustomError("Invalid user ID", StatusCode.BAD_REQUEST);
       }
 
-      const query: any = { 
+      const query: FilterQuery<ICommunityMember> = {
         userId: new Types.ObjectId(userId),
-        isActive: true 
+        isActive: true
       };
 
       // Apply filters
@@ -958,7 +958,7 @@ export class CommunityRepository implements ICommunityRepository {
       }
 
       // Determine sort order
-      let sortOrder: any = { joinedAt: -1, _id: -1 }; // default: most recently joined
+      let sortOrder: Record<string, SortOrder> = { joinedAt: -1, _id: -1 }; // default: most recently joined
       switch (sortBy) {
         case 'name':
           sortOrder = { 'community.communityName': 1, _id: -1 };
@@ -986,14 +986,14 @@ export class CommunityRepository implements ICommunityRepository {
       const resultMemberships = memberships.slice(0, limit);
 
       // Get member counts for each community
-      const communityIds = resultMemberships.map(m => (m.communityId as any)._id);
+      const communityIds = resultMemberships.map(m => (m.communityId as unknown as ICommunity)._id);
       const memberCounts = await Promise.all(
         communityIds.map(id => this.getCommunityMemberCount(id.toString()))
       );
 
       // Format result
       const formattedMemberships = resultMemberships.map((membership, index) => {
-        const community = membership.communityId as any;
+        const community = membership.communityId as unknown as ICommunity;
         return {
           community: {
             _id: community._id,
@@ -1017,6 +1017,8 @@ export class CommunityRepository implements ICommunityRepository {
           memberCount: memberCounts[index] || 0
         };
       });
+      // Force return type compliance if necessary, although ICommunity is likely correct structure
+      // We are mapping to the return structure manually.
 
       // Get total count
       const totalCount = await CommunityMemberModel.countDocuments({
@@ -1025,7 +1027,7 @@ export class CommunityRepository implements ICommunityRepository {
       });
 
       return {
-        memberships: formattedMemberships as any,
+        memberships: formattedMemberships as any, // Keeping 'any' here as the return type is complex to match exactly without DTO interface
         hasMore,
         nextCursor: hasMore && resultMemberships.length > 0
           ? resultMemberships[resultMemberships.length - 1]._id.toString()
@@ -1110,17 +1112,17 @@ export class CommunityRepository implements ICommunityRepository {
         userId: new Types.ObjectId(userId),
         isActive: true
       })
-      .populate({
-        path: 'communityId',
-        select: '_id communityName username logo'
-      })
-      .sort({ lastActiveAt: -1 })
-      .limit(10)
-      .lean()
-      .exec();
+        .populate({
+          path: 'communityId',
+          select: '_id communityName username logo'
+        })
+        .sort({ lastActiveAt: -1 })
+        .limit(10)
+        .lean()
+        .exec();
 
       const communities = memberships.map(membership => ({
-        community: membership.communityId as any,
+        community: membership.communityId as unknown as ICommunity,
         lastActiveAt: membership.lastActiveAt || membership.joinedAt,
         unreadPosts: 0, // TODO: Implement unread posts logic
         recentActivity: 'No recent activity'
@@ -1177,7 +1179,7 @@ export class CommunityRepository implements ICommunityRepository {
 
   async updateCommunity(
     communityId: string,
-    updateData: Partial<ICommunity> | Record<string, any>
+    updateData: Partial<ICommunity> | Record<string, unknown>
   ): Promise<ICommunity | null> {
     return CommunityModel.findByIdAndUpdate(
       new Types.ObjectId(communityId),

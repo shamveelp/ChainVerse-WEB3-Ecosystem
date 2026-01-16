@@ -886,10 +886,11 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
             .slice(0, replacementCount);
           break;
         case 'random':
-        default:
+        default: {
           const shuffled = [...availableParticipants].sort(() => 0.5 - Math.random());
           replacementWinners = shuffled.slice(0, replacementCount);
           break;
+        }
       }
 
       // Update replacement winners in database

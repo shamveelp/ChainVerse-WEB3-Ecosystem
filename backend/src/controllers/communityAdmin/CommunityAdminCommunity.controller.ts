@@ -26,7 +26,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async sendMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as AuthenticatedRequest).user?.id!;
+            const adminId = (req as AuthenticatedRequest).user!.id;
             const { content, mediaFiles, messageType } = req.body;
 
             if (!content?.trim() && (!mediaFiles || mediaFiles.length === 0)) {
@@ -71,10 +71,10 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async getMessages(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as AuthenticatedRequest).user?.id!;
+            const adminId = (req as AuthenticatedRequest).user!.id;
             const { cursor, limit = "20" } = req.query;
 
-            let validLimit = Math.min(Math.max(parseInt(limit as string, 10) || 20, 1), 50);
+            const validLimit = Math.min(Math.max(parseInt(limit as string, 10) || 20, 1), 50);
 
             const messages = await this._communityService.getMessages(adminId, cursor as string, validLimit);
 
@@ -106,10 +106,10 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async getGroupMessages(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as AuthenticatedRequest).user?.id!;
+            const adminId = (req as AuthenticatedRequest).user!.id;
             const { cursor, limit = "50" } = req.query;
 
-            let validLimit = Math.min(Math.max(parseInt(limit as string, 10) || 50, 1), 100);
+            const validLimit = Math.min(Math.max(parseInt(limit as string, 10) || 50, 1), 100);
 
             const messages = await this._communityService.getGroupMessages(adminId, cursor as string, validLimit);
 
@@ -141,7 +141,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async deleteGroupMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as AuthenticatedRequest).user?.id!;
+            const adminId = (req as AuthenticatedRequest).user!.id;
             const { messageId } = req.params;
 
             const result = await this._chatService.deleteGroupMessage(adminId, messageId);
@@ -174,7 +174,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async updateMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as AuthenticatedRequest).user?.id!;
+            const adminId = (req as AuthenticatedRequest).user!.id;
             const { messageId } = req.params;
             const { content } = req.body;
 
@@ -218,7 +218,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async deleteMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as AuthenticatedRequest).user?.id!;
+            const adminId = (req as AuthenticatedRequest).user!.id;
             const { messageId } = req.params;
 
             const result = await this._communityService.deleteMessage(adminId, messageId);
@@ -251,7 +251,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async pinMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as AuthenticatedRequest).user?.id!;
+            const adminId = (req as AuthenticatedRequest).user!.id;
             const { messageId } = req.params;
 
             const result = await this._communityService.pinMessage(adminId, messageId);
@@ -284,7 +284,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async unpinMessage(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as AuthenticatedRequest).user?.id!;
+            const adminId = (req as AuthenticatedRequest).user!.id;
             const { messageId } = req.params;
 
             const result = await this._communityService.unpinMessage(adminId, messageId);
@@ -317,7 +317,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async getMessageReactions(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as AuthenticatedRequest).user?.id!;
+            const adminId = (req as AuthenticatedRequest).user!.id;
             const { messageId } = req.params;
 
             const reactions = await this._communityService.getMessageReactions(adminId, messageId);
@@ -350,7 +350,7 @@ export class CommunityAdminCommunityController implements ICommunityAdminCommuni
      */
     async uploadMedia(req: Request, res: Response): Promise<void> {
         try {
-            const adminId = (req as AuthenticatedRequest).user?.id!;
+            const adminId = (req as AuthenticatedRequest).user!.id;
             const files = req.files as Express.Multer.File[];
 
             if (!files || files.length === 0) {

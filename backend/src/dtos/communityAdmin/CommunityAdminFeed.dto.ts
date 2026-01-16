@@ -20,6 +20,32 @@ export class GetCommunityFeedDto {
   type?: 'all' | 'trending' | 'recent' = 'all';
 }
 
+export interface IAuthor {
+  _id: string;
+  username: string;
+  name: string;
+  profilePic: string;
+  isCommunityMember: boolean;
+}
+
+export interface IPostData {
+  _id: string | { toString(): string };
+  content: string;
+  mediaUrls?: string[];
+  mediaType?: string;
+  likesCount?: number;
+  commentsCount?: number;
+  sharesCount?: number;
+  createdAt: Date;
+  author?: {
+    _id?: string | { toString(): string };
+    username?: string;
+    name?: string;
+    profilePic?: string;
+  };
+  isLiked?: boolean;
+}
+
 export class AdminPostResponseDto {
   _id: string;
   content: string;
@@ -29,18 +55,12 @@ export class AdminPostResponseDto {
   commentsCount: number;
   sharesCount: number;
   createdAt: Date;
-  author: {
-    _id: string;
-    username: string;
-    name: string;
-    profilePic: string;
-    isCommunityMember: boolean;
-  };
+  author: IAuthor;
   isLiked: boolean;
   isOwnPost: boolean;
   canModerate: boolean;
 
-  constructor(data: any) {
+  constructor(data: IPostData) {
     this._id = data._id?.toString();
     this.content = data.content;
     this.mediaUrls = data.mediaUrls;
@@ -62,19 +82,21 @@ export class AdminPostResponseDto {
   }
 }
 
+export interface ICommunityStats {
+  totalMembers: number;
+  activeMembersToday: number;
+  postsToday: number;
+  engagementRate: number;
+}
+
 export class CommunityFeedResponseDto extends BaseResponseDto {
   posts: AdminPostResponseDto[];
   hasMore: boolean;
   nextCursor?: string;
   totalCount: number;
-  communityStats: {
-    totalMembers: number;
-    activeMembersToday: number;
-    postsToday: number;
-    engagementRate: number;
-  };
+  communityStats: ICommunityStats;
 
-  constructor(posts: AdminPostResponseDto[], hasMore: boolean, nextCursor?: string, totalCount: number = 0, communityStats?: any) {
+  constructor(posts: AdminPostResponseDto[], hasMore: boolean, nextCursor?: string, totalCount: number = 0, communityStats?: ICommunityStats) {
     super(true, 'Community feed retrieved successfully');
     this.posts = posts;
     this.hasMore = hasMore;

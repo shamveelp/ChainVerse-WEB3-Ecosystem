@@ -1,8 +1,17 @@
-
 import { IChainCast } from "../../../../models/chainCast.model";
 import { IChainCastParticipant } from "../../../../models/chainCastParticipant.model";
 import { IChainCastReaction } from "../../../../models/chainCastReaction.model";
 import { IChainCastModerationRequest } from "../../../../models/chainCastModerationRequest.model";
+
+export interface IChainCastAnalytics {
+    totalChainCasts: number;
+    liveChainCasts: number;
+    completedChainCasts: number;
+    totalViews: number;
+    totalReactions: number;
+    averageViewers: number;
+    averageWatchTime: number;
+}
 
 export interface IChainCastRepository {
     // ChainCast operations
@@ -23,12 +32,7 @@ export interface IChainCastRepository {
         chainCastId: string,
         userId: string,
         role: string,
-        permissions: {
-            canStream: boolean;
-            canModerate: boolean;
-            canReact: boolean;
-            canChat: boolean;
-        }
+        permissions: IChainCastParticipant['permissions']
     ): Promise<IChainCastParticipant | null>;
     removeParticipant(chainCastId: string, userId: string): Promise<boolean>;
     getActiveParticipantsCount(chainCastId: string): Promise<number>;
@@ -50,14 +54,5 @@ export interface IChainCastRepository {
 
     // Analytics operations
     updateChainCastStats(chainCastId: string, stats: Partial<IChainCast['stats']>): Promise<void>;
-    getChainCastAnalytics(communityId: string, startDate?: Date, endDate?: Date): Promise<{
-        totalChainCasts: number;
-        activeNow: number;
-        totalViews: number;
-        peakViewers: number;
-        totalReactions: number;
-        averageWatchTime: number;
-        statusDistribution: Record<string, number>;
-        growthStats: Array<{ date: string; views: number; participants: number }>;
-    }>;
+    getChainCastAnalytics(communityId: string, startDate?: Date, endDate?: Date): Promise<IChainCastAnalytics>;
 }

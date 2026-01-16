@@ -1,6 +1,21 @@
 import { IsString, IsNumber, IsEnum, IsOptional, ValidateNested, Min, Max } from "class-validator";
 import { Type, Transform } from "class-transformer";
 import { BaseResponseDto } from "../base/BaseResponse.dto";
+import { IQuest } from "../../models/quest.model";
+import { IQuestParticipant } from "../../models/questParticipant.model";
+import { IQuestSubmission } from "../../models/questSubmission.model";
+import { IQuestTask } from "../../models/questTask.model";
+import { ICommunity } from "../../models/community.model";
+
+// Define populated interfaces
+interface PopulatedQuest extends IQuest {
+  tasks?: IQuestTask[];
+  community?: ICommunity;
+}
+
+interface PopulatedParticipant extends IQuestParticipant {
+  quest: PopulatedQuest;
+}
 
 // Get Available Quests Query DTO
 export class GetAvailableQuestsDto {
@@ -132,6 +147,7 @@ export class SubmitTaskDto {
   questId!: string;
 
   @IsString()
+  @IsOptional()
   taskId!: string;
 
   @ValidateNested()
@@ -142,7 +158,7 @@ export class SubmitTaskDto {
 // Response DTOs
 export class QuestResponseDto extends BaseResponseDto {
   _id: string;
-  communityId: any;
+  communityId: unknown;
   title: string;
   description: string;
   bannerImage?: string;
@@ -150,7 +166,7 @@ export class QuestResponseDto extends BaseResponseDto {
   endDate: Date;
   selectionMethod: string;
   participantLimit: number;
-  rewardPool: any;
+  rewardPool: IQuest['rewardPool'];
   status: string;
   totalParticipants: number;
   totalSubmissions: number;
@@ -158,7 +174,7 @@ export class QuestResponseDto extends BaseResponseDto {
   isAIGenerated?: boolean;
   createdAt: Date;
   updatedAt: Date;
-  tasks?: any[];
+  tasks?: IQuestTask[];
   community?: {
     communityName: string;
     logo: string;
@@ -176,7 +192,7 @@ export class QuestResponseDto extends BaseResponseDto {
     hasEnded: boolean;
   };
 
-  constructor(quest: any, isParticipating = false, participationData?: any) {
+  constructor(quest: PopulatedQuest, isParticipating = false, participationData?: IQuestParticipant | null) {
     super(true, "Quest retrieved successfully");
     this._id = quest._id.toString();
     this.communityId = quest.communityId;
@@ -195,8 +211,26 @@ export class QuestResponseDto extends BaseResponseDto {
     this.isAIGenerated = quest.isAIGenerated;
     this.createdAt = quest.createdAt;
     this.updatedAt = quest.updatedAt;
+
     this.tasks = quest.tasks;
-    this.community = quest.community;
+
+    // Handle community population
+    if (quest.community && typeof quest.community === 'object') {
+      this.community = {
+        communityName: quest.community.communityName,
+        logo: quest.community.logo,
+        username: quest.community.username
+      };
+    } else if (quest.communityId && typeof quest.communityId === 'object' && 'communityName' in (quest.communityId as unknown as Record<string, unknown>)) {
+      // Fallback if communityId is populated but not typed as such in standard mongoose pattern without explicit population type
+      const comm = quest.communityId as unknown as ICommunity;
+      this.community = {
+        communityName: comm.communityName,
+        logo: comm.logo,
+        username: comm.username
+      };
+    }
+
     this.isParticipating = isParticipating;
     this.participationStatus = participationData?.status;
     this.completedTasks = participationData?.totalTasksCompleted || 0;
@@ -256,7 +290,7 @@ export class QuestResponseDto extends BaseResponseDto {
 export class MyQuestResponseDto extends BaseResponseDto {
   _id: string;
   questId: string;
-  quest: any;
+  quest: IQuest;
   status: string;
   joinedAt: Date;
   completedAt?: Date;
@@ -265,7 +299,7 @@ export class MyQuestResponseDto extends BaseResponseDto {
   rewardClaimed: boolean;
   progress: number;
 
-  constructor(participation: any) {
+  constructor(participation: PopulatedParticipant) {
     super(true, "My quest retrieved successfully");
     this._id = participation._id.toString();
     this.questId = participation.questId.toString();
@@ -276,8 +310,11 @@ export class MyQuestResponseDto extends BaseResponseDto {
     this.totalTasksCompleted = participation.totalTasksCompleted;
     this.isWinner = participation.isWinner;
     this.rewardClaimed = participation.rewardClaimed;
-    this.progress = participation.quest?.tasks?.length > 0 ?
-      (participation.totalTasksCompleted / participation.quest.tasks.length) * 100 : 0;
+
+    // Check if tasks exist safely
+    const tasks = participation.quest.tasks;
+    this.progress = tasks && tasks.length > 0 ?
+      (participation.totalTasksCompleted / tasks.length) * 100 : 0;
   }
 }
 
@@ -285,11 +322,11 @@ export class TaskSubmissionResponseDto extends BaseResponseDto {
   _id: string;
   questId: string;
   taskId: string;
-  submissionData: any;
+  submissionData: IQuestSubmission['submissionData'];
   status: string;
   submittedAt: Date;
 
-  constructor(submission: any) {
+  constructor(submission: IQuestSubmission) {
     super(true, "Task submitted successfully");
     this._id = submission._id.toString();
     this.questId = submission.questId.toString();
@@ -301,7 +338,7 @@ export class TaskSubmissionResponseDto extends BaseResponseDto {
 }
 
 export class LeaderboardResponseDto extends BaseResponseDto {
-  participants: any[];
+  participants: (IQuestParticipant & { rank: number })[];
   pagination: {
     page: number;
     limit: number;
@@ -309,8 +346,8 @@ export class LeaderboardResponseDto extends BaseResponseDto {
     pages: number;
   };
 
-  constructor(data: any) {
-    super(true, "Leaderboard retrieved successfully");
+  constructor(data: { participants: (IQuestParticipant & { rank: number })[]; pagination: { page: number; limit: number; total: number; pages: number }; message?: string }) {
+    super(true, data.message || "Leaderboard retrieved successfully");
     this.participants = data.participants || [];
     this.pagination = data.pagination;
   }
@@ -318,7 +355,7 @@ export class LeaderboardResponseDto extends BaseResponseDto {
 
 export class ParticipationStatusResponseDto {
   isParticipating!: boolean;
-  participation?: any;
+  participation?: IQuestParticipant | null;
   rank?: number | null;
   canJoin?: boolean;
   message?: string;
@@ -333,8 +370,8 @@ export class QuestTaskStatusDto {
   isRequired!: boolean;
   order!: number;
   privilegePoints!: number;
-  config!: any;
+  config!: IQuestTask['config'];
   isCompleted!: boolean;
-  submission!: any;
+  submission!: IQuestSubmission | null;
   canSubmit!: boolean;
 }

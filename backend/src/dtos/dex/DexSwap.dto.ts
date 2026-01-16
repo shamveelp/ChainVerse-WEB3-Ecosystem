@@ -1,6 +1,7 @@
 import { IsString, IsEnum, IsNumber, IsOptional, Min, Max } from "class-validator";
 import { BaseResponseDto } from "../base/BaseResponse.dto";
 import { Type } from "class-transformer";
+import { ISwapTransaction } from "../../models/dexSwap.model";
 
 // Request DTOs
 export class RecordSwapDto {
@@ -130,12 +131,76 @@ export class UpdatePriceDto {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
+  @Min(0)
   liquidity?: number = 0;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
   blockNumber?: number;
+}
+
+// Interfaces for constructor data
+export interface IChartDataPoint {
+  timestamp: Date | number | string;
+  price?: number;
+  close?: number;
+  volume?: number;
+  high?: number;
+  low?: number;
+  open?: number;
+}
+
+export interface ITradingStats {
+  symbol?: string;
+  baseToken?: string;
+  quoteToken?: string;
+  currentPrice?: number;
+  priceChange24h?: number;
+  priceChangePercent24h?: number;
+  volume24h?: number;
+  high24h?: number;
+  low24h?: number;
+  totalLiquidity?: number;
+  totalTrades?: number;
+  marketCap?: number;
+}
+
+export interface ITokenPriceData {
+  token: string;
+  priceInETH: number;
+  priceInUSD: number;
+  priceChange24h: number;
+  priceChangePercent24h: number;
+  volume24h: number;
+  high24h: number;
+  low24h: number;
+  marketCap: number;
+  liquidity: number;
+  timestamp: Date;
+}
+
+export interface IDexOverallStats {
+  totalVolumeUSD?: number;
+  totalTrades?: number;
+  activeUsers24h?: number;
+  topGainer?: {
+    token: string;
+    change: number;
+  };
+  topLoser?: {
+    token: string;
+    change: number;
+  };
+}
+
+export interface IUserTradingStats {
+  userId?: string;
+  totalVolumeUSD?: number;
+  totalTrades?: number;
+  mostTradedToken?: string;
+  profitAndLossUSD?: number;
+  lastTradeAt?: Date;
 }
 
 // Response DTOs
@@ -162,7 +227,7 @@ export class SwapTransactionResponseDto extends BaseResponseDto {
   createdAt: Date;
   updatedAt: Date;
 
-  constructor(transaction: any) {
+  constructor(transaction: ISwapTransaction) {
     super(true, "Swap transaction retrieved successfully");
     this.id = transaction._id.toString();
     this.userId = transaction.userId.toString();
@@ -198,15 +263,15 @@ export class ChartDataPointDto {
   open: number;
   close: number;
 
-  constructor(data: any) {
+  constructor(data: IChartDataPoint) {
     this.timestamp = new Date(data.timestamp).getTime();
     this.date = new Date(data.timestamp).toLocaleDateString();
-    this.price = data.price || data.close;
+    this.price = (data.price !== undefined ? data.price : data.close) || 0;
     this.volume = data.volume || 0;
-    this.high = data.high || data.price;
-    this.low = data.low || data.price;
-    this.open = data.open || data.price;
-    this.close = data.close || data.price;
+    this.high = (data.high !== undefined ? data.high : (data.price || 0));
+    this.low = (data.low !== undefined ? data.low : (data.price || 0));
+    this.open = (data.open !== undefined ? data.open : (data.price || 0));
+    this.close = (data.close !== undefined ? data.close : (data.price || 0));
   }
 }
 
@@ -216,7 +281,7 @@ export class ChartDataResponseDto extends BaseResponseDto {
   timeframe: string;
   totalCount: number;
 
-  constructor(data: any[], pair: string, timeframe: string) {
+  constructor(data: IChartDataPoint[], pair: string, timeframe: string) {
     super(true, "Chart data retrieved successfully");
     this.data = data.map(item => new ChartDataPointDto(item));
     this.pair = pair;
@@ -237,7 +302,7 @@ export class TradingStatsDto {
   totalTrades: number;
   marketCap: number;
 
-  constructor(data: any) {
+  constructor(data: ITradingStats) {
     this.pair = data.symbol || `${data.baseToken}/${data.quoteToken}`;
     this.currentPrice = data.currentPrice || 0;
     this.priceChange24h = data.priceChange24h || 0;
@@ -261,7 +326,13 @@ export class SwapHistoryResponseDto extends BaseResponseDto {
     hasPrev: boolean;
   };
 
-  constructor(transactions: any[], pagination: any) {
+  constructor(transactions: ISwapTransaction[], pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  }) {
     super(true, "Swap history retrieved successfully");
     this.transactions = transactions.map(tx => new SwapTransactionResponseDto(tx));
     this.pagination = pagination;
@@ -281,7 +352,7 @@ export class TokenPriceResponseDto extends BaseResponseDto {
   liquidity: number;
   lastUpdated: Date;
 
-  constructor(price: any) {
+  constructor(price: ITokenPriceData) {
     super(true, "Token price retrieved successfully");
     this.token = price.token;
     this.priceInETH = price.priceInETH;
@@ -310,7 +381,7 @@ export class DexOverallStatsDto extends BaseResponseDto {
     change: number;
   };
 
-  constructor(stats: any) {
+  constructor(stats: IDexOverallStats) {
     super(true, "Overall DEX stats retrieved successfully");
     this.totalVolumeUSD = stats.totalVolumeUSD || 0;
     this.totalTrades = stats.totalTrades || 0;
@@ -328,9 +399,9 @@ export class UserTradingStatsDto extends BaseResponseDto {
   profitAndLossUSD!: number;
   lastTradeAt?: Date;
 
-  constructor(stats: any) {
+  constructor(stats: IUserTradingStats) {
     super(true, "User trading stats retrieved successfully");
-    this.userId = stats.userId?.toString();
+    this.userId = stats.userId?.toString() || '';
     this.totalVolumeUSD = stats.totalVolumeUSD || 0;
     this.totalTrades = stats.totalTrades || 0;
     this.mostTradedToken = stats.mostTradedToken || 'N/A';

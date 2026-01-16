@@ -6,7 +6,7 @@ import QuestParticipantModel, { IQuestParticipant } from "../../models/questPart
 import QuestSubmissionModel, { IQuestSubmission } from "../../models/questSubmission.model";
 import { PointsHistoryModel } from "../../models/pointsHistory.model";
 import { UserModel } from "../../models/user.models";
-import mongoose from "mongoose";
+import mongoose, { FilterQuery } from "mongoose";
 
 @injectable()
 export class CommunityAdminQuestRepository implements ICommunityAdminQuestRepository {
@@ -30,7 +30,7 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
     status?: string
   ): Promise<{ quests: IQuest[]; total: number }> {
     const skip = (page - 1) * limit;
-    const filter: any = { communityId };
+    const filter: FilterQuery<IQuest> = { communityId };
 
     if (status) {
       filter.status = status;
@@ -105,7 +105,7 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
     status?: string
   ): Promise<{ participants: IQuestParticipant[]; total: number }> {
     const skip = (page - 1) * limit;
-    const filter: any = { questId };
+    const filter: FilterQuery<IQuestParticipant> = { questId };
 
     if (status) {
       filter.status = status;
@@ -191,13 +191,15 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
   }
 
   async getRandomParticipants(questId: string, limit: number): Promise<IQuestParticipant[]> {
+    // Note: aggregate output might not perfectly match IQuestParticipant if $lookup is used this way,
+    // but the implementation here tries to conform to it by unwinding userId.
     const participants = await QuestParticipantModel.aggregate([
       { $match: { questId: new mongoose.Types.ObjectId(questId), status: 'completed' } },
       { $sample: { size: limit } },
       { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'userId' } },
       { $unwind: '$userId' }
     ]);
-    return participants;
+    return participants as IQuestParticipant[];
   }
 
   // Reward distribution
@@ -229,14 +231,14 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
       const updatePromises = winners.map(async (winner) => {
         // Update user points
         await UserModel.findByIdAndUpdate(
-          winner.userId._id,
+          (winner.userId as unknown as { _id: mongoose.Types.ObjectId })._id,
           { $inc: { totalPoints: rewardPerWinner } },
           { session }
         );
 
         // Create points history record
         await PointsHistoryModel.create([{
-          userId: winner.userId._id,
+          userId: (winner.userId as unknown as { _id: mongoose.Types.ObjectId })._id,
           type: 'quest_reward',
           points: rewardPerWinner,
           description: `Quest reward: ${quest.title}`,
@@ -286,7 +288,7 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
     status?: string
   ): Promise<{ submissions: IQuestSubmission[]; total: number }> {
     const skip = (page - 1) * limit;
-    const filter: any = { questId };
+    const filter: FilterQuery<IQuestSubmission> = { questId };
 
     if (status) {
       filter.status = status;
@@ -407,7 +409,7 @@ export class CommunityAdminQuestRepository implements ICommunityAdminQuestReposi
     };
   }
 
-  async getQuestLeaderboard(questId: string, limit: number = 10): Promise<any[]> {
+  async getQuestLeaderboard(questId: string, limit: number = 10): Promise<IQuestParticipant[]> {
     return await QuestParticipantModel.find({ questId })
       .sort({
         totalPrivilegePoints: -1,

@@ -1,6 +1,11 @@
 import { IsString, IsArray, IsOptional, IsEnum, MaxLength, MinLength, IsMongoId, IsNumber, Min } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
+import { ICommunityAdminPost } from '../../models/communityAdminPost.model';
+import { ICommunityAdminComment } from '../../models/communityAdminComment.model';
+import { ICommunityAdmin } from '../../models/communityAdmin.model';
+import { ICommunity } from '../../models/community.model';
+import { Types } from 'mongoose';
 
 // Create Community Admin Post DTO
 export class CreateCommunityAdminPostDto {
@@ -61,13 +66,14 @@ export class CommunityAdminPostAuthorDto {
     communityLogo?: string;
     isVerified: boolean;
 
-    constructor(admin: any, community?: any) {
+    constructor(admin: ICommunityAdmin, community?: ICommunity) {
         this._id = admin._id.toString();
         this.name = admin.name;
         this.email = admin.email;
         this.profilePic = admin.profilePic || '';
         this.communityName = community?.communityName || '';
         this.communityLogo = community?.logo || '';
+        // Assuming isVerified exists on community or we default to false
         this.isVerified = community?.isVerified || false;
     }
 }
@@ -92,7 +98,8 @@ export class CommunityAdminPostResponseDto {
     updatedAt: Date;
     editedAt?: Date;
 
-    constructor(post: any, currentAdminId: string, isLiked: boolean = false) {
+    // Use a combined interface or specific types for populated post
+    constructor(post: ICommunityAdminPost & { author: ICommunityAdmin, community?: ICommunity }, currentAdminId: string, isLiked: boolean = false) {
         this._id = post._id.toString();
         this.author = new CommunityAdminPostAuthorDto(post.author, post.community);
         this.content = post.content;
@@ -145,6 +152,13 @@ export class CommunityAdminCommentDto {
     parentCommentId?: string;
 }
 
+// Helper type for populated comment
+export type PopulatedComment = ICommunityAdminComment & {
+    author: ICommunityAdmin;
+    community?: ICommunity;
+    replies?: PopulatedComment[];
+};
+
 // Community Admin Comment Response DTO
 export class CommunityAdminCommentResponseDto {
     _id: string;
@@ -163,7 +177,7 @@ export class CommunityAdminCommentResponseDto {
     editedAt?: Date;
     replies?: CommunityAdminCommentResponseDto[];
 
-    constructor(comment: any, currentAdminId: string, isLiked: boolean = false) {
+    constructor(comment: PopulatedComment, currentAdminId: string, isLiked: boolean = false) {
         this._id = comment._id.toString();
         this.post = comment.post.toString();
         this.author = new CommunityAdminPostAuthorDto(comment.author, comment.community);
@@ -178,7 +192,7 @@ export class CommunityAdminCommentResponseDto {
         this.createdAt = comment.createdAt;
         this.updatedAt = comment.updatedAt;
         this.editedAt = comment.editedAt;
-        this.replies = comment.replies?.map((reply: any) =>
+        this.replies = comment.replies?.map((reply) =>
             new CommunityAdminCommentResponseDto(reply, currentAdminId, isLiked)
         ) || [];
     }

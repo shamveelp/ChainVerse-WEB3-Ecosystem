@@ -351,9 +351,8 @@ export const setupCommunitySocketHandlers = (io: SocketIOServer) => {
           return;
         }
 
-        let message;
         const chatService = container.get<IUserCommunityChatService>(TYPES.IUserCommunityChatService);
-        message = await chatService.sendGroupMessage(socket.userId!, {
+        const message = await chatService.sendGroupMessage(socket.userId!, {
           communityUsername: data.communityUsername,
           content: data.content.trim()
         });

@@ -30,8 +30,12 @@ import {
   ChainCastModerationRequestResponseDto,
   UpdateParticipantDto,
   ChainCastAnalyticsResponseDto,
-  ChainCastsSummaryDto
+  ChainCastsSummaryDto,
+  IChainCastAnalyticsData
 } from "../../dtos/chainCast/ChainCast.dto";
+import { IChainCast } from "../../models/chainCast.model";
+
+type PopulatedAdmin = { _id: Types.ObjectId; username: string; name: string; profilePic: string };
 
 @injectable()
 export class ChainCastService implements IChainCastService {
@@ -210,16 +214,15 @@ export class ChainCastService implements IChainCastService {
         throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
-      let userRole: string | undefined;
+      let userRole: 'viewer' | 'moderator' | 'admin' | undefined;
       let canJoin = false;
       let canModerate = false;
 
       if (userId) {
         // Check if user is admin
-        const adminIdFromCast =
-          typeof chainCast.adminId === "object"
-            ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
-            : chainCast.adminId;
+        const adminIdFromCast = (chainCast.adminId as unknown as PopulatedAdmin)._id
+          ? (chainCast.adminId as unknown as PopulatedAdmin)._id.toString()
+          : chainCast.adminId.toString();
 
         const isAdmin = adminIdFromCast === userId;
         if (isAdmin) {
@@ -244,7 +247,7 @@ export class ChainCastService implements IChainCastService {
         }
       }
 
-      const populatedAdmin = chainCast.adminId as unknown as { _id: Types.ObjectId; username: string; name: string; profilePic: string };
+      const populatedAdmin = chainCast.adminId as unknown as PopulatedAdmin;
       return new ChainCastResponseDto(
         chainCast,
         populatedAdmin,
@@ -284,10 +287,9 @@ export class ChainCastService implements IChainCastService {
       }
 
       // Verify ownership
-      const adminIdFromCast =
-        typeof chainCast.adminId === "object"
-          ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
-          : chainCast.adminId;
+      const adminIdFromCast = (chainCast.adminId as unknown as PopulatedAdmin)._id
+        ? (chainCast.adminId as unknown as PopulatedAdmin)._id.toString()
+        : chainCast.adminId.toString();
 
       if (adminIdFromCast !== adminId) {
         throw new CustomError(
@@ -363,10 +365,9 @@ export class ChainCastService implements IChainCastService {
       }
 
       // Verify ownership
-      const adminIdFromCast =
-        typeof chainCast.adminId === "object"
-          ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
-          : chainCast.adminId;
+      const adminIdFromCast = (chainCast.adminId as unknown as PopulatedAdmin)._id
+        ? (chainCast.adminId as unknown as PopulatedAdmin)._id.toString()
+        : chainCast.adminId.toString();
 
       if (adminIdFromCast !== adminId) {
         throw new CustomError(
@@ -427,9 +428,9 @@ export class ChainCastService implements IChainCastService {
       }
 
       const adminIdFromCast =
-        typeof chainCast.adminId === "object"
-          ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
-          : chainCast.adminId;
+        (chainCast.adminId as unknown as PopulatedAdmin)._id
+          ? (chainCast.adminId as unknown as PopulatedAdmin)._id.toString()
+          : chainCast.adminId.toString();
 
       // Verify ownership
       if (adminIdFromCast !== adminId) {
@@ -507,10 +508,9 @@ export class ChainCastService implements IChainCastService {
         throw new CustomError(ErrorMessages.CHAINCAST_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
-      const adminIdFromCast =
-        typeof chainCast.adminId === "object"
-          ? chainCast.adminId._id?.toString() || chainCast.adminId.toString()
-          : chainCast.adminId;
+      const adminIdFromCast = (chainCast.adminId as unknown as PopulatedAdmin)._id
+        ? (chainCast.adminId as unknown as PopulatedAdmin)._id.toString()
+        : chainCast.adminId.toString();
 
       // Verify ownership
       if (adminIdFromCast !== adminId) {
@@ -612,7 +612,7 @@ export class ChainCastService implements IChainCastService {
           const canModerate = participant?.permissions.canModerate || false;
           const userRole = participant?.role || "viewer";
 
-          const populatedAdmin = chainCast.adminId as unknown as { _id: Types.ObjectId; username: string; name: string; profilePic: string };
+          const populatedAdmin = chainCast.adminId as unknown as PopulatedAdmin;
           return new ChainCastResponseDto(
             chainCast,
             populatedAdmin,
@@ -679,7 +679,7 @@ export class ChainCastService implements IChainCastService {
       }
 
       // Check if user is already a participant
-      let existingParticipant =
+      const existingParticipant =
         await this._chainCastRepository.findParticipantByChainCastAndUser(
           data.chainCastId,
           userId
@@ -740,7 +740,7 @@ export class ChainCastService implements IChainCastService {
         "stats.peakViewers": Math.max(chainCast.stats.peakViewers, newCount),
         "stats.totalViews": chainCast.stats.totalViews + 1,
       };
-      await this._chainCastRepository.updateChainCast(data.chainCastId, updateDataForStats as unknown as Record<string, unknown>);
+      await this._chainCastRepository.updateChainCast(data.chainCastId, updateDataForStats as Partial<IChainCast>);
 
       return {
         success: true,
@@ -1426,7 +1426,22 @@ export class ChainCastService implements IChainCastService {
         endDate
       );
 
-      return new ChainCastAnalyticsResponseDto(analytics);
+      const responseData: IChainCastAnalyticsData = {
+        totalChainCasts: analytics.totalChainCasts,
+        activeNow: analytics.liveChainCasts,
+        totalViews: analytics.totalViews,
+        peakViewers: 0, // Not available in repo analytics interface
+        totalReactions: analytics.totalReactions,
+        averageWatchTime: analytics.averageWatchTime,
+        statusDistribution: {
+          live: analytics.liveChainCasts,
+          completed: analytics.completedChainCasts,
+          total: analytics.totalChainCasts
+        },
+        growthStats: [] // Not implemented in current analytics
+      };
+
+      return new ChainCastAnalyticsResponseDto(responseData);
     } catch (error) {
       logger.error(LoggerMessages.GET_CHAINCAST_ANALYTICS_ERROR, error);
       if (error instanceof CustomError) {

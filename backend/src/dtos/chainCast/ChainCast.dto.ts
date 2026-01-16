@@ -238,7 +238,7 @@ export class ChainCastResponseDto {
     constructor(
         chainCast: IChainCast,
         admin: { _id?: Types.ObjectId; username?: string; name?: string; profilePic?: string; profilePicture?: string },
-        userRole?: string,
+        userRole?: 'viewer' | 'moderator' | 'admin',
         canJoin: boolean = false,
         canModerate: boolean = false
     ) {
@@ -272,7 +272,7 @@ export class ChainCastResponseDto {
         this.canJoin = canJoin;
         this.canModerate = canModerate;
         this.isParticipant = !!userRole;
-        this.userRole = userRole as any;
+        this.userRole = userRole;
         this.streamUrl = chainCast.streamData?.streamUrl;
         this.createdAt = chainCast.createdAt;
         this.updatedAt = chainCast.updatedAt;
@@ -387,7 +387,7 @@ export class ChainCastReactionResponseDto {
             profilePic: user.profilePic
         };
         this.emoji = reaction.emoji || '';
-        this.timestamp = (reaction as any).timestamp || (reaction as any).createdAt;
+        this.timestamp = reaction.timestamp || reaction.createdAt;
     }
 }
 
@@ -488,19 +488,21 @@ export class ChainCastModerationRequestsListResponseDto {
     }
 }
 
-export class ChainCastAnalyticsResponseDto extends BaseResponseDto {
-    data: {
-        totalChainCasts: number;
-        activeNow: number;
-        totalViews: number;
-        peakViewers: number;
-        totalReactions: number;
-        averageWatchTime: number;
-        statusDistribution: Record<string, number>;
-        growthStats: Array<{ date: string; views: number; participants: number }>;
-    };
+export interface IChainCastAnalyticsData {
+    totalChainCasts: number;
+    activeNow: number;
+    totalViews: number;
+    peakViewers: number;
+    totalReactions: number;
+    averageWatchTime: number;
+    statusDistribution: Record<string, number>;
+    growthStats: Array<{ date: string; views: number; participants: number }>;
+}
 
-    constructor(analytics: any) {
+export class ChainCastAnalyticsResponseDto extends BaseResponseDto {
+    data: IChainCastAnalyticsData;
+
+    constructor(analytics: IChainCastAnalyticsData) {
         super(true, "Analytics retrieved successfully");
         this.data = analytics;
     }

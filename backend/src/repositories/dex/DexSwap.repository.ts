@@ -1,8 +1,18 @@
 import { injectable } from "inversify";
-import { IDexSwapRepository } from "../../core/interfaces/repositories/dex/IDexSwap.repository";
+import {
+  IDexSwapRepository,
+  ISwapFilters,
+  IPagination,
+  IChartData,
+  ITradingStats,
+  IVolumeData,
+  IUserTradingStats,
+  IDEXOverallStats
+} from "../../core/interfaces/repositories/dex/IDexSwap.repository";
 import { SwapTransactionModel, ISwapTransaction } from "../../models/dexSwap.model";
 import { TokenPriceModel, ITokenPrice } from "../../models/tokenPrice.model";
 import { TradingPairModel, ITradingPair } from "../../models/tradingPair.model";
+import { FilterQuery, SortOrder } from "mongoose";
 
 @injectable()
 export class DexSwapRepository implements IDexSwapRepository {
@@ -25,11 +35,11 @@ export class DexSwapRepository implements IDexSwapRepository {
     return await SwapTransactionModel.findOne({ txHash }).lean();
   }
 
-  async getUserSwapHistory(userId: string, filters: any, pagination: any): Promise<{
+  async getUserSwapHistory(userId: string, filters: ISwapFilters, pagination: IPagination): Promise<{
     transactions: ISwapTransaction[];
     total: number;
   }> {
-    const query: any = { userId };
+    const query: FilterQuery<ISwapTransaction> = { userId };
 
     // Apply filters
     if (filters.walletAddress) query.walletAddress = filters.walletAddress;
@@ -37,12 +47,13 @@ export class DexSwapRepository implements IDexSwapRepository {
     if (filters.toToken) query.toToken = filters.toToken;
     if (filters.status) query.status = filters.status;
     if (filters.dateFrom || filters.dateTo) {
-      query.timestamp = {};
-      if (filters.dateFrom) query.timestamp.$gte = new Date(filters.dateFrom);
-      if (filters.dateTo) query.timestamp.$lte = new Date(filters.dateTo);
+      const timestampFilter: Record<string, Date> = {};
+      if (filters.dateFrom) timestampFilter['$gte'] = new Date(filters.dateFrom);
+      if (filters.dateTo) timestampFilter['$lte'] = new Date(filters.dateTo);
+      query.timestamp = timestampFilter;
     }
 
-    const sort: any = {};
+    const sort: Record<string, SortOrder> = {};
     sort[pagination.sortBy || 'timestamp'] = pagination.sortOrder === 'asc' ? 1 : -1;
 
     const [transactions, total] = await Promise.all([
@@ -104,7 +115,7 @@ export class DexSwapRepository implements IDexSwapRepository {
     quoteToken: string,
     timeframe: string,
     limit: number
-  ): Promise<any[]> {
+  ): Promise<IChartData[]> {
     const timeframeMap: { [key: string]: number } = {
       '1h': 60 * 60 * 1000,
       '4h': 4 * 60 * 60 * 1000,
@@ -125,11 +136,11 @@ export class DexSwapRepository implements IDexSwapRepository {
       status: 'completed',
       timestamp: { $gte: fromDate }
     })
-    .sort({ timestamp: 1 })
-    .lean();
+      .sort({ timestamp: 1 })
+      .lean();
 
     // Group swaps by time intervals
-    const chartData: any[] = [];
+    const chartData: IChartData[] = [];
     const intervalStart = Math.floor(fromDate.getTime() / intervalMs) * intervalMs;
 
     for (let i = 0; i < limit; i++) {
@@ -243,7 +254,7 @@ export class DexSwapRepository implements IDexSwapRepository {
       .lean();
   }
 
-  async getTradingStats(): Promise<any> {
+  async getTradingStats(): Promise<ITradingStats> {
     const [
       totalVolume24h,
       totalTrades,
@@ -273,7 +284,7 @@ export class DexSwapRepository implements IDexSwapRepository {
   }
 
   // Analytics Methods
-  async getVolumeByTimeframe(timeframe: string): Promise<any[]> {
+  async getVolumeByTimeframe(timeframe: string): Promise<IVolumeData[]> {
     const timeframeMap: { [key: string]: string } = {
       '1h': '%Y-%m-%d %H:00:00',
       '1d': '%Y-%m-%d',
@@ -308,7 +319,7 @@ export class DexSwapRepository implements IDexSwapRepository {
       .lean();
   }
 
-  async getUserTradingStats(userId: string): Promise<any> {
+  async getUserTradingStats(userId: string): Promise<IUserTradingStats> {
     const [stats] = await SwapTransactionModel.aggregate([
       { $match: { userId: userId, status: 'completed' } },
       {
@@ -332,7 +343,7 @@ export class DexSwapRepository implements IDexSwapRepository {
     };
   }
 
-  async getDEXOverallStats(): Promise<any> {
+  async getDEXOverallStats(): Promise<IDEXOverallStats> {
     const [
       totalStats,
       stats24h,

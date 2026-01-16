@@ -16,7 +16,9 @@ export interface ICommunityAdmin extends Document {
     lastLogin: Date;
     createdAt: Date;
     updatedAt: Date;
-
+    bio?: string;
+    location?: string;
+    website?: string;
 }
 
 
@@ -31,7 +33,10 @@ const CommunityAdminSchema: Schema<ICommunityAdmin> = new Schema({
     isActive: { type: Boolean, default: true },
     tokenVersion: { type: Number, default: 0 },
     lastLogin: { type: Date, default: null },
-    }, {
+    bio: { type: String },
+    location: { type: String },
+    website: { type: String },
+}, {
     timestamps: true
 })
 

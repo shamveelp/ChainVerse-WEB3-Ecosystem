@@ -98,8 +98,8 @@ export class CommunityMemberDetailDto {
     } : undefined;
 
     this.activityLevel = this.calculateActivityLevel(member);
-    this.joinSource = (member as any).joinSource || 'direct';
-    this.totalWarnings = (member as any).totalWarnings || 0;
+    this.joinSource = member.joinSource || 'direct';
+    this.totalWarnings = member.totalWarnings || 0;
   }
 
   private getPermissions(role: string) {

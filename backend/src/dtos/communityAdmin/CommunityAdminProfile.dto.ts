@@ -1,6 +1,8 @@
 import { IsOptional, IsString, MinLength, MaxLength, IsUrl } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
+import { ICommunityAdmin } from '../../models/communityAdmin.model';
+import { ICommunity } from '../../models/community.model';
 
 export class UpdateCommunityAdminProfileDto {
   @IsOptional()
@@ -42,6 +44,30 @@ export class UpdateCommunityAdminProfileDto {
   bannerImage?: string;
 }
 
+export interface ICommunityStats {
+  totalMembers: number;
+  activeMembers: number;
+  totalPosts: number;
+  totalQuests: number;
+  premiumMembers: number;
+  engagementRate: number;
+  myPostsCount: number;
+  myLikesCount: number;
+  myCommentsCount: number;
+  newMembersThisWeek?: number;
+  postsThisWeek?: number;
+  activeQuests?: number;
+  averagePostsPerMember?: number;
+  topActiveMembers?: {
+    _id: string;
+    username: string;
+    name: string;
+    profilePic: string;
+    totalPosts: number;
+    totalLikes: number;
+  }[];
+}
+
 export class CommunityAdminProfileResponseDto extends BaseResponseDto {
   _id: string;
   name: string;
@@ -58,27 +84,19 @@ export class CommunityAdminProfileResponseDto extends BaseResponseDto {
   isActive: boolean;
   lastLogin?: Date;
   joinDate: Date;
-  stats: {
-    totalMembers: number;
-    activeMembers: number;
-    totalPosts: number;
-    totalQuests: number;
-    premiumMembers: number;
-    engagementRate: number;
-    myPostsCount: number;
-    myLikesCount: number;
-    myCommentsCount: number;
-  };
+  stats: ICommunityStats;
 
-  constructor(admin: any, community?: any, stats?: any) {
+  constructor(admin: ICommunityAdmin, community?: ICommunity, stats?: ICommunityStats) {
     super(true, 'Profile retrieved successfully');
     this._id = admin._id.toString();
     this.name = admin.name;
     this.email = admin.email;
     this.username = community?.username || '';
+
     this.bio = admin.bio || '';
     this.location = admin.location || '';
     this.website = admin.website || '';
+
     this.profilePic = admin.profilePic || '';
     this.bannerImage = admin.bannerImage || '';
     this.communityId = admin.communityId?.toString();
@@ -124,7 +142,7 @@ export class CommunityStatsDto {
     totalLikes: number;
   }[];
 
-  constructor(data: any) {
+  constructor(data: ICommunityStats) {
     this.totalMembers = data.totalMembers || 0;
     this.activeMembers = data.activeMembers || 0;
     this.newMembersThisWeek = data.newMembersThisWeek || 0;

@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
 export interface ICommunityMember extends Document {
     _id: Types.ObjectId;
-    
+
     communityId: Types.ObjectId;
     userId: Types.ObjectId;
     joinedAt: Date;
@@ -18,6 +18,8 @@ export interface ICommunityMember extends Document {
     bannedUntil?: Date;
     bannedBy?: Types.ObjectId;
     banReason?: string;
+    joinSource?: string;
+    totalWarnings?: number;
     createdAt: Date;
     updatedAt: Date;
 }

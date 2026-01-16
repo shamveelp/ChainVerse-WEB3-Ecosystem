@@ -4,9 +4,9 @@ import { ICommunityRepository } from "../../core/interfaces/repositories/ICommun
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { 
-    CommunityProfileResponseDto, 
-    CommunityMemberResponseDto, 
+import {
+    CommunityProfileResponseDto,
+    CommunityMemberResponseDto,
     CommunityJoinResponseDto,
     CommunityListResponseDto,
     CommunityMemberListResponseDto,
@@ -20,7 +20,7 @@ import { Types } from "mongoose";
 export class CommunityService implements ICommunityService {
     constructor(
         @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository
-    ) {}
+    ) { }
 
     async getCommunityById(communityId: string, viewerUserId?: string): Promise<CommunityProfileResponseDto | null> {
         try {
@@ -63,7 +63,7 @@ export class CommunityService implements ICommunityService {
                 isVerified: community.isVerified || false,
                 memberCount: memberCount,
                 rules: community.rules || [],
-                socialLinks: community.socialLinks || [],
+                socialLinks: (community.socialLinks as unknown) as Record<string, unknown>[] || [],
                 settings: {
                     allowChainCast: community.settings?.allowChainCast || false,
                     allowGroupChat: community.settings?.allowGroupChat || true,
@@ -152,7 +152,7 @@ export class CommunityService implements ICommunityService {
                 // Map users to DTOs
                 for (const user of userResult.users) {
                     let isFollowing = false;
-                    
+
                     if (viewerUserId && viewerUserId !== user._id.toString()) {
                         isFollowing = await this._communityRepository.checkIfFollowing(viewerUserId, user._id.toString());
                     }
@@ -212,7 +212,7 @@ export class CommunityService implements ICommunityService {
         }
     }
 
-    async getPopularCommunities(viewerUserId?: string, cursor?: string, limit: number = 20, category?: string): Promise<CommunityListResponseDto> {      
+    async getPopularCommunities(viewerUserId?: string, cursor?: string, limit: number = 20, category?: string): Promise<CommunityListResponseDto> {
         try {
             const validLimit = Math.min(Math.max(limit, 1), 50);
             const result = await this._communityRepository.getPopularCommunities(cursor, validLimit, category);

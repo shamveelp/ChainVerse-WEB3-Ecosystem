@@ -1,6 +1,7 @@
 import { IsString, IsOptional, IsBoolean, IsNumber, Min } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { PaginatedResponseDto } from '../base/BaseResponse.dto';
+import { IUser } from '../../models/user.models';
 
 export class GetUsersQueryDto {
   @IsOptional()
@@ -51,11 +52,11 @@ export class UserResponseDto {
   refferalCode?: string;
   refferedBy?: string | null;
 
-  constructor(user: any) {
-    this._id = user._id;
+  constructor(user: IUser) {
+    this._id = user._id.toString();
     this.username = user.username;
-    this.name = user.name;
-    this.email = user.email;
+    this.name = user.name || '';
+    this.email = user.email || '';
     this.phone = user.phone;
     this.totalPoints = user.totalPoints;
     this.isBlocked = user.isBlocked;
@@ -65,13 +66,19 @@ export class UserResponseDto {
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
     this.refferalCode = user.refferalCode;
-    this.refferedBy = user.refferedBy;
+    // Handle refferedBy being populated or ObjectId or string
+    const refferedBy = user.refferedBy;
+    if (refferedBy && typeof refferedBy === 'object' && '_id' in refferedBy) {
+      this.refferedBy = (refferedBy as { _id: { toString(): string } })._id.toString();
+    } else {
+      this.refferedBy = refferedBy ? refferedBy.toString() : null;
+    }
   }
 }
 
 export class GetUsersResponseDto extends PaginatedResponseDto<UserResponseDto> {
   constructor(
-    users: any[],
+    users: IUser[],
     total: number,
     page: number,
     limit: number,

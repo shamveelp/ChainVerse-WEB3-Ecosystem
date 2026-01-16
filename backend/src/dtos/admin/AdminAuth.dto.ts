@@ -1,6 +1,8 @@
 import { IsBoolean, IsEmail, IsString, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { BaseResponseDto } from '../base/BaseResponse.dto';
+import { IAdmin } from '../../models/admin.model';
+import { Types } from 'mongoose';
 
 export class AdminLoginDto {
   @IsEmail({}, { message: 'Please provide a valid email address' })
@@ -22,6 +24,15 @@ export class AdminChangePasswordDto {
   newPassword: string | undefined;
 }
 
+// Interface for what the service returns (a simplified admin object)
+export interface IAdminProfileData {
+  _id: string | Types.ObjectId;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  lastLogin?: Date | null;
+}
 
 export class AdminResponseDto {
   _id: string;
@@ -31,20 +42,20 @@ export class AdminResponseDto {
   isActive: boolean;
   lastLogin: Date | null;
 
-  constructor(admin: any) {
-    this._id = admin._id;
+  constructor(admin: IAdminProfileData | IAdmin) {
+    this._id = admin._id.toString();
     this.name = admin.name;
     this.email = admin.email;
     this.role = admin.role;
     this.isActive = admin.isActive;
-    this.lastLogin = admin.lastLogin;
+    this.lastLogin = admin.lastLogin || null;
   }
 }
 
 export class AdminLoginResponseDto extends BaseResponseDto {
   admin: AdminResponseDto;
 
-  constructor(admin: any, message: string = 'Admin login successful') {
+  constructor(admin: IAdminProfileData | IAdmin, message: string = 'Admin login successful') {
     super(true, message);
     this.admin = new AdminResponseDto(admin);
   }

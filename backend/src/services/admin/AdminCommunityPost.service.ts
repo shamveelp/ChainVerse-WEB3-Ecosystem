@@ -6,7 +6,10 @@ import {
     AdminCommunityPostListResponseDto,
     AdminPostItemDto,
     AdminPostCommentDto,
-    AdminPostLikerDto
+    AdminPostLikerDto,
+    CombinedPost,
+    CombinedComment,
+    CombinedUser
 } from "../../dtos/admin/AdminCommunityPost.dto";
 
 @injectable()
@@ -26,7 +29,10 @@ export class AdminCommunityPostService implements IAdminCommunityPostService {
     async getAllPosts(cursor?: string, limit: number = 10, type: 'all' | 'user' | 'admin' = 'all', search?: string): Promise<AdminCommunityPostListResponseDto> {
         const result = await this._repository.getAllPosts(cursor, limit, type, search);
 
-        const dtos = result.posts.map(post => new AdminPostItemDto(post));
+        const dtos = result.posts.map(post => {
+            const postType = type === 'all' && 'postType' in post ? (post as { postType: string }).postType : type;
+            return new AdminPostItemDto({ ...post, postType } as CombinedPost);
+        });
 
         return new AdminCommunityPostListResponseDto(dtos, result.hasMore, result.nextCursor);
     }
@@ -59,7 +65,9 @@ export class AdminCommunityPostService implements IAdminCommunityPostService {
      */
     async getPostDetails(postId: string, type: 'user' | 'admin'): Promise<AdminPostItemDto> {
         const post = await this._repository.getPostDetails(postId, type);
-        return new AdminPostItemDto(post);
+        // Cast to CombinedPost type
+        const combinedPost: CombinedPost = { ...post, postType: type } as CombinedPost;
+        return new AdminPostItemDto(combinedPost);
     }
 
     /**
@@ -77,7 +85,7 @@ export class AdminCommunityPostService implements IAdminCommunityPostService {
     }> {
         const result = await this._repository.getPostComments(postId, type, cursor, limit);
         return {
-            comments: result.comments.map(comment => new AdminPostCommentDto(comment)),
+            comments: result.comments.map(comment => new AdminPostCommentDto(comment as CombinedComment)),
             hasMore: result.hasMore,
             nextCursor: result.nextCursor
         };
@@ -98,7 +106,7 @@ export class AdminCommunityPostService implements IAdminCommunityPostService {
     }> {
         const result = await this._repository.getPostLikers(postId, type, cursor, limit);
         return {
-            likers: result.likers.map(liker => new AdminPostLikerDto(liker)),
+            likers: result.likers.map(liker => new AdminPostLikerDto(liker.user as CombinedUser)),
             hasMore: result.hasMore,
             nextCursor: result.nextCursor
         };

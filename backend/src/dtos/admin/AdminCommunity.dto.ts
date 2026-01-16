@@ -1,5 +1,6 @@
 import { IsString, IsOptional, IsNumber, Min } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { ICommunityRequest } from '../../models/communityRequest.model';
 
 
 export class GetCommunityRequestsQueryDto {
@@ -40,8 +41,8 @@ export class CommunityRequestResponseDto {
   logo?: string;
   banner?: string;
 
-  constructor(request: any) {
-    this._id = request._id;
+  constructor(request: ICommunityRequest) {
+    this._id = request._id.toString();
     this.communityName = request.communityName;
     this.email = request.email;
     this.username = request.username;

@@ -16,7 +16,7 @@ export interface ChatContextDto {
     walletConnected?: boolean;
     transactionHash?: string;
     tradeExecuted?: boolean;
-    tradeDetails?: any;
+    tradeDetails?: ITradeDetails;
     timestamp?: string;
     userAgent?: string;
     sessionInfo?: {
@@ -27,10 +27,19 @@ export interface ChatContextDto {
     actionRequired?: ActionRequiredDto;
 }
 
+export interface ITradeDetails {
+    fromToken?: string;
+    toToken?: string;
+    amount?: string;
+    txHash?: string;
+    status?: string;
+    [key: string]: unknown;
+}
+
 export interface ActionRequiredDto {
     type: 'connect_wallet' | 'approve_token' | 'execute_trade';
     message: string;
-    data?: any;
+    data?: Record<string, unknown>;
 }
 
 export interface TradingIntentDto {
@@ -97,7 +106,7 @@ export class ChatMessageResponseDto {
     timestamp: Date;
     context?: ChatContextDto;
 
-    constructor(message: any) {
+    constructor(message: { role: 'user' | 'assistant'; content: string; timestamp: Date; context?: ChatContextDto }) {
         this.role = message.role;
         this.content = message.content;
         this.timestamp = message.timestamp;
@@ -125,6 +134,15 @@ export class AIChatResponseDto extends BaseResponseDto {
     }
 }
 
+export interface ITradeAnalysis {
+    analysis: string;
+    estimatedOutput: string;
+    priceImpact: string;
+    gasFee: string;
+    recommendation: 'buy' | 'sell' | 'hold' | 'caution';
+    riskLevel: 'low' | 'medium' | 'high';
+}
+
 export class TradeAnalysisDto extends BaseResponseDto {
     analysis: string;
     estimatedOutput: string;
@@ -133,7 +151,7 @@ export class TradeAnalysisDto extends BaseResponseDto {
     recommendation: 'buy' | 'sell' | 'hold' | 'caution';
     riskLevel: 'low' | 'medium' | 'high';
 
-    constructor(data: any) {
+    constructor(data: ITradeAnalysis) {
         super(true, "Trade analysis completed successfully");
         this.analysis = data.analysis;
         this.estimatedOutput = data.estimatedOutput;
@@ -142,6 +160,17 @@ export class TradeAnalysisDto extends BaseResponseDto {
         this.recommendation = data.recommendation;
         this.riskLevel = data.riskLevel;
     }
+}
+
+export interface IChatHistory {
+    messages: ChatMessageResponseDto[];
+    metadata: {
+        totalMessages: number;
+        firstMessageAt: Date;
+        lastMessageAt: Date;
+        tradingActions: number;
+        successfulTrades: number;
+    };
 }
 
 export class ChatHistoryResponseDto extends BaseResponseDto {
@@ -154,11 +183,20 @@ export class ChatHistoryResponseDto extends BaseResponseDto {
         successfulTrades: number;
     };
 
-    constructor(chatHistory: any) {
+    constructor(chatHistory: IChatHistory) {
         super(true, "Chat history retrieved successfully");
-        this.messages = chatHistory.messages.map((msg: any) => new ChatMessageResponseDto(msg));
+        this.messages = chatHistory.messages.map((msg) => new ChatMessageResponseDto(msg));
         this.metadata = chatHistory.metadata;
     }
+}
+
+export interface ITokenPriceInfo {
+    symbol: string;
+    name: string;
+    priceInETH: string;
+    priceInUSD?: string;
+    change24h?: string;
+    volume24h?: string;
 }
 
 export class TokenPriceInfoDto {
@@ -169,7 +207,7 @@ export class TokenPriceInfoDto {
     change24h?: string;
     volume24h?: string;
 
-    constructor(data: any) {
+    constructor(data: ITokenPriceInfo) {
         this.symbol = data.symbol;
         this.name = data.name;
         this.priceInETH = data.priceInETH;
@@ -177,6 +215,17 @@ export class TokenPriceInfoDto {
         this.change24h = data.change24h;
         this.volume24h = data.volume24h;
     }
+}
+
+export interface ITradeExecution {
+    transactionHash: string;
+    fromToken: string;
+    toToken: string;
+    fromAmount: string;
+    toAmount: string;
+    exchangeRate: string;
+    gasFee: string;
+    explorerUrl: string;
 }
 
 export class TradeExecutionResponseDto extends BaseResponseDto {
@@ -189,7 +238,7 @@ export class TradeExecutionResponseDto extends BaseResponseDto {
     gasFee: string;
     explorerUrl: string;
 
-    constructor(data: any) {
+    constructor(data: ITradeExecution) {
         super(true, "Trade executed successfully");
         this.transactionHash = data.transactionHash;
         this.fromToken = data.fromToken;

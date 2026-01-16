@@ -3,10 +3,11 @@ import { IDexRepository } from "../core/interfaces/repositories/IDex.repository"
 import Wallet, { IWallet } from "../models/wallet.model";
 import Transaction, { ITransaction } from "../models/transactions.model";
 import Coin, { ICoin } from "../models/coins.model";
+import { FilterQuery } from "mongoose";
 
 @injectable()
 export class DexRepository implements IDexRepository {
-  
+
   // Wallet operations
   async createWallet(walletData: Partial<IWallet>): Promise<IWallet> {
     const wallet = new Wallet(walletData);
@@ -20,7 +21,7 @@ export class DexRepository implements IDexRepository {
   async updateWalletConnection(address: string): Promise<IWallet | null> {
     return await Wallet.findOneAndUpdate(
       { address },
-      { 
+      {
         lastConnected: new Date(),
         $inc: { connectionCount: 1 }
       },
@@ -68,8 +69,8 @@ export class DexRepository implements IDexRepository {
     return await Transaction.findOne({ transactionHash: hash });
   }
 
-  async updateTransactionStatus(hash: string, status: 'completed' | 'failed', additionalData?: any): Promise<ITransaction | null> {
-    const updateData: any = { status, updatedAt: new Date() };
+  async updateTransactionStatus(hash: string, status: 'completed' | 'failed', additionalData?: Partial<ITransaction>): Promise<ITransaction | null> {
+    const updateData: Record<string, unknown> = { status, updatedAt: new Date() };
     if (additionalData) {
       Object.assign(updateData, additionalData);
     }
@@ -152,7 +153,7 @@ export class DexRepository implements IDexRepository {
   ): Promise<{ coins: ICoin[]; total: number }> {
     const skip = (page - 1) * limit;
 
-    const filter: any = {};
+    const filter: FilterQuery<ICoin> = {};
 
     if (!includeUnlisted) {
       filter.isListed = true;

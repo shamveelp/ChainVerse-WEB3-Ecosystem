@@ -1,8 +1,19 @@
 import { injectable } from "inversify";
 import { ICommunityAdminProfileRepository } from "../../core/interfaces/repositories/communityAdmin/ICommunityAdminProfile.repository";
 import CommunityAdminModel, { ICommunityAdmin } from "../../models/communityAdmin.model";
-import CommunityModel from "../../models/community.model";
+import CommunityModel, { ICommunity } from "../../models/community.model";
 import CommunityMemberModel from "../../models/communityMember.model";
+import { FilterQuery } from "mongoose";
+
+export interface ICommunityStats {
+    totalMembers: number;
+    activeMembers: number;
+    newMembersToday: number;
+    newMembersThisWeek: number;
+    premiumMembers: number;
+    bannedMembers: number;
+    engagementRate: number;
+}
 
 @injectable()
 export class CommunityAdminProfileRepository implements ICommunityAdminProfileRepository {
@@ -20,7 +31,7 @@ export class CommunityAdminProfileRepository implements ICommunityAdminProfileRe
         ).populate('communityId');
     }
 
-    async getCommunityStats(communityId: string): Promise<any> {
+    async getCommunityStats(communityId: string): Promise<ICommunityStats> {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -74,11 +85,11 @@ export class CommunityAdminProfileRepository implements ICommunityAdminProfileRe
         };
     }
 
-    async getCommunityDetails(communityId: string): Promise<any> {
+    async getCommunityDetails(communityId: string): Promise<ICommunity | null> {
         return await CommunityModel.findById(communityId).lean();
     }
 
-    async updateCommunitySettings(communityId: string, settings: any): Promise<any> {
+    async updateCommunitySettings(communityId: string, settings: Partial<ICommunity['settings']>): Promise<ICommunity | null> {
         return await CommunityModel.findByIdAndUpdate(
             communityId,
             { settings, updatedAt: new Date() },

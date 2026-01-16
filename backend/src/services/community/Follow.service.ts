@@ -77,6 +77,7 @@ export class FollowService implements IFollowService {
                             this._communityRepository.decrementFollowersCount(targetUser._id.toString())
                         ]);
                     } catch (rollbackError) {
+                        // Ignore rollback error
                     }
                 }
                 throw error;
@@ -151,6 +152,7 @@ export class FollowService implements IFollowService {
                             this._communityRepository.incrementFollowersCount(targetUser._id.toString())
                         ]);
                     } catch (rollbackError) {
+                        // Ignore rollback error
                     }
                 }
                 throw error;

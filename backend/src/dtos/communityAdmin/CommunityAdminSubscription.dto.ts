@@ -1,9 +1,25 @@
 import { IsString } from "class-validator";
 import { BaseResponseDto } from "../base/BaseResponse.dto";
+import { ICommunitySubscription } from "../../models/communitySubscription.model";
+import { Types } from "mongoose";
 
 export class CreateSubscriptionDto {
   @IsString()
   communityId!: string;
+}
+
+// Interface for subscription data (decoupled from Mongoose Document)
+export interface ISubscriptionData {
+  communityId: Types.ObjectId | string;
+  plan: "lifetime";
+  status: "active" | "inactive" | "pending" | "failed" | "expired";
+  paymentId?: string;
+  orderId?: string;
+  expiresAt?: Date;
+  failedAt?: Date;
+  retryCount?: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class SubscriptionResponseDto extends BaseResponseDto {
@@ -22,7 +38,7 @@ export class SubscriptionResponseDto extends BaseResponseDto {
   createdAt: Date;
   updatedAt: Date;
 
-  constructor(subscription: any) {
+  constructor(subscription: ISubscriptionData) {
     super(true, "Subscription retrieved successfully");
     this.communityId = subscription.communityId.toString();
     this.plan = subscription.plan;

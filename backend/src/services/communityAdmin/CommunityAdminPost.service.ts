@@ -10,6 +10,11 @@ import { ICommunityAdminRepository } from "../../core/interfaces/repositories/IC
 import { IPostRepository } from "../../core/interfaces/repositories/IPost.repository";
 import CommunityMemberModel from "../../models/communityMember.model";
 import { IPost } from "../../models/post.models";
+import { ICommunityAdminPost } from "../../models/communityAdminPost.model";
+import { ICommunityAdmin } from "../../models/communityAdmin.model";
+import { ICommunity } from "../../models/community.model";
+
+type PopulatedCommunityAdminPost = ICommunityAdminPost & { author: ICommunityAdmin; community?: ICommunity };
 import {
     CreateCommunityAdminPostDto,
     UpdateCommunityAdminPostDto,
@@ -17,7 +22,8 @@ import {
     CommunityAdminPostsListResponseDto,
     CommunityAdminCommentDto,
     CommunityAdminCommentResponseDto,
-    GetCommunityAdminPostsQueryDto
+    GetCommunityAdminPostsQueryDto,
+    PopulatedComment
 } from "../../dtos/communityAdmin/CommunityAdminPost.dto";
 import {
     CommunityFeedResponseDto,
@@ -57,7 +63,8 @@ export class CommunityAdminPostService implements ICommunityAdminPostService {
             // Check if admin liked this post (always false for new posts)
             const isLiked = false;
 
-            return new CommunityAdminPostResponseDto(post, adminId, isLiked);
+            // Cast to allow strict type checking in DTO
+            return new CommunityAdminPostResponseDto(post as unknown as PopulatedCommunityAdminPost, adminId, isLiked);
         } catch (error) {
             logger.error(LoggerMessages.CREATE_POST_ERROR, error);
             if (error instanceof CustomError) {
@@ -82,7 +89,8 @@ export class CommunityAdminPostService implements ICommunityAdminPostService {
 
             const isLiked = await this._postRepository.checkIfLiked(adminId, postId);
 
-            return new CommunityAdminPostResponseDto(post, adminId, isLiked);
+            // Cast to allow strict type checking in DTO
+            return new CommunityAdminPostResponseDto(post as unknown as PopulatedCommunityAdminPost, adminId, isLiked);
         } catch (error) {
             logger.error(LoggerMessages.GET_POST_ERROR, error);
             if (error instanceof CustomError) {
@@ -112,7 +120,8 @@ export class CommunityAdminPostService implements ICommunityAdminPostService {
 
             const isLiked = await this._postRepository.checkIfLiked(adminId, postId);
 
-            return new CommunityAdminPostResponseDto(updatedPost, adminId, isLiked);
+            // Cast to allow strict type checking in DTO
+            return new CommunityAdminPostResponseDto(updatedPost as unknown as PopulatedCommunityAdminPost, adminId, isLiked);
         } catch (error) {
             logger.error(LoggerMessages.UPDATE_POST_ERROR, error);
             if (error instanceof CustomError) {
@@ -165,7 +174,8 @@ export class CommunityAdminPostService implements ICommunityAdminPostService {
             const transformedPosts = await Promise.all(
                 result.posts.map(async (post) => {
                     const isLiked = await this._postRepository.checkIfLiked(adminId, post._id.toString());
-                    return new CommunityAdminPostResponseDto(post, adminId, isLiked);
+                    // Cast to allow strict type checking in DTO
+                    return new CommunityAdminPostResponseDto(post as unknown as PopulatedCommunityAdminPost, adminId, isLiked);
                 })
             );
 
@@ -254,7 +264,8 @@ export class CommunityAdminPostService implements ICommunityAdminPostService {
 
             const isLiked = false; // Always false for new comments
 
-            return new CommunityAdminCommentResponseDto(comment, adminId, isLiked);
+            // Cast to allow strict type checking in DTO
+            return new CommunityAdminCommentResponseDto(comment as unknown as PopulatedComment, adminId, isLiked);
         } catch (error) {
             logger.error(LoggerMessages.CREATE_COMMENT_ERROR, error);
             if (error instanceof CustomError) {
@@ -283,7 +294,8 @@ export class CommunityAdminPostService implements ICommunityAdminPostService {
             const transformedComments = await Promise.all(
                 result.comments.map(async (comment) => {
                     const isLiked = await this._postRepository.checkIfCommentLiked(adminId, comment._id.toString());
-                    return new CommunityAdminCommentResponseDto(comment, adminId, isLiked);
+                    // Cast to allow strict type checking in DTO
+                    return new CommunityAdminCommentResponseDto(comment as unknown as PopulatedComment, adminId, isLiked);
                 })
             );
 

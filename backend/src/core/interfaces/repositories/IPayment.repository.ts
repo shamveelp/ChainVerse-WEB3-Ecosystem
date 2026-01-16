@@ -14,7 +14,7 @@ export interface IPaymentRepository {
   findByStatus(status: string, page: number, limit: number): Promise<PaginatedPayments>;
   findByRazorpayOrderId(orderId: string): Promise<IPayment | null>;
   findAllWithPagination(page: number, limit: number, status?: string): Promise<PaginatedPayments>;
-  updateStatus(id: string, status: string, updateData?: any): Promise<IPayment | null>;
+  updateStatus(id: string, status: string, updateData?: Partial<IPayment>): Promise<IPayment | null>;
   countByStatus(status: string): Promise<number>;
   findPendingPayments(): Promise<IPayment[]>;
   count(): Promise<number>;

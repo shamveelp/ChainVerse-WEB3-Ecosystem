@@ -4,6 +4,7 @@ import { IPointsConversionRepository } from "../../core/interfaces/repositories/
 import { IPointsHistoryRepository } from "../../core/interfaces/repositories/IPointsHistory.repository";
 import { IConversionRateRepository } from "../../core/interfaces/repositories/points/IConversionRate.repository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
+import { IUser } from "../../models/user.models";
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -77,7 +78,7 @@ export class PointsConversionService implements IPointsConversionService {
       // Deduct points from user
       await this._userRepository.update(userId, {
         totalPoints: user.totalPoints - pointsToConvert
-      } as Record<string, unknown>);
+      } as Partial<IUser>);
 
       // Record points deduction history
       await this._pointsHistoryRepository.createPointsHistory({

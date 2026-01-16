@@ -1,4 +1,5 @@
 import { IsString, IsOptional, IsNumber, Min, IsEnum } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 // Search DTOs
 export class SearchCommunitiesDto {
@@ -66,12 +67,12 @@ export class CommunityProfileResponseDto {
     isVerified: boolean | undefined;
     memberCount: number | undefined;
     rules: string[] | undefined;
-    socialLinks: any[] | undefined;
+    socialLinks: Record<string, unknown>[] | undefined;
     settings?: {
-        allowChainCast: boolean;
-        allowGroupChat: boolean;
-        allowPosts: boolean;
-        allowQuests: boolean;
+        allowChainCast?: boolean;
+        allowGroupChat?: boolean;
+        allowPosts?: boolean;
+        allowQuests?: boolean;
     };
     createdAt: Date | undefined;
     isMember: boolean | undefined;
@@ -119,15 +120,6 @@ export class CommunityMemberListResponseDto {
     totalCount: number | undefined;
 }
 
-export class CommunitySearchResponseDto {
-    communities: CommunityCardDto[] | undefined;
-    users: any[] | undefined; // Will be populated with user search results
-    hasMore: boolean | undefined;
-    nextCursor?: string;
-    totalCount: number | undefined;
-    searchType: string | undefined;
-}
-
 export class UserSearchResultDto {
     _id: string | undefined;
     username: string | undefined;
@@ -137,4 +129,13 @@ export class UserSearchResultDto {
     isVerified: boolean | undefined;
     followersCount: number | undefined;
     isFollowing?: boolean;
+}
+
+export class CommunitySearchResponseDto {
+    communities: CommunityCardDto[] | undefined;
+    users: UserSearchResultDto[] | undefined;
+    hasMore: boolean | undefined;
+    nextCursor?: string;
+    totalCount: number | undefined;
+    searchType: string | undefined;
 }

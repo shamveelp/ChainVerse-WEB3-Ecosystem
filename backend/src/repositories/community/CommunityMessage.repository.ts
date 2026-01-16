@@ -2,7 +2,7 @@ import { injectable } from "inversify";
 import { ICommunityMessageRepository } from "../../core/interfaces/repositories/community/ICommunityMessage.repository";
 import CommunityMessageModel, { ICommunityMessage } from "../../models/communityMessage.model";
 import CommunityGroupMessageModel, { ICommunityGroupMessage } from "../../models/communityGroupMessage.model";
-import { Types } from "mongoose";
+import { Types, FilterQuery } from "mongoose";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
 
@@ -25,7 +25,7 @@ export class CommunityMessageRepository implements ICommunityMessageRepository {
         totalCount: number;
     }> {
         try {
-            const query: any = { 
+            const query: FilterQuery<ICommunityMessage> = {
                 communityId: new Types.ObjectId(communityId)
             };
 
@@ -97,7 +97,7 @@ export class CommunityMessageRepository implements ICommunityMessageRepository {
             if (!message) return null;
 
             const reactionIndex = message.reactions.findIndex(r => r.emoji === emoji);
-            
+
             if (reactionIndex > -1) {
                 const userIndex = message.reactions[reactionIndex].users.indexOf(new Types.ObjectId(userId));
                 if (userIndex === -1) {
@@ -125,13 +125,13 @@ export class CommunityMessageRepository implements ICommunityMessageRepository {
             if (!message) return null;
 
             const reactionIndex = message.reactions.findIndex(r => r.emoji === emoji);
-            
+
             if (reactionIndex > -1) {
                 const userIndex = message.reactions[reactionIndex].users.indexOf(new Types.ObjectId(userId));
                 if (userIndex > -1) {
                     message.reactions[reactionIndex].users.splice(userIndex, 1);
                     message.reactions[reactionIndex].count -= 1;
-                    
+
                     if (message.reactions[reactionIndex].count === 0) {
                         message.reactions.splice(reactionIndex, 1);
                     }
@@ -162,7 +162,7 @@ export class CommunityMessageRepository implements ICommunityMessageRepository {
         totalCount: number;
     }> {
         try {
-            const query: any = { 
+            const query: FilterQuery<ICommunityGroupMessage> = {
                 communityId: new Types.ObjectId(communityId),
                 isDeleted: false
             };
@@ -237,7 +237,7 @@ export class CommunityMessageRepository implements ICommunityMessageRepository {
     async markMessagesAsRead(communityId: string, userId: string): Promise<boolean> {
         try {
             await CommunityGroupMessageModel.updateMany(
-                { 
+                {
                     communityId: new Types.ObjectId(communityId),
                     'readBy.userId': { $ne: new Types.ObjectId(userId) }
                 },
