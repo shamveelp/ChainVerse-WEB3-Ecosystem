@@ -1,14 +1,16 @@
 import API from '@/lib/api-client';
-import axios from 'axios';
+import { AxiosError } from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_WALLET_API_URL || 'http://localhost:5000';
+interface ApiErrorResponse {
+  error?: string;
+  message?: string;
+}
 
 export const saveWallet = async (address: string) => {
   try {
     await API.post(`/api/wallet/wallets`, { address });
   } catch (error) {
-    console.error('Error saving wallet:', error);
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    console.error('Error saving wallet:', axiosError.response?.data || axiosError.message);
   }
 };
-
-

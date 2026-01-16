@@ -3,7 +3,7 @@ export interface AIChatMessageRequest {
     sessionId: string;
     walletAddress?: string;
     walletConnected?: boolean;
-    context?: any;
+    context?: Record<string, unknown>;
 }
 
 export interface AIChatResponse {

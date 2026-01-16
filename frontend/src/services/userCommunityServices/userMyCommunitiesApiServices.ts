@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import API from "@/lib/api-client";
 import { USER_API_ROUTES } from "../../routes/api.routes";
 
@@ -22,43 +23,43 @@ import { ApiResponse } from "@/types/common.types";
 // Helper function to handle API errors
 const handleApiError = (error: any, defaultMessage: string) => {
   console.error("My Communities API Error:", {
-    status: error.response?.status,
-    statusText: error.response?.statusText,
-    data: error.response?.data,
-    message: error.message,
+    status: (error as AxiosError).response?.status,
+    statusText: (error as AxiosError).response?.statusText,
+    data: (error as AxiosError).response?.data,
+    message: (error as AxiosError).message,
     url: error.config?.url,
     method: error.config?.method
   });
 
-  if (error.response?.status === 401) {
+  if ((error as AxiosError).response?.status === 401) {
     throw new Error("User not authenticated");
   }
 
-  if (error.response?.status === 403) {
+  if ((error as AxiosError).response?.status === 403) {
     throw new Error("Access forbidden");
   }
 
-  if (error.response?.status === 404) {
+  if ((error as AxiosError).response?.status === 404) {
     throw new Error("Resource not found");
   }
 
-  if (error.response?.status === 429) {
+  if ((error as AxiosError).response?.status === 429) {
     throw new Error("Too many requests. Please try again later");
   }
 
-  if (error.response?.status >= 500) {
+  if ((error as AxiosError).response?.status >= 500) {
     throw new Error("Server error. Please try again later");
   }
 
-  const errorMessage = error.response?.data?.error ||
-    error.response?.data?.message ||
-    error.message ||
+  const errorMessage = (error as AxiosError).response?.data?.error ||
+    (error as AxiosError).response?.data?.message ||
+    (error as AxiosError).message ||
     defaultMessage;
   throw new Error(errorMessage);
 };
 
 // Helper function to transform community data
-const transformMyCommunityData = (data: any): MyCommunity => {
+const transformMyCommunityData = (data: Partial<MyCommunity> & Record<string, any>): MyCommunity => {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid community data received');
   }
@@ -130,7 +131,7 @@ export const userMyCommunitiesApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "No communities found");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get my communities failed:', error);
       handleApiError(error, "Failed to get my communities");
       throw error;
@@ -155,7 +156,7 @@ export const userMyCommunitiesApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get communities stats");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get communities stats failed:', error);
       handleApiError(error, "Failed to get communities stats");
       throw error;
@@ -187,7 +188,7 @@ export const userMyCommunitiesApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get communities activity");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get communities activity failed:', error);
       handleApiError(error, "Failed to get communities activity");
       throw error;
@@ -215,7 +216,7 @@ export const userMyCommunitiesApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to update notifications");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Update notifications failed for ${communityId}:`, error);
       handleApiError(error, "Failed to update notifications");
       throw error;
@@ -240,7 +241,7 @@ export const userMyCommunitiesApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to leave community");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Leave community failed for ${communityId}:`, error);
       handleApiError(error, "Failed to leave community");
       throw error;

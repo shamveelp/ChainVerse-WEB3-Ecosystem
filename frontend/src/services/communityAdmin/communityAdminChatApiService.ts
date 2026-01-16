@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import API from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 import {
@@ -12,37 +13,37 @@ import { ApiResponse } from "@/types/common.types";
 // Helper function to handle API errors
 const handleApiError = (error: any, defaultMessage: string) => {
   console.error("Community Admin Chat API Error:", {
-    status: error.response?.status,
-    statusText: error.response?.statusText,
-    data: error.response?.data,
-    message: error.message,
+    status: ((error as AxiosError).response?.status),
+    statusText: ((error as AxiosError).response?.status)Text,
+    data: ((error as AxiosError).response?.data),
+    message: ((error as AxiosError).message),
     url: error.config?.url,
     method: error.config?.method
   });
 
-  if (error.response?.status === 401) {
+  if (((error as AxiosError).response?.status) === 401) {
     throw new Error("Admin not authenticated");
   }
 
-  if (error.response?.status === 403) {
+  if (((error as AxiosError).response?.status) === 403) {
     throw new Error("Access forbidden");
   }
 
-  if (error.response?.status === 404) {
+  if (((error as AxiosError).response?.status) === 404) {
     throw new Error("Resource not found");
   }
 
-  if (error.response?.status === 429) {
+  if (((error as AxiosError).response?.status) === 429) {
     throw new Error("Too many requests. Please try again later");
   }
 
-  if (error.response?.status >= 500) {
+  if (((error as AxiosError).response?.status) >= 500) {
     throw new Error("Server error. Please try again later");
   }
 
-  const errorMessage = error.response?.data?.error ||
-    error.response?.data?.message ||
-    error.message ||
+  const errorMessage = ((error as AxiosError).response?.data)?.error ||
+    ((error as AxiosError).response?.data)?.message ||
+    ((error as AxiosError).message) ||
     defaultMessage;
   throw new Error(errorMessage);
 };
@@ -69,7 +70,7 @@ export const communityAdminChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to send message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Send channel message failed:', error);
       handleApiError(error, "Failed to send channel message");
       throw error;
@@ -98,7 +99,7 @@ export const communityAdminChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get messages");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get channel messages failed:', error);
       handleApiError(error, "Failed to get channel messages");
       throw error;
@@ -127,7 +128,7 @@ export const communityAdminChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get group messages");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get group messages failed:', error);
       handleApiError(error, "Failed to get group messages");
       throw error;
@@ -155,7 +156,7 @@ export const communityAdminChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to delete group message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Admin delete group message failed:', error);
       handleApiError(error, "Failed to delete group message");
       throw error;
@@ -185,7 +186,7 @@ export const communityAdminChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to update message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Update channel message failed:', error);
       handleApiError(error, "Failed to update channel message");
       throw error;
@@ -211,7 +212,7 @@ export const communityAdminChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to delete message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Delete channel message failed:', error);
       handleApiError(error, "Failed to delete channel message");
       throw error;
@@ -239,7 +240,7 @@ export const communityAdminChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to pin message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Pin channel message failed:', error);
       handleApiError(error, "Failed to pin channel message");
       throw error;
@@ -264,7 +265,7 @@ export const communityAdminChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to unpin message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Unpin channel message failed:', error);
       handleApiError(error, "Failed to unpin channel message");
       throw error;
@@ -300,7 +301,7 @@ export const communityAdminChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to upload media");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Upload channel media failed:', error);
       handleApiError(error, "Failed to upload channel media");
       throw error;
@@ -328,7 +329,7 @@ export const communityAdminChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get message reactions");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get message reactions failed:', error);
       handleApiError(error, "Failed to get message reactions");
       throw error;

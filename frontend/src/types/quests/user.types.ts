@@ -7,16 +7,16 @@ export interface QuestTask {
     isRequired: boolean;
     order: number;
     privilegePoints?: number;
-    config: any;
+    config: Record<string, unknown>;
     completedBy: number;
     isCompleted?: boolean;
-    submission?: any;
+    submission?: unknown;
     canSubmit?: boolean;
 }
 
 export interface Quest {
     _id: string;
-    communityId: any;
+    communityId: string | Record<string, unknown>;
     title: string;
     description: string;
     bannerImage?: string;

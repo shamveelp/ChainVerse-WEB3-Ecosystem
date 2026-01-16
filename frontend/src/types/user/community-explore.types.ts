@@ -11,7 +11,7 @@ export interface ExploreCommunity {
     isMember: boolean;
     createdAt: Date | string;
     rules?: string[];
-    socialLinks?: any[];
+    socialLinks?: unknown[];
     settings?: {
         allowChainCast: boolean;
         allowGroupChat: boolean;
@@ -25,7 +25,7 @@ export interface ExploreCommunity {
 export interface ExploreCommunityProfile extends ExploreCommunity {
     banner: string;
     rules: string[];
-    socialLinks: any[];
+    socialLinks: unknown[];
     settings: {
         allowChainCast: boolean;
         allowGroupChat: boolean;

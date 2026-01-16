@@ -1,6 +1,6 @@
 export interface SendChannelMessageData {
     content: string;
-    mediaFiles?: any[];
+    mediaFiles?: unknown[];
     messageType?: "text" | "media" | "mixed";
 }
 

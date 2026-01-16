@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import API from "@/lib/api-client";
 import { ADMIN_API_ROUTES } from "@/routes";
 
@@ -22,11 +23,11 @@ export const getAllCommunities = async (page: number = 1, limit: number = 10, se
             totalPages: Math.ceil((response.data.total || 0) / limit),
             message: response.data.message
         };
-    } catch (error: any) {
-        console.error("Get all communities error:", error.response?.data || error.message);
+    } catch (error) {
+        console.error("Get all communities error:", (error as AxiosError).response?.data || (error as AxiosError).message);
         return {
             success: false,
-            error: error.response?.data?.message || error.message || "Failed to fetch communities",
+            error: (error as AxiosError).response?.data?.message || (error as AxiosError).message || "Failed to fetch communities",
             data: [],
             total: 0,
             page: 1,
@@ -44,11 +45,11 @@ export const getCommunityById = async (id: string) => {
             data: response.data.community,
             message: response.data.message
         };
-    } catch (error: any) {
-        console.error("Get community by id error:", error.response?.data || error.message);
+    } catch (error) {
+        console.error("Get community by id error:", (error as AxiosError).response?.data || (error as AxiosError).message);
         return {
             success: false,
-            error: error.response?.data?.message || error.message || "Failed to fetch community",
+            error: (error as AxiosError).response?.data?.message || (error as AxiosError).message || "Failed to fetch community",
         };
     }
 }
@@ -61,11 +62,11 @@ export const updateCommunityStatus = async (id: string, status: string) => {
             data: response.data.community,
             message: response.data.message || "Status updated successfully"
         };
-    } catch (error: any) {
-        console.error("Update community status error:", error.response?.data || error.message);
+    } catch (error) {
+        console.error("Update community status error:", (error as AxiosError).response?.data || (error as AxiosError).message);
         return {
             success: false,
-            error: error.response?.data?.message || error.message || "Failed to update status",
+            error: (error as AxiosError).response?.data?.message || (error as AxiosError).message || "Failed to update status",
         };
     }
 }
@@ -78,11 +79,11 @@ export const updateVerificationStatus = async (id: string, isVerified: boolean) 
             data: response.data.community,
             message: response.data.message || "Verification status updated successfully"
         };
-    } catch (error: any) {
-        console.error("Update verification status error:", error.response?.data || error.message);
+    } catch (error) {
+        console.error("Update verification status error:", (error as AxiosError).response?.data || (error as AxiosError).message);
         return {
             success: false,
-            error: error.response?.data?.message || error.message || "Failed to update verification status",
+            error: (error as AxiosError).response?.data?.message || (error as AxiosError).message || "Failed to update verification status",
         };
     }
 }
@@ -94,11 +95,11 @@ export const deleteCommunity = async (id: string) => {
             success: true,
             message: response.data.message || "Community deleted successfully"
         };
-    } catch (error: any) {
-        console.error("Delete community error:", error.response?.data || error.message);
+    } catch (error) {
+        console.error("Delete community error:", (error as AxiosError).response?.data || (error as AxiosError).message);
         return {
             success: false,
-            error: error.response?.data?.message || error.message || "Failed to delete community",
+            error: (error as AxiosError).response?.data?.message || (error as AxiosError).message || "Failed to delete community",
         };
     }
 }
@@ -120,11 +121,11 @@ export const getCommunityMembers = async (id: string, page: number = 1, limit: n
             totalPages: Math.ceil((response.data.total || 0) / limit),
             message: response.data.message
         };
-    } catch (error: any) {
-        console.error("Get community members error:", error.response?.data || error.message);
+    } catch (error) {
+        console.error("Get community members error:", (error as AxiosError).response?.data || (error as AxiosError).message);
         return {
             success: false,
-            error: error.response?.data?.message || error.message || "Failed to fetch members",
+            error: (error as AxiosError).response?.data?.message || (error as AxiosError).message || "Failed to fetch members",
         };
     }
 }
@@ -137,11 +138,11 @@ export const updateCommunitySettings = async (id: string, settings: any) => {
             data: response.data.community,
             message: response.data.message || "Settings updated successfully"
         };
-    } catch (error: any) {
-        console.error("Update community settings error:", error.response?.data || error.message);
+    } catch (error) {
+        console.error("Update community settings error:", (error as AxiosError).response?.data || (error as AxiosError).message);
         return {
             success: false,
-            error: error.response?.data?.message || error.message || "Failed to update settings",
+            error: (error as AxiosError).response?.data?.message || (error as AxiosError).message || "Failed to update settings",
         };
     }
 }

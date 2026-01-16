@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import API from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "../../routes/api.routes";
 
@@ -17,10 +18,13 @@ import {
 
 import { ApiResponse } from "@/types/common.types";
 
-
+interface ApiErrorData {
+  error?: string;
+  message?: string;
+}
 
 // Helper function to handle API errors
-const handleApiError = (error: any, defaultMessage: string) => {
+const handleApiError = (error: AxiosError<ApiErrorData>, defaultMessage: string) => {
   console.error("Community Admin ChainCast API Error:", {
     status: error.response?.status,
     statusText: error.response?.statusText,
@@ -46,7 +50,7 @@ const handleApiError = (error: any, defaultMessage: string) => {
     throw new Error("Too many requests. Please try again later");
   }
 
-  if (error.response?.status >= 500) {
+  if (error.response?.status && error.response.status >= 500) {
     throw new Error("Server error. Please try again later");
   }
 
@@ -69,20 +73,14 @@ export const communityAdminChainCastApiService = {
 
       const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.CREATE, data);
 
-      console.log('API: ChainCast created successfully:', {
-        chainCastId: response.data?.data?._id,
-        title: response.data?.data?.title,
-        status: response.data?.data?.status
-      });
-
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to create ChainCast");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Create ChainCast failed:', error);
-      handleApiError(error, "Failed to create ChainCast");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to create ChainCast");
       throw error;
     }
   },
@@ -100,24 +98,16 @@ export const communityAdminChainCastApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       params.append('sortBy', sortBy);
 
-
-
       const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.LIST}?${params.toString()}`);
-
-      console.log('API: ChainCasts fetched successfully:', {
-        chainCastCount: response.data?.data?.chainCasts?.length,
-        hasMore: response.data?.data?.hasMore,
-        totalCount: response.data?.data?.totalCount
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get ChainCasts");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get ChainCasts failed:', error);
-      handleApiError(error, "Failed to get ChainCasts");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to get ChainCasts");
       throw error;
     }
   },
@@ -128,24 +118,16 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-
-
       const response = await API.get(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.BY_ID(encodeURIComponent(chainCastId.trim())));
-
-      console.log('API: ChainCast fetched successfully:', {
-        chainCastId: response.data?.data?._id,
-        title: response.data?.data?.title,
-        status: response.data?.data?.status
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get ChainCast");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get ChainCast failed:', error);
-      handleApiError(error, "Failed to get ChainCast");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to get ChainCast");
       throw error;
     }
   },
@@ -156,23 +138,16 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-
-
       const response = await API.put(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.BY_ID(encodeURIComponent(chainCastId.trim())), data);
-
-      console.log('API: ChainCast updated successfully:', {
-        chainCastId: response.data?.data?._id,
-        title: response.data?.data?.title
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to update ChainCast");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Update ChainCast failed:', error);
-      handleApiError(error, "Failed to update ChainCast");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to update ChainCast");
       throw error;
     }
   },
@@ -183,23 +158,16 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-
-
       const response = await API.delete(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.BY_ID(encodeURIComponent(chainCastId.trim())));
-
-      console.log('API: ChainCast deleted successfully:', {
-        chainCastId,
-        success: response.data?.success
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to delete ChainCast");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Delete ChainCast failed:', error);
-      handleApiError(error, "Failed to delete ChainCast");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to delete ChainCast");
       throw error;
     }
   },
@@ -211,24 +179,16 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-
-
       const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.START(encodeURIComponent(chainCastId.trim())));
-
-      console.log('API: ChainCast started successfully:', {
-        chainCastId: response.data?.data?._id,
-        status: response.data?.data?.status,
-        streamUrl: response.data?.data?.streamUrl
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to start ChainCast");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Start ChainCast failed:', error);
-      handleApiError(error, "Failed to start ChainCast");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to start ChainCast");
       throw error;
     }
   },
@@ -239,23 +199,16 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-
-
       const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.END(encodeURIComponent(chainCastId.trim())));
-
-      console.log('API: ChainCast ended successfully:', {
-        chainCastId: response.data?.data?._id,
-        status: response.data?.data?.status
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to end ChainCast");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: End ChainCast failed:', error);
-      handleApiError(error, "Failed to end ChainCast");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to end ChainCast");
       throw error;
     }
   },
@@ -277,24 +230,16 @@ export const communityAdminChainCastApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-
-
       const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.PARTICIPANTS(encodeURIComponent(chainCastId.trim()))}?${params.toString()}`);
-
-      console.log('API: Participants fetched successfully:', {
-        participantCount: response.data?.data?.participants?.length,
-        totalCount: response.data?.data?.totalCount,
-        activeCount: response.data?.data?.activeCount
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get participants");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get participants failed:', error);
-      handleApiError(error, "Failed to get participants");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to get participants");
       throw error;
     }
   },
@@ -305,16 +250,8 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID and participant ID are required");
       }
 
-
-
       const response = await API.delete(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.PARTICIPANT_ACTION(encodeURIComponent(chainCastId.trim()), encodeURIComponent(participantId.trim())), {
         data: { reason }
-      });
-
-      console.log('API: Participant removed successfully:', {
-        chainCastId,
-        participantId,
-        success: response.data?.success
       });
 
       if (response.data?.success && response.data?.data) {
@@ -322,9 +259,9 @@ export const communityAdminChainCastApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to remove participant");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Remove participant failed:', error);
-      handleApiError(error, "Failed to remove participant");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to remove participant");
       throw error;
     }
   },
@@ -336,23 +273,16 @@ export const communityAdminChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-
-
       const response = await API.get(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.MODERATION_REQUESTS(encodeURIComponent(chainCastId.trim())));
-
-      console.log('API: Moderation requests fetched successfully:', {
-        requestCount: response.data?.data?.requests?.length,
-        pendingCount: response.data?.data?.pendingCount
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get moderation requests");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get moderation requests failed:', error);
-      handleApiError(error, "Failed to get moderation requests");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to get moderation requests");
       throw error;
     }
   },
@@ -367,18 +297,10 @@ export const communityAdminChainCastApiService = {
         throw new Error("Request ID is required");
       }
 
-
-
       const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.REVIEW_MODERATION, {
         requestId: requestId.trim(),
         status,
         reviewMessage
-      });
-
-      console.log('API: Moderation request reviewed successfully:', {
-        requestId,
-        status,
-        success: response.data?.success
       });
 
       if (response.data?.success && response.data?.data) {
@@ -386,9 +308,9 @@ export const communityAdminChainCastApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to review moderation request");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Review moderation request failed:', error);
-      handleApiError(error, "Failed to review moderation request");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to review moderation request");
       throw error;
     }
   },
@@ -399,23 +321,16 @@ export const communityAdminChainCastApiService = {
       const params = new URLSearchParams();
       params.append('period', period);
 
-
-
       const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.ANALYTICS}?${params.toString()}`);
-
-      console.log('API: Analytics fetched successfully:', {
-        period,
-        hasData: !!response.data?.data
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get analytics");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get analytics failed:', error);
-      handleApiError(error, "Failed to get analytics");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to get analytics");
       throw error;
     }
   },
@@ -435,23 +350,16 @@ export const communityAdminChainCastApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-
-
       const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.CHAINCAST.REACTIONS(encodeURIComponent(chainCastId.trim()))}?${params.toString()}`);
-
-      console.log('API: Reactions fetched successfully:', {
-        reactionCount: response.data?.data?.reactions?.length,
-        totalCount: response.data?.data?.totalCount
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get reactions");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get reactions failed:', error);
-      handleApiError(error, "Failed to get reactions");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to get reactions");
       throw error;
     }
   },

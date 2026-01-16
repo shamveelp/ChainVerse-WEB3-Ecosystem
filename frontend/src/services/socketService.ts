@@ -331,56 +331,56 @@ class SocketService {
   }
 
   // Event listeners
-  onNewMessage(callback: (data: any) => void): void {
+  onNewMessage(callback: (data: unknown) => void): void {
     this.socket?.on('new_message', callback);
   }
 
-  onMessageSent(callback: (data: any) => void): void {
+  onMessageSent(callback: (data: unknown) => void): void {
     this.socket?.on('message_sent', callback);
   }
 
-  onMessageEdited(callback: (data: any) => void): void {
+  onMessageEdited(callback: (data: unknown) => void): void {
     this.socket?.on('message_edited', callback);
   }
 
-  onMessageDeleted(callback: (data: any) => void): void {
+  onMessageDeleted(callback: (data: unknown) => void): void {
     this.socket?.on('message_deleted', callback);
   }
 
-  onMessagesRead(callback: (data: any) => void): void {
+  onMessagesRead(callback: (data: unknown) => void): void {
     this.socket?.on('messages_read', callback);
   }
 
-  onConversationUpdated(callback: (data: any) => void): void {
+  onConversationUpdated(callback: (data: unknown) => void): void {
     this.socket?.on('conversation_updated', callback);
   }
 
-  onUserTypingStart(callback: (data: any) => void): void {
+  onUserTypingStart(callback: (data: unknown) => void): void {
     this.socket?.on('user_typing_start', callback);
   }
 
-  onUserTypingStop(callback: (data: any) => void): void {
+  onUserTypingStop(callback: (data: unknown) => void): void {
     this.socket?.on('user_typing_stop', callback);
   }
 
-  onUserStatusChanged(callback: (data: any) => void): void {
+  onUserStatusChanged(callback: (data: unknown) => void): void {
     this.socket?.on('user_status_changed', callback);
   }
 
-  onMessageError(callback: (data: any) => void): void {
+  onMessageError(callback: (data: unknown) => void): void {
     this.socket?.on('message_error', callback);
   }
 
-  onConversationError(callback: (data: any) => void): void {
+  onConversationError(callback: (data: unknown) => void): void {
     this.socket?.on('conversation_error', callback);
   }
 
-  onTypingError(callback: (data: any) => void): void {
+  onTypingError(callback: (data: unknown) => void): void {
     this.socket?.on('typing_error', callback);
   }
 
   // Remove specific event listeners
-  offNewMessage(callback?: (data: any) => void): void {
+  offNewMessage(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('new_message', callback);
@@ -390,7 +390,7 @@ class SocketService {
     }
   }
 
-  offMessageSent(callback?: (data: any) => void): void {
+  offMessageSent(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('message_sent', callback);
@@ -400,7 +400,7 @@ class SocketService {
     }
   }
 
-  offMessageEdited(callback?: (data: any) => void): void {
+  offMessageEdited(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('message_edited', callback);
@@ -410,7 +410,7 @@ class SocketService {
     }
   }
 
-  offMessageDeleted(callback?: (data: any) => void): void {
+  offMessageDeleted(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('message_deleted', callback);
@@ -420,7 +420,7 @@ class SocketService {
     }
   }
 
-  offMessagesRead(callback?: (data: any) => void): void {
+  offMessagesRead(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('messages_read', callback);
@@ -430,7 +430,7 @@ class SocketService {
     }
   }
 
-  offConversationUpdated(callback?: (data: any) => void): void {
+  offConversationUpdated(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('conversation_updated', callback);
@@ -440,7 +440,7 @@ class SocketService {
     }
   }
 
-  offUserTypingStart(callback?: (data: any) => void): void {
+  offUserTypingStart(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('user_typing_start', callback);
@@ -450,7 +450,7 @@ class SocketService {
     }
   }
 
-  offUserTypingStop(callback?: (data: any) => void): void {
+  offUserTypingStop(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('user_typing_stop', callback);
@@ -460,7 +460,7 @@ class SocketService {
     }
   }
 
-  offUserStatusChanged(callback?: (data: any) => void): void {
+  offUserStatusChanged(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('user_status_changed', callback);
@@ -470,7 +470,7 @@ class SocketService {
     }
   }
 
-  offMessageError(callback?: (data: any) => void): void {
+  offMessageError(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('message_error', callback);
@@ -480,7 +480,7 @@ class SocketService {
     }
   }
 
-  offConversationError(callback?: (data: any) => void): void {
+  offConversationError(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('conversation_error', callback);
@@ -490,7 +490,7 @@ class SocketService {
     }
   }
 
-  offTypingError(callback?: (data: any) => void): void {
+  offTypingError(callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off('typing_error', callback);
@@ -501,11 +501,11 @@ class SocketService {
   }
 
   // Generic event listeners
-  on(event: string, callback: (data: any) => void): void {
+  on(event: string, callback: (data: unknown) => void): void {
     this.socket?.on(event, callback);
   }
 
-  off(event: string, callback?: (data: any) => void): void {
+  off(event: string, callback?: (data: unknown) => void): void {
     if (this.socket) {
       if (callback) {
         this.socket.off(event, callback);

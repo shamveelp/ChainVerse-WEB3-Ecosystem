@@ -1,5 +1,11 @@
 import API from "@/lib/api-client";
 import { ADMIN_API_ROUTES } from "@/routes";
+import { AxiosError } from "axios";
+
+interface ApiErrorData {
+  error?: string;
+  message?: string;
+}
 
 export const getUserReferrals = async (userId: string, page: number = 1, limit: number = 10) => {
   try {
@@ -17,11 +23,12 @@ export const getUserReferrals = async (userId: string, page: number = 1, limit: 
       limit: response.data.limit || limit,
       message: response.data.message,
     };
-  } catch (error: any) {
-    console.error("Get user referrals error:", error.response?.data || error.message);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get user referrals error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: error.response?.data?.message || error.message || "Failed to fetch referrals",
+      error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to fetch referrals",
     };
   }
 };
@@ -42,11 +49,12 @@ export const getUserPointsHistory = async (userId: string, page: number = 1, lim
       limit: response.data.limit || limit,
       message: response.data.message,
     };
-  } catch (error: any) {
-    console.error("Get user points history error:", error.response?.data || error.message);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get user points history error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: error.response?.data?.message || error.message || "Failed to fetch points history",
+      error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to fetch points history",
     };
   }
 };
@@ -67,11 +75,12 @@ export const getUserCheckInHistory = async (userId: string, page: number = 1, li
       limit: response.data.limit || limit,
       message: response.data.message,
     };
-  } catch (error: any) {
-    console.error("Get user check-in history error:", error.response?.data || error.message);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get user check-in history error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: error.response?.data?.message || error.message || "Failed to fetch check-in history",
+      error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to fetch check-in history",
     };
   }
 };
@@ -84,11 +93,12 @@ export const getUserStats = async (userId: string) => {
       data: response.data.stats || {},
       message: response.data.message,
     };
-  } catch (error: any) {
-    console.error("Get user stats error:", error.response?.data || error.message);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get user stats error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: error.response?.data?.message || error.message || "Failed to fetch user stats",
+      error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to fetch user stats",
     };
   }
 };

@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import api from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 
@@ -27,13 +28,13 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
                 message: response.data.message
             };
-        } catch (error: any) {
-            console.error("Create community admin post error:", error.response?.data || error.message);
+        } catch (error) {
+            console.error("Create community admin post error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
             return {
                 success: false,
-                error: error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    error.message ||
+                error: ((error as AxiosError).response?.data)?.error ||
+                    ((error as AxiosError).response?.data)?.message ||
+                    ((error as AxiosError).message) ||
                     "Failed to create post",
             };
         }
@@ -46,13 +47,13 @@ class CommunityAdminPostApiService {
                 success: true,
                 data: response.data.data,
             };
-        } catch (error: any) {
-            console.error("Get community admin post error:", error.response?.data || error.message);
+        } catch (error) {
+            console.error("Get community admin post error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
             return {
                 success: false,
-                error: error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    error.message ||
+                error: ((error as AxiosError).response?.data)?.error ||
+                    ((error as AxiosError).response?.data)?.message ||
+                    ((error as AxiosError).message) ||
                     "Failed to get post",
             };
         }
@@ -66,13 +67,13 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
                 message: response.data.message
             };
-        } catch (error: any) {
-            console.error("Update community admin post error:", error.response?.data || error.message);
+        } catch (error) {
+            console.error("Update community admin post error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
             return {
                 success: false,
-                error: error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    error.message ||
+                error: ((error as AxiosError).response?.data)?.error ||
+                    ((error as AxiosError).response?.data)?.message ||
+                    ((error as AxiosError).message) ||
                     "Failed to update post",
             };
         }
@@ -85,13 +86,13 @@ class CommunityAdminPostApiService {
                 success: true,
                 message: response.data.message
             };
-        } catch (error: any) {
-            console.error("Delete community admin post error:", error.response?.data || error.message);
+        } catch (error) {
+            console.error("Delete community admin post error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
             return {
                 success: false,
-                error: error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    error.message ||
+                error: ((error as AxiosError).response?.data)?.error ||
+                    ((error as AxiosError).response?.data)?.message ||
+                    ((error as AxiosError).message) ||
                     "Failed to delete post",
             };
         }
@@ -109,13 +110,13 @@ class CommunityAdminPostApiService {
                 success: true,
                 data: response.data.data,
             };
-        } catch (error: any) {
-            console.error("Get community admin posts error:", error.response?.data || error.message);
+        } catch (error) {
+            console.error("Get community admin posts error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
             return {
                 success: false,
-                error: error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    error.message ||
+                error: ((error as AxiosError).response?.data)?.error ||
+                    ((error as AxiosError).response?.data)?.message ||
+                    ((error as AxiosError).message) ||
                     "Failed to get posts",
             };
         }
@@ -130,13 +131,13 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
                 message: response.data.message
             };
-        } catch (error: any) {
-            console.error("Toggle community admin post like error:", error.response?.data || error.message);
+        } catch (error) {
+            console.error("Toggle community admin post like error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
             return {
                 success: false,
-                error: error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    error.message ||
+                error: ((error as AxiosError).response?.data)?.error ||
+                    ((error as AxiosError).response?.data)?.message ||
+                    ((error as AxiosError).message) ||
                     "Failed to toggle post like",
             };
         }
@@ -151,13 +152,13 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
                 message: response.data.message
             };
-        } catch (error: any) {
-            console.error("Create community admin comment error:", error.response?.data || error.message);
+        } catch (error) {
+            console.error("Create community admin comment error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
             return {
                 success: false,
-                error: error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    error.message ||
+                error: ((error as AxiosError).response?.data)?.error ||
+                    ((error as AxiosError).response?.data)?.message ||
+                    ((error as AxiosError).message) ||
                     "Failed to create comment",
             };
         }
@@ -174,13 +175,13 @@ class CommunityAdminPostApiService {
                 success: true,
                 data: response.data.data,
             };
-        } catch (error: any) {
-            console.error("Get community admin post comments error:", error.response?.data || error.message);
+        } catch (error) {
+            console.error("Get community admin post comments error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
             return {
                 success: false,
-                error: error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    error.message ||
+                error: ((error as AxiosError).response?.data)?.error ||
+                    ((error as AxiosError).response?.data)?.message ||
+                    ((error as AxiosError).message) ||
                     "Failed to get comments",
             };
         }
@@ -194,13 +195,13 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
                 message: response.data.message
             };
-        } catch (error: any) {
-            console.error("Toggle community admin comment like error:", error.response?.data || error.message);
+        } catch (error) {
+            console.error("Toggle community admin comment like error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
             return {
                 success: false,
-                error: error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    error.message ||
+                error: ((error as AxiosError).response?.data)?.error ||
+                    ((error as AxiosError).response?.data)?.message ||
+                    ((error as AxiosError).message) ||
                     "Failed to toggle comment like",
             };
         }
@@ -219,13 +220,13 @@ class CommunityAdminPostApiService {
             });
 
             return response.data.data;
-        } catch (error: any) {
-            console.error("Upload community admin post media error:", error.response?.data || error.message);
+        } catch (error) {
+            console.error("Upload community admin post media error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
             return {
                 success: false,
-                error: error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    error.message ||
+                error: ((error as AxiosError).response?.data)?.error ||
+                    ((error as AxiosError).response?.data)?.message ||
+                    ((error as AxiosError).message) ||
                     "Failed to upload media",
             };
         }
@@ -243,13 +244,13 @@ class CommunityAdminPostApiService {
                 success: true,
                 data: response.data.data,
             };
-        } catch (error: any) {
-            console.error("Get community members feed error:", error.response?.data || error.message);
+        } catch (error) {
+            console.error("Get community members feed error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
             return {
                 success: false,
-                error: error.response?.data?.error ||
-                    error.response?.data?.message ||
-                    error.message ||
+                error: ((error as AxiosError).response?.data)?.error ||
+                    ((error as AxiosError).response?.data)?.message ||
+                    ((error as AxiosError).message) ||
                     "Failed to get community members feed",
             };
         }

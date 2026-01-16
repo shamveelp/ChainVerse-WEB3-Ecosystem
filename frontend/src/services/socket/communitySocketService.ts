@@ -41,7 +41,7 @@ class CommunitySocketService {
     this.isConnecting = true;
     this.clearAllTimeouts();
 
-    this.connectionPromise = new Promise((resolve, reject) => {
+    this.connectionPromise = new Promise((resolve) => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const socketUrl = `${apiUrl}/community`;
 
@@ -344,11 +344,11 @@ class CommunitySocketService {
   }
 
   // Event listeners - Enhanced with better error handling
-  onJoinedCommunity(callback: (data: any) => void): void {
+  onJoinedCommunity(callback: (data: unknown) => void): void {
     this.socket?.on("joined_community", callback);
   }
 
-  onLeftCommunity(callback: (data: any) => void): void {
+  onLeftCommunity(callback: (data: unknown) => void): void {
     this.socket?.on("left_community", callback);
   }
 
@@ -373,7 +373,7 @@ class CommunitySocketService {
     });
   }
 
-  onMessageReactionUpdated(callback: (data: { messageId: string; reactions: any[] }) => void): void {
+  onMessageReactionUpdated(callback: (data: { messageId: string; reactions: unknown[] }) => void): void {
     this.socket?.on("message_reaction_updated", (data) => {
       console.log("👍 Reaction updated:", data.messageId);
       callback(data);
@@ -451,7 +451,7 @@ class CommunitySocketService {
   }
 
   // Remove listeners - More comprehensive cleanup
-  offJoinedCommunity(callback?: (data: any) => void): void {
+  offJoinedCommunity(callback?: (data: unknown) => void): void {
     if (callback) {
       this.socket?.off("joined_community", callback);
     } else {
@@ -459,7 +459,7 @@ class CommunitySocketService {
     }
   }
 
-  offNewChannelMessage(callback?: (data: any) => void): void {
+  offNewChannelMessage(callback?: (data: unknown) => void): void {
     if (callback) {
       this.socket?.off("new_channel_message", callback);
     } else {
@@ -467,7 +467,7 @@ class CommunitySocketService {
     }
   }
 
-  offNewGroupMessage(callback?: (data: any) => void): void {
+  offNewGroupMessage(callback?: (data: unknown) => void): void {
     if (callback) {
       this.socket?.off("new_group_message", callback);
     } else {
@@ -475,7 +475,7 @@ class CommunitySocketService {
     }
   }
 
-  offChannelMessageSent(callback?: (data: any) => void): void {
+  offChannelMessageSent(callback?: (data: unknown) => void): void {
     if (callback) {
       this.socket?.off("channel_message_sent", callback);
     } else {
@@ -483,7 +483,7 @@ class CommunitySocketService {
     }
   }
 
-  offMessageError(callback?: (data: any) => void): void {
+  offMessageError(callback?: (data: unknown) => void): void {
     if (callback) {
       this.socket?.off("message_error", callback);
     } else {
@@ -539,7 +539,7 @@ class CommunitySocketService {
     }
   }
 
-  offMessageReactionUpdated(callback?: (data: { messageId: string; reactions: any[] }) => void): void {
+  offMessageReactionUpdated(callback?: (data: { messageId: string; reactions: unknown[] }) => void): void {
     if (callback) {
       this.socket?.off("message_reaction_updated", callback);
     } else {

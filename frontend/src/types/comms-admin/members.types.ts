@@ -1,5 +1,5 @@
 export interface CommunityMember {
-    member: any;
+    member: unknown;
     _id: string;
     userId: string;
     username: string;

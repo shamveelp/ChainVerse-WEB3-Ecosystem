@@ -1,5 +1,6 @@
 import API from "@/lib/api-client";
 import { USER_API_ROUTES } from "../../routes/api.routes";
+import { AxiosError } from "axios";
 
 import {
   CommunityMessage as CommunityChannelMessage,
@@ -8,10 +9,9 @@ import {
   GroupMessagesResponse
 } from "@/types/community/chat.types";
 import { SendGroupMessageRequest } from "@/types/user/community-chat.types";
-import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors
-const handleApiError = (error: any, defaultMessage: string) => {
+const handleApiError = (error: AxiosError, defaultMessage: string) => {
   console.error("User Community Chat API Error:", {
     status: error.response?.status,
     statusText: error.response?.statusText,
@@ -21,28 +21,30 @@ const handleApiError = (error: any, defaultMessage: string) => {
     method: error.config?.method
   });
 
-  if (error.response?.status === 401) {
-    throw new Error("User not authenticated");
+  if (error.response) {
+    if (error.response.status === 401) {
+      throw new Error("User not authenticated");
+    }
+
+    if (error.response.status === 403) {
+      throw new Error("Access forbidden - you may not be a community member");
+    }
+
+    if (error.response.status === 404) {
+      throw new Error("Resource not found");
+    }
+
+    if (error.response.status === 429) {
+      throw new Error("Too many requests. Please try again later");
+    }
+
+    if (error.response.status >= 500) {
+      throw new Error("Server error. Please try again later");
+    }
   }
 
-  if (error.response?.status === 403) {
-    throw new Error("Access forbidden - you may not be a community member");
-  }
-
-  if (error.response?.status === 404) {
-    throw new Error("Resource not found");
-  }
-
-  if (error.response?.status === 429) {
-    throw new Error("Too many requests. Please try again later");
-  }
-
-  if (error.response?.status >= 500) {
-    throw new Error("Server error. Please try again later");
-  }
-
-  const errorMessage = error.response?.data?.error ||
-    error.response?.data?.message ||
+  const errorMessage = (error.response?.data as any)?.error ||
+    (error.response?.data as any)?.message ||
     error.message ||
     defaultMessage;
   throw new Error(errorMessage);
@@ -60,8 +62,6 @@ export const userCommunityChatApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-
-
       const response = await API.get(`${USER_API_ROUTES.COMMUNITY_CHAT.CHANNEL_MESSAGES(encodeURIComponent(communityUsername.trim()))}?${params.toString()}`);
 
       console.log('API: Channel messages fetched successfully:', {
@@ -75,9 +75,9 @@ export const userCommunityChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get channel messages");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get channel messages failed:', error);
-      handleApiError(error, "Failed to get channel messages");
+      handleApiError(error as AxiosError, "Failed to get channel messages");
       throw error;
     }
   },
@@ -88,8 +88,6 @@ export const userCommunityChatApiService = {
       if (!messageId?.trim() || !emoji?.trim()) {
         throw new Error("Message ID and emoji are required");
       }
-
-
 
       const response = await API.post(USER_API_ROUTES.COMMUNITY_CHAT.REACT_CHANNEL_MESSAGE(encodeURIComponent(messageId.trim())), {
         emoji: emoji.trim()
@@ -106,9 +104,9 @@ export const userCommunityChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to add reaction");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: React to channel message failed:', error);
-      handleApiError(error, "Failed to add reaction");
+      handleApiError(error as AxiosError, "Failed to add reaction");
       throw error;
     }
   },
@@ -119,8 +117,6 @@ export const userCommunityChatApiService = {
       if (!messageId?.trim() || !emoji?.trim()) {
         throw new Error("Message ID and emoji are required");
       }
-
-
 
       const response = await API.delete(USER_API_ROUTES.COMMUNITY_CHAT.REACT_CHANNEL_MESSAGE(encodeURIComponent(messageId.trim())), {
         data: { emoji: emoji.trim() }
@@ -137,9 +133,9 @@ export const userCommunityChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to remove reaction");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Remove channel message reaction failed:', error);
-      handleApiError(error, "Failed to remove reaction");
+      handleApiError(error as AxiosError, "Failed to remove reaction");
       throw error;
     }
   },
@@ -171,9 +167,9 @@ export const userCommunityChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to send group message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Send group message failed:', error);
-      handleApiError(error, "Failed to send group message");
+      handleApiError(error as AxiosError, "Failed to send group message");
       throw error;
     }
   },
@@ -189,8 +185,6 @@ export const userCommunityChatApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-
-
       const response = await API.get(`${USER_API_ROUTES.COMMUNITY_CHAT.GROUP_MESSAGES(encodeURIComponent(communityUsername.trim()))}?${params.toString()}`);
 
       console.log('API: Group messages fetched successfully:', {
@@ -204,9 +198,9 @@ export const userCommunityChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get group messages");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get group messages failed:', error);
-      handleApiError(error, "Failed to get group messages");
+      handleApiError(error as AxiosError, "Failed to get group messages");
       throw error;
     }
   },
@@ -217,8 +211,6 @@ export const userCommunityChatApiService = {
       if (!messageId?.trim() || !content?.trim()) {
         throw new Error("Message ID and content are required");
       }
-
-
 
       const response = await API.put(USER_API_ROUTES.COMMUNITY_CHAT.GROUP_MESSAGE_BY_ID(encodeURIComponent(messageId.trim())), {
         content: content.trim()
@@ -234,9 +226,9 @@ export const userCommunityChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to edit group message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Edit group message failed:', error);
-      handleApiError(error, "Failed to edit group message");
+      handleApiError(error as AxiosError, "Failed to edit group message");
       throw error;
     }
   },
@@ -247,8 +239,6 @@ export const userCommunityChatApiService = {
       if (!messageId?.trim()) {
         throw new Error("Message ID is required");
       }
-
-
 
       const response = await API.delete(USER_API_ROUTES.COMMUNITY_CHAT.GROUP_MESSAGE_BY_ID(encodeURIComponent(messageId.trim())));
 
@@ -262,9 +252,9 @@ export const userCommunityChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to delete group message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Delete group message failed:', error);
-      handleApiError(error, "Failed to delete group message");
+      handleApiError(error as AxiosError, "Failed to delete group message");
       throw error;
     }
   },
@@ -275,8 +265,6 @@ export const userCommunityChatApiService = {
       if (!communityUsername?.trim()) {
         throw new Error("Community username is required");
       }
-
-
 
       const response = await API.post(USER_API_ROUTES.COMMUNITY_CHAT.GROUP_READ(encodeURIComponent(communityUsername.trim())));
 
@@ -290,9 +278,9 @@ export const userCommunityChatApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to mark messages as read");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Mark group messages as read failed:', error);
-      handleApiError(error, "Failed to mark messages as read");
+      handleApiError(error as AxiosError, "Failed to mark messages as read");
       throw error;
     }
   },

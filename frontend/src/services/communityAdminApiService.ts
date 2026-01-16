@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import api from "@/lib/api-client"
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes"
 
@@ -10,8 +11,6 @@ import {
 } from "@/types/comms-admin/community-admin.types"
 
 class CommunityAdminApiService {
-  // private readonly baseUrl = '/api/community-admin'
-
   // Live validation endpoints
   async checkEmailExists(email: string): Promise<CheckExistenceResponse> {
     try {
@@ -21,9 +20,10 @@ class CommunityAdminApiService {
         success: true,
         message: response.data.message
       }
-    } catch (error: any) {
-      console.error("Check email error:", error)
-      throw new Error(error.response?.data?.message || error.message || "Failed to check email")
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      console.error("Check email error:", axiosError)
+      throw new Error(axiosError.response?.data?.message || axiosError.message || "Failed to check email")
     }
   }
 
@@ -35,9 +35,10 @@ class CommunityAdminApiService {
         success: true,
         message: response.data.message
       }
-    } catch (error: any) {
-      console.error("Check username error:", error)
-      throw new Error(error.response?.data?.message || error.message || "Failed to check username")
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      console.error("Check username error:", axiosError)
+      throw new Error(axiosError.response?.data?.message || axiosError.message || "Failed to check username")
     }
   }
 
@@ -99,7 +100,7 @@ class CommunityAdminApiService {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 30000, // 30 seconds timeout
+        timeout: 30000,
       })
 
       return {
@@ -110,18 +111,19 @@ class CommunityAdminApiService {
         },
         message: response.data.message
       }
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
       console.error("Submit application error:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status
       })
 
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Application submission failed",
       }
     }
@@ -170,7 +172,7 @@ class CommunityAdminApiService {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 30000, // 30 seconds timeout
+        timeout: 30000,
       })
 
       return {
@@ -181,13 +183,14 @@ class CommunityAdminApiService {
         },
         message: response.data.message
       }
-    } catch (error: any) {
-      console.error("Reapply application error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Reapply application error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Application resubmission failed",
       }
     }
@@ -203,13 +206,14 @@ class CommunityAdminApiService {
         success: true,
         message: response.data.message,
       }
-    } catch (error: any) {
-      console.error("Set password error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Set password error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Password setting failed",
       }
     }
@@ -225,13 +229,14 @@ class CommunityAdminApiService {
         success: true,
         message: response.data.message,
       }
-    } catch (error: any) {
-      console.error("Verify OTP error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Verify OTP error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "OTP verification failed",
       }
     }
@@ -246,13 +251,14 @@ class CommunityAdminApiService {
         success: true,
         message: response.data.message,
       }
-    } catch (error: any) {
-      console.error("Resend OTP error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Resend OTP error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Failed to resend OTP",
       }
     }
@@ -273,13 +279,14 @@ class CommunityAdminApiService {
         },
         message: response.data.message
       }
-    } catch (error: any) {
-      console.error("Community admin login error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Community admin login error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Login failed",
       }
     }
@@ -289,13 +296,14 @@ class CommunityAdminApiService {
     try {
       await api.post(COMMUNITY_ADMIN_API_ROUTES.LOGOUT)
       return { success: true }
-    } catch (error: any) {
-      console.error("Community admin logout error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Community admin logout error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Logout failed",
       }
     }
@@ -310,13 +318,14 @@ class CommunityAdminApiService {
           accessToken: response.data.accessToken
         }
       }
-    } catch (error: any) {
-      console.error("Refresh token error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Refresh token error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Token refresh failed",
       }
     }
@@ -332,13 +341,14 @@ class CommunityAdminApiService {
         success: true,
         message: response.data.message,
       }
-    } catch (error: any) {
-      console.error("Forgot password error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Forgot password error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Failed to send reset code",
       }
     }
@@ -354,13 +364,14 @@ class CommunityAdminApiService {
         success: true,
         message: response.data.message,
       }
-    } catch (error: any) {
-      console.error("Verify forgot password OTP error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Verify forgot password OTP error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Invalid OTP",
       }
     }
@@ -376,13 +387,14 @@ class CommunityAdminApiService {
         success: true,
         message: response.data.message,
       }
-    } catch (error: any) {
-      console.error("Reset password error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Reset password error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Password reset failed",
       }
     }
@@ -398,13 +410,14 @@ class CommunityAdminApiService {
           communityAdmin: response.data.communityAdmin,
         },
       }
-    } catch (error: any) {
-      console.error("Get profile error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get profile error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Failed to get profile",
       }
     }
@@ -418,13 +431,14 @@ class CommunityAdminApiService {
         success: true,
         data: response.data,
       }
-    } catch (error: any) {
-      console.error("Get community details error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get community details error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Failed to get community details",
       }
     }
@@ -442,13 +456,14 @@ class CommunityAdminApiService {
         data: response.data,
         message: response.data.message
       }
-    } catch (error: any) {
-      console.error("Update community error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Update community error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Failed to update community",
       }
     }
@@ -461,13 +476,14 @@ class CommunityAdminApiService {
         success: true,
         data: response.data,
       }
-    } catch (error: any) {
-      console.error("Get community members error:", error.response?.data || error.message)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get community members error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: (axiosError.response?.data as any)?.error ||
+          (axiosError.response?.data as any)?.message ||
+          axiosError.message ||
           "Failed to get community members",
       }
     }

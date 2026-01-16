@@ -1,5 +1,6 @@
 import API from "@/lib/api-client";
 import { USER_API_ROUTES } from "@/routes";
+import { AxiosError } from "axios";
 
 import {
   CommunityProfile,
@@ -26,10 +27,9 @@ export type {
   MessageListResponse,
   SendMessageResponse
 };
-import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors consistently
-const handleApiError = (error: any, defaultMessage: string) => {
+const handleApiError = (error: AxiosError, defaultMessage: string) => {
   console.error("Community API Error:", {
     status: error.response?.status,
     statusText: error.response?.statusText,
@@ -55,19 +55,19 @@ const handleApiError = (error: any, defaultMessage: string) => {
     throw new Error("Too many requests. Please try again later");
   }
 
-  if (error.response?.status >= 500) {
+  if (error.response?.status && error.response.status >= 500) {
     throw new Error("Server error. Please try again later");
   }
 
-  const errorMessage = error.response?.data?.error ||
-    error.response?.data?.message ||
+  const errorMessage = (error.response?.data as any)?.error ||
+    (error.response?.data as any)?.message ||
     error.message ||
     defaultMessage;
   throw new Error(errorMessage);
 };
 
 // Helper function to transform profile data with better error handling
-const transformProfileData = (data: any): CommunityProfile => {
+const transformProfileData = (data: Partial<CommunityProfile> & Record<string, any>): CommunityProfile => {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid profile data received');
   }
@@ -120,9 +120,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "No profile data received");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get community profile failed:', error);
-      handleApiError(error, "Failed to fetch community profile");
+      handleApiError(error as AxiosError, "Failed to fetch community profile");
       throw error;
     }
   },
@@ -147,9 +147,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Profile not found");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Get profile by username failed for ${username}:`, error);
-      handleApiError(error, "Failed to fetch community profile");
+      handleApiError(error as AxiosError, "Failed to fetch community profile");
       throw error;
     }
   },
@@ -172,9 +172,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to follow user");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Follow user failed for ${username}:`, error);
-      handleApiError(error, "Failed to follow user");
+      handleApiError(error as AxiosError, "Failed to follow user");
       throw error;
     }
   },
@@ -197,9 +197,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to unfollow user");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Unfollow user failed for ${username}:`, error);
-      handleApiError(error, "Failed to unfollow user");
+      handleApiError(error as AxiosError, "Failed to unfollow user");
       throw error;
     }
   },
@@ -219,9 +219,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get followers");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get followers failed:', error);
-      handleApiError(error, "Failed to get followers");
+      handleApiError(error as AxiosError, "Failed to get followers");
       throw error;
     }
   },
@@ -241,9 +241,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get following");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get following failed:', error);
-      handleApiError(error, "Failed to get following");
+      handleApiError(error as AxiosError, "Failed to get following");
       throw error;
     }
   },
@@ -268,9 +268,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get user followers");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Get user followers failed for ${username}:`, error);
-      handleApiError(error, "Failed to get user followers");
+      handleApiError(error as AxiosError, "Failed to get user followers");
       throw error;
     }
   },
@@ -295,9 +295,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get user following");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Get user following failed for ${username}:`, error);
-      handleApiError(error, "Failed to get user following");
+      handleApiError(error as AxiosError, "Failed to get user following");
       throw error;
     }
   },
@@ -320,9 +320,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get follow status");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Get follow status failed for ${username}:`, error);
-      handleApiError(error, "Failed to get follow status");
+      handleApiError(error as AxiosError, "Failed to get follow status");
       throw error;
     }
   },
@@ -356,11 +356,12 @@ export const communityApiService = {
         success: false,
         error: response.data?.error || response.data?.message || "Failed to update community profile"
       };
-    } catch (error: any) {
-      console.error('API: Update community profile failed:', error);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error('API: Update community profile failed:', axiosError);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to update community profile",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to update community profile",
       };
     }
   },
@@ -401,11 +402,12 @@ export const communityApiService = {
         success: false,
         error: response.data?.error || response.data?.message || "Failed to upload banner image"
       };
-    } catch (error: any) {
-      console.error('API: Upload banner image failed:', error);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error('API: Upload banner image failed:', axiosError);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to upload banner image",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to upload banner image",
       };
     }
   },
@@ -430,9 +432,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to send message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Send message failed:', error);
-      handleApiError(error, "Failed to send message");
+      handleApiError(error as AxiosError, "Failed to send message");
       throw error;
     }
   },
@@ -453,9 +455,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get conversations");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get conversations failed:', error);
-      handleApiError(error, "Failed to get conversations");
+      handleApiError(error as AxiosError, "Failed to get conversations");
       throw error;
     }
   },
@@ -480,9 +482,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get messages");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get conversation messages failed:', error);
-      handleApiError(error, "Failed to get messages");
+      handleApiError(error as AxiosError, "Failed to get messages");
       throw error;
     }
   },
@@ -505,9 +507,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get or create conversation");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get or create conversation failed:', error);
-      handleApiError(error, "Failed to get or create conversation");
+      handleApiError(error as AxiosError, "Failed to get or create conversation");
       throw error;
     }
   },
@@ -530,9 +532,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to edit message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Edit message failed:', error);
-      handleApiError(error, "Failed to edit message");
+      handleApiError(error as AxiosError, "Failed to edit message");
       throw error;
     }
   },
@@ -553,9 +555,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to delete message");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Delete message failed:', error);
-      handleApiError(error, "Failed to delete message");
+      handleApiError(error as AxiosError, "Failed to delete message");
       throw error;
     }
   },
@@ -578,9 +580,9 @@ export const communityApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to mark messages as read");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Mark messages as read failed:', error);
-      handleApiError(error, "Failed to mark messages as read");
+      handleApiError(error as AxiosError, "Failed to mark messages as read");
       throw error;
     }
   },
@@ -664,9 +666,9 @@ export const communityApiService = {
         return response.data.data;
       }
       throw new Error(response.data?.error || "Failed to fetch notifications");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get notifications failed:', error);
-      handleApiError(error, "Failed to get notifications");
+      handleApiError(error as AxiosError, "Failed to get notifications");
       throw error;
     }
   },
@@ -676,7 +678,7 @@ export const communityApiService = {
       const response = await API.put(USER_API_ROUTES.NOTIFICATIONS_SYSTEM.MARK_READ(notificationId));
       if (response.data?.success) return true;
       throw new Error(response.data?.error || "Failed");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Mark notification read failed:', error);
       throw error;
     }
@@ -687,7 +689,7 @@ export const communityApiService = {
       const response = await API.patch(USER_API_ROUTES.NOTIFICATIONS_SYSTEM.MARK_ALL_READ);
       if (response.data?.success) return true;
       throw new Error(response.data?.error || "Failed");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Mark all read failed:', error);
       throw error;
     }
@@ -698,7 +700,7 @@ export const communityApiService = {
       const response = await API.delete(USER_API_ROUTES.NOTIFICATIONS_SYSTEM.DELETE(notificationId));
       if (response.data?.success) return true;
       throw new Error(response.data?.error || "Failed");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Delete notification failed:', error);
       throw error;
     }

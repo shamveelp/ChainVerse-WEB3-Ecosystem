@@ -20,7 +20,7 @@ export interface PointsConversion {
     claimFee: number;
     walletAddress?: string;
     adminNote?: string;
-    approvedBy?: any;
+    approvedBy?: string | Record<string, unknown>;
     approvedAt?: string;
     claimedAt?: string;
     createdAt: string;

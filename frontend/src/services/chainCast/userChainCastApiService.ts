@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import API from "@/lib/api-client";
 import { USER_API_ROUTES } from "@/routes";
 
@@ -35,8 +36,13 @@ import { ApiResponse } from "@/types/common.types";
 // Import types for proper typing
 import type { ChainCast, ChainCastsResponse, ReactionsResponse } from "@/types/comms-admin/chaincast.types";
 
+interface ApiErrorData {
+  error?: string;
+  message?: string;
+}
+
 // Helper function to handle API errors
-const handleApiError = (error: any, defaultMessage: string) => {
+const handleApiError = (error: AxiosError<ApiErrorData>, defaultMessage: string) => {
   console.error("User ChainCast API Error:", {
     status: error.response?.status,
     statusText: error.response?.statusText,
@@ -62,7 +68,7 @@ const handleApiError = (error: any, defaultMessage: string) => {
     throw new Error("Too many requests. Please try again later");
   }
 
-  if (error.response?.status >= 500) {
+  if (error.response?.status && error.response.status >= 500) {
     throw new Error("Server error. Please try again later");
   }
 
@@ -93,24 +99,16 @@ export const userChainCastApiService = {
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
       params.append('sortBy', sortBy);
 
-
-
       const response = await API.get(`${USER_API_ROUTES.CHAINCAST_COMMUNITY(communityId.trim())}?${params.toString()}`);
-
-      console.log('API: Community ChainCasts fetched successfully:', {
-        chainCastCount: response.data?.data?.chainCasts?.length,
-        hasMore: response.data?.data?.hasMore,
-        totalCount: response.data?.data?.totalCount
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get community ChainCasts");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get community ChainCasts failed:', error);
-      handleApiError(error, "Failed to get community ChainCasts");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to get community ChainCasts");
       throw error;
     }
   },
@@ -121,25 +119,16 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-
-
       const response = await API.get(USER_API_ROUTES.CHAINCAST_BY_ID(chainCastId.trim()));
-
-      console.log('API: ChainCast fetched successfully:', {
-        chainCastId: response.data?.data?._id,
-        title: response.data?.data?.title,
-        status: response.data?.data?.status,
-        canJoin: response.data?.data?.canJoin
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get ChainCast");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get ChainCast failed:', error);
-      handleApiError(error, "Failed to get ChainCast");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to get ChainCast");
       throw error;
     }
   },
@@ -150,24 +139,17 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-
-
       const response = await API.get(USER_API_ROUTES.CHAINCAST_CAN_JOIN(chainCastId.trim()));
-
-      console.log('API: Can join check completed:', {
-        chainCastId,
-        canJoin: response.data?.data?.canJoin,
-        reason: response.data?.data?.reason
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       return { canJoin: false, reason: "Unknown error" };
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Can join check failed:', error);
-      return { canJoin: false, reason: error.message || "Failed to check join permissions" };
+      const axiosError = error as AxiosError<ApiErrorData>;
+      return { canJoin: false, reason: axiosError.message || "Failed to check join permissions" };
     }
   },
 
@@ -178,20 +160,9 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Joining ChainCast:', {
-        chainCastId: data.chainCastId,
-        quality: data.quality
-      });
-
       const response = await API.post(USER_API_ROUTES.CHAINCAST_JOIN, {
         chainCastId: data.chainCastId.trim(),
         quality: data.quality || 'medium'
-      });
-
-      console.log('API: ChainCast joined successfully:', {
-        chainCastId: data.chainCastId,
-        success: response.data?.success,
-        hasStreamUrl: !!response.data?.data?.streamUrl
       });
 
       if (response.data?.success && response.data?.data) {
@@ -199,9 +170,9 @@ export const userChainCastApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to join ChainCast");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Join ChainCast failed:', error);
-      handleApiError(error, "Failed to join ChainCast");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to join ChainCast");
       throw error;
     }
   },
@@ -212,23 +183,16 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-
-
       const response = await API.post(USER_API_ROUTES.CHAINCAST_LEAVE(chainCastId.trim()));
-
-      console.log('API: ChainCast left successfully:', {
-        chainCastId,
-        success: response.data?.success
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to leave ChainCast");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Leave ChainCast failed:', error);
-      handleApiError(error, "Failed to leave ChainCast");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to leave ChainCast");
       throw error;
     }
   },
@@ -239,23 +203,16 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-
-
       const response = await API.put(USER_API_ROUTES.CHAINCAST_PARTICIPANT(chainCastId.trim()), data);
-
-      console.log('API: Participant updated successfully:', {
-        chainCastId,
-        success: response.data?.success
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to update participant");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Update participant failed:', error);
-      handleApiError(error, "Failed to update participant");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to update participant");
       throw error;
     }
   },
@@ -267,21 +224,10 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID is required");
       }
 
-      console.log('API: Requesting moderation:', {
-        chainCastId: data.chainCastId,
-        requestedPermissions: data.requestedPermissions,
-        hasMessage: !!data.message
-      });
-
       const response = await API.post(USER_API_ROUTES.CHAINCAST_REQUEST_MODERATION, {
         chainCastId: data.chainCastId.trim(),
         requestedPermissions: data.requestedPermissions,
         message: data.message
-      });
-
-      console.log('API: Moderation requested successfully:', {
-        chainCastId: data.chainCastId,
-        success: response.data?.success
       });
 
       if (response.data?.success && response.data?.data) {
@@ -289,9 +235,9 @@ export const userChainCastApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to request moderation");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Request moderation failed:', error);
-      handleApiError(error, "Failed to request moderation");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to request moderation");
       throw error;
     }
   },
@@ -303,20 +249,9 @@ export const userChainCastApiService = {
         throw new Error("ChainCast ID and emoji are required");
       }
 
-      console.log('API: Adding reaction:', {
-        chainCastId: data.chainCastId,
-        emoji: data.emoji
-      });
-
       const response = await API.post(USER_API_ROUTES.CHAINCAST_REACTION, {
         chainCastId: data.chainCastId.trim(),
         emoji: data.emoji.trim()
-      });
-
-      console.log('API: Reaction added successfully:', {
-        chainCastId: data.chainCastId,
-        emoji: data.emoji,
-        success: response.data?.success
       });
 
       if (response.data?.success && response.data?.data) {
@@ -324,9 +259,9 @@ export const userChainCastApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to add reaction");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Add reaction failed:', error);
-      handleApiError(error, "Failed to add reaction");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to add reaction");
       throw error;
     }
   },
@@ -345,23 +280,16 @@ export const userChainCastApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
 
-
-
       const response = await API.get(`${USER_API_ROUTES.CHAINCAST_REACTIONS(chainCastId.trim())}?${params.toString()}`);
-
-      console.log('API: Reactions fetched successfully:', {
-        reactionCount: response.data?.data?.reactions?.length,
-        totalCount: response.data?.data?.totalCount
-      });
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get reactions");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get reactions failed:', error);
-      handleApiError(error, "Failed to get reactions");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to get reactions");
       throw error;
     }
   },

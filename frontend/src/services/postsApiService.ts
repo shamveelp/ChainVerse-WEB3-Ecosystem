@@ -1,9 +1,9 @@
 import API from "@/lib/api-client";
 import { USER_API_ROUTES } from "@/routes";
+import { AxiosError } from "axios";
 
 // Post interfaces
 import {
-  PostAuthor,
   SearchUsersResponse,
   Post,
   Comment,
@@ -18,10 +18,13 @@ import {
   CreateCommentData
 } from "@/types/user/posts.types";
 
-import { ApiResponse } from "@/types/common.types";
+interface ApiErrorData {
+  error?: string;
+  message?: string;
+}
 
 // Helper function to handle API errors
-const handleApiError = (error: any, defaultMessage: string) => {
+const handleApiError = (error: AxiosError<ApiErrorData>, defaultMessage: string) => {
   console.error("Posts API Error:", {
     status: error.response?.status,
     statusText: error.response?.statusText,
@@ -31,24 +34,26 @@ const handleApiError = (error: any, defaultMessage: string) => {
     method: error.config?.method
   });
 
-  if (error.response?.status === 401) {
-    throw new Error("User not authenticated");
-  }
+  if (error.response) {
+    if (error.response.status === 401) {
+      throw new Error("User not authenticated");
+    }
 
-  if (error.response?.status === 403) {
-    throw new Error("Access forbidden");
-  }
+    if (error.response.status === 403) {
+      throw new Error("Access forbidden");
+    }
 
-  if (error.response?.status === 404) {
-    throw new Error("Resource not found");
-  }
+    if (error.response.status === 404) {
+      throw new Error("Resource not found");
+    }
 
-  if (error.response?.status === 429) {
-    throw new Error("Too many requests. Please try again later");
-  }
+    if (error.response.status === 429) {
+      throw new Error("Too many requests. Please try again later");
+    }
 
-  if (error.response?.status >= 500) {
-    throw new Error("Server error. Please try again later");
+    if (error.response.status >= 500) {
+      throw new Error("Server error. Please try again later");
+    }
   }
 
   const errorMessage = error.response?.data?.error ||
@@ -59,79 +64,83 @@ const handleApiError = (error: any, defaultMessage: string) => {
 };
 
 // Helper function to transform post data
-const transformPostData = (data: any): Post => {
+const transformPostData = (data: Partial<Post> & Record<string, unknown>): Post => {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid post data received');
   }
 
   return {
-    _id: data._id || '',
+    _id: data._id as string || '',
     author: {
-      _id: data.author?._id || '',
-      username: data.author?.username || '',
-      name: data.author?.name || '',
-      profilePic: data.author?.profilePic || '',
-      isVerified: Boolean(data.author?.isVerified)
+      _id: (data.author as any)?._id || '',
+      username: (data.author as any)?.username || '',
+      name: (data.author as any)?.name || '',
+      profilePic: (data.author as any)?.profilePic || '',
+      isVerified: Boolean((data.author as any)?.isVerified)
     },
-    content: data.content || '',
-    mediaUrls: Array.isArray(data.mediaUrls) ? data.mediaUrls : [],
-    mediaType: data.mediaType || 'none',
-    hashtags: Array.isArray(data.hashtags) ? data.hashtags : [],
-    mentions: Array.isArray(data.mentions) ? data.mentions : [],
+    content: data.content as string || '',
+    mediaUrls: Array.isArray(data.mediaUrls) ? data.mediaUrls as string[] : [],
+    mediaType: data.mediaType as any || 'none',
+    hashtags: Array.isArray(data.hashtags) ? data.hashtags as string[] : [],
+    mentions: Array.isArray(data.mentions) ? data.mentions as string[] : [],
     likesCount: Number(data.likesCount) || 0,
     commentsCount: Number(data.commentsCount) || 0,
     sharesCount: Number(data.sharesCount) || 0,
     isLiked: Boolean(data.isLiked),
     isOwnPost: Boolean(data.isOwnPost),
-    createdAt: data.createdAt || new Date().toISOString(),
-    updatedAt: data.updatedAt || new Date().toISOString(),
-    editedAt: data.editedAt
+    createdAt: data.createdAt as string || new Date().toISOString(),
+    updatedAt: data.updatedAt as string || new Date().toISOString(),
+    editedAt: data.editedAt as string
   };
 };
 
 // Helper function to transform comment data
-const transformCommentData = (data: any): Comment => {
+const transformCommentData = (data: Partial<Comment> & Record<string, unknown>): Comment => {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid comment data received');
   }
 
-  return {
-    _id: data._id || '',
-    post: data.post || '',
+  const comment: Comment = {
+    _id: data._id as string || '',
+    post: data.post as string || '',
     author: {
-      _id: data.author?._id || '',
-      username: data.author?.username || '',
-      name: data.author?.name || '',
-      profilePic: data.author?.profilePic || '',
-      isVerified: Boolean(data.author?.isVerified)
+      _id: (data.author as any)?._id || '',
+      username: (data.author as any)?.username || '',
+      name: (data.author as any)?.name || '',
+      profilePic: (data.author as any)?.profilePic || '',
+      isVerified: Boolean((data.author as any)?.isVerified)
     },
-    content: data.content || '',
-    parentComment: data.parentComment,
+    content: data.content as string || '',
+    parentComment: data.parentComment as string,
     likesCount: Number(data.likesCount) || 0,
     repliesCount: Number(data.repliesCount) || 0,
     isLiked: Boolean(data.isLiked),
     isOwnComment: Boolean(data.isOwnComment),
     postedAsCommunity: Boolean(data.postedAsCommunity),
     community: data.community ? {
-      _id: data.community._id || '',
-      username: data.community.username || '',
-      name: data.community.name || '',
-      profilePic: data.community.profilePic || ''
+      _id: (data.community as any)._id || '',
+      username: (data.community as any).username || '',
+      name: (data.community as any).name || '',
+      profilePic: (data.community as any).profilePic || ''
     } : undefined,
-    createdAt: data.createdAt || new Date().toISOString(),
-    updatedAt: data.updatedAt || new Date().toISOString(),
-    editedAt: data.editedAt,
-    replies: data.replies ? data.replies.map(transformCommentData) : []
+    createdAt: data.createdAt as string || new Date().toISOString(),
+    updatedAt: data.updatedAt as string || new Date().toISOString(),
+    editedAt: data.editedAt as string,
+    replies: []
   };
+
+  if (data.replies && Array.isArray(data.replies)) {
+    comment.replies = data.replies.map((reply: any) => transformCommentData(reply));
+  }
+
+  return comment;
 };
 
 export const postsApiService = {
   // Create post
   createPost: async (postData: CreatePostData): Promise<{ data: Post }> => {
     try {
-
       const response = await API.post(USER_API_ROUTES.POSTS_CREATE, postData);
-
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformPostData(response.data.data);
@@ -139,9 +148,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to create post");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Create post failed:', error);
-      handleApiError(error, "Failed to create post");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to create post");
       throw error;
     }
   },
@@ -149,13 +158,11 @@ export const postsApiService = {
   // Get post by ID
   getPostById: async (postId: string): Promise<{ data: PostDetailResponse }> => {
     try {
-
       const response = await API.get(USER_API_ROUTES.POST_BY_ID(postId));
-
 
       if (response.data?.success && response.data?.data) {
         const transformedPost = transformPostData(response.data.data.post);
-        const transformedComments = response.data.data.comments.map(transformCommentData);
+        const transformedComments = (response.data.data.comments || []).map((c: any) => transformCommentData(c));
 
         const result: PostDetailResponse = {
           post: transformedPost,
@@ -169,9 +176,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Post not found");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Get post failed for ${postId}:`, error);
-      handleApiError(error, "Failed to fetch post");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch post");
       throw error;
     }
   },
@@ -179,12 +186,10 @@ export const postsApiService = {
   // Update post
   updatePost: async (postId: string, content: string, mediaUrls?: string[]): Promise<{ data: Post }> => {
     try {
-
       const response = await API.put(USER_API_ROUTES.POST_BY_ID(postId), {
         content,
         mediaUrls: mediaUrls || []
       });
-
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformPostData(response.data.data);
@@ -192,9 +197,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to update post");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Update post failed:', error);
-      handleApiError(error, "Failed to update post");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to update post");
       throw error;
     }
   },
@@ -202,18 +207,16 @@ export const postsApiService = {
   // Delete post
   deletePost: async (postId: string): Promise<{ success: boolean; message: string }> => {
     try {
-
       const response = await API.delete(USER_API_ROUTES.POST_BY_ID(postId));
-
 
       if (response.data?.success) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to delete post");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Delete post failed:', error);
-      handleApiError(error, "Failed to delete post");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to delete post");
       throw error;
     }
   },
@@ -225,12 +228,10 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-
       const response = await API.get(`${USER_API_ROUTES.POSTS_FEED}?${params.toString()}`);
 
-
       if (response.data?.success && response.data?.data) {
-        const transformedPosts = response.data.data.posts.map(transformPostData);
+        const transformedPosts = (response.data.data.posts || []).map((p: any) => transformPostData(p));
         return {
           posts: transformedPosts,
           hasMore: Boolean(response.data.data.hasMore),
@@ -240,9 +241,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to fetch feed posts");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get feed posts failed:', error);
-      handleApiError(error, "Failed to fetch feed posts");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch feed posts");
       throw error;
     }
   },
@@ -254,12 +255,10 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-
       const response = await API.get(`${USER_API_ROUTES.POSTS_USER(userId)}?${params.toString()}`);
 
-
       if (response.data?.success && response.data?.data) {
-        const transformedPosts = response.data.data.posts.map(transformPostData);
+        const transformedPosts = (response.data.data.posts || []).map((p: any) => transformPostData(p));
         return {
           posts: transformedPosts,
           hasMore: Boolean(response.data.data.hasMore),
@@ -269,9 +268,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to fetch user posts");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get user posts failed:', error);
-      handleApiError(error, "Failed to fetch user posts");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch user posts");
       throw error;
     }
   },
@@ -283,12 +282,10 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-
       const response = await API.get(`${USER_API_ROUTES.POSTS_LIKED(userId)}?${params.toString()}`);
 
-
       if (response.data?.success && response.data?.data) {
-        const transformedPosts = response.data.data.posts.map(transformPostData);
+        const transformedPosts = (response.data.data.posts || []).map((p: any) => transformPostData(p));
         return {
           posts: transformedPosts,
           hasMore: Boolean(response.data.data.hasMore),
@@ -298,9 +295,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to fetch liked posts");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get liked posts failed:', error);
-      handleApiError(error, "Failed to fetch liked posts");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch liked posts");
       throw error;
     }
   },
@@ -312,12 +309,10 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-
       const response = await API.get(`${USER_API_ROUTES.POSTS_TRENDING}?${params.toString()}`);
 
-
       if (response.data?.success && response.data?.data) {
-        const transformedPosts = response.data.data.posts.map(transformPostData);
+        const transformedPosts = (response.data.data.posts || []).map((p: any) => transformPostData(p));
         return {
           posts: transformedPosts,
           hasMore: Boolean(response.data.data.hasMore),
@@ -327,9 +322,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to fetch trending posts");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get trending posts failed:', error);
-      handleApiError(error, "Failed to fetch trending posts");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch trending posts");
       throw error;
     }
   },
@@ -342,12 +337,10 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 20).toString());
 
-
       const response = await API.get(`${USER_API_ROUTES.POSTS_SEARCH}?${params.toString()}`);
 
-
       if (response.data?.success && response.data?.data) {
-        const transformedPosts = response.data.data.posts.map(transformPostData);
+        const transformedPosts = (response.data.data.posts || []).map((p: any) => transformPostData(p));
         return {
           posts: transformedPosts,
           hasMore: Boolean(response.data.data.hasMore),
@@ -357,9 +350,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to search posts");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Search posts failed:', error);
-      handleApiError(error, "Failed to search posts");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to search posts");
       throw error;
     }
   },
@@ -367,18 +360,16 @@ export const postsApiService = {
   // Toggle post like
   togglePostLike: async (postId: string): Promise<LikeResponse> => {
     try {
-
       const response = await API.post(USER_API_ROUTES.POST_LIKE(postId));
-
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to toggle post like");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Toggle post like failed:', error);
-      handleApiError(error, "Failed to toggle post like");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to toggle post like");
       throw error;
     }
   },
@@ -386,9 +377,7 @@ export const postsApiService = {
   // Create comment
   createComment: async (commentData: CreateCommentData): Promise<{ data: Comment }> => {
     try {
-
       const response = await API.post(USER_API_ROUTES.POST_COMMENTS_CREATE, commentData);
-
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformCommentData(response.data.data);
@@ -396,9 +385,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to create comment");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Create comment failed:', error);
-      handleApiError(error, "Failed to create comment");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to create comment");
       throw error;
     }
   },
@@ -406,9 +395,7 @@ export const postsApiService = {
   // Update comment
   updateComment: async (commentId: string, content: string): Promise<{ data: Comment }> => {
     try {
-
       const response = await API.put(USER_API_ROUTES.POST_COMMENT_UPDATE(commentId), { content });
-
 
       if (response.data?.success && response.data?.data) {
         const transformedData = transformCommentData(response.data.data);
@@ -416,9 +403,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to update comment");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Update comment failed:', error);
-      handleApiError(error, "Failed to update comment");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to update comment");
       throw error;
     }
   },
@@ -426,18 +413,16 @@ export const postsApiService = {
   // Delete comment
   deleteComment: async (commentId: string): Promise<{ success: boolean; message: string }> => {
     try {
-
       const response = await API.delete(USER_API_ROUTES.POST_COMMENT_DELETE(commentId));
-
 
       if (response.data?.success) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to delete comment");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Delete comment failed:', error);
-      handleApiError(error, "Failed to delete comment");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to delete comment");
       throw error;
     }
   },
@@ -449,12 +434,10 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-
       const response = await API.get(`${USER_API_ROUTES.POST_COMMENTS(postId)}?${params.toString()}`);
 
-
       if (response.data?.success && response.data?.data) {
-        const transformedComments = response.data.data.comments.map(transformCommentData);
+        const transformedComments = (response.data.data.comments || []).map((c: any) => transformCommentData(c));
         return {
           comments: transformedComments,
           hasMore: Boolean(response.data.data.hasMore),
@@ -464,9 +447,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to fetch post comments");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get post comments failed:', error);
-      handleApiError(error, "Failed to fetch post comments");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch post comments");
       throw error;
     }
   },
@@ -478,12 +461,10 @@ export const postsApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-
       const response = await API.get(`${USER_API_ROUTES.POST_COMMENT_REPLIES(commentId)}?${params.toString()}`);
 
-
       if (response.data?.success && response.data?.data) {
-        const transformedComments = response.data.data.comments.map(transformCommentData);
+        const transformedComments = (response.data.data.comments || []).map((c: any) => transformCommentData(c));
         return {
           comments: transformedComments,
           hasMore: Boolean(response.data.data.hasMore),
@@ -493,9 +474,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to fetch comment replies");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get comment replies failed:', error);
-      handleApiError(error, "Failed to fetch comment replies");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch comment replies");
       throw error;
     }
   },
@@ -503,18 +484,16 @@ export const postsApiService = {
   // Toggle comment like
   toggleCommentLike: async (commentId: string): Promise<LikeResponse> => {
     try {
-
       const response = await API.post(USER_API_ROUTES.POST_COMMENT_LIKE(commentId));
-
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to toggle comment like");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Toggle comment like failed:', error);
-      handleApiError(error, "Failed to toggle comment like");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to toggle comment like");
       throw error;
     }
   },
@@ -522,7 +501,6 @@ export const postsApiService = {
   // Upload media
   uploadMedia: async (file: File): Promise<MediaUploadResponse> => {
     try {
-
       const formData = new FormData();
       formData.append('media', file);
 
@@ -532,15 +510,14 @@ export const postsApiService = {
         },
       });
 
-
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to upload media");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Upload media failed:', error);
-      handleApiError(error, "Failed to upload media");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to upload media");
       throw error;
     }
   },
@@ -548,18 +525,16 @@ export const postsApiService = {
   // Share post
   sharePost: async (postId: string, shareText?: string): Promise<ShareResponse> => {
     try {
-
       const response = await API.post(USER_API_ROUTES.POST_SHARE, { postId, shareText });
-
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to share post");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Share post failed:', error);
-      handleApiError(error, "Failed to share post");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to share post");
       throw error;
     }
   },
@@ -570,18 +545,16 @@ export const postsApiService = {
       const params = new URLSearchParams();
       if (userId) params.append('userId', userId);
 
-
       const response = await API.get(`${USER_API_ROUTES.POST_STATS}?${params.toString()}`);
-
 
       if (response.data?.success && response.data?.data) {
         return response.data.data;
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to fetch post stats");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get post stats failed:', error);
-      handleApiError(error, "Failed to fetch post stats");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch post stats");
       throw error;
     }
   },
@@ -592,18 +565,16 @@ export const postsApiService = {
       const params = new URLSearchParams();
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-
       const response = await API.get(`${USER_API_ROUTES.POST_HASHTAGS_POPULAR}?${params.toString()}`);
-
 
       if (response.data?.success && response.data?.data) {
         return response.data.data.hashtags || [];
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to fetch popular hashtags");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get popular hashtags failed:', error);
-      handleApiError(error, "Failed to fetch popular hashtags");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch popular hashtags");
       throw error;
     }
   },
@@ -674,9 +645,9 @@ export const postsApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to search users");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Search users failed:', error);
-      handleApiError(error, "Failed to search users");
+      handleApiError(error as AxiosError<ApiErrorData>, "Failed to search users");
       throw error;
     }
   }

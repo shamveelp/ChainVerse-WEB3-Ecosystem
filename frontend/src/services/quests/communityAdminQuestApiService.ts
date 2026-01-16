@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import api from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES, USER_API_ROUTES } from "../../routes/api.routes";
 
@@ -14,8 +15,6 @@ import {
 import { ApiResponse } from "@/types/common.types";
 
 class CommunityAdminQuestApiService {
-  // private readonly baseUrl = '/api/community-admin';
-
   // Quest CRUD operations
   async createQuest(questData: CreateQuestData): Promise<ApiResponse<Quest>> {
     try {
@@ -25,13 +24,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Create quest error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Create quest error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to create quest",
       };
     }
@@ -45,13 +45,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get quest error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get quest error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get quest",
       };
     }
@@ -76,13 +77,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get quests error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get quests error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get quests",
       };
     }
@@ -96,13 +98,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Update quest error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Update quest error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to update quest",
       };
     }
@@ -116,13 +119,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Delete quest error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Delete quest error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to delete quest",
       };
     }
@@ -137,13 +141,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Generate AI quest error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Generate AI quest error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to generate quest with AI",
       };
     }
@@ -158,13 +163,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Start quest error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Start quest error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to start quest",
       };
     }
@@ -178,13 +184,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("End quest error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("End quest error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to end quest",
       };
     }
@@ -215,13 +222,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get participants error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get participants error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get participants",
       };
     }
@@ -235,13 +243,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get participant details error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get participant details error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get participant details",
       };
     }
@@ -258,13 +267,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Select winners error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Select winners error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to select winners",
       };
     }
@@ -280,13 +290,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Select replacement winners error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Select replacement winners error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to select replacement winners",
       };
     }
@@ -302,13 +313,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Disqualify participant error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Disqualify participant error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to disqualify participant",
       };
     }
@@ -323,13 +335,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Distribute rewards error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Distribute rewards error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to distribute rewards",
       };
     }
@@ -344,13 +357,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get quest stats error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get quest stats error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get quest stats",
       };
     }
@@ -364,13 +378,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get community quest stats error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get community quest stats error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get community quest stats",
       };
     }
@@ -384,13 +399,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get quest leaderboard error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get quest leaderboard error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get quest leaderboard",
       };
     }
@@ -413,13 +429,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Upload quest banner error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Upload quest banner error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to upload quest banner",
       };
     }
@@ -434,13 +451,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data?.communities || [],
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Search communities error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Search communities error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to search communities",
       };
     }
@@ -455,13 +473,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data?.users || [],
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Search users error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Search users error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to search users",
       };
     }
@@ -488,13 +507,14 @@ class CommunityAdminQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("AI chat error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("AI chat error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to chat with AI",
       };
     }

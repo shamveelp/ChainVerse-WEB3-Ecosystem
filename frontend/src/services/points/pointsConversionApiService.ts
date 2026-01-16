@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import API from "@/lib/api-client";
 import { USER_API_ROUTES, ADMIN_API_ROUTES } from "../../routes/api.routes";
 
@@ -32,11 +33,12 @@ export const pointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to create conversion");
-    } catch (error: any) {
-      console.error("Create conversion error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Create conversion error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to create conversion",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to create conversion",
       };
     }
   },
@@ -57,11 +59,12 @@ export const pointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to fetch conversions");
-    } catch (error: any) {
-      console.error("Get conversions error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get conversions error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to fetch conversions",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to fetch conversions",
       };
     }
   },
@@ -88,11 +91,12 @@ export const pointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to claim CVC");
-    } catch (error: any) {
-      console.error("Claim CVC error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Claim CVC error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to claim CVC",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to claim CVC",
       };
     }
   },
@@ -108,11 +112,12 @@ export const pointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to get conversion rate");
-    } catch (error: any) {
-      console.error("Get conversion rate error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get conversion rate error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to get conversion rate",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get conversion rate",
       };
     }
   },
@@ -133,11 +138,12 @@ export const pointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to validate conversion");
-    } catch (error: any) {
-      console.error("Validate conversion error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Validate conversion error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to validate conversion",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to validate conversion",
       };
     }
   },
@@ -166,11 +172,12 @@ export const adminPointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to fetch conversions");
-    } catch (error: any) {
-      console.error("Get admin conversions error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get admin conversions error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to fetch conversions",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to fetch conversions",
       };
     }
   },
@@ -186,11 +193,12 @@ export const adminPointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to approve conversion");
-    } catch (error: any) {
-      console.error("Approve conversion error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Approve conversion error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to approve conversion",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to approve conversion",
       };
     }
   },
@@ -206,11 +214,12 @@ export const adminPointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to reject conversion");
-    } catch (error: any) {
-      console.error("Reject conversion error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Reject conversion error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to reject conversion",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to reject conversion",
       };
     }
   },
@@ -226,11 +235,12 @@ export const adminPointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to get stats");
-    } catch (error: any) {
-      console.error("Get conversion stats error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get conversion stats error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to get stats",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get stats",
       };
     }
   },
@@ -246,11 +256,12 @@ export const adminPointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to get conversion");
-    } catch (error: any) {
-      console.error("Get conversion error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get conversion error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to get conversion",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get conversion",
       };
     }
   },
@@ -272,11 +283,12 @@ export const adminPointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to update rate");
-    } catch (error: any) {
-      console.error("Update conversion rate error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Update conversion rate error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to update rate",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to update rate",
       };
     }
   },
@@ -292,11 +304,12 @@ export const adminPointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to get rates");
-    } catch (error: any) {
-      console.error("Get conversion rates error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get conversion rates error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to get rates",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get rates",
       };
     }
   },
@@ -312,11 +325,12 @@ export const adminPointsConversionApiService = {
         };
       }
       throw new Error(response.data.error || "Failed to get current rate");
-    } catch (error: any) {
-      console.error("Get admin current rate error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get admin current rate error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to get current rate",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get current rate",
       };
     }
   },

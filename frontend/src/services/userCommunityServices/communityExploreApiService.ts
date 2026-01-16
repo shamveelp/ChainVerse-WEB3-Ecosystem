@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import API from "@/lib/api-client";
 import { USER_API_ROUTES } from "../../routes/api.routes";
 
@@ -29,7 +30,7 @@ export type {
 import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors
-const handleApiError = (error: any, defaultMessage: string) => {
+const handleApiError = (error: AxiosError, defaultMessage: string) => {
   console.error("Community Explore API Error:", {
     status: error.response?.status,
     statusText: error.response?.statusText,
@@ -55,12 +56,12 @@ const handleApiError = (error: any, defaultMessage: string) => {
     throw new Error("Too many requests. Please try again later");
   }
 
-  if (error.response?.status >= 500) {
+  if (error.response?.status && error.response.status >= 500) {
     throw new Error("Server error. Please try again later");
   }
 
-  const errorMessage = error.response?.data?.error ||
-    error.response?.data?.message ||
+  const errorMessage = (error.response?.data as any)?.error ||
+    (error.response?.data as any)?.message ||
     error.message ||
     defaultMessage;
   throw new Error(errorMessage);
@@ -188,9 +189,9 @@ export const communityExploreApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "No search results");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Search failed:', error);
-      handleApiError(error, "Failed to search");
+      handleApiError(error as AxiosError, "Failed to search");
       throw error;
     }
   },
@@ -224,9 +225,9 @@ export const communityExploreApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get popular communities");
-    } catch (error: any) {
+    } catch (error) {
       console.error('API: Get popular communities failed:', error);
-      handleApiError(error, "Failed to get popular communities");
+      handleApiError(error as AxiosError, "Failed to get popular communities");
       throw error;
     }
   },
@@ -249,9 +250,9 @@ export const communityExploreApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Community not found");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Get community profile failed for ${username}:`, error);
-      handleApiError(error, "Failed to get community profile");
+      handleApiError(error as AxiosError, "Failed to get community profile");
       throw error;
     }
   },
@@ -274,9 +275,9 @@ export const communityExploreApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Community not found");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Get community by ID failed for ${communityId}:`, error);
-      handleApiError(error, "Failed to get community");
+      handleApiError(error as AxiosError, "Failed to get community");
       throw error;
     }
   },
@@ -299,9 +300,9 @@ export const communityExploreApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "User not found");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Get user profile failed for ${username}:`, error);
-      handleApiError(error, "Failed to get user profile");
+      handleApiError(error as AxiosError, "Failed to get user profile");
       throw error;
     }
   },
@@ -326,9 +327,9 @@ export const communityExploreApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to join community");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Join community failed for ${communityUsername}:`, error);
-      handleApiError(error, "Failed to join community");
+      handleApiError(error as AxiosError, "Failed to join community");
       throw error;
     }
   },
@@ -353,9 +354,9 @@ export const communityExploreApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to leave community");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Leave community failed for ${communityUsername}:`, error);
-      handleApiError(error, "Failed to leave community");
+      handleApiError(error as AxiosError, "Failed to leave community");
       throw error;
     }
   },
@@ -385,9 +386,9 @@ export const communityExploreApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get community members");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Get community members failed for ${communityUsername}:`, error);
-      handleApiError(error, "Failed to get community members");
+      handleApiError(error as AxiosError, "Failed to get community members");
       throw error;
     }
   },
@@ -414,9 +415,9 @@ export const communityExploreApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to get member status");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Get member status failed for ${communityUsername}:`, error);
-      handleApiError(error, "Failed to get member status");
+      handleApiError(error as AxiosError, "Failed to get member status");
       throw error;
     }
   },
@@ -441,9 +442,9 @@ export const communityExploreApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to follow user");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Follow user failed for ${username}:`, error);
-      handleApiError(error, "Failed to follow user");
+      handleApiError(error as AxiosError, "Failed to follow user");
       throw error;
     }
   },
@@ -468,9 +469,9 @@ export const communityExploreApiService = {
       }
 
       throw new Error(response.data?.error || response.data?.message || "Failed to unfollow user");
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Unfollow user failed for ${username}:`, error);
-      handleApiError(error, "Failed to unfollow user");
+      handleApiError(error as AxiosError, "Failed to unfollow user");
       throw error;
     }
   },
@@ -493,7 +494,7 @@ export const communityExploreApiService = {
       }
 
       return { isFollowing: false };
-    } catch (error: any) {
+    } catch (error) {
       console.error(`API: Get follow status failed for ${username}:`, error);
       return { isFollowing: false };
     }

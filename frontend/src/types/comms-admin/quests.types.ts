@@ -34,7 +34,7 @@ export interface QuestTask {
     isRequired: boolean;
     order: number;
     privilegePoints: number;
-    config: any;
+    config: Record<string, unknown>;
     completedBy: number;
 }
 
@@ -51,7 +51,7 @@ export interface QuestStats {
 export interface Participant {
     _id: string;
     questId: string;
-    userId: any;
+    userId: string | Record<string, unknown>;
     walletAddress?: string;
     status: string;
     joinedAt: Date;
@@ -83,7 +83,7 @@ export interface CreateQuestData {
         isRequired: boolean;
         order: number;
         privilegePoints?: number;
-        config?: any;
+        config?: Record<string, unknown>;
     }>;
     isAIGenerated?: boolean;
     aiPrompt?: string;

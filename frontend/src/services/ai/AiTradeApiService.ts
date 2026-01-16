@@ -1,16 +1,16 @@
+import { AxiosError } from 'axios';
+import API from "@/lib/api-client";
 import { USER_API_ROUTES } from '../../routes/api.routes';
 import {
-  AIChatMessageRequest,
   AIChatResponse,
-  AIAnalysisRequest,
-  AIExecuteTradeRequest,
-  AIParseIntentResult,
-  AITradeDetails
 } from "@/types/user/ai-trading.types";
 
-class AiTradeApiService {
-  private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+interface ApiErrorData {
+  error?: string;
+  message?: string;
+}
 
+class AiTradeApiService {
   // Generate unique session ID for chat
   static generateSessionId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -23,69 +23,44 @@ class AiTradeApiService {
     walletAddress?: string;
     walletConnected?: boolean;
     context?: any;
-  }) {
+  }): Promise<AIChatResponse> {
     try {
-      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.CHAT_MESSAGE}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await API.post(USER_API_ROUTES.AI_TRADING.CHAT_MESSAGE, data);
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiErrorData>;
+      console.error('AI Chat API Error:', axiosError.response?.data || axiosError.message);
 
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.indexOf("application/json") !== -1) {
-        const result = await response.json();
-        if (!response.ok) {
-          throw new Error(result.error || 'Failed to send message');
-        }
-        return result;
-      } else {
-        const text = await response.text();
-        console.error('Received non-JSON response:', text);
-        throw new Error(`Server returned unexpected response: ${response.status} ${response.statusText}`);
-      }
-    } catch (error: any) {
-      console.error('API Error:', error);
-
-      // If it's a network error, provide user-friendly message
-      if (error.message.includes('Failed to fetch')) {
+      if (axiosError.message.includes('Network Error')) {
         throw new Error('Unable to connect to server. Please check your connection and try again.');
       }
 
-      throw error;
+      const errorMessage = axiosError.response?.data?.error || axiosError.message || 'Failed to send message';
+      throw new Error(errorMessage);
     }
   }
 
   // Get available tokens
   static async getAvailableTokens() {
     try {
-      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.TOKENS}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch available tokens');
-      }
-
-      return response.json();
+      const response = await API.get(USER_API_ROUTES.AI_TRADING.TOKENS);
+      return response.data;
     } catch (error) {
-      console.error('Error fetching tokens:', error);
-      throw error;
+      const axiosError = error as AxiosError<ApiErrorData>;
+      console.error('Error fetching tokens:', axiosError.response?.data || axiosError.message);
+      throw new Error('Failed to fetch available tokens');
     }
   }
 
   // Get current token prices
   static async getTokenPrices() {
     try {
-      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.PRICES}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch token prices');
-      }
-
-      return response.json();
+      const response = await API.get(USER_API_ROUTES.AI_TRADING.PRICES);
+      return response.data;
     } catch (error) {
-      console.error('Error fetching prices:', error);
-      throw error;
+      const axiosError = error as AxiosError<ApiErrorData>;
+      console.error('Error fetching prices:', axiosError.response?.data || axiosError.message);
+      throw new Error('Failed to fetch token prices');
     }
   }
 
@@ -102,16 +77,12 @@ class AiTradeApiService {
         amount,
       });
 
-      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.SWAP_ESTIMATE}?${params}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to calculate swap estimate');
-      }
-
-      return response.json();
+      const response = await API.get(`${USER_API_ROUTES.AI_TRADING.SWAP_ESTIMATE}?${params}`);
+      return response.data;
     } catch (error) {
-      console.error('Error calculating estimate:', error);
-      throw error;
+      const axiosError = error as AxiosError<ApiErrorData>;
+      console.error('Error calculating estimate:', axiosError.response?.data || axiosError.message);
+      throw new Error('Failed to calculate swap estimate');
     }
   }
 
@@ -123,23 +94,13 @@ class AiTradeApiService {
     walletAddress?: string;
   }) {
     try {
-      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.TRADE_ANALYZE}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to analyze trade');
-      }
-
-      return response.json();
+      const response = await API.post(USER_API_ROUTES.AI_TRADING.TRADE_ANALYZE, data);
+      return response.data;
     } catch (error) {
-      console.error('Error analyzing trade:', error);
-      throw error;
+      const axiosError = error as AxiosError<ApiErrorData>;
+      console.error('Error analyzing trade:', axiosError.response?.data || axiosError.message);
+      const errorMessage = axiosError.response?.data?.error || axiosError.message || 'Failed to analyze trade';
+      throw new Error(errorMessage);
     }
   }
 
@@ -153,41 +114,27 @@ class AiTradeApiService {
     slippage?: string;
   }) {
     try {
-      const response = await fetch(`${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.TRADE_EXECUTE}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to execute trade');
-      }
-
-      return response.json();
+      const response = await API.post(USER_API_ROUTES.AI_TRADING.TRADE_EXECUTE, data);
+      return response.data;
     } catch (error) {
-      console.error('Error executing trade:', error);
-      throw error;
+      const axiosError = error as AxiosError<ApiErrorData>;
+      console.error('Error executing trade:', axiosError.response?.data || axiosError.message);
+      const errorMessage = axiosError.response?.data?.error || axiosError.message || 'Failed to execute trade';
+      throw new Error(errorMessage);
     }
   }
 
   // Get chat history
   static async getChatHistory(sessionId: string, limit: number = 20) {
     try {
-      const response = await fetch(
-        `${this.BASE_URL}${USER_API_ROUTES.AI_TRADING.CHAT_HISTORY(sessionId)}?limit=${limit}`
+      const response = await API.get(
+        `${USER_API_ROUTES.AI_TRADING.CHAT_HISTORY(sessionId)}?limit=${limit}`
       );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch chat history');
-      }
-
-      return response.json();
+      return response.data;
     } catch (error) {
-      console.error('Error fetching history:', error);
-      throw error;
+      const axiosError = error as AxiosError<ApiErrorData>;
+      console.error('Error fetching history:', axiosError.response?.data || axiosError.message);
+      throw new Error('Failed to fetch chat history');
     }
   }
 
@@ -304,7 +251,7 @@ class AiTradeApiService {
 
   // Get error message for common errors
   static getErrorMessage(error: any): string {
-    if (error.message) {
+    if (error instanceof Error) {
       return error.message;
     }
 

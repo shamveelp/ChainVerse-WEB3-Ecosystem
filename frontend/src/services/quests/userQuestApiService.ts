@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import api from "@/lib/api-client";
 import { USER_API_ROUTES } from "../../routes/api.routes";
 
@@ -13,8 +14,6 @@ import {
 } from "@/types/quests/user.types";
 
 class UserQuestApiService {
-  // private readonly baseUrl = '/api/user';
-
   // Quest browsing
   async getAvailableQuests(params?: {
     page?: number;
@@ -43,11 +42,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get available quests error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get available quests error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to get quests",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get quests",
       };
     }
   }
@@ -60,11 +60,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get quest error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get quest error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to get quest",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get quest",
       };
     }
   }
@@ -80,11 +81,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get top quests error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get top quests error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to get top quests",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get top quests",
       };
     }
   }
@@ -95,6 +97,7 @@ class UserQuestApiService {
     limit?: number;
     status?: 'registered' | 'in_progress' | 'completed' | 'winner' | 'disqualified';
     search?: string;
+    // communityId?: string;
   }): Promise<PaginationResponse<MyQuest>> {
     try {
       const queryParams = new URLSearchParams();
@@ -109,11 +112,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get my quests error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get my quests error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to get my quests",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get my quests",
       };
     }
   }
@@ -130,11 +134,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Join quest error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Join quest error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to join quest",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to join quest",
       };
     }
   }
@@ -147,11 +152,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Check participation status error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Check participation status error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to check participation status",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to check participation status",
       };
     }
   }
@@ -165,11 +171,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get quest tasks error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get quest tasks error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to get quest tasks",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get quest tasks",
       };
     }
   }
@@ -195,11 +202,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Submit task error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Submit task error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to submit task",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to submit task",
       };
     }
   }
@@ -212,11 +220,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get my submissions error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get my submissions error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to get submissions",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get submissions",
       };
     }
   }
@@ -238,11 +247,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Upload task media error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Upload task media error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to upload media",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to upload media",
       };
     }
   }
@@ -256,11 +266,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get quest stats error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get quest stats error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to get quest stats",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get quest stats",
       };
     }
   }
@@ -280,11 +291,12 @@ class UserQuestApiService {
         data: response.data.data,
         message: response.data.message,
       };
-    } catch (error: any) {
-      console.error("Get quest leaderboard error:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      console.error("Get quest leaderboard error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to get quest leaderboard",
+        error: axiosError.response?.data?.error || axiosError.response?.data?.message || axiosError.message || "Failed to get quest leaderboard",
       };
     }
   }

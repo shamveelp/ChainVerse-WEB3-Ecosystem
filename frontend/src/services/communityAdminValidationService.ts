@@ -1,5 +1,6 @@
 import API from "@/lib/axios"
 import { COMMUNITY_ADMIN_API_ROUTES } from "../routes/api.routes"
+import { AxiosError } from "axios"
 
 import {
   ValidationResponse,
@@ -14,11 +15,12 @@ export const checkEmailAvailability = async (email: string): Promise<ValidationR
       available: response.data.available || false,
       message: response.data.message
     }
-  } catch (error: any) {
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message?: string }>;
     return {
       success: false,
       available: false,
-      error: error.response?.data?.message || "Email validation failed"
+      error: axiosError.response?.data?.message || "Email validation failed"
     }
   }
 }
@@ -31,11 +33,12 @@ export const checkUsernameAvailability = async (username: string): Promise<Valid
       available: response.data.available || false,
       message: response.data.message
     }
-  } catch (error: any) {
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message?: string }>;
     return {
       success: false,
       available: false,
-      error: error.response?.data?.message || "Username validation failed"
+      error: axiosError.response?.data?.message || "Username validation failed"
     }
   }
 }
