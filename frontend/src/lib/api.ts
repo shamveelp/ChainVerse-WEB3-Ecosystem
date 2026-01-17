@@ -1,4 +1,10 @@
-import axios from "axios"
+import axios, { AxiosError } from "axios"
+
+interface ApiErrorResponse {
+  error?: {
+    message?: string;
+  };
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
@@ -12,11 +18,12 @@ export const apiService = {
     try {
       const response = await api.post("/api/users/request-otp", { email })
       return { success: true, message: response.data.message }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Request OTP error:", error)
+      const err = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        error: error.response?.data?.error?.message || error.message || "Failed to request OTP",
+        error: err.response?.data?.error?.message || err.message || "Failed to request OTP",
       }
     }
   },
@@ -24,11 +31,12 @@ export const apiService = {
     try {
       const response = await api.post("/api/users/verify-otp", { email, otp, name, password })
       return { success: true, message: response.data.message, user: response.data.user }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Verify OTP error:", error)
+      const err = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        error: error.response?.data?.error?.message || error.message || "Failed to verify OTP",
+        error: err.response?.data?.error?.message || err.message || "Failed to verify OTP",
       }
     }
   },
@@ -37,11 +45,12 @@ export const apiService = {
       const response = await api.post("/api/users/forgot-password", { email })
       // Backend now returns resetToken
       return { success: true, message: response.data.message, resetToken: response.data.resetToken }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Forgot password request error:", error)
+      const err = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        error: error.response?.data?.error?.message || error.message || "Failed to request password reset",
+        error: err.response?.data?.error?.message || err.message || "Failed to request password reset",
       }
     }
   },
@@ -51,11 +60,12 @@ export const apiService = {
       const response = await api.post("/api/users/verify-forgot-password-otp", { resetToken, otp })
       // Backend now returns passwordResetToken
       return { success: true, message: response.data.message, passwordResetToken: response.data.passwordResetToken }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Verify forgot password OTP error:", error)
+      const err = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        error: error.response?.data?.error?.message || error.message || "Failed to verify forgot password OTP",
+        error: err.response?.data?.error?.message || err.message || "Failed to verify forgot password OTP",
       }
     }
   },
@@ -64,11 +74,12 @@ export const apiService = {
     try {
       const response = await api.post("/api/users/reset-password", { passwordResetToken, newPassword })
       return { success: true, message: response.data.message }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Reset password error:", error)
+      const err = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        error: error.response?.data?.error?.message || error.message || "Failed to reset password",
+        error: err.response?.data?.error?.message || err.message || "Failed to reset password",
       }
     }
   },
@@ -77,11 +88,12 @@ export const apiService = {
       const response = await api.post("/api/users/login", { email, password })
       // Assuming tokens are set as HTTP-only cookies, so not returned in data
       return { success: true, user: response.data.user }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login error:", error)
+      const err = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        error: error.response?.data?.error?.message || error.message || "Invalid credentials",
+        error: err.response?.data?.error?.message || err.message || "Invalid credentials",
       }
     }
   },
@@ -89,11 +101,12 @@ export const apiService = {
     try {
       await api.post("/api/users/logout")
       return { success: true }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Logout error:", error)
+      const err = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        error: error.response?.data?.error?.message || error.message || "Failed to logout",
+        error: err.response?.data?.error?.message || err.message || "Failed to logout",
       }
     }
   },
@@ -102,9 +115,10 @@ export const apiService = {
       const response = await api.post("/api/users/refresh-token") // Corrected endpoint name
       // Backend should return accessToken if successful, but user is fetched separately
       return { success: true, accessToken: response.data.accessToken }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Refresh token error:", error)
-      return { success: false, error: error.response?.data?.error?.message || error.message }
+      const err = error as AxiosError<ApiErrorResponse>;
+      return { success: false, error: err.response?.data?.error?.message || err.message }
     }
   },
   // New method to get user details after a successful refresh or initial load
@@ -112,11 +126,12 @@ export const apiService = {
     try {
       const response = await api.get("/api/users/me") // Assuming a /me endpoint exists on your backend
       return { success: true, user: response.data.user }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Get current user details error:", error)
+      const err = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        error: error.response?.data?.error?.message || error.message || "Failed to fetch user details",
+        error: err.response?.data?.error?.message || err.message || "Failed to fetch user details",
       }
     }
   },
@@ -125,11 +140,12 @@ export const apiService = {
       const response = await api.post("/api/users/google-auth", { idToken })
       // Assuming tokens are set as HTTP-only cookies, so not returned in data
       return { success: true, user: response.data.user }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Google auth error:", error)
+      const err = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        error: error.response?.data?.error?.message || error.message || "Google authentication failed",
+        error: err.response?.data?.error?.message || err.message || "Google authentication failed",
       }
     }
   },

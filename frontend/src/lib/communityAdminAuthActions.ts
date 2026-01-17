@@ -6,6 +6,12 @@ import { communityAdminSubscriptionApiService } from '@/services/communityAdmin/
 import { toast } from '@/hooks/use-toast'
 import { COMMUNITY_ADMIN_ROUTES } from '@/routes'
 
+
+interface LoginResponseData {
+  communityAdmin: Record<string, unknown>;
+  token: string;
+}
+
 export const useCommunityAdminAuthActions = () => {
   const dispatch = useDispatch()
   const router = useRouter()
@@ -17,7 +23,7 @@ export const useCommunityAdminAuthActions = () => {
       const result = await communityAdminApiService.login(email, password)
 
       if (result.success && result.data) {
-        const data = result.data as any
+        const data = result.data as LoginResponseData
         dispatch(login({
           ...data.communityAdmin,
           token: data.token
@@ -60,7 +66,8 @@ export const useCommunityAdminAuthActions = () => {
           })
         }
       }
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       toast({
         title: "Error",
         description: error.message || "Something went wrong during login",
@@ -81,7 +88,7 @@ export const useCommunityAdminAuthActions = () => {
         title: "Success",
         description: "Logged out successfully",
       })
-    } catch (error: any) {
+    } catch (error) {
       // Even if API call fails, clear local state
       dispatch(logout())
       router.push(COMMUNITY_ADMIN_ROUTES.LOGIN)
@@ -93,7 +100,7 @@ export const useCommunityAdminAuthActions = () => {
       const result = await communityAdminApiService.getProfile()
 
       if (result.success && result.data) {
-        const data = result.data as any
+        const data = result.data as LoginResponseData
         dispatch(login({
           ...data.communityAdmin,
           token: 'existing' // Token is in cookies

@@ -12,6 +12,12 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import * as authApiService from "@/services/authApiService"
 import { COMMON_ROUTES, USER_ROUTES } from "@/routes"
+import { AxiosError } from "axios"
+
+interface ApiErrorResponse {
+  error?: string;
+  message?: string;
+}
 
 // Interface for registration data
 interface RegistrationData {
@@ -80,7 +86,7 @@ export function useAuthActions() {
         })
       }
     } catch (err) {
-      const error = err as any; // googleLogin logic in catch seems to expect axios-like error, keeping as any cast but inside catch
+      const error = err as AxiosError<ApiErrorResponse>;
       const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || "Google login failed"
       toast({
         title: "Google Login Failed",
