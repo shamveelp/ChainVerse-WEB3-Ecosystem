@@ -36,7 +36,8 @@ export default function Page() {
     const connectSocket = async () => {
       try {
         await communitySocketService.connect(token)
-      } catch (error: any) {
+      } catch (err) {
+        const error = err as Error
         console.error('Failed to connect to community socket:', error)
         toast.error('Connection Error', {
           description: 'Failed to connect to real-time messaging'

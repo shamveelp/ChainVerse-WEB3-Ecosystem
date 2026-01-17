@@ -6,20 +6,8 @@ import { RootState } from "@/redux/store";
 import { userApiService } from "@/services/userApiServices";
 import { login, setLoading } from "@/redux/slices/userAuthSlice";
 
-interface UserType {
-  _id: string;
-  username: string;
-  email: string;
-  profileImage?: string;
-  name?: string;
-  phone?: string;
-  createdAt?: string;
-  stats?: {
-    achievements?: number;
-    completedGoals?: number;
-    currentStreak?: number;
-  };
-}
+// Use any for local data to avoid conflict with Redux types
+type LocalUserType = any;
 
 interface UsernameCheck {
   checking: boolean;
@@ -30,7 +18,7 @@ interface UsernameCheck {
 export const useProfile = () => {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.userAuth);
-  const [profile, setProfile] = useState<UserType | null>(null);
+  const [profile, setProfile] = useState<LocalUserType | null>(null);
   const [loading, setLocalLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [usernameCheck, setUsernameCheck] = useState<UsernameCheck>({
@@ -46,7 +34,7 @@ export const useProfile = () => {
     try {
       const response = await userApiService.getProfile();
       if (response.success && response.data) {
-        const userData: UserType = {
+        const userData: LocalUserType = {
           _id: response.data._id,
           username: response.data.username,
           email: response.data.email,
@@ -77,7 +65,7 @@ export const useProfile = () => {
       try {
         const response = await userApiService.updateProfile(data);
         if (response.success && response.data) {
-          const userData: UserType = {
+          const userData: LocalUserType = {
             _id: response.data._id,
             username: response.data.username,
             email: response.data.email,
@@ -132,7 +120,7 @@ export const useProfile = () => {
       try {
         const response = await userApiService.uploadProfileImage(file);
         if (response.success) {
-          const updatedProfile = { ...profile, profileImage: response.imageUrl } as UserType;
+          const updatedProfile = { ...profile, profileImage: response.imageUrl } as LocalUserType;
           setProfile(updatedProfile);
           dispatch(login({ user: updatedProfile }));
           return response;

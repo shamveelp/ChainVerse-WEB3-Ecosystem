@@ -167,10 +167,10 @@ function ChainCastPageContent() {
       setShowCreateDialog(false)
       resetForm()
 
-    } catch (error: any) {
-      console.error('Create ChainCast error:', error)
+    } catch (err: any) {
+      console.error('Create ChainCast error:', err)
       toast.error('Failed to create ChainCast', {
-        description: error.message || 'Please try again'
+        description: err.message || 'Please try again'
       })
     } finally {
       setActionLoading({ create: false })
@@ -191,10 +191,10 @@ function ChainCastPageContent() {
       // Navigate to the ChainCast room for the admin
       router.push(`/comms-admin/chaincast/${chainCast._id}/room`)
 
-    } catch (error: any) {
-      console.error('Start ChainCast error:', error)
+    } catch (err: any) {
+      console.error('Start ChainCast error:', err)
       toast.error('Failed to start ChainCast', {
-        description: error.message || 'Please try again'
+        description: err.message || 'Please try again'
       })
     } finally {
       setActionLoading({ [chainCast._id]: false })
@@ -219,10 +219,10 @@ function ChainCastPageContent() {
 
       toast.success('ChainCast ended successfully')
 
-    } catch (error: any) {
-      console.error('End ChainCast error:', error)
+    } catch (err: any) {
+      console.error('End ChainCast error:', err)
       toast.error('Failed to end ChainCast', {
-        description: error.message || 'Please try again'
+        description: err.message || 'Please try again'
       })
     } finally {
       setActionLoading({ [chainCast._id]: false })
@@ -244,10 +244,10 @@ function ChainCastPageContent() {
       toast.success('ChainCast deleted successfully')
       setShowDeleteDialog(null)
 
-    } catch (error: any) {
-      console.error('Delete ChainCast error:', error)
+    } catch (err: any) {
+      console.error('Delete ChainCast error:', err)
       toast.error('Failed to delete ChainCast', {
-        description: error.message || 'Please try again'
+        description: err.message || 'Please try again'
       })
     } finally {
       setActionLoading({ delete: false })

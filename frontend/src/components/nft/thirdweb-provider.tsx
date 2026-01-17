@@ -4,7 +4,7 @@ import { ThirdwebProvider } from 'thirdweb/react';
 import { client } from '@/lib/thirdweb-client';
 import { ReactNode, useEffect, useRef } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
-import { saveWallet } from '@/services/WalletApiService';
+import { saveWallet } from "@/services/walletApiService"
 
 function WalletSaver({ children }: { children: ReactNode }) {
   const account = useActiveAccount();
@@ -12,14 +12,14 @@ function WalletSaver({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    
+
     if (account && account.address && account.address !== lastSavedAddress.current) {
       lastSavedAddress.current = account.address;
-      
+
       saveWallet(account.address)
         .then(() => {
           if (!cancelled) {
-            
+
           }
         })
         .catch((err) => {
@@ -28,7 +28,7 @@ function WalletSaver({ children }: { children: ReactNode }) {
           }
         });
     }
-    
+
     return () => {
       cancelled = true;
     };

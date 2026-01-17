@@ -14,8 +14,6 @@ import {
 import { ApiResponse } from "@/types/common.types";
 
 class CommunityAdminFeedApiService {
-  // private readonly baseUrl = '/api/community-admin';
-
   // Get community feed
   async getCommunityFeed(
     cursor?: string,
@@ -34,17 +32,18 @@ class CommunityAdminFeedApiService {
         data: response.data.data,
       };
     } catch (error) {
+      const axiosError = error as AxiosError<any>;
       console.error("Get community feed error:", {
-        message: ((error as AxiosError).message),
-        response: ((error as AxiosError).response?.data),
-        status: ((error as AxiosError).response?.status),
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
         url: `${COMMUNITY_ADMIN_API_ROUTES.FEED}?${new URLSearchParams({ cursor: cursor || '', limit: limit.toString(), type }).toString()}`
       });
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get community feed",
       };
     }
@@ -60,12 +59,13 @@ class CommunityAdminFeedApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Toggle post like error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Toggle post like error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to toggle post like",
       };
     }
@@ -81,12 +81,13 @@ class CommunityAdminFeedApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Create comment error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Create comment error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to create comment",
       };
     }
@@ -102,12 +103,13 @@ class CommunityAdminFeedApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Share post error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Share post error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to share post",
       };
     }
@@ -123,12 +125,13 @@ class CommunityAdminFeedApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Pin post error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Pin post error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to pin post",
       };
     }
@@ -146,12 +149,13 @@ class CommunityAdminFeedApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Delete post error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Delete post error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to delete post",
       };
     }
@@ -166,12 +170,13 @@ class CommunityAdminFeedApiService {
         data: response.data.data,
       };
     } catch (error) {
-      console.error("Get engagement stats error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Get engagement stats error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get engagement stats",
       };
     }
@@ -186,10 +191,11 @@ class CommunityAdminFeedApiService {
         data: response.data.data
       };
     } catch (error) {
-      console.error("Get post error:", error);
+      const axiosError = error as AxiosError<any>;
+      console.error("Get post error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error || "Failed to get post"
+        error: axiosError.response?.data?.error || axiosError.message || "Failed to get post"
       };
     }
   }
@@ -207,10 +213,11 @@ class CommunityAdminFeedApiService {
         data: response.data.data
       };
     } catch (error) {
-      console.error("Get comments error:", error);
+      const axiosError = error as AxiosError<any>;
+      console.error("Get comments error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error || "Failed to get comments"
+        error: axiosError.response?.data?.error || axiosError.message || "Failed to get comments"
       };
     }
   }

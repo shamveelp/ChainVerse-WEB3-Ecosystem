@@ -66,7 +66,7 @@ export default function PremiumPage() {
   const { communityAdmin, subscription } = useSelector((state: RootState) => state.communityAdminAuth);
   const [loading, setLoading] = useState(false);
   const [retryLoading, setRetryLoading] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState<{minutes: number, seconds: number} | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<{ minutes: number, seconds: number } | null>(null);
 
   useEffect(() => {
     // Load Razorpay script
@@ -98,7 +98,7 @@ export default function PremiumPage() {
   useEffect(() => {
     // Timer for failed/pending subscriptions
     let interval: NodeJS.Timeout;
-    
+
     if (subscription && ['pending', 'failed'].includes(subscription.status)) {
       const updateTimer = async () => {
         const response = await communityAdminSubscriptionApiService.getTimeRemaining();
@@ -278,28 +278,26 @@ export default function PremiumPage() {
           Unlock Premium Power
         </h1>
         <p className="text-gray-300 text-xl max-w-3xl mx-auto">
-          Elevate your community with a lifetime premium subscription for just ₹899. Get verified, access ChainCast, boost visibility, and more!       
+          Elevate your community with a lifetime premium subscription for just ₹899. Get verified, access ChainCast, boost visibility, and more!
         </p>
       </div>
 
       {/* Payment Status Alert */}
       {subscription && ['pending', 'failed', 'expired'].includes(subscription.status) && (
-        <Card className={`${
-          subscription.status === 'failed' 
-            ? 'bg-gradient-to-r from-red-950/50 to-yellow-950/50 border-red-600/40' 
+        <Card className={`${subscription.status === 'failed'
+            ? 'bg-gradient-to-r from-red-950/50 to-yellow-950/50 border-red-600/40'
             : subscription.status === 'expired'
-            ? 'bg-gradient-to-r from-gray-950/50 to-red-950/50 border-gray-600/40'
-            : 'bg-gradient-to-r from-blue-950/50 to-yellow-950/50 border-blue-600/40'
-        } backdrop-blur-xl`}>
+              ? 'bg-gradient-to-r from-gray-950/50 to-red-950/50 border-gray-600/40'
+              : 'bg-gradient-to-r from-blue-950/50 to-yellow-950/50 border-blue-600/40'
+          } backdrop-blur-xl`}>
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                subscription.status === 'failed' 
-                  ? 'bg-red-600/20' 
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${subscription.status === 'failed'
+                  ? 'bg-red-600/20'
                   : subscription.status === 'expired'
-                  ? 'bg-gray-600/20'
-                  : 'bg-blue-600/20'
-              }`}>
+                    ? 'bg-gray-600/20'
+                    : 'bg-blue-600/20'
+                }`}>
                 {subscription.status === 'failed' ? (
                   <AlertCircle className="h-6 w-6 text-red-400" />
                 ) : subscription.status === 'expired' ? (
@@ -319,7 +317,7 @@ export default function PremiumPage() {
                   {subscription.status === 'pending' && 'Complete your payment to unlock all premium features.'}
                   {subscription.status === 'expired' && 'Your payment window has expired. You can create a new subscription.'}
                 </p>
-                
+
                 {timeRemaining && subscription.status !== 'expired' && (
                   <div className="flex items-center gap-2 mb-4">
                     <Clock className="h-4 w-4 text-yellow-400" />
@@ -351,7 +349,7 @@ export default function PremiumPage() {
                       )}
                     </Button>
                   )}
-                  
+
                   {(subscription.status === 'expired' || (timeRemaining?.minutes === 0 && timeRemaining?.seconds === 0)) && (
                     <Button
                       onClick={handleUpgrade}
@@ -401,14 +399,13 @@ export default function PremiumPage() {
             </div>
             <Button
               onClick={handleUpgrade}
-              disabled={loading || subscription?.status === "active" || (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)}
-              className={`w-full py-3 text-lg font-semibold ${
-                subscription?.status === "active"
+              disabled={Boolean(loading || subscription?.status === "active" || (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0))}
+              className={`w-full py-3 text-lg font-semibold ${subscription?.status === "active"
                   ? "bg-gray-600 cursor-not-allowed"
                   : (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)
-                  ? "bg-blue-600 cursor-not-allowed"
-                  : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
-              }`}
+                    ? "bg-blue-600 cursor-not-allowed"
+                    : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
+                }`}
             >
               {loading ? (
                 "Processing..."
@@ -466,14 +463,13 @@ export default function PremiumPage() {
           <div className="flex gap-4 justify-center">
             <Button
               onClick={handleUpgrade}
-              disabled={loading || subscription?.status === "active" || (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)}
-              className={`py-3 px-6 text-lg font-semibold ${
-                subscription?.status === "active"
+              disabled={Boolean(loading || subscription?.status === "active" || (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0))}
+              className={`py-3 px-6 text-lg font-semibold ${subscription?.status === "active"
                   ? "bg-gray-600 cursor-not-allowed"
                   : (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)
-                  ? "bg-blue-600 cursor-not-allowed"
-                  : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
-              }`}
+                    ? "bg-blue-600 cursor-not-allowed"
+                    : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
+                }`}
             >
               {loading ? (
                 "Processing..."

@@ -2,7 +2,7 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { useEffect, useRef, useState } from 'react';
-import { saveWallet } from '@/services/WalletApiService';
+import { saveWallet } from '@/services/walletApiService';
 
 export default function WalletConnect() {
   const { address, isConnected } = useAccount();
@@ -18,7 +18,7 @@ export default function WalletConnect() {
         .then(() => {
           if (!cancelled) {
             // Only log, don't update state if unnecessary
-            
+
           }
         })
         .catch((err) => {

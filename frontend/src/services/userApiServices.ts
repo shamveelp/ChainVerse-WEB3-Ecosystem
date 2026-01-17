@@ -6,15 +6,15 @@ import { AxiosError } from "axios";
 import {
   UserProfile,
   UpdateProfileData,
-  ChangePasswordData,
-  UserStats,
-  NotificationSettings,
-  CommunityMember
-} from "@/types/user/profile.types";
+  CheckInStatus,
+  DailyCheckInResult,
+  ReferralStats
+} from "@/types/user/user.types";
 
 interface ApiErrorData {
   error?: string;
   message?: string;
+  success?: boolean;
 }
 
 // Helper function to handle API errors
@@ -28,67 +28,107 @@ const handleApiError = (error: AxiosError<ApiErrorData>, defaultMessage: string)
     method: error.config?.method
   });
 
-  if (error.response?.status === 401) {
-    throw new Error("User not authenticated");
-  }
-
-  if (error.response?.status === 403) {
-    throw new Error("Access forbidden");
-  }
-
-  if (error.response?.status === 404) {
-    throw new Error("Resource not found");
-  }
-
-  if (error.response?.status === 429) {
-    throw new Error("Too many requests. Please try again later");
-  }
-
-  if (error.response?.status && error.response.status >= 500) {
-    throw new Error("Server error. Please try again later");
-  }
-
   const errorMessage = error.response?.data?.error ||
     error.response?.data?.message ||
     error.message ||
     defaultMessage;
-  throw new Error(errorMessage);
+
+  return {
+    success: false,
+    error: errorMessage
+  };
 };
 
-export const userApiServices = {
+export const userApiService = {
   // Profile management
-  getProfile: async (): Promise<UserProfile> => {
+  getProfile: async (): Promise<any> => {
     try {
-      const response = await API.get(USER_API_ROUTES.PROFILE);
+      const response = await API.get(USER_API_ROUTES.GET_PROFILE);
 
       if (response.data?.success && response.data?.data) {
-        return response.data.data;
+        return {
+          success: true,
+          data: response.data.data
+        };
       }
 
-      throw new Error(response.data?.error || response.data?.message || "Failed to fetch profile");
+      return {
+        success: false,
+        error: response.data?.error || response.data?.message || "Failed to fetch profile"
+      };
     } catch (error) {
-      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch profile");
-      throw error;
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch profile");
     }
   },
 
-  updateProfile: async (data: UpdateProfileData): Promise<UserProfile> => {
+  updateProfile: async (data: any): Promise<any> => {
     try {
-      const response = await API.put(USER_API_ROUTES.PROFILE_UPDATE, data);
+      const response = await API.put(USER_API_ROUTES.UPDATE_PROFILE, data);
 
       if (response.data?.success && response.data?.data) {
-        return response.data.data;
+        return {
+          success: true,
+          data: response.data.data
+        };
       }
 
-      throw new Error(response.data?.error || response.data?.message || "Failed to update profile");
+      return {
+        success: false,
+        error: response.data?.error || response.data?.message || "Failed to update profile"
+      };
     } catch (error) {
-      handleApiError(error as AxiosError<ApiErrorData>, "Failed to update profile");
-      throw error;
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to update profile");
+    }
+  },
+
+  checkUsernameAvailability: async (username: string): Promise<any> => {
+    try {
+      const response = await API.get(`${USER_API_ROUTES.CHECK_USERNAME}?username=${username}`);
+      return {
+        success: response.data?.success,
+        available: response.data?.available,
+        message: response.data?.message
+      };
+    } catch (error) {
+      return {
+        success: false,
+        available: false,
+        message: "Error checking username"
+      };
+    }
+  },
+
+  uploadProfileImage: async (file: File): Promise<any> => {
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await API.post(USER_API_ROUTES.UPLOAD_PROFILE_IMAGE, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data,
+          profilePic: response.data.data?.profilePic,
+          imageUrl: response.data.data?.profilePic // Compatibility for different components
+        };
+      }
+
+      return {
+        success: false,
+        error: response.data?.error || response.data?.message || "Failed to upload image"
+      };
+    } catch (error) {
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to upload image");
     }
   },
 
   // Security
-  changePassword: async (data: ChangePasswordData): Promise<{ success: boolean; message: string }> => {
+  changePassword: async (data: any): Promise<any> => {
     try {
       const response = await API.post(USER_API_ROUTES.CHANGE_PASSWORD, data);
 
@@ -96,73 +136,74 @@ export const userApiServices = {
         return response.data;
       }
 
-      throw new Error(response.data?.error || response.data?.message || "Failed to change password");
+      return {
+        success: false,
+        error: response.data?.error || response.data?.message || "Failed to change password"
+      };
     } catch (error) {
-      handleApiError(error as AxiosError<ApiErrorData>, "Failed to change password");
-      throw error;
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to change password");
     }
   },
 
   // Stats and Rewards
-  getStats: async (): Promise<UserStats> => {
+  getStats: async (): Promise<any> => {
     try {
       const response = await API.get(USER_API_ROUTES.USER_STATS);
 
       if (response.data?.success && response.data?.data) {
-        return response.data.data;
+        return {
+          success: true,
+          data: response.data.data
+        };
       }
 
-      throw new Error(response.data?.error || response.data?.message || "Failed to fetch stats");
+      return {
+        success: false,
+        error: response.data?.error || response.data?.message || "Failed to fetch stats"
+      };
     } catch (error) {
-      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch stats");
-      throw error;
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch stats");
     }
   },
 
   // Notifications
-  getNotificationSettings: async (): Promise<NotificationSettings> => {
+  getNotificationSettings: async (): Promise<any> => {
     try {
       const response = await API.get(USER_API_ROUTES.NOTIFICATION_SETTINGS);
 
       if (response.data?.success && response.data?.data) {
-        return response.data.data;
+        return {
+          success: true,
+          data: response.data.data
+        };
       }
 
-      throw new Error(response.data?.error || response.data?.message || "Failed to fetch notification settings");
+      return {
+        success: false,
+        error: response.data?.error || response.data?.message || "Failed to fetch notification settings"
+      };
     } catch (error) {
-      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch notification settings");
-      throw error;
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch notification settings");
     }
   },
 
-  updateNotificationSettings: async (settings: Partial<NotificationSettings>): Promise<NotificationSettings> => {
+  updateNotificationSettings: async (settings: any): Promise<any> => {
     try {
       const response = await API.put(USER_API_ROUTES.NOTIFICATION_SETTINGS_UPDATE, settings);
 
       if (response.data?.success && response.data?.data) {
-        return response.data.data;
+        return {
+          success: true,
+          data: response.data.data
+        };
       }
 
-      throw new Error(response.data?.error || response.data?.message || "Failed to update notification settings");
+      return {
+        success: false,
+        error: response.data?.error || response.data?.message || "Failed to update notification settings"
+      };
     } catch (error) {
-      handleApiError(error as AxiosError<ApiErrorData>, "Failed to update notification settings");
-      throw error;
-    }
-  },
-
-  // Community interactions
-  getJoinedCommunities: async (): Promise<CommunityMember[]> => {
-    try {
-      const response = await API.get(USER_API_ROUTES.JOINED_COMMUNITIES);
-
-      if (response.data?.success && response.data?.data) {
-        return response.data.data;
-      }
-
-      throw new Error(response.data?.error || response.data?.message || "Failed to fetch joined communities");
-    } catch (error) {
-      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch joined communities");
-      throw error;
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to update notification settings");
     }
   },
 
@@ -177,15 +218,12 @@ export const userApiServices = {
 
       return null;
     } catch (error) {
-      const axiosError = error as AxiosError<ApiErrorData>;
-      if (axiosError.response?.status === 404) return null;
-      handleApiError(axiosError, "Failed to fetch wallet address");
-      throw error;
+      return null;
     }
   },
 
   // Onboarding
-  completeOnboarding: async (step: string): Promise<{ success: boolean }> => {
+  completeOnboarding: async (step: string): Promise<any> => {
     try {
       const response = await API.post(USER_API_ROUTES.COMPLETE_ONBOARDING, { step });
 
@@ -193,26 +231,122 @@ export const userApiServices = {
         return { success: true };
       }
 
-      throw new Error(response.data?.error || response.data?.message || "Failed to complete onboarding step");
+      return {
+        success: false,
+        error: response.data?.error || response.data?.message || "Failed to complete onboarding step"
+      };
     } catch (error) {
-      handleApiError(error as AxiosError<ApiErrorData>, "Failed to complete onboarding step");
-      throw error;
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to complete onboarding step");
     }
   },
 
   getReferralLink: async (): Promise<string> => {
     try {
-      const response = await API.get(USER_API_ROUTES.REFERRAL_CODE);
+      const response = await API.get(USER_API_ROUTES.REFERRALS_STATS);
 
-      if (response.data?.success && response.data?.data?.code) {
+      if (response.data?.success && response.data?.data?.referralCode) {
         const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-        return `${baseUrl}/register?ref=${response.data.data.code}`;
+        return `${baseUrl}/register?ref=${response.data.data.referralCode}`;
       }
-
-      throw new Error(response.data?.error || response.data?.message || "Failed to fetch referral code");
+      return "";
     } catch (error) {
-      handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch referral code");
-      throw error;
+      return "";
+    }
+  },
+
+  // Points and Daily Check-in
+  getCheckInStatus: async (): Promise<any> => {
+    try {
+      const response = await API.get(USER_API_ROUTES.POINTS_CHECKIN_STATUS);
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data
+        };
+      }
+      return { success: false, error: "Failed to fetch check-in status" };
+    } catch (error) {
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch check-in status");
+    }
+  },
+
+  getCheckInCalendar: async (month?: number, year?: number): Promise<any> => {
+    try {
+      const params = new URLSearchParams();
+      if (month) params.append("month", month.toString());
+      if (year) params.append("year", year.toString());
+
+      const response = await API.get(`${USER_API_ROUTES.POINTS_CHECKIN_CALENDAR}${params.toString() ? `?${params.toString()}` : ""}`);
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data
+        };
+      }
+      return { success: false, error: "Failed to fetch check-in calendar" };
+    } catch (error) {
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch check-in calendar");
+    }
+  },
+
+  getPointsHistory: async (page: number = 1, limit: number = 10): Promise<any> => {
+    try {
+      const response = await API.get(`${USER_API_ROUTES.POINTS_HISTORY}?page=${page}&limit=${limit}`);
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data
+        };
+      }
+      return { success: false, error: "Failed to fetch points history" };
+    } catch (error) {
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch points history");
+    }
+  },
+
+  performDailyCheckIn: async (): Promise<any> => {
+    try {
+      const response = await API.post(USER_API_ROUTES.POINTS_DAILY_CHECKIN);
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data
+        };
+      }
+      return { success: false, error: response.data?.message || "Failed to perform check-in" };
+    } catch (error) {
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to perform check-in");
+    }
+  },
+
+  // Referrals
+  getReferralStats: async (): Promise<any> => {
+    try {
+      const response = await API.get(USER_API_ROUTES.REFERRALS_STATS);
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data
+        };
+      }
+      return { success: false, error: "Failed to fetch referral stats" };
+    } catch (error) {
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch referral stats");
+    }
+  },
+
+  getReferralHistory: async (page: number = 1, limit: number = 10): Promise<any> => {
+    try {
+      const response = await API.get(`${USER_API_ROUTES.REFERRALS_HISTORY}?page=${page}&limit=${limit}`);
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data
+        };
+      }
+      return { success: false, error: "Failed to fetch referral history" };
+    } catch (error) {
+      return handleApiError(error as AxiosError<ApiErrorData>, "Failed to fetch referral history");
     }
   }
 };

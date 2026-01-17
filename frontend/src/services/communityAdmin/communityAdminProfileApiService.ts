@@ -11,8 +11,6 @@ import {
 } from "@/types/comms-admin/profile.types";
 
 class CommunityAdminProfileApiService {
-  // private readonly baseUrl = '/api/community-admin';
-
   // Get profile
   async getProfile(): Promise<ApiResponse<CommunityAdminProfile>> {
     try {
@@ -23,12 +21,13 @@ class CommunityAdminProfileApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Get community admin profile error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Get community admin profile error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get profile",
       };
     }
@@ -37,7 +36,6 @@ class CommunityAdminProfileApiService {
   // Update profile
   async updateProfile(profileData: UpdateProfileData): Promise<ApiResponse<CommunityAdminProfile>> {
     try {
-      // Clean up data before sending
       const cleanData = {
         name: profileData.name?.trim(),
         bio: profileData.bio?.trim() || "",
@@ -52,12 +50,13 @@ class CommunityAdminProfileApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Update community admin profile error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Update community admin profile error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to update profile",
       };
     }
@@ -73,7 +72,7 @@ class CommunityAdminProfileApiService {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 60000, // 60 seconds timeout for image uploads
+        timeout: 60000,
       });
 
       return {
@@ -82,12 +81,13 @@ class CommunityAdminProfileApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Upload profile picture error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Upload profile picture error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to upload profile picture",
       };
     }
@@ -103,7 +103,7 @@ class CommunityAdminProfileApiService {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 60000, // 60 seconds timeout for image uploads
+        timeout: 60000,
       });
 
       return {
@@ -112,12 +112,13 @@ class CommunityAdminProfileApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Upload banner image error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Upload banner image error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to upload banner image",
       };
     }
@@ -132,12 +133,13 @@ class CommunityAdminProfileApiService {
         data: response.data.data,
       };
     } catch (error) {
-      console.error("Get community stats error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Get community stats error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get community stats",
       };
     }

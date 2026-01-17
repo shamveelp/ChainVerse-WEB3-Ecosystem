@@ -148,7 +148,7 @@ export default function PointsPage() {
         const newTotalPoints = currentPoints + result.data.pointsAwarded;
         dispatch(updateTotalPoints(newTotalPoints));
         // Update dailyCheckin with new streak and lastCheckIn date
-        // Merge with existing dailyCheckin to preserve any other properties
+        // Merge with existing dailyCheckin to preserve other properties
         const updatedDailyCheckin = {
           ...profile?.dailyCheckin,
           lastCheckIn: new Date().toISOString(),

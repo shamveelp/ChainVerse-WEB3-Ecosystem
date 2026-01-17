@@ -77,11 +77,11 @@ export default function CommunitySettingsPage() {
         setLoading(true)
         const response = await communityAdminApiService.getCommunityDetails()
 
-        if (!response.success || !response.data?.community) {
+        if (!response.success || !(response.data as any)?.community) {
           throw new Error(response.error || "Failed to fetch community details")
         }
 
-        const data: CommunityDetails = response.data.community as CommunityDetails
+        const data: CommunityDetails = (response.data as any).community as CommunityDetails
 
         // Add cache-busting to prevent browser caching of images
         const cacheBuster = `?t=${Date.now()}`
@@ -321,11 +321,11 @@ export default function CommunitySettingsPage() {
 
       const response = await communityAdminApiService.updateCommunity(formData)
 
-      if (!response.success || !response.data?.community) {
+      if (!response.success || !(response.data as any)?.community) {
         throw new Error(response.error || "Failed to update community settings")
       }
 
-      const updatedCommunity: CommunityDetails = response.data.community as CommunityDetails
+      const updatedCommunity: CommunityDetails = (response.data as any).community as CommunityDetails
 
       // Clean up any existing blob URLs before setting new ones
       if (logoPreview && logoPreview.startsWith('blob:')) {

@@ -31,7 +31,7 @@ export function ImageCropper({
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [rotation, setRotation] = useState(0)
   const [zoom, setZoom] = useState(1)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
   const onCropCompleteHandler = useCallback((croppedArea: any, croppedAreaPixels: any) => {
@@ -65,7 +65,7 @@ export function ImageCropper({
             Crop Image
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           {/* Crop Area */}
           <div className="relative h-96 bg-gray-900 rounded-lg overflow-hidden">
@@ -103,7 +103,7 @@ export function ImageCropper({
                 </Label>
                 <Slider
                   value={[zoom]}
-                  onValueChange={(value :any) => setZoom(value[0])}
+                  onValueChange={(value: any) => setZoom(value[0])}
                   min={1}
                   max={3}
                   step={0.1}
@@ -119,7 +119,7 @@ export function ImageCropper({
                 </Label>
                 <Slider
                   value={[rotation]}
-                  onValueChange={(value : any) => setRotation(value[0])}
+                  onValueChange={(value: any) => setRotation(value[0])}
                   min={0}
                   max={360}
                   step={1}
@@ -159,15 +159,15 @@ export function ImageCropper({
         </div>
 
         <DialogFooter className="gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={onClose}
             className="border-gray-700 text-gray-300 hover:text-white hover:border-gray-600"
           >
             <X className="h-4 w-4 mr-2" />
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleCrop}
             disabled={loading || !croppedAreaPixels}
             className="bg-blue-600 hover:bg-blue-700 text-white"

@@ -2,6 +2,13 @@ import API from "@/lib/api-client";
 import { USER_API_ROUTES } from "../../routes/api.routes";
 import { AxiosError } from "axios";
 
+export type {
+  CommunityMessage as CommunityChannelMessage,
+  CommunityGroupMessage,
+  ChannelMessagesResponse,
+  GroupMessagesResponse
+} from "@/types/community/chat.types";
+
 import {
   CommunityMessage as CommunityChannelMessage,
   CommunityGroupMessage,

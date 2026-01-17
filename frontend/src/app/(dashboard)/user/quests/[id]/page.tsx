@@ -160,7 +160,7 @@ export default function QuestDetailPage() {
       ]);
 
       if (questResponse.success && questResponse.data) {
-        setQuest(questResponse.data);
+        setQuest(questResponse.data as any);
 
         if (user) {
           // Check participation status

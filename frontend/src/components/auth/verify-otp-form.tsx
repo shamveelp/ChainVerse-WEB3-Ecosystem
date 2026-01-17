@@ -125,7 +125,7 @@ export function VerifyOtpForm() {
         )
 
         if (result.success) {
-          dispatch(reduxLogin({ user: result.user , token: result.token }))
+          dispatch(reduxLogin({ user: result.user as any, token: result.token }))
 
           toast({
             title: "Account Created Successfully",
@@ -231,7 +231,7 @@ export function VerifyOtpForm() {
               {otp.map((digit, index) => (
                 <Input
                   key={index}
-                  ref={(el:any) => (inputRefs.current[index] = el)}
+                  ref={(el: any) => (inputRefs.current[index] = el)}
                   type="text"
                   value={digit}
                   onChange={(e) => handleOtpChange(index, e.target.value)}
@@ -270,9 +270,8 @@ export function VerifyOtpForm() {
               variant="ghost"
               onClick={handleResend}
               disabled={resendDisabled}
-              className={`mt-2 text-blue-400 hover:text-blue-300 transition-colors ${
-                resendDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-              }`}
+              className={`mt-2 text-blue-400 hover:text-blue-300 transition-colors ${resendDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                }`}
             >
               <RotateCcw className="mr-2 h-4 w-4" />
               Resend OTP {resendDisabled && <span className="ml-1">in {countdown}s</span>}

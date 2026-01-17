@@ -9,11 +9,7 @@ import {
 } from "@/types/comms-admin/subscription.types";
 import { ApiResponse } from "@/types/common.types";
 
-
-
 class CommunityAdminSubscriptionApiService {
-  // private readonly baseUrl = '/api/community-admin';
-
   async createOrder(communityId: string): Promise<ApiResponse<RazorpayOrder>> {
     try {
       const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.SUBSCRIPTION_CREATE_ORDER, { communityId });
@@ -23,12 +19,13 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
-      console.error("Create subscription order error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Create subscription order error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to create subscription order",
       };
     }
@@ -43,12 +40,13 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
-      console.error("Verify subscription payment error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Verify subscription payment error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to verify payment",
       };
     }
@@ -63,26 +61,27 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
+      const axiosError = error as AxiosError<any>;
       console.error("Get subscription error:", {
-        message: ((error as AxiosError).message),
-        response: ((error as AxiosError).response?.data),
-        status: ((error as AxiosError).response?.status),
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
         url: COMMUNITY_ADMIN_API_ROUTES.SUBSCRIPTION
       });
       // Handle 404 (subscription not found) gracefully
-      if (((error as AxiosError).response?.status) === 404) {
+      if (axiosError.response?.status === 404) {
         return {
           success: true,
-          data: undefined, // Explicitly return undefined for data
+          data: undefined,
           message: "No subscription found",
         };
       }
       return {
         success: false,
-        data: undefined, // Ensure data is undefined on error
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        data: undefined,
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to fetch subscription",
       };
     }
@@ -97,12 +96,13 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
-      console.error("Retry payment error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Retry payment error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to retry payment",
       };
     }
@@ -117,12 +117,13 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
-      console.error("Get time remaining error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Get time remaining error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get time remaining",
       };
     }
@@ -137,13 +138,14 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
-      console.error("Check ChainCast access error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Check ChainCast access error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
         data: { hasAccess: false },
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to check ChainCast access",
       };
     }

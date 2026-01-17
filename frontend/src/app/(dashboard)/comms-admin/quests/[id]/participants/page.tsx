@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ArrowLeft, 
-  Users, 
-  Trophy, 
+import {
+  ArrowLeft,
+  Users,
+  Trophy,
   Crown,
   Eye,
   UserX,
@@ -134,8 +134,9 @@ export default function QuestParticipantsPage() {
       });
 
       if (response.success && response.data) {
-        setParticipants(response.data.participants || response.data.items || []);
-        setTotalPages(response.data.pagination.pages);
+        const data = response.data as any;
+        setParticipants(data.participants || data.items || []);
+        setTotalPages(data.pagination?.pages || 1);
       }
     } catch (error) {
       console.error("Failed to fetch participants:", error);
@@ -181,7 +182,7 @@ export default function QuestParticipantsPage() {
 
   const handleSelectWinners = async () => {
     if (!quest) return;
-    
+
     try {
       const response = await communityAdminQuestApiService.selectWinners(questId, quest.selectionMethod as any);
       if (response.success) {
@@ -427,93 +428,93 @@ export default function QuestParticipantsPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {participants
-              .filter(p => 
-                searchTerm === "" || 
+              .filter(p =>
+                searchTerm === "" ||
                 p.userId.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 p.userId.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 p.userId.email.toLowerCase().includes(searchTerm.toLowerCase())
               )
               .map((participant) => (
-              <Card key={participant._id} className="bg-black/60 backdrop-blur-xl border-purple-800/30 hover:border-purple-700/50 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={participant.userId.profilePic || '/default-avatar.png'}
-                        alt={participant.userId.username}
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
-                      <div>
-                        <p className="font-medium text-white">{participant.userId.name || participant.userId.username}</p>
-                        <p className="text-sm text-gray-400">@{participant.userId.username}</p>
+                <Card key={participant._id} className="bg-black/60 backdrop-blur-xl border-purple-800/30 hover:border-purple-700/50 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={participant.userId.profilePic || '/default-avatar.png'}
+                          alt={participant.userId.username}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                        <div>
+                          <p className="font-medium text-white">{participant.userId.name || participant.userId.username}</p>
+                          <p className="text-sm text-gray-400">@{participant.userId.username}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {participant.isWinner && <Crown className="h-4 w-4 text-yellow-400" />}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-600">
+                            <DropdownMenuItem
+                              onClick={() => viewParticipantDetails(participant)}
+                              className="text-white hover:bg-gray-700"
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-gray-600" />
+                            <DropdownMenuItem
+                              onClick={() => disqualifyParticipant(participant._id, "Manual disqualification")}
+                              className="text-red-400 hover:bg-gray-700"
+                              disabled={participant.status === 'disqualified'}
+                            >
+                              <UserX className="h-4 w-4 mr-2" />
+                              Disqualify
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {participant.isWinner && <Crown className="h-4 w-4 text-yellow-400" />}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-gray-800 border-gray-600">
-                          <DropdownMenuItem 
-                            onClick={() => viewParticipantDetails(participant)}
-                            className="text-white hover:bg-gray-700"
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-gray-600" />
-                          <DropdownMenuItem 
-                            onClick={() => disqualifyParticipant(participant._id, "Manual disqualification")}
-                            className="text-red-400 hover:bg-gray-700"
-                            disabled={participant.status === 'disqualified'}
-                          >
-                            <UserX className="h-4 w-4 mr-2" />
-                            Disqualify
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400">Status:</span>
-                      <Badge className={`${getParticipantStatusColor(participant.status)} text-white text-xs`}>
-                        {participant.status}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400">Tasks:</span>
-                      <span className="text-white">
-                        {participant.totalTasksCompleted} / {quest.tasks?.length || 0}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400">Joined:</span>
-                      <span className="text-gray-300 text-xs">
-                        {formatDate(participant.joinedAt)}
-                      </span>
-                    </div>
-                    {participant.completedAt && (
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400">Completed:</span>
-                        <span className="text-green-400 text-xs">
-                          {formatDate(participant.completedAt)}
+                        <span className="text-gray-400">Status:</span>
+                        <Badge className={`${getParticipantStatusColor(participant.status)} text-white text-xs`}>
+                          {participant.status}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-400">Tasks:</span>
+                        <span className="text-white">
+                          {participant.totalTasksCompleted} / {quest.tasks?.length || 0}
                         </span>
                       </div>
-                    )}
-                    {participant.walletAddress && (
-                      <div className="text-xs text-gray-500 font-mono truncate">
-                        {participant.walletAddress}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-400">Joined:</span>
+                        <span className="text-gray-300 text-xs">
+                          {formatDate(participant.joinedAt)}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      {participant.completedAt && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-400">Completed:</span>
+                          <span className="text-green-400 text-xs">
+                            {formatDate(participant.completedAt)}
+                          </span>
+                        </div>
+                      )}
+                      {participant.walletAddress && (
+                        <div className="text-xs text-gray-500 font-mono truncate">
+                          {participant.walletAddress}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
           </div>
 
           {/* Pagination */}
@@ -627,12 +628,11 @@ export default function QuestParticipantsPage() {
                           <Badge variant="outline" className="text-xs">
                             {submission.taskType}
                           </Badge>
-                          <Badge className={`text-xs ${
-                            submission.status === 'approved' ? 'bg-green-600' :
-                            submission.status === 'rejected' ? 'bg-red-600' :
-                            submission.status === 'auto_verified' ? 'bg-blue-600' :
-                            'bg-yellow-600'
-                          }`}>
+                          <Badge className={`text-xs ${submission.status === 'approved' ? 'bg-green-600' :
+                              submission.status === 'rejected' ? 'bg-red-600' :
+                                submission.status === 'auto_verified' ? 'bg-blue-600' :
+                                  'bg-yellow-600'
+                            }`}>
                             {submission.status}
                           </Badge>
                         </div>

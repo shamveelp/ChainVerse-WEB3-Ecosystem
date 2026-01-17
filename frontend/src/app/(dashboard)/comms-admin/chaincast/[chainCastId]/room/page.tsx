@@ -88,8 +88,8 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
     try {
       toast.success('Left ChainCast (still running)')
       router.push('/comms-admin/chaincast')
-    } catch (error: any) {
-      console.error('Failed to leave ChainCast:', error)
+    } catch (err: any) {
+      console.error('Failed to leave ChainCast:', err)
       toast.error('Failed to leave ChainCast')
       // Navigate back anyway
       router.push('/comms-admin/chaincast')
@@ -105,8 +105,8 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
       }
 
       router.push('/comms-admin/chaincast')
-    } catch (error: any) {
-      console.error('Failed to end ChainCast:', error)
+    } catch (err: any) {
+      console.error('Failed to end ChainCast:', err)
       toast.error('Failed to end ChainCast')
       // Navigate back anyway
       router.push('/comms-admin/chaincast')

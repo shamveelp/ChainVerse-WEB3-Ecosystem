@@ -3,7 +3,7 @@ import { USER_API_ROUTES } from "@/routes";
 import { AxiosError } from "axios";
 
 // Post interfaces
-import {
+export type {
   SearchUsersResponse,
   Post,
   Comment,
@@ -16,6 +16,21 @@ import {
   PostStats,
   CreatePostData,
   CreateCommentData
+} from "@/types/user/posts.types";
+
+import {
+  Post,
+  Comment,
+  CreatePostData,
+  CommentsListResponse,
+  PostsListResponse,
+  PostDetailResponse,
+  LikeResponse,
+  CreateCommentData,
+  MediaUploadResponse,
+  ShareResponse,
+  PostStats,
+  SearchUsersResponse
 } from "@/types/user/posts.types";
 
 interface ApiErrorData {

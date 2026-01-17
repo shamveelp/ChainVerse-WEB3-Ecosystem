@@ -16,7 +16,7 @@ import { toast } from "sonner"
 import { communitySocketService } from "@/services/socket/communitySocketService"
 import { userCommunityChatApiService, type CommunityChannelMessage } from "@/services/userCommunityServices/userCommunityChatApiService"
 
-interface Message extends CommunityChannelMessage {}
+interface Message extends CommunityChannelMessage { }
 
 export function CommunityView() {
   const params = useParams()
@@ -117,11 +117,11 @@ export function CommunityView() {
         })
 
         // Listen for reaction updates
-        communitySocketService.onMessageReactionUpdated((data) => {
+        communitySocketService.onMessageReactionUpdated((data: any) => {
           console.log('Message reaction updated:', data)
           setMessages(prev => prev.map(msg =>
             msg._id === data.messageId
-              ? { ...msg, reactions: data.reactions }
+              ? { ...msg, reactions: data.reactions as any[] }
               : msg
           ))
         })
@@ -329,8 +329,8 @@ export function CommunityView() {
                       {message.mediaFiles && message.mediaFiles.length > 0 && (
                         <div className="grid gap-2 mb-2" style={{
                           gridTemplateColumns: message.mediaFiles.length === 1 ? '1fr' :
-                                             message.mediaFiles.length === 2 ? '1fr 1fr' :
-                                             'repeat(auto-fit, minmax(150px, 1fr))'
+                            message.mediaFiles.length === 2 ? '1fr 1fr' :
+                              'repeat(auto-fit, minmax(150px, 1fr))'
                         }}>
                           {message.mediaFiles.map((media, index) => (
                             <div
@@ -363,11 +363,10 @@ export function CommunityView() {
                         {message.reactions.map((reaction) => (
                           <button
                             key={reaction.emoji}
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors ${
-                              reaction.userReacted
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors ${reaction.userReacted
                                 ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/30'
                                 : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
-                            }`}
+                              }`}
                             onClick={() => handleReaction(message._id, reaction.emoji)}
                           >
                             <span>{reaction.emoji}</span>

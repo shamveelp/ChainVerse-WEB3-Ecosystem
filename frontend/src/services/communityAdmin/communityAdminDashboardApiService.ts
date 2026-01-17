@@ -13,8 +13,6 @@ import {
 } from "@/types/comms-admin/dashboard.types";
 
 class CommunityAdminDashboardApiService {
-  // private readonly baseUrl = '/api/community-admin';
-
   // Get complete dashboard data
   async getDashboardData(period: string = 'week'): Promise<ApiResponse<DashboardData>> {
     try {
@@ -24,12 +22,13 @@ class CommunityAdminDashboardApiService {
         data: response.data.data,
       };
     } catch (error) {
-      console.error("Get dashboard data error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Get dashboard data error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get dashboard data",
       };
     }
@@ -44,12 +43,13 @@ class CommunityAdminDashboardApiService {
         data: response.data.data,
       };
     } catch (error) {
-      console.error("Get community overview error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Get community overview error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get community overview",
       };
     }
@@ -64,12 +64,13 @@ class CommunityAdminDashboardApiService {
         data: response.data.data,
       };
     } catch (error) {
-      console.error("Get community stats error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Get community stats error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get community stats",
       };
     }

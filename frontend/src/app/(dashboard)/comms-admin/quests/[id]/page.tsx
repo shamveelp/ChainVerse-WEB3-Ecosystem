@@ -150,8 +150,9 @@ export default function QuestDetailPage() {
       });
 
       if (response.success && response.data) {
-        setParticipants(response.data.participants || response.data.items || []);
-        setTotalParticipantsPages(response.data.pagination.pages);
+        const data = response.data as any;
+        setParticipants(data.participants || data.items || []);
+        setTotalParticipantsPages(data.pagination?.pages || 1);
       }
     } catch (error) {
       console.error("Failed to fetch participants:", error);

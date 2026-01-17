@@ -135,10 +135,10 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
         toast.success(result.message)
       }
 
-    } catch (error: any) {
-      console.error('Join ChainCast error:', error)
+    } catch (err: any) {
+      console.error('Join ChainCast error:', err)
       toast.error('Failed to join ChainCast', {
-        description: error.message || 'Please try again'
+        description: err.message || 'Please try again'
       })
     } finally {
       setJoining(false)
@@ -153,8 +153,8 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
       await userChainCastApiService.leaveChainCast(chainCast._id)
       toast.success('Left ChainCast successfully')
       router.back()
-    } catch (error: any) {
-      console.error('Leave ChainCast error:', error)
+    } catch (err: any) {
+      console.error('Leave ChainCast error:', err)
       toast.error('Failed to leave ChainCast')
       // Navigate back anyway
       router.back()

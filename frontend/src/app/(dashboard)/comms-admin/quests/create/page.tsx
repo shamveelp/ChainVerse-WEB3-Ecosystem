@@ -428,7 +428,7 @@ export default function CreateQuestPage() {
 
     setLoading(true);
     try {
-      const response = await communityAdminQuestApiService.createQuest(dataToSubmit);
+      const response = await communityAdminQuestApiService.createQuest(dataToSubmit as any);
 
       if (response.success && response.data) {
         // Upload banner if provided

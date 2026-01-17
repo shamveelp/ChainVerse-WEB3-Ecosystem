@@ -126,13 +126,14 @@ export default function CommunityAdminPostDetails() {
             setLoadingComments(true)
             const response = await communityAdminFeedApiService.getPostComments(postId as string, isInitial ? undefined : commentsCursor)
             if (response.success && response.data) {
+                const data = response.data as any
                 if (isInitial) {
-                    setComments(response.data.comments)
+                    setComments(data.comments)
                 } else {
-                    setComments(prev => [...prev, ...response.data.comments])
+                    setComments(prev => [...prev, ...data.comments])
                 }
-                setCommentsCursor(response.data.nextCursor)
-                setHasMoreComments(response.data.hasMore)
+                setCommentsCursor(data.nextCursor)
+                setHasMoreComments(data.hasMore)
             }
         } catch (error) {
             console.error("Error loading comments:", error)

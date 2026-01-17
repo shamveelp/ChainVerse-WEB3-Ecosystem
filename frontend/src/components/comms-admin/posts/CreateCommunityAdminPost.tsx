@@ -65,9 +65,9 @@ export default function CreateCommunityAdminPost({ onPostCreated, onCancel }: Cr
       // Upload media if present
       if (mediaFile) {
         const uploadResponse = await communityAdminPostApiService.uploadPostMedia(mediaFile);
-        if (uploadResponse.success && uploadResponse.mediaUrl) {
-          mediaUrl = uploadResponse.mediaUrl;
-          mediaType = uploadResponse.mediaType || "image";
+        if (uploadResponse.success && uploadResponse.data?.mediaUrl) {
+          mediaUrl = uploadResponse.data.mediaUrl;
+          mediaType = uploadResponse.data.mediaType || "image";
         } else {
           toast.error(uploadResponse.error || "Failed to upload media");
           setIsSubmitting(false);

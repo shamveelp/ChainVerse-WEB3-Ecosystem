@@ -204,7 +204,7 @@ export default function CreateCommunityPage() {
         return
       }
 
-      // Wait for any ongoing checks to complete
+      // Wait for ongoing checks to complete
       if (emailChecking || usernameChecking) {
         toast({
           title: "Please wait",

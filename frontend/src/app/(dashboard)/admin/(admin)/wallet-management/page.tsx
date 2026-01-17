@@ -51,7 +51,8 @@ export default function WalletManagement() {
       } else {
         throw new Error(response.error || "Failed to fetch wallets");
       }
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("Error fetching wallets:", err);
       setError(err.message || "Failed to fetch wallets. Please try again.");
       setWallets([]);
@@ -69,7 +70,8 @@ export default function WalletManagement() {
       } else {
         throw new Error(response.error || "Failed to fetch wallet stats");
       }
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("Error fetching wallet stats:", err);
       setError(err.message || "Failed to fetch wallet stats.");
     }
@@ -91,7 +93,8 @@ export default function WalletManagement() {
       } else {
         throw new Error(response.error || "Failed to export wallet data");
       }
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("Error exporting data:", err);
       setError(err.message || "Failed to export wallet data.");
     }

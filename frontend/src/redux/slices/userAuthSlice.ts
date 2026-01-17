@@ -24,6 +24,7 @@ interface UserAuthState {
     referralCode?: string
   } | null
   resetToken: string | null
+  token: string | null
 }
 
 const initialState: UserAuthState = {
@@ -33,14 +34,18 @@ const initialState: UserAuthState = {
   tempEmail: null,
   tempUserData: null,
   resetToken: null,
+  token: null,
 }
 
 export const userAuthSlice = createSlice({
   name: "userAuth",
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<{ user: UserType }>) => {
+    login: (state, action: PayloadAction<{ user: UserType; token?: string }>) => {
       state.user = action.payload.user
+      if (action.payload.token) {
+        state.token = action.payload.token
+      }
       state.isAuthenticated = true
       state.tempEmail = null
       state.tempUserData = null

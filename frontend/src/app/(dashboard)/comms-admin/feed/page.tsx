@@ -124,7 +124,8 @@ export default function CommunityAdminFeed() {
       } else {
         toast.error(response.error || 'Failed to load community feed')
       }
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error
       console.error('Error loading posts:', error)
       toast.error('Failed to load community feed')
     } finally {

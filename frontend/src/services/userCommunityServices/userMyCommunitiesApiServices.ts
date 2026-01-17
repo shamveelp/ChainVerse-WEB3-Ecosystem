@@ -22,38 +22,39 @@ import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors
 const handleApiError = (error: any, defaultMessage: string) => {
+  const axiosError = error as AxiosError<any>;
   console.error("My Communities API Error:", {
-    status: (error as AxiosError).response?.status,
-    statusText: (error as AxiosError).response?.statusText,
-    data: (error as AxiosError).response?.data,
-    message: (error as AxiosError).message,
-    url: error.config?.url,
-    method: error.config?.method
+    status: axiosError.response?.status,
+    statusText: axiosError.response?.statusText,
+    data: axiosError.response?.data,
+    message: axiosError.message,
+    url: axiosError.config?.url,
+    method: axiosError.config?.method
   });
 
-  if ((error as AxiosError).response?.status === 401) {
+  if (axiosError.response?.status === 401) {
     throw new Error("User not authenticated");
   }
 
-  if ((error as AxiosError).response?.status === 403) {
+  if (axiosError.response?.status === 403) {
     throw new Error("Access forbidden");
   }
 
-  if ((error as AxiosError).response?.status === 404) {
+  if (axiosError.response?.status === 404) {
     throw new Error("Resource not found");
   }
 
-  if ((error as AxiosError).response?.status === 429) {
+  if (axiosError.response?.status === 429) {
     throw new Error("Too many requests. Please try again later");
   }
 
-  if ((error as AxiosError).response?.status >= 500) {
+  if (axiosError.response?.status && axiosError.response.status >= 500) {
     throw new Error("Server error. Please try again later");
   }
 
-  const errorMessage = (error as AxiosError).response?.data?.error ||
-    (error as AxiosError).response?.data?.message ||
-    (error as AxiosError).message ||
+  const errorMessage = axiosError.response?.data?.error ||
+    axiosError.response?.data?.message ||
+    axiosError.message ||
     defaultMessage;
   throw new Error(errorMessage);
 };
@@ -75,7 +76,7 @@ const transformMyCommunityData = (data: Partial<MyCommunity> & Record<string, an
     isVerified: Boolean(data.isVerified),
     memberCount: Number(data.memberCount) || 0,
     memberRole: data.memberRole || 'member',
-    joinedAt: new Date(data.joinedAt),
+    joinedAt: data.joinedAt ? new Date(data.joinedAt) : new Date(),
     lastActiveAt: data.lastActiveAt ? new Date(data.lastActiveAt) : undefined,
     unreadPosts: Number(data.unreadPosts) || 0,
     totalPosts: Number(data.totalPosts) || 0,
@@ -87,7 +88,7 @@ const transformMyCommunityData = (data: Partial<MyCommunity> & Record<string, an
       allowQuests: data.settings?.allowQuests || false
     },
     notifications: Boolean(data.notifications),
-    createdAt: new Date(data.createdAt || Date.now())
+    createdAt: data.createdAt ? new Date(data.createdAt) : new Date()
   };
 };
 

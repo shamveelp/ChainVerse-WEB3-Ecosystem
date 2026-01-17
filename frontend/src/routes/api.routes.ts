@@ -230,6 +230,12 @@ export const USER_API_ROUTES = {
     // Profile
     GET_PROFILE: '/api/user/get-profile',
     UPDATE_PROFILE: '/api/user/profile',
+    CHANGE_PASSWORD: '/api/user/change-password',
+    USER_STATS: '/api/user/stats',
+    NOTIFICATION_SETTINGS: '/api/user/notification-settings',
+    NOTIFICATION_SETTINGS_UPDATE: '/api/user/notification-settings',
+    COMPLETE_ONBOARDING: '/api/user/complete-onboarding',
+    WALLET_ADDRESS: '/api/user/wallet-address', // Added as it was used in service
 
     // Referrals
     REFERRALS_STATS: '/api/user/referrals/stats',
@@ -273,7 +279,14 @@ export const USER_API_ROUTES = {
     CHAINCAST_REACTIONS: (id: string) => `/api/user/chaincast/${id}/reactions`,
 
     // Wallet
-    WALLET: '/api/wallet',
+    WALLET: {
+        BASE: '/api/user/wallet',
+        CONNECT: '/api/user/wallet/connect',
+        BALANCE: '/api/user/wallet/balance',
+        LISTENERS: '/api/user/wallet/listeners',
+        DISCONNECT: '/api/user/wallet/disconnect',
+    },
+    CONNECT_WALLET: '/api/user/wallet/connect',
 
     // Market
     MARKET_COINS: '/api/user/market/coins/public',

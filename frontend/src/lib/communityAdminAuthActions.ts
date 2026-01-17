@@ -12,16 +12,17 @@ export const useCommunityAdminAuthActions = () => {
 
   const handleLogin = async (email: string, password: string) => {
     dispatch(setLoading(true))
-    
+
     try {
       const result = await communityAdminApiService.login(email, password)
-      
+
       if (result.success && result.data) {
+        const data = result.data as any
         dispatch(login({
-          ...result.data.communityAdmin,
-          token: result.data.token
+          ...data.communityAdmin,
+          token: data.token
         }))
-        
+
         // Fetch subscription immediately after login to set premium access
         try {
           const subscriptionResult = await communityAdminSubscriptionApiService.getSubscription()
@@ -36,12 +37,12 @@ export const useCommunityAdminAuthActions = () => {
           console.error('Failed to fetch subscription after login:', subError)
           dispatch(setSubscription(null))
         }
-        
+
         toast({
           title: "Success",
           description: "Login successful! Welcome back.",
         })
-        
+
         router.push(COMMUNITY_ADMIN_ROUTES.DASHBOARD)
       } else {
         // Handle specific error cases
@@ -75,7 +76,7 @@ export const useCommunityAdminAuthActions = () => {
       await communityAdminApiService.logout()
       dispatch(logout())
       router.push(COMMUNITY_ADMIN_ROUTES.LOGIN)
-      
+
       toast({
         title: "Success",
         description: "Logged out successfully",
@@ -90,13 +91,14 @@ export const useCommunityAdminAuthActions = () => {
   const checkAuthStatus = async () => {
     try {
       const result = await communityAdminApiService.getProfile()
-      
+
       if (result.success && result.data) {
+        const data = result.data as any
         dispatch(login({
-          ...result.data.communityAdmin,
+          ...data.communityAdmin,
           token: 'existing' // Token is in cookies
         }))
-        
+
         // Fetch subscription when checking auth status
         try {
           const subscriptionResult = await communityAdminSubscriptionApiService.getSubscription()
@@ -109,7 +111,7 @@ export const useCommunityAdminAuthActions = () => {
           console.error('Failed to fetch subscription during auth check:', subError)
           dispatch(setSubscription(null))
         }
-        
+
         return true
       } else {
         dispatch(logout())

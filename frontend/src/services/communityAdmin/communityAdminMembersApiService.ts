@@ -12,8 +12,6 @@ import {
 import { ApiResponse } from "@/types/common.types";
 
 class CommunityAdminMembersApiService {
-  // private readonly baseUrl = '/api/community-admin/members';
-
   // Get community members
   async getCommunityMembers(filters: MemberFilters = {}): Promise<ApiResponse<MembersListResponse>> {
     try {
@@ -31,12 +29,13 @@ class CommunityAdminMembersApiService {
         data: response.data.data,
       };
     } catch (error) {
-      console.error("Get community members error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Get community members error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get community members",
       };
     }
@@ -51,12 +50,13 @@ class CommunityAdminMembersApiService {
         data: response.data.data,
       };
     } catch (error) {
-      console.error("Get member details error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Get member details error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get member details",
       };
     }
@@ -72,12 +72,13 @@ class CommunityAdminMembersApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Update member role error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Update member role error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to update member role",
       };
     }
@@ -93,12 +94,13 @@ class CommunityAdminMembersApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Ban member error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Ban member error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to ban member",
       };
     }
@@ -114,12 +116,13 @@ class CommunityAdminMembersApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Unban member error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Unban member error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to unban member",
       };
     }
@@ -137,12 +140,13 @@ class CommunityAdminMembersApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Remove member error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Remove member error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to remove member",
       };
     }
@@ -157,12 +161,13 @@ class CommunityAdminMembersApiService {
         data: response.data.data,
       };
     } catch (error) {
-      console.error("Get member activity error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Get member activity error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to get member activity",
       };
     }
@@ -178,12 +183,13 @@ class CommunityAdminMembersApiService {
         message: response.data.message
       };
     } catch (error) {
-      console.error("Bulk update members error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+      const axiosError = error as AxiosError<any>;
+      console.error("Bulk update members error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
-        error: ((error as AxiosError).response?.data)?.error ||
-          ((error as AxiosError).response?.data)?.message ||
-          ((error as AxiosError).message) ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Failed to perform bulk action",
       };
     }

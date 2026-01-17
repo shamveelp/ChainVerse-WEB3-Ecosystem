@@ -14,7 +14,7 @@ export const walletService = {
         const accounts = await (window as any).ethereum.request({ method: "eth_requestAccounts" });
         const walletAddress = accounts[0];
 
-        const response = await API.post(USER_API_ROUTES.CONNECT_WALLET, {
+        const response = await API.post(USER_API_ROUTES.WALLET.CONNECT, {
           walletAddress,
         });
 

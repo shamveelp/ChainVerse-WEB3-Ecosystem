@@ -274,17 +274,17 @@ export const useChat = () => {
 
     // Register event listeners
     try {
-      socketService.onNewMessage(handleNewMessage);
-      socketService.onMessageSent(handleMessageSent);
-      socketService.onMessageEdited(handleMessageEdited);
-      socketService.onMessageDeleted(handleMessageDeleted);
-      socketService.onMessagesRead(handleMessagesRead);
-      socketService.onConversationUpdated(handleConversationUpdated);
-      socketService.onUserTypingStart(handleUserTypingStart);
-      socketService.onUserTypingStop(handleUserTypingStop);
-      socketService.onUserStatusChanged(handleUserStatusChanged);
-      socketService.onMessageError(handleMessageError);
-      socketService.onConversationError(handleConversationError);
+      socketService.onNewMessage(handleNewMessage as any);
+      socketService.onMessageSent(handleMessageSent as any);
+      socketService.onMessageEdited(handleMessageEdited as any);
+      socketService.onMessageDeleted(handleMessageDeleted as any);
+      socketService.onMessagesRead(handleMessagesRead as any);
+      socketService.onConversationUpdated(handleConversationUpdated as any);
+      socketService.onUserTypingStart(handleUserTypingStart as any);
+      socketService.onUserTypingStop(handleUserTypingStop as any);
+      socketService.onUserStatusChanged(handleUserStatusChanged as any);
+      socketService.onMessageError(handleMessageError as any);
+      socketService.onConversationError(handleConversationError as any);
 
 
     } catch (error) {
@@ -294,18 +294,17 @@ export const useChat = () => {
     return () => {
       // Cleanup event listeners
       try {
-        socketService.offNewMessage(handleNewMessage);
-        socketService.offMessageSent(handleMessageSent);
-        socketService.offMessageEdited(handleMessageEdited);
-        socketService.offMessageDeleted(handleMessageDeleted);
-        socketService.offMessagesRead(handleMessagesRead);
-        socketService.offConversationUpdated(handleConversationUpdated);
-        socketService.offUserTypingStart(handleUserTypingStart);
-        socketService.offUserTypingStop(handleUserTypingStop);
-        socketService.offUserStatusChanged(handleUserStatusChanged);
-        socketService.offMessageError(handleMessageError);
-        socketService.offConversationError(handleConversationError);
-        socketService.offConversationError(handleConversationError);
+        socketService.offNewMessage(handleNewMessage as any);
+        socketService.offMessageSent(handleMessageSent as any);
+        socketService.offMessageEdited(handleMessageEdited as any);
+        socketService.offMessageDeleted(handleMessageDeleted as any);
+        socketService.offMessagesRead(handleMessagesRead as any);
+        socketService.offConversationUpdated(handleConversationUpdated as any);
+        socketService.offUserTypingStart(handleUserTypingStart as any);
+        socketService.offUserTypingStop(handleUserTypingStop as any);
+        socketService.offUserStatusChanged(handleUserStatusChanged as any);
+        socketService.offMessageError(handleMessageError as any);
+        socketService.offConversationError(handleConversationError as any);
 
       } catch (error) {
         console.warn('⚠️ Socket event cleanup failed:', error);

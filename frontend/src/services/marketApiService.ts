@@ -1,5 +1,6 @@
 import api from "@/lib/api-client";
 import { USER_API_ROUTES } from "@/routes";
+export type { MarketCoin } from "@/types/user/market.types";
 import { MarketCoin } from "@/types/user/market.types";
 import { AxiosError } from "axios";
 

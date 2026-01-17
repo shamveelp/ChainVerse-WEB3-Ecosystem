@@ -1,6 +1,14 @@
 import { AxiosError } from 'axios';
 import API from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
+export type {
+  CommunityMessage,
+  CommunityGroupMessage,
+  CreateChannelMessageRequest,
+  ChannelMessagesResponse,
+  GroupMessagesResponse
+} from "@/types/comms-admin/chat.types";
+
 import {
   CommunityMessage,
   CommunityGroupMessage,
@@ -8,42 +16,45 @@ import {
   ChannelMessagesResponse,
   GroupMessagesResponse
 } from "@/types/comms-admin/chat.types";
-import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors
 const handleApiError = (error: any, defaultMessage: string) => {
+  const axiosError = error as AxiosError;
+  const status = axiosError.response?.status;
+  const data = axiosError.response?.data as any;
+
   console.error("Community Admin Chat API Error:", {
-    status: ((error as AxiosError).response?.status),
-    statusText: ((error as AxiosError).response?.status)Text,
-    data: ((error as AxiosError).response?.data),
-    message: ((error as AxiosError).message),
-    url: error.config?.url,
-    method: error.config?.method
+    status: status,
+    statusText: axiosError.response?.statusText,
+    data: data,
+    message: axiosError.message,
+    url: axiosError.config?.url,
+    method: axiosError.config?.method
   });
 
-  if (((error as AxiosError).response?.status) === 401) {
+  if (status === 401) {
     throw new Error("Admin not authenticated");
   }
 
-  if (((error as AxiosError).response?.status) === 403) {
+  if (status === 403) {
     throw new Error("Access forbidden");
   }
 
-  if (((error as AxiosError).response?.status) === 404) {
+  if (status === 404) {
     throw new Error("Resource not found");
   }
 
-  if (((error as AxiosError).response?.status) === 429) {
+  if (status === 429) {
     throw new Error("Too many requests. Please try again later");
   }
 
-  if (((error as AxiosError).response?.status) >= 500) {
+  if (status && status >= 500) {
     throw new Error("Server error. Please try again later");
   }
 
-  const errorMessage = ((error as AxiosError).response?.data)?.error ||
-    ((error as AxiosError).response?.data)?.message ||
-    ((error as AxiosError).message) ||
+  const errorMessage = data?.error ||
+    data?.message ||
+    axiosError.message ||
     defaultMessage;
   throw new Error(errorMessage);
 };
@@ -84,8 +95,6 @@ export const communityAdminChatApiService = {
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 50).toString());
 
-
-
       const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.CHANNEL_MESSAGES}?${params.toString()}`);
 
       console.log('API: Channel messages fetched successfully:', {
@@ -112,8 +121,6 @@ export const communityAdminChatApiService = {
       const params = new URLSearchParams();
       if (cursor && cursor.trim()) params.append('cursor', cursor.trim());
       params.append('limit', Math.min(Math.max(limit, 1), 100).toString());
-
-
 
       const response = await API.get(`${COMMUNITY_ADMIN_API_ROUTES.GROUP_MESSAGES}?${params.toString()}`);
 
@@ -142,8 +149,6 @@ export const communityAdminChatApiService = {
         throw new Error("Message ID is required");
       }
 
-
-
       const response = await API.delete(COMMUNITY_ADMIN_API_ROUTES.GROUP_MESSAGE_BY_ID(encodeURIComponent(messageId)));
 
       console.log('API: Group message deleted successfully by admin:', {
@@ -169,8 +174,6 @@ export const communityAdminChatApiService = {
       if (!messageId || !content?.trim()) {
         throw new Error("Message ID and content are required");
       }
-
-
 
       const response = await API.put(COMMUNITY_ADMIN_API_ROUTES.CHANNEL_MESSAGE_BY_ID(encodeURIComponent(messageId)), {
         content: content.trim()
@@ -226,8 +229,6 @@ export const communityAdminChatApiService = {
         throw new Error("Message ID is required");
       }
 
-
-
       const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHANNEL_MESSAGE_PIN(encodeURIComponent(messageId)));
 
       console.log('API: Channel message pinned successfully:', {
@@ -279,10 +280,8 @@ export const communityAdminChatApiService = {
         throw new Error("No files provided");
       }
 
-
-
       const formData = new FormData();
-      files.forEach((file, index) => {
+      files.forEach((file) => {
         formData.append('media', file);
       });
 
@@ -314,8 +313,6 @@ export const communityAdminChatApiService = {
       if (!messageId) {
         throw new Error("Message ID is required");
       }
-
-
 
       const response = await API.get(COMMUNITY_ADMIN_API_ROUTES.CHANNEL_MESSAGE_REACTIONS(encodeURIComponent(messageId)));
 

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Upload, Loader2, Image as ImageIcon, Sparkles } from 'lucide-react';
-import { uploadToIPFS, uploadMetadataToIPFS, NFTMetadata } from '@/lib/ipfs';
+import { uploadFileToIPFS as uploadToIPFS, uploadJSONToIPFS as uploadMetadataToIPFS, NFTMetadata } from '@/lib/nft/ipfs';
 import { useMarketplace } from '@/hooks/useMarketplace';
 import { toast } from 'sonner';
 
@@ -79,7 +79,7 @@ export function MintNFTModal({ open, onOpenChange }: MintNFTModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedFile) {
       toast.error('Please select an image file');
       return;
@@ -97,16 +97,16 @@ export function MintNFTModal({ open, onOpenChange }: MintNFTModalProps) {
 
     try {
       setUploading(true);
-      
+
       toast.info('Uploading image to IPFS...', { duration: 3000 });
-      
+
       // Upload image to IPFS
       const imageUrl = await uploadToIPFS(selectedFile);
-      
+
       toast.info('Creating metadata...', { duration: 2000 });
-      
+
       // Create metadata
-      const metadata: NFTMetadata = {
+      const metadata: any = {
         name: formData.name,
         description: formData.description,
         image: imageUrl,
@@ -114,21 +114,21 @@ export function MintNFTModal({ open, onOpenChange }: MintNFTModalProps) {
         created_at: new Date().toISOString(),
         creator: 'ChainVerse NFT Marketplace',
       };
-      
+
       // Upload metadata to IPFS
       const metadataUrl = await uploadMetadataToIPFS(metadata);
-      
+
       toast.info('Processing transaction...', { duration: 3000 });
-      
+
       // Mint NFT (and list if requested)
       await mintAndListNFT(
-        metadataUrl, 
+        metadataUrl,
         listAfterMint ? formData.price : undefined
       );
-      
+
       onOpenChange(false);
       resetForm();
-      
+
     } catch (error: any) {
       console.error('Error minting NFT:', error);
       // Don't show another toast here as mintAndListNFT already handles it
@@ -149,7 +149,7 @@ export function MintNFTModal({ open, onOpenChange }: MintNFTModalProps) {
             Create New NFT
           </DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* File Upload */}
           <div className="space-y-3">
@@ -211,7 +211,7 @@ export function MintNFTModal({ open, onOpenChange }: MintNFTModalProps) {
                 maxLength={50}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="price" className="text-gray-200 font-medium">
                 Price (ETH) {listAfterMint && '*'}
@@ -229,7 +229,7 @@ export function MintNFTModal({ open, onOpenChange }: MintNFTModalProps) {
               />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="description" className="text-gray-200 font-medium">Description *</Label>
             <Textarea
@@ -275,7 +275,7 @@ export function MintNFTModal({ open, onOpenChange }: MintNFTModalProps) {
                 Add Property
               </Button>
             </div>
-            
+
             {attributes.map((attr, index) => (
               <div key={index} className="grid grid-cols-3 gap-3 p-3 bg-gray-800/30 rounded-lg">
                 <Input
@@ -324,7 +324,7 @@ export function MintNFTModal({ open, onOpenChange }: MintNFTModalProps) {
                 </>
               )}
             </Button>
-            
+
             {listAfterMint && (
               <p className="text-xs text-gray-400 text-center mt-2">
                 Total cost: {formData.price || '0'} ETH + {listingPrice} ETH listing fee

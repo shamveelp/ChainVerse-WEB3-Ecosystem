@@ -117,7 +117,8 @@ export default function WalletDetails() {
       } else {
         throw new Error(response.error || "Failed to fetch wallet details");
       }
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("Error fetching wallet details:", err);
       setError(err.message || "Failed to fetch wallet details. Please try again.");
       setWallet(null);
@@ -134,7 +135,8 @@ export default function WalletDetails() {
       } else {
         console.warn("Failed to fetch app transactions:", response.error);
       }
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       console.warn("Error fetching app transactions:", err);
     }
   };
@@ -150,7 +152,8 @@ export default function WalletDetails() {
       } else {
         throw new Error(response.error || "Failed to fetch blockchain transactions");
       }
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("Error fetching blockchain transactions:", err);
       setError(err.message || "Failed to fetch blockchain transactions.");
     } finally {
@@ -167,7 +170,8 @@ export default function WalletDetails() {
       } else {
         throw new Error(response.error || "Failed to fetch contract interactions");
       }
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("Error fetching contract interactions:", err);
       setError(err.message || "Failed to fetch contract interactions.");
     } finally {
@@ -189,7 +193,8 @@ export default function WalletDetails() {
       } else {
         throw new Error(response.error || "Failed to refresh wallet data");
       }
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error("Error refreshing wallet data:", err);
       setError(err.message || "Failed to refresh wallet data.");
     } finally {

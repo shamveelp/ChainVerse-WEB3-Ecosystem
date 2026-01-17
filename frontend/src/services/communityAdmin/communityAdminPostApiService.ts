@@ -17,8 +17,6 @@ import {
 } from "@/types/comms-admin/posts.types";
 
 class CommunityAdminPostApiService {
-    // private readonly baseUrl = '/api/community-admin';
-
     // Post CRUD operations
     async createPost(postData: CreatePostData): Promise<ApiResponse<CommunityAdminPost>> {
         try {
@@ -29,12 +27,13 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            console.error("Create community admin post error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+            const axiosError = error as AxiosError<any>;
+            console.error("Create community admin post error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
-                error: ((error as AxiosError).response?.data)?.error ||
-                    ((error as AxiosError).response?.data)?.message ||
-                    ((error as AxiosError).message) ||
+                error: axiosError.response?.data?.error ||
+                    axiosError.response?.data?.message ||
+                    axiosError.message ||
                     "Failed to create post",
             };
         }
@@ -48,12 +47,13 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
             };
         } catch (error) {
-            console.error("Get community admin post error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+            const axiosError = error as AxiosError<any>;
+            console.error("Get community admin post error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
-                error: ((error as AxiosError).response?.data)?.error ||
-                    ((error as AxiosError).response?.data)?.message ||
-                    ((error as AxiosError).message) ||
+                error: axiosError.response?.data?.error ||
+                    axiosError.response?.data?.message ||
+                    axiosError.message ||
                     "Failed to get post",
             };
         }
@@ -68,12 +68,13 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            console.error("Update community admin post error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+            const axiosError = error as AxiosError<any>;
+            console.error("Update community admin post error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
-                error: ((error as AxiosError).response?.data)?.error ||
-                    ((error as AxiosError).response?.data)?.message ||
-                    ((error as AxiosError).message) ||
+                error: axiosError.response?.data?.error ||
+                    axiosError.response?.data?.message ||
+                    axiosError.message ||
                     "Failed to update post",
             };
         }
@@ -87,12 +88,13 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            console.error("Delete community admin post error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+            const axiosError = error as AxiosError<any>;
+            console.error("Delete community admin post error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
-                error: ((error as AxiosError).response?.data)?.error ||
-                    ((error as AxiosError).response?.data)?.message ||
-                    ((error as AxiosError).message) ||
+                error: axiosError.response?.data?.error ||
+                    axiosError.response?.data?.message ||
+                    axiosError.message ||
                     "Failed to delete post",
             };
         }
@@ -111,12 +113,13 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
             };
         } catch (error) {
-            console.error("Get community admin posts error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+            const axiosError = error as AxiosError<any>;
+            console.error("Get community admin posts error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
-                error: ((error as AxiosError).response?.data)?.error ||
-                    ((error as AxiosError).response?.data)?.message ||
-                    ((error as AxiosError).message) ||
+                error: axiosError.response?.data?.error ||
+                    axiosError.response?.data?.message ||
+                    axiosError.message ||
                     "Failed to get posts",
             };
         }
@@ -132,12 +135,13 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            console.error("Toggle community admin post like error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+            const axiosError = error as AxiosError<any>;
+            console.error("Toggle community admin post like error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
-                error: ((error as AxiosError).response?.data)?.error ||
-                    ((error as AxiosError).response?.data)?.message ||
-                    ((error as AxiosError).message) ||
+                error: axiosError.response?.data?.error ||
+                    axiosError.response?.data?.message ||
+                    axiosError.message ||
                     "Failed to toggle post like",
             };
         }
@@ -153,12 +157,13 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            console.error("Create community admin comment error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+            const axiosError = error as AxiosError<any>;
+            console.error("Create community admin comment error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
-                error: ((error as AxiosError).response?.data)?.error ||
-                    ((error as AxiosError).response?.data)?.message ||
-                    ((error as AxiosError).message) ||
+                error: axiosError.response?.data?.error ||
+                    axiosError.response?.data?.message ||
+                    axiosError.message ||
                     "Failed to create comment",
             };
         }
@@ -176,12 +181,13 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
             };
         } catch (error) {
-            console.error("Get community admin post comments error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+            const axiosError = error as AxiosError<any>;
+            console.error("Get community admin post comments error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
-                error: ((error as AxiosError).response?.data)?.error ||
-                    ((error as AxiosError).response?.data)?.message ||
-                    ((error as AxiosError).message) ||
+                error: axiosError.response?.data?.error ||
+                    axiosError.response?.data?.message ||
+                    axiosError.message ||
                     "Failed to get comments",
             };
         }
@@ -196,19 +202,20 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            console.error("Toggle community admin comment like error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+            const axiosError = error as AxiosError<any>;
+            console.error("Toggle community admin comment like error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
-                error: ((error as AxiosError).response?.data)?.error ||
-                    ((error as AxiosError).response?.data)?.message ||
-                    ((error as AxiosError).message) ||
+                error: axiosError.response?.data?.error ||
+                    axiosError.response?.data?.message ||
+                    axiosError.message ||
                     "Failed to toggle comment like",
             };
         }
     }
 
     // Media upload
-    async uploadPostMedia(file: File): Promise<MediaUploadResponse> {
+    async uploadPostMedia(file: File): Promise<ApiResponse<MediaUploadResponse>> {
         try {
             const formData = new FormData();
             formData.append('media', file);
@@ -219,14 +226,19 @@ class CommunityAdminPostApiService {
                 },
             });
 
-            return response.data.data;
+            return {
+                success: true,
+                data: response.data.data,
+                message: response.data.message
+            };
         } catch (error) {
-            console.error("Upload community admin post media error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+            const axiosError = error as AxiosError<any>;
+            console.error("Upload community admin post media error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
-                error: ((error as AxiosError).response?.data)?.error ||
-                    ((error as AxiosError).response?.data)?.message ||
-                    ((error as AxiosError).message) ||
+                error: axiosError.response?.data?.error ||
+                    axiosError.response?.data?.message ||
+                    axiosError.message ||
                     "Failed to upload media",
             };
         }
@@ -245,12 +257,13 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
             };
         } catch (error) {
-            console.error("Get community members feed error:", ((error as AxiosError).response?.data) || ((error as AxiosError).message));
+            const axiosError = error as AxiosError<any>;
+            console.error("Get community members feed error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
-                error: ((error as AxiosError).response?.data)?.error ||
-                    ((error as AxiosError).response?.data)?.message ||
-                    ((error as AxiosError).message) ||
+                error: axiosError.response?.data?.error ||
+                    axiosError.response?.data?.message ||
+                    axiosError.message ||
                     "Failed to get community members feed",
             };
         }

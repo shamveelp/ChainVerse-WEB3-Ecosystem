@@ -285,7 +285,8 @@ export default function App() {
       await tx.wait();
       await loadBalances(wallet.provider!, wallet.address);
       setSwapForm(prev => ({ ...prev, fromAmount: '', toAmount: '' }));
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Swap failed:', error);
       setError(`Swap failed: ${error.message || 'Unknown error'}`);
     } finally {
@@ -345,7 +346,8 @@ export default function App() {
         coinAAmount: '',
         coinBAmount: ''
       });
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Add liquidity failed:', error);
       setError(`Add liquidity failed: ${error.message || 'Unknown error'}`);
     } finally {
@@ -367,9 +369,10 @@ export default function App() {
       const txB = await coinBContract.mint(wallet.address, amount);
       await txB.wait();
       await loadBalances(wallet.provider!, wallet.address);
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Get test tokens failed:', error);
-      setError('Get test tokens failed (you might not be the owner)');
+      setError(`Get test tokens failed: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
