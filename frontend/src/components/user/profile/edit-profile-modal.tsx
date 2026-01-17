@@ -36,7 +36,7 @@ export default function EditProfileModal() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     // Reset username check when username changes
     if (field === "username") {
       setUsernameCheck({
@@ -63,7 +63,7 @@ export default function EditProfileModal() {
       const result = await userApiService.checkUsernameAvailability(username);
       setUsernameCheck({
         checking: false,
-        available: result.available,
+        available: result.available ?? null,
         message: result.available ? "Username is available" : "Username is already taken",
       });
     } catch (error) {
@@ -94,7 +94,7 @@ export default function EditProfileModal() {
 
     try {
       const result = await userApiService.uploadProfileImage(file);
-      
+
       if (result.success && result.data) {
         dispatch(setProfile({ ...profile!, profilePic: result.data.profilePic }));
         toast.success("Profile image updated successfully");
@@ -110,7 +110,7 @@ export default function EditProfileModal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (usernameCheck.available === false) {
       toast.error("Please choose an available username");
       return;
@@ -142,8 +142,8 @@ export default function EditProfileModal() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           className="bg-slate-800/50 border-blue-800/30 text-blue-300 hover:bg-slate-700/50"
         >
@@ -155,21 +155,21 @@ export default function EditProfileModal() {
         <DialogHeader>
           <DialogTitle className="text-white">Edit Profile</DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Profile Picture */}
           <div className="flex flex-col items-center space-y-4">
             <Avatar className="h-24 w-24 ring-2 ring-blue-500/30">
-              <AvatarImage 
-                src={profile?.profilePic || "/placeholder.svg"} 
-                alt={profile?.name || "Profile"} 
+              <AvatarImage
+                src={profile?.profilePic || "/placeholder.svg"}
+                alt={profile?.name || "Profile"}
               />
               <AvatarFallback className="text-2xl bg-slate-700 text-white">
-                {profile?.name?.charAt(0)?.toUpperCase() || 
-                 profile?.username?.charAt(0)?.toUpperCase() || "?"}
+                {profile?.name?.charAt(0)?.toUpperCase() ||
+                  profile?.username?.charAt(0)?.toUpperCase() || "?"}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex items-center space-x-2">
               <input
                 type="file"
@@ -178,13 +178,13 @@ export default function EditProfileModal() {
                 onChange={handleImageUpload}
                 className="hidden"
               />
-              <Label 
+              <Label
                 htmlFor="profile-image"
                 className="cursor-pointer"
               >
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   size="sm"
                   disabled={isUploadingImage}
                   className="bg-slate-800/50 border-blue-800/30 text-blue-300 hover:bg-slate-700/50"

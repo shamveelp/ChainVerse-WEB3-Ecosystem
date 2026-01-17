@@ -24,10 +24,29 @@ export interface PointsConversion {
     approvedAt?: string;
     claimedAt?: string;
     createdAt: string;
+    user?: {
+        id: string;
+        username: string;
+        email: string;
+        profilePic?: string;
+    };
+}
+
+export interface AdminPointsConversion extends PointsConversion {
+    user: {
+        id: string;
+        username: string;
+        email: string;
+        profilePic?: string;
+    };
 }
 
 export interface ConversionStats {
     totalPointsConverted: number;
     totalCVCClaimed: number;
     pendingConversions: number;
+    totalConversions?: number;
+    totalCVCGenerated?: number;
+    totalClaimed?: number;
+    totalPending?: number;
 }

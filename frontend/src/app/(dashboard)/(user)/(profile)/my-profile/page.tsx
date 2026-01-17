@@ -33,6 +33,11 @@ export default function MyProfilePage() {
       dispatch(setProfileLoading(true));
       try {
         const response = await userApiService.getProfile();
+
+        if (!response.success || !response.data) {
+          throw new Error(response.error || "Failed to fetch profile");
+        }
+
         // Validate date fields
         if (response.data.createdAt && !isValid(new Date(response.data.createdAt))) {
           throw new Error("Invalid createdAt date format");

@@ -59,8 +59,8 @@ export default function ReferPage() {
   const fetchReferralStats = async () => {
     try {
       const result = await userApiService.getReferralStats();
-      if (result.success) {
-        setReferralStats(result.data!);
+      if (result.success && result.data) {
+        setReferralStats(result.data as ReferralData);
       } else {
         toast.error("Failed to load referral stats", { description: result.error });
       }
@@ -75,13 +75,14 @@ export default function ReferPage() {
     try {
       setHistoryLoading(true);
       const result = await userApiService.getReferralHistory(pageNum, limit);
-      if (result.success) {
+      if (result.success && result.data) {
+        const data = result.data as any;
         if (pageNum === 1) {
-          setReferralHistory(result.data.referrals);
+          setReferralHistory(data.referrals || []);
         } else {
-          setReferralHistory(prev => [...prev, ...result.data.referrals]);
+          setReferralHistory(prev => [...prev, ...(data.referrals || [])]);
         }
-        setTotal(result.data.total);
+        setTotal(data.total || 0);
         setPage(pageNum);
       } else {
         toast.error("Failed to load referral history", { description: result.error });

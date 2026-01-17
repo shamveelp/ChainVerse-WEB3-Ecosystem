@@ -113,8 +113,8 @@ export default function PointsPage() {
   const fetchCheckInCalendar = async (month: number, year: number) => {
     try {
       const result = await userApiService.getCheckInCalendar(month, year);
-      if (result.success) {
-        setCheckInCalendar(result.data.checkIns);
+      if (result.success && result.data) {
+        setCheckInCalendar((result.data as any).checkIns || []);
       }
     } catch (error) {
       console.error("Error fetching calendar:", error);
@@ -124,14 +124,15 @@ export default function PointsPage() {
   const fetchPointsHistory = async (page: number) => {
     try {
       const result = await userApiService.getPointsHistory(page, 10);
-      if (result.success) {
+      if (result.success && result.data) {
+        const data = result.data as any;
         if (page === 1) {
-          setPointsHistory(result.data.history);
+          setPointsHistory(data.history || []);
         } else {
-          setPointsHistory((prev) => [...prev, ...result.data.history]);
+          setPointsHistory((prev) => [...prev, ...(data.history || [])]);
         }
-        setPointsSummary(result.data.summary);
-        setHistoryTotal(result.data.total);
+        setPointsSummary(data.summary || null);
+        setHistoryTotal(data.total || 0);
       }
     } catch (error) {
       toast.error("Error loading points history");

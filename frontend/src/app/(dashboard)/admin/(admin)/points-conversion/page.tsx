@@ -26,40 +26,12 @@ import {
   Filter
 } from "lucide-react";
 import { adminPointsConversionApiService } from "@/services/points/pointsConversionApiService";
+import { PointsConversion, AdminPointsConversion, ConversionStats } from "@/types/points/conversion.types";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import Image from "next/image";
-
-interface ConversionStats {
-  totalConversions: number;
-  totalPointsConverted: number;
-  totalCVCGenerated: number;
-  totalClaimed: number;
-  totalPending: number;
-}
-
-interface Conversion {
-  id: string;
-  user: {
-    id: string;
-    username: string;
-    email: string;
-    profilePic?: string;
-  };
-  pointsConverted: number;
-  cvcAmount: number;
-  conversionRate: number;
-  status: string;
-  transactionHash?: string;
-  claimFee: number;
-  walletAddress?: string;
-  adminNote?: string;
-  approvedBy?: string;
-  approvedAt?: string;
-  claimedAt?: string;
-  createdAt: string;
-}
+// Remote types used from @/types/points/conversion.types
 
 interface ConversionRate {
   pointsPerCVC: number;
@@ -71,14 +43,14 @@ interface ConversionRate {
 export default function AdminPointsConversionPage() {
   const router = useRouter();
   const [stats, setStats] = useState<ConversionStats | null>(null);
-  const [conversions, setConversions] = useState<Conversion[]>([]);
+  const [conversions, setConversions] = useState<AdminPointsConversion[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('');
-  const [selectedConversion, setSelectedConversion] = useState<Conversion | null>(null);
+  const [selectedConversion, setSelectedConversion] = useState<AdminPointsConversion | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
   const [adminNote, setAdminNote] = useState('');
@@ -97,7 +69,7 @@ export default function AdminPointsConversionPage() {
     try {
       const result = await adminPointsConversionApiService.getConversionStats();
       if (result.success && result.data) {
-        setStats(result.data);
+        setStats(result.data as ConversionStats);
       } else {
         toast.error("Failed to Load Statistics", {
           description: result.error || "Could not fetch conversion statistics.",
@@ -119,7 +91,7 @@ export default function AdminPointsConversionPage() {
         statusFilter
       );
       if (result.success && result.data) {
-        setConversions(result.data.conversions);
+        setConversions(result.data.conversions as AdminPointsConversion[]);
         setTotal(result.data.total);
         setTotalPages(result.data.totalPages);
       } else {
@@ -169,14 +141,14 @@ export default function AdminPointsConversionPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleApproveConversion = async (conversion: Conversion) => {
+  const handleApproveConversion = async (conversion: AdminPointsConversion) => {
     setSelectedConversion(conversion);
     setActionType('approve');
     setAdminNote('');
     setShowActionModal(true);
   };
 
-  const handleRejectConversion = async (conversion: Conversion) => {
+  const handleRejectConversion = async (conversion: AdminPointsConversion) => {
     setSelectedConversion(conversion);
     setActionType('reject');
     setRejectionReason('');
@@ -274,7 +246,7 @@ export default function AdminPointsConversionPage() {
     }
   };
 
-  const viewConversionDetails = async (conversion: Conversion) => {
+  const viewConversionDetails = async (conversion: AdminPointsConversion) => {
     setSelectedConversion(conversion);
     setShowDetailsModal(true);
   };
@@ -353,7 +325,7 @@ export default function AdminPointsConversionPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{stats.totalConversions}</div>
+              <div className="text-2xl font-bold text-white">{stats.totalConversions || 0}</div>
               <p className="text-blue-300 text-sm">All Time</p>
             </CardContent>
           </Card>
@@ -379,7 +351,7 @@ export default function AdminPointsConversionPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{stats.totalCVCGenerated.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-white">{(stats.totalCVCGenerated || 0).toLocaleString()}</div>
               <p className="text-emerald-300 text-sm">CVC Tokens</p>
             </CardContent>
           </Card>
@@ -392,7 +364,7 @@ export default function AdminPointsConversionPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{stats.totalClaimed.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-white">{(stats.totalClaimed || 0).toLocaleString()}</div>
               <p className="text-green-300 text-sm">Claimed Tokens</p>
             </CardContent>
           </Card>
@@ -405,7 +377,7 @@ export default function AdminPointsConversionPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{stats.totalPending}</div>
+              <div className="text-2xl font-bold text-white">{stats.totalPending || 0}</div>
               <p className="text-amber-300 text-sm">Awaiting Review</p>
             </CardContent>
           </Card>
@@ -507,10 +479,10 @@ export default function AdminPointsConversionPage() {
                         <div>
                           <div className="flex items-center gap-3 mb-1">
                             <button
-                              onClick={() => router.push(`/admin/user-management/${conversion.user.id}`)}
+                              onClick={() => conversion.user && router.push(`/admin/user-management/${conversion.user.id}`)}
                               className="text-white font-medium hover:text-blue-400 hover:underline transition-colors"
                             >
-                              {conversion.user.username}
+                              {conversion.user?.username}
                             </button>
                             <Badge className={`${getStatusColor(conversion.status)} text-xs`}>
                               {conversion.status}
@@ -522,7 +494,7 @@ export default function AdminPointsConversionPage() {
                           <p className="text-slate-500 text-xs">
                             {format(new Date(conversion.createdAt), "MMM dd, yyyy 'at' HH:mm")}
                           </p>
-                          {conversion.user.email && (
+                          {conversion.user?.email && (
                             <p className="text-slate-500 text-xs mt-1">
                               {conversion.user.email}
                             </p>
@@ -658,10 +630,10 @@ export default function AdminPointsConversionPage() {
                           <div>
                             <div className="flex items-center gap-3 mb-1">
                               <button
-                                onClick={() => router.push(`/admin/user-management/${conversion.user.id}`)}
+                                onClick={() => conversion.user && router.push(`/admin/user-management/${conversion.user.id}`)}
                                 className="text-white font-medium hover:text-green-400 hover:underline transition-colors"
                               >
-                                {conversion.user.username}
+                                {conversion.user?.username}
                               </button>
                               <Badge className="bg-green-900/50 text-green-300 text-xs">
                                 Claimed
@@ -670,7 +642,7 @@ export default function AdminPointsConversionPage() {
                             <p className="text-slate-400 text-sm">
                               {conversion.pointsConverted} Points → {conversion.cvcAmount} CVC
                             </p>
-                            {conversion.user.email && (
+                            {conversion.user?.email && (
                               <p className="text-slate-500 text-xs">
                                 {conversion.user.email}
                               </p>
@@ -744,10 +716,10 @@ export default function AdminPointsConversionPage() {
                         className="flex items-center justify-between p-4 bg-slate-900/30 rounded-lg border border-slate-700/50 hover:bg-slate-900/50 transition-colors"
                       >
                         <div className="flex items-center gap-4">
-                          {user.profilePic ? (
+                          {user?.profilePic ? (
                             <Image
                               src={user.profilePic}
-                              alt={user.username}
+                              alt={user.username || 'User'}
                               width={48}
                               height={48}
                               className="rounded-full object-cover"
@@ -760,16 +732,16 @@ export default function AdminPointsConversionPage() {
                           <div>
                             <div className="flex items-center gap-3 mb-1">
                               <button
-                                onClick={() => router.push(`/admin/user-management/${user.id}`)}
+                                onClick={() => user && router.push(`/admin/user-management/${user.id}`)}
                                 className="text-white font-medium hover:text-purple-400 hover:underline transition-colors"
                               >
-                                {user.username}
+                                {user?.username}
                               </button>
                               <Badge className="bg-purple-900/50 text-purple-300 text-xs">
                                 {userConversions.length} {userConversions.length === 1 ? 'Conversion' : 'Conversions'}
                               </Badge>
                             </div>
-                            <p className="text-slate-400 text-sm">{user.email}</p>
+                            <p className="text-slate-400 text-sm">{user?.email}</p>
                             <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
                               <span>{totalPoints} Points</span>
                               <span>→</span>
@@ -821,7 +793,7 @@ export default function AdminPointsConversionPage() {
               <div className="bg-slate-800/50 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-400">User:</span>
-                  <span className="text-white">{selectedConversion.user.username}</span>
+                  <span className="text-white">{selectedConversion?.user?.username || 'Unknown'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Points:</span>
@@ -873,8 +845,8 @@ export default function AdminPointsConversionPage() {
                   onClick={executeAction}
                   disabled={processing || (actionType === 'reject' && !rejectionReason.trim())}
                   className={`flex-1 ${actionType === 'approve'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-red-600 hover:bg-red-700'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-red-600 hover:bg-red-700'
                     } text-white`}
                 >
                   {processing ? (
@@ -911,22 +883,26 @@ export default function AdminPointsConversionPage() {
                         <button
                           onClick={() => {
                             setShowDetailsModal(false);
-                            router.push(`/admin/user-management/${selectedConversion.user.id}`);
+                            if (selectedConversion?.user) {
+                              router.push(`/admin/user-management/${selectedConversion.user.id}`);
+                            }
                           }}
                           className="text-white hover:text-blue-400 hover:underline transition-colors"
                         >
-                          {selectedConversion.user.username}
+                          {selectedConversion?.user?.username || 'Unknown'}
                         </button>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-400">Email:</span>
-                        <span className="text-white text-sm">{selectedConversion.user.email}</span>
+                        <span className="text-white text-sm">{selectedConversion?.user?.email || 'N/A'}</span>
                       </div>
                       <div className="flex justify-end pt-2">
                         <Button
                           onClick={() => {
                             setShowDetailsModal(false);
-                            router.push(`/admin/user-management/${selectedConversion.user.id}`);
+                            if (selectedConversion?.user) {
+                              router.push(`/admin/user-management/${selectedConversion.user.id}`);
+                            }
                           }}
                           size="sm"
                           variant="outline"
