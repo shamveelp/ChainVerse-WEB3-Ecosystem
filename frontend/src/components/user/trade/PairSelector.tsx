@@ -66,24 +66,24 @@ export default function PairSelector({ isOpen, onClose, onSelectToken, currentTo
     try {
       setLoading(true);
       const response = await fetch('/api/dex/pairs');
-      
+
       // Check if response is OK and content-type is JSON
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      
+
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         throw new Error('Response is not JSON');
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         const uniqueTokens = new Map<string, Coin>();
-        
+
         // Add tokens from API
-        data.data.forEach((pair: any) => {
+        data.data.forEach((pair: { token0: Coin; token1: Coin }) => {
           if (!uniqueTokens.has(pair.token0.symbol)) {
             uniqueTokens.set(pair.token0.symbol, {
               name: pair.token0.name,
@@ -115,7 +115,7 @@ export default function PairSelector({ isOpen, onClose, onSelectToken, currentTo
         // Fallback to static coins if API data is not successful
         setCoins(staticCoins);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching coins:', error);
       // Fallback to static coins on error
       setCoins(staticCoins);
@@ -202,7 +202,7 @@ export default function PairSelector({ isOpen, onClose, onSelectToken, currentTo
                   </div>
                 </button>
               ))}
-              
+
               {filteredCoins.length === 0 && (
                 <div className="p-8 text-center text-gray-400">
                   {searchTerm ? 'No tokens found matching your search.' : 'No tokens available.'}

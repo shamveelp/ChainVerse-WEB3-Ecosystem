@@ -14,7 +14,7 @@ import { toast } from "sonner"
 import { communitySocketService } from "@/services/socket/communitySocketService"
 import { userCommunityChatApiService, type CommunityGroupMessage } from "@/services/userCommunityServices/userCommunityChatApiService"
 
-interface Message extends CommunityGroupMessage {}
+interface Message extends CommunityGroupMessage { }
 
 export function CommunityChatsView() {
   const params = useParams()
@@ -75,9 +75,9 @@ export function CommunityChatsView() {
       setHasMore(response.hasMore)
       setNextCursor(response.nextCursor)
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load group messages:', err)
-      const errorMessage = err.message || 'Failed to load messages'
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load messages'
       setError(errorMessage)
       if (reset) {
         toast.error('Failed to load messages', {
@@ -114,10 +114,10 @@ export function CommunityChatsView() {
         }
 
         // Listen for new group messages - avoid duplicate handling
-        const handleNewGroupMessage = (data: any) => {
+        const handleNewGroupMessage = (data: { message: CommunityGroupMessage }) => {
           console.log('New group message received:', data)
           const messageId = data.message._id
-          
+
           // Check if we've already processed this message
           if (messageSentRef.current.has(messageId)) {
             console.log('Message already processed, skipping:', messageId)
@@ -125,7 +125,7 @@ export function CommunityChatsView() {
           }
 
           messageSentRef.current.add(messageId)
-          
+
           setMessages(prev => {
             // Double check to prevent duplicates in state
             const exists = prev.some(msg => msg._id === messageId)
@@ -135,36 +135,36 @@ export function CommunityChatsView() {
             }
             return [...prev, data.message]
           })
-          
+
           scrollToBottom()
         }
 
-        const handleGroupMessageSent = (data: any) => {
+        const handleGroupMessageSent = (data: { message: CommunityGroupMessage }) => {
           console.log('Group message sent confirmation:', data)
           // Don't add to state here as it should already be added by handleNewGroupMessage
           setSending(false)
         }
 
-        const handleGroupMessageEdited = (data: any) => {
+        const handleGroupMessageEdited = (data: { message: CommunityGroupMessage }) => {
           console.log('Group message edited:', data)
           setMessages(prev => prev.map(msg =>
             msg._id === data.message._id ? data.message : msg
           ))
         }
 
-        const handleGroupMessageDeleted = (data: any) => {
+        const handleGroupMessageDeleted = (data: { messageId: string }) => {
           console.log('Group message deleted:', data)
           setMessages(prev => prev.filter(msg => msg._id !== data.messageId))
           messageSentRef.current.delete(data.messageId)
         }
 
-        const handleUserTypingStartGroup = (data: any) => {
+        const handleUserTypingStartGroup = (data: { userId: string; username: string }) => {
           if (data.userId !== currentUser._id) {
             setTypingUsers(prev => new Set([...prev, data.username]))
           }
         }
 
-        const handleUserTypingStopGroup = (data: any) => {
+        const handleUserTypingStopGroup = (data: { userId: string; username: string }) => {
           if (data.userId !== currentUser._id) {
             setTypingUsers(prev => {
               const newSet = new Set(prev)
@@ -174,7 +174,7 @@ export function CommunityChatsView() {
           }
         }
 
-        const handleGroupMessageError = (data: any) => {
+        const handleGroupMessageError = (data: { error: string }) => {
           console.error('Group message error:', data)
           toast.error('Message Error', {
             description: data.error
@@ -200,7 +200,7 @@ export function CommunityChatsView() {
         communitySocketService.onUserTypingStopGroup(handleUserTypingStopGroup)
         communitySocketService.onGroupMessageError(handleGroupMessageError)
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to setup socket:', error)
         socketSetupRef.current = false
       }
@@ -254,10 +254,10 @@ export function CommunityChatsView() {
 
       // Stop typing indicator
       handleStopTyping()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to send message:', error)
       toast.error('Failed to send message', {
-        description: error.message
+        description: error instanceof Error ? error.message : "Unknown error"
       })
       setInputValue(messageContent) // Restore message
       setSending(false)
@@ -397,7 +397,7 @@ export function CommunityChatsView() {
                 messages.map((message) => {
                   // Fix message positioning - current user on right, others on left
                   const isCurrentUser = message.sender._id === currentUser?._id
-                  
+
                   return (
                     <div key={message._id} className={`flex gap-3 ${isCurrentUser ? "justify-end" : "justify-start"}`}>
                       {/* Avatar - Show on left for others, right for current user */}
@@ -426,11 +426,10 @@ export function CommunityChatsView() {
                           )}
                         </div>
                         <div
-                          className={`mt-1 px-3 py-2 rounded-lg break-words ${
-                            isCurrentUser
+                          className={`mt-1 px-3 py-2 rounded-lg break-words ${isCurrentUser
                               ? "bg-cyan-600 text-white rounded-br-none"
                               : "bg-slate-800 text-slate-200 rounded-bl-none"
-                          }`}
+                            }`}
                         >
                           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                         </div>

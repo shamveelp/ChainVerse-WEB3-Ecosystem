@@ -69,8 +69,12 @@ export function CryptoGrid({ searchTerm }: CryptoGridProps) {
         setListedLoading(true)
         const coins = await getUserListedCoins()
         setListedCoins(coins)
-      } catch (err: any) {
-        setListingError(err?.response?.data?.message || "Failed to load listed coins")
+      } catch (err: unknown) {
+        // Safe access to error properties
+        const errorMessage = typeof err === 'object' && err !== null && 'response' in err
+          ? ((err as { response: { data?: { message?: string } } }).response.data?.message || "Failed to load listed coins")
+          : (err instanceof Error ? err.message : "Failed to load listed coins");
+        setListingError(errorMessage);
       } finally {
         setListedLoading(false)
       }

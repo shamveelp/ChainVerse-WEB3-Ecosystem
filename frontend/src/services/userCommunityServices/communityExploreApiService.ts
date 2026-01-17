@@ -12,7 +12,8 @@ import {
   CommunityListResponse,
   CommunityMemberListResponse,
   JoinCommunityResponse,
-  FollowResponse
+  FollowResponse,
+  SocialLink
 } from "@/types/user/community-explore.types";
 
 export type {
@@ -25,7 +26,8 @@ export type {
   CommunityListResponse,
   CommunityMemberListResponse,
   JoinCommunityResponse,
-  FollowResponse
+  FollowResponse,
+  SocialLink
 };
 import { ApiResponse } from "@/types/common.types";
 
@@ -88,7 +90,7 @@ const transformCommunityData = (data: Record<string, unknown>): Community => {
     isMember: Boolean(data.isMember),
     createdAt: (data.createdAt as string) || new Date().toISOString(),
     rules: Array.isArray(data.rules) ? (data.rules as string[]) : [],
-    socialLinks: (data.socialLinks as string[]) || [],
+    socialLinks: Array.isArray(data.socialLinks) ? (data.socialLinks as SocialLink[]) : [],
     settings: {
       allowChainCast: Boolean(settings.allowChainCast),
       allowGroupChat: settings.allowGroupChat !== false,

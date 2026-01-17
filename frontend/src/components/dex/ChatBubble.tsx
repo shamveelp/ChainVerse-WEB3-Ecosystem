@@ -8,10 +8,17 @@ import { getExplorerUrl } from '@/lib/dex/utils';
 import AiTradeApiService from '@/services/ai/AiTradeApiService';
 
 interface ChatBubbleProps {
-  onExecuteSwap?: () => Promise<any>;
-  onSetSwapForm?: (form: any) => void;
-  tokenPrices?: { ethCoinA: string, ethCoinB: string };
-  currentBalances?: { eth: string, coinA: string, coinB: string };
+  onExecuteSwap?: () => Promise<string | null>;
+  onSetSwapForm?: (form: SwapFormState) => void;
+  tokenPrices?: { ethCoinA: string; ethCoinB: string };
+  currentBalances?: { eth: string; coinA: string; coinB: string };
+}
+
+interface SwapFormState {
+  fromToken: string;
+  toToken: string;
+  fromAmount?: string;
+  // Add other properties as needed based on usage
 }
 
 interface Message {
@@ -23,7 +30,7 @@ interface Message {
   actionRequired?: {
     type: 'connect_wallet' | 'approve_token' | 'execute_trade';
     message: string;
-    data?: any;
+    data?: unknown;
   };
 }
 
@@ -224,7 +231,7 @@ Please confirm the details in the swap card. When you are ready, click 'Execute 
     }
   };
 
-  const handleActionRequired = (action: any) => {
+  const handleActionRequired = (action: NonNullable<Message['actionRequired']>) => {
     if (action.type === 'connect_wallet') {
       toast({
         variant: "default",
@@ -285,14 +292,15 @@ Is there anything else I can help you with?`,
         };
         setMessages(prev => [...prev, successMsg]);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Something went wrong.';
       const failMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: `❌ **Trade Failed**
             
-${err.message || 'Something went wrong.'} Please check your balance and try again.`,
+${errorMessage} Please check your balance and try again.`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, failMsg]);

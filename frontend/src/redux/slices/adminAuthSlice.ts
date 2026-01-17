@@ -23,7 +23,7 @@ const adminAuthSlice = createSlice({
   name: 'adminAuth',
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<{ admin: any; token: string }>) => {
+    login: (state, action: PayloadAction<{ admin: NonNullable<AdminAuthState['admin']>; token: string }>) => {
       state.isAuthenticated = true;
       state.admin = action.payload.admin;
       state.token = action.payload.token;

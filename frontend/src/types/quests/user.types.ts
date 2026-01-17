@@ -104,6 +104,25 @@ export interface LeaderboardParticipant {
     rewardClaimed?: boolean;
 }
 
+export interface ParticipationStatus {
+    isParticipating: boolean;
+    status?: string;
+    joinedAt?: Date;
+    completedAt?: Date;
+    totalTasksCompleted?: number;
+    isWinner?: boolean;
+    rewardClaimed?: boolean;
+    rank?: number;
+}
+
+export interface QuestStats {
+    totalParticipants: number;
+    completedParticipants: number;
+    inProgressParticipants: number;
+    winnerCount: number;
+    completionRate: number;
+}
+
 export interface PaginationResponse<T> {
     success: boolean;
     message?: string;

@@ -18,7 +18,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
 import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 import { TaskConfiguration } from '@/components/comms-admin/quests/TaskConfiguration';
-import { AIQuestChat } from '@/components/comms-admin/quests/AIQuestChat';
+import { AIQuestChat, QuestData } from '@/components/comms-admin/quests/AIQuestChat';
 import { QuestAccessGuard } from '@/components/comms-admin/QuestAccessGuard';
 import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
 import { ImageCropper } from "@/components/ui/image-cropper";
@@ -234,30 +234,42 @@ export default function CreateQuestPage() {
     return newErrors;
   };
 
-  const handleAIQuestGenerated = (aiQuestData: CreateQuestData) => {
+  const handleAIQuestGenerated = (aiQuestData: QuestData) => {
     // Process AI data to ensure it matches local state requirements
     const processedData: CreateQuestData = {
-      ...aiQuestData,
-      participantLimit: Number(aiQuestData.participantLimit),
+      title: aiQuestData.title || '',
+      description: aiQuestData.description || '',
+      bannerImage: undefined,
+      startDate: aiQuestData.startDate ? new Date(aiQuestData.startDate) : new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+      endDate: aiQuestData.endDate ? new Date(aiQuestData.endDate) : new Date(Date.now() + 9 * 24 * 60 * 60 * 1000),
+      selectionMethod: aiQuestData.selectionMethod || 'random',
+      participantLimit: Number(aiQuestData.participantLimit) || 10,
       rewardPool: {
-        ...aiQuestData.rewardPool,
-        amount: Number(aiQuestData.rewardPool.amount)
+        amount: Number(aiQuestData.rewardPool?.amount) || 100,
+        currency: aiQuestData.rewardPool?.currency || 'POINTS',
+        rewardType: 'points' // Default for AI generated
       },
-      startDate: new Date(aiQuestData.startDate),
-      endDate: new Date(aiQuestData.endDate),
-      tasks: (aiQuestData.tasks || []).map((task, index) => ({
-        ...task,
-        order: index + 1,
-        isRequired: task.isRequired ?? true,
-        privilegePoints: Number(task.privilegePoints) || 1,
-        config: { ...getDefaultTaskConfig(task.taskType), ...(task.config || {}) }
-      }))
+      tasks: (aiQuestData.tasks || []).map((t, index) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const task = t as any;
+        return {
+          title: task.title || `Task ${index + 1}`,
+          description: task.description || '',
+          taskType: (task.taskType || 'join_community') as TaskType,
+          isRequired: task.isRequired ?? true,
+          order: index + 1,
+          privilegePoints: Number(task.privilegePoints) || 1,
+          config: { ...getDefaultTaskConfig(task.taskType || 'join_community'), ...(task.config || {}) }
+        };
+      }),
+      isAIGenerated: true,
+      aiPrompt: aiQuestData.aiPrompt
     };
 
     setQuestData(processedData);
 
-    if ((aiQuestData as any).bannerFile) {
-      setBannerFile((aiQuestData as any).bannerFile);
+    if (aiQuestData.bannerFile) {
+      setBannerFile(aiQuestData.bannerFile);
     }
 
     setActiveTab("manual");
@@ -387,28 +399,42 @@ export default function CreateQuestPage() {
     event.target.value = '';
   };
 
-  const handleAIQuestSave = async (aiQuestData: CreateQuestData) => {
+  const handleAIQuestSave = async (aiQuestData: QuestData) => {
     // Process data for submission
     const processedData: CreateQuestData = {
-      ...aiQuestData,
-      participantLimit: Number(aiQuestData.participantLimit),
+      title: aiQuestData.title || '',
+      description: aiQuestData.description || '',
+      bannerImage: undefined,
+      startDate: aiQuestData.startDate ? new Date(aiQuestData.startDate) : new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+      endDate: aiQuestData.endDate ? new Date(aiQuestData.endDate) : new Date(Date.now() + 9 * 24 * 60 * 60 * 1000),
+      selectionMethod: aiQuestData.selectionMethod || 'random',
+      participantLimit: Number(aiQuestData.participantLimit) || 10,
       rewardPool: {
-        ...aiQuestData.rewardPool,
-        amount: Number(aiQuestData.rewardPool.amount)
+        amount: Number(aiQuestData.rewardPool?.amount) || 100,
+        currency: aiQuestData.rewardPool?.currency || 'POINTS',
+        rewardType: 'points'
       },
-      startDate: new Date(aiQuestData.startDate),
-      endDate: new Date(aiQuestData.endDate),
-      tasks: (aiQuestData.tasks || []).map((task, index) => ({
-        ...task,
-        order: index + 1,
-        isRequired: task.isRequired ?? true,
-        privilegePoints: Number(task.privilegePoints) || 1,
-        config: { ...getDefaultTaskConfig(task.taskType), ...(task.config || {}) }
-      }))
+      tasks: (aiQuestData.tasks || []).map((t, index) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const task = t as any;
+        return {
+          title: task.title || `Task ${index + 1}`,
+          description: task.description || '',
+          taskType: (task.taskType || 'join_community') as TaskType,
+          isRequired: task.isRequired ?? true,
+          order: index + 1,
+          privilegePoints: Number(task.privilegePoints) || 1,
+          config: { ...getDefaultTaskConfig(task.taskType || 'join_community'), ...(task.config || {}) }
+        };
+      }),
+      isAIGenerated: true,
+      aiPrompt: aiQuestData.aiPrompt
     };
 
-    if ((aiQuestData as any).bannerFile) {
-      setBannerFile((aiQuestData as any).bannerFile);
+    if (aiQuestData.bannerFile) {
+      setBannerFile(aiQuestData.bannerFile);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (processedData as any).bannerFile = aiQuestData.bannerFile;
     }
 
     await submitQuest(processedData);

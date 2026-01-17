@@ -31,10 +31,10 @@ export function ImageCropper({
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [rotation, setRotation] = useState(0)
   const [zoom, setZoom] = useState(1)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<{ x: number; y: number; width: number; height: number } | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const onCropCompleteHandler = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+  const onCropCompleteHandler = useCallback((croppedArea: unknown, croppedAreaPixels: { x: number; y: number; width: number; height: number }) => {
     setCroppedAreaPixels(croppedAreaPixels)
   }, [])
 
@@ -43,13 +43,13 @@ export function ImageCropper({
       setLoading(true)
       const croppedImage = await getCroppedImg(
         imageSrc,
-        croppedAreaPixels,
+        croppedAreaPixels!,
         rotation,
         fileName
       )
       onCropComplete(croppedImage)
       onClose()
-    } catch (e) {
+    } catch (e: unknown) {
       console.error(e)
     } finally {
       setLoading(false)
@@ -103,7 +103,7 @@ export function ImageCropper({
                 </Label>
                 <Slider
                   value={[zoom]}
-                  onValueChange={(value: any) => setZoom(value[0])}
+                  onValueChange={(value: number[]) => setZoom(value[0])}
                   min={1}
                   max={3}
                   step={0.1}
@@ -119,7 +119,7 @@ export function ImageCropper({
                 </Label>
                 <Slider
                   value={[rotation]}
-                  onValueChange={(value: any) => setRotation(value[0])}
+                  onValueChange={(value: number[]) => setRotation(value[0])}
                   min={0}
                   max={360}
                   step={1}

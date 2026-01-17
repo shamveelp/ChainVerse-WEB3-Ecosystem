@@ -66,6 +66,16 @@ interface Subscription {
   updatedAt: Date;
 }
 
+interface LoginPayload {
+  _id: string;
+  name: string;
+  email: string;
+  communityId?: string;
+  isActive: boolean;
+  lastLogin?: Date;
+  token: string;
+}
+
 const initialState: CommunityAdminAuthState = {
   communityAdmin: null,
   token: null,
@@ -83,7 +93,7 @@ export const communityAdminAuthSlice = createSlice({
   name: 'communityAdminAuth',
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<any>) => {
+    login: (state, action: PayloadAction<LoginPayload>) => {
       const payload = action.payload;
       state.communityAdmin = {
         _id: payload._id,

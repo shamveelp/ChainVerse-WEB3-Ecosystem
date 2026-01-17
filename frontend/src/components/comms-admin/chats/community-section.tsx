@@ -13,7 +13,7 @@ import { communityAdminChatApiService, type CommunityMessage } from "@/services/
 import { useCommunityAdminAuth } from "@/hooks/communityAdmin/useAuthCheck"
 import Image from "next/image"
 
-interface Message extends CommunityMessage {}
+interface Message extends CommunityMessage { }
 
 interface MediaViewerProps {
   media: {
@@ -69,7 +69,7 @@ export default function CommunitySection() {
   const [editingContent, setEditingContent] = useState("")
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [uploadingMedia, setUploadingMedia] = useState(false)
-  const [selectedMedia, setSelectedMedia] = useState<any>(null)
+  const [selectedMedia, setSelectedMedia] = useState<{ type: 'image' | 'video'; url: string; filename: string } | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -117,7 +117,7 @@ export default function CommunitySection() {
         setHasMore(response.hasMore || false)
         setNextCursor(response.nextCursor)
         setError(null)
-      } catch (apiError: any) {
+      } catch (apiError: unknown) {
         console.warn('API error, creating mock messages for testing:', apiError)
 
         // For testing: create mock messages
@@ -148,7 +148,7 @@ export default function CommunitySection() {
         setError(null)
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn('Load messages error (non-critical):', err)
       if (componentMountedRef.current && reset) {
         setError(null)
@@ -188,14 +188,16 @@ export default function CommunitySection() {
         console.log('Setting up admin socket for community channel')
 
         // Connect with more lenient token handling
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await communitySocketService.connect(token as any)
         console.log('Admin socket connected successfully for channel')
 
-        const handleNewChannelMessage = (data: any) => {
+        const handleNewChannelMessage = (data: unknown) => {
           console.log('New channel message received:', data)
           if (!componentMountedRef.current) return
 
-          const messageId = data.message._id
+          const payload = data as { message: Message }
+          const messageId = payload.message._id
 
           if (messageSentRef.current.has(messageId)) {
             console.log('Message already processed, skipping:', messageId)
@@ -210,20 +212,21 @@ export default function CommunitySection() {
               console.log('Message already exists in state, skipping:', messageId)
               return prev
             }
-            return [...prev, data.message]
+            return [...prev, payload.message]
           })
         }
 
-        const handleChannelMessageSent = (data: any) => {
+        const handleChannelMessageSent = (data: unknown) => {
           console.log('Channel message sent confirmation:', data)
           setSending(false)
         }
 
-        const handleMessageError = (data: any) => {
+        const handleMessageError = (data: unknown) => {
           console.warn('Message error (non-critical):', data)
           if (!componentMountedRef.current) return
 
-          console.log('Message error details:', data.error)
+          const payload = data as { error: string }
+          console.log('Message error details:', payload.error)
           setSending(false)
         }
 
@@ -237,7 +240,7 @@ export default function CommunitySection() {
         communitySocketService.onChannelMessageSent(handleChannelMessageSent)
         communitySocketService.onMessageError(handleMessageError)
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.warn('Failed to setup admin socket (non-critical):', error)
         socketSetupRef.current = false
       }
@@ -294,7 +297,7 @@ export default function CommunitySection() {
       setUploadingMedia(true)
       const result = await communityAdminChatApiService.uploadChannelMedia(files)
       return result.mediaFiles
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.warn('Media upload failed (using mock):', error)
       // Return mock media files for testing
       return files.map(file => ({
@@ -348,7 +351,7 @@ export default function CommunitySection() {
         setSending(false)
       }, 5000)
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.warn('Failed to send message (non-critical):', error)
       setSending(false)
     }
@@ -364,7 +367,7 @@ export default function CommunitySection() {
       setEditingMessageId(null)
       setEditingContent("")
       toast.success('Message updated successfully')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.warn('Edit failed, updating locally:', error)
       // Update locally for testing
       setMessages(prev => prev.map(msg =>
@@ -384,7 +387,7 @@ export default function CommunitySection() {
       setMessages(prev => prev.filter(msg => msg._id !== messageId))
       messageSentRef.current.delete(messageId)
       toast.success('Message deleted successfully')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.warn('Delete failed, removing locally:', error)
       // Remove locally for testing
       setMessages(prev => prev.filter(msg => msg._id !== messageId))
@@ -406,7 +409,7 @@ export default function CommunitySection() {
       setMessages(prev => prev.map(msg =>
         msg._id === messageId ? { ...msg, isPinned: !isPinned } : msg
       ))
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.warn('Pin/unpin failed, updating locally:', error)
       // Update locally for testing
       setMessages(prev => prev.map(msg =>
@@ -594,8 +597,8 @@ export default function CommunitySection() {
                             {message.mediaFiles && message.mediaFiles.length > 0 && (
                               <div className="grid gap-2 mb-2 w-full" style={{
                                 gridTemplateColumns: message.mediaFiles.length === 1 ? '1fr' :
-                                                   message.mediaFiles.length === 2 ? '1fr 1fr' :
-                                                   'repeat(auto-fit, minmax(150px, 1fr))'
+                                  message.mediaFiles.length === 2 ? '1fr 1fr' :
+                                    'repeat(auto-fit, minmax(150px, 1fr))'
                               }}>
                                 {message.mediaFiles.map((media, index) => (
                                   <div

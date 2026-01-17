@@ -77,11 +77,11 @@ export default function CommunitySettingsPage() {
         setLoading(true)
         const response = await communityAdminApiService.getCommunityDetails()
 
-        if (!response.success || !(response.data as any)?.community) {
+        if (!response.success || !response.data?.community) {
           throw new Error(response.error || "Failed to fetch community details")
         }
 
-        const data: CommunityDetails = (response.data as any).community as CommunityDetails
+        const data: CommunityDetails = response.data.community
 
         // Add cache-busting to prevent browser caching of images
         const cacheBuster = `?t=${Date.now()}`
@@ -109,10 +109,11 @@ export default function CommunitySettingsPage() {
         })
         setLogoPreview(logoUrl)
         setBannerPreview(bannerUrl)
-      } catch (error: any) {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "An unexpected error occurred"
         console.error("Failed to load community details:", error)
         toast.error("Unable to load community settings", {
-          description: error.message || "Please try again later",
+          description: message,
         })
       } finally {
         setLoading(false)
@@ -321,11 +322,11 @@ export default function CommunitySettingsPage() {
 
       const response = await communityAdminApiService.updateCommunity(formData)
 
-      if (!response.success || !(response.data as any)?.community) {
+      if (!response.success || !response.data?.community) {
         throw new Error(response.error || "Failed to update community settings")
       }
 
-      const updatedCommunity: CommunityDetails = (response.data as any).community as CommunityDetails
+      const updatedCommunity: CommunityDetails = response.data.community
 
       // Clean up any existing blob URLs before setting new ones
       if (logoPreview && logoPreview.startsWith('blob:')) {
@@ -366,10 +367,11 @@ export default function CommunitySettingsPage() {
       setBannerFile(null)
 
       toast.success("Community settings updated successfully")
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "An unexpected error occurred"
       console.error("Failed to update community:", error)
       toast.error("Update failed", {
-        description: error.message || "Please try again later",
+        description: message,
       })
     } finally {
       setSaving(false)

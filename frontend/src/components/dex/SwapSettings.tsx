@@ -3,14 +3,18 @@
 import { useState } from 'react';
 import { X, TriangleAlert as AlertTriangle, Zap, Clock, Settings } from 'lucide-react';
 
+interface SwapSettingsState {
+  slippage: string;
+  deadline: string;
+  expertMode: boolean;
+  gasPrice: string;
+}
+
+
+
 interface SwapSettingsProps {
-  settings: {
-    slippage: string;
-    deadline: string;
-    expertMode: boolean;
-    gasPrice: string;
-  };
-  onSettingsChange: (settings: any) => void;
+  settings: SwapSettingsState;
+  onSettingsChange: (settings: SwapSettingsState) => void;
   onClose: () => void;
 }
 
@@ -55,23 +59,22 @@ export default function SwapSettings({ settings, onSettingsChange, onClose }: Sw
               <AlertTriangle className="h-4 w-4 text-amber-400" />
               <label className="text-sm font-bold text-white">Slippage Tolerance</label>
             </div>
-            
+
             <div className="flex flex-wrap gap-2 mb-3">
               {slippagePresets.map((preset) => (
                 <button
                   key={preset}
                   onClick={() => setLocalSettings(prev => ({ ...prev, slippage: preset }))}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    localSettings.slippage === preset
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
-                      : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-white border border-slate-700/50'
-                  }`}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${localSettings.slippage === preset
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
+                    : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-white border border-slate-700/50'
+                    }`}
                 >
                   {preset}%
                 </button>
               ))}
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <input
                 type="number"
@@ -84,7 +87,7 @@ export default function SwapSettings({ settings, onSettingsChange, onClose }: Sw
               />
               <span className="text-slate-400 text-sm">%</span>
             </div>
-            
+
             {parseFloat(localSettings.slippage) > 5 && (
               <p className="text-amber-400 text-xs mt-2 flex items-center bg-amber-400/10 rounded-lg p-2 border border-amber-400/20">
                 <AlertTriangle className="h-3 w-3 mr-1" />
@@ -99,7 +102,7 @@ export default function SwapSettings({ settings, onSettingsChange, onClose }: Sw
               <Clock className="h-4 w-4 text-blue-400" />
               <label className="text-sm font-bold text-white">Transaction Deadline</label>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <input
                 type="number"
@@ -119,17 +122,16 @@ export default function SwapSettings({ settings, onSettingsChange, onClose }: Sw
               <Zap className="h-4 w-4 text-yellow-400" />
               <label className="text-sm font-bold text-white">Gas Price</label>
             </div>
-            
+
             <div className="grid grid-cols-3 gap-2">
               {gasPresets.map((preset) => (
                 <button
                   key={preset.value}
                   onClick={() => setLocalSettings(prev => ({ ...prev, gasPrice: preset.value }))}
-                  className={`p-3 rounded-lg border text-center transition-all duration-200 ${
-                    localSettings.gasPrice === preset.value
-                      ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
-                      : 'bg-slate-800/30 border-slate-700/50 text-slate-300 hover:border-slate-600/50 hover:bg-slate-700/30'
-                  }`}
+                  className={`p-3 rounded-lg border text-center transition-all duration-200 ${localSettings.gasPrice === preset.value
+                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
+                    : 'bg-slate-800/30 border-slate-700/50 text-slate-300 hover:border-slate-600/50 hover:bg-slate-700/30'
+                    }`}
                 >
                   <div className="text-lg mb-1">{preset.icon}</div>
                   <div className="font-medium text-xs">{preset.label}</div>
@@ -151,7 +153,7 @@ export default function SwapSettings({ settings, onSettingsChange, onClose }: Sw
                   Allows high slippage trades. Use at your own risk.
                 </p>
               </div>
-              
+
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"

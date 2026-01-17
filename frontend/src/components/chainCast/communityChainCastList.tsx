@@ -61,9 +61,9 @@ export default function CommunityChainCastList({
 
       setChainCasts(response.chainCasts)
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load community ChainCasts:', err)
-      setError(err.message || 'Failed to load ChainCasts')
+      setError(err instanceof Error ? err.message : 'Failed to load ChainCasts')
     } finally {
       setLoading(false)
     }
@@ -187,14 +187,13 @@ export default function CommunityChainCastList({
             ].map((tab) => (
               <Button
                 key={tab.id}
-                onClick={() => setFilter(tab.id as any)}
+                onClick={() => setFilter(tab.id as 'all' | 'live' | 'scheduled')}
                 variant={filter === tab.id ? "secondary" : "ghost"}
                 size="sm"
-                className={`flex-1 text-xs ${
-                  filter === tab.id
+                className={`flex-1 text-xs ${filter === tab.id
                     ? "bg-slate-700 text-white"
                     : "text-slate-400 hover:text-white"
-                }`}
+                  }`}
               >
                 {tab.label}
               </Button>
@@ -209,9 +208,8 @@ export default function CommunityChainCastList({
             {chainCasts.map((chainCast, index) => (
               <div
                 key={chainCast._id}
-                className={`p-4 hover:bg-slate-800/30 transition-colors cursor-pointer ${
-                  index !== chainCasts.length - 1 ? 'border-b border-slate-800/50' : ''
-                }`}
+                className={`p-4 hover:bg-slate-800/30 transition-colors cursor-pointer ${index !== chainCasts.length - 1 ? 'border-b border-slate-800/50' : ''
+                  }`}
                 onClick={() => handleChainCastClick(chainCast)}
               >
                 <div className="flex items-start gap-3">

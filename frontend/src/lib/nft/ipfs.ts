@@ -11,6 +11,8 @@ export interface NFTMetadata {
     trait_type: string;
     value: string | number;
   }>;
+  created_at?: string;
+  creator?: string;
 }
 
 export const fetchMetadata = async (tokenURI: string): Promise<NFTMetadata> => {

@@ -38,8 +38,9 @@ export default function NFTSection() {
       )
 
       // Cards Animation
-      gsap.utils.toArray(".nft-card").forEach((card: any, i) => {
-        gsap.fromTo(card,
+      const cards = gsap.utils.toArray(".nft-card");
+      cards.forEach((card: unknown, i) => {
+        gsap.fromTo(card as HTMLElement,
           { y: 100, opacity: 0, rotateY: 15 },
           {
             y: 0,
@@ -48,7 +49,7 @@ export default function NFTSection() {
             duration: 0.8,
             delay: i * 0.1,
             scrollTrigger: {
-              trigger: card,
+              trigger: card as HTMLElement,
               start: "top 90%",
             }
           }

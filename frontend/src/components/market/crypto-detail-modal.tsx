@@ -63,7 +63,12 @@ export function CryptoDetailModal({ crypto, open, onOpenChange }: CryptoDetailMo
           </div>
 
           {/* Interactive Chart */}
-          <CryptoChart {...({ symbol: crypto.symbol, name: crypto.name } as any)} />
+          <CryptoChart
+            data={[]}
+            loading={true}
+            symbol={crypto.symbol}
+            timeframe="24H"
+          />
         </div>
       </DialogContent>
     </Dialog>

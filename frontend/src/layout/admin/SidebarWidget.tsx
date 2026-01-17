@@ -57,7 +57,7 @@ export default function SidebarWidget() {
         const allChains = chainsRes.data;
         // Filter for popular chains to keep the list manageable and relevant
         const popularChainIds = [1, 56, 137, 42161, 10, 8453]; // ETH, BSC, Polygon, Arb, OP, Base
-        const filteredChains = allChains.filter((c: any) => popularChainIds.includes(c.chainId));
+        const filteredChains = allChains.filter((c: chainData) => popularChainIds.includes(c.chainId));
         setSupportedNetworks(filteredChains);
 
         // Fetch Top Coins (Public API - CoinGecko)
@@ -67,7 +67,7 @@ export default function SidebarWidget() {
           "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false"
         );
         setAvailableCoins(coinsRes.data);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Failed to fetch config data", error);
         // Fallback or silence error
       } finally {
@@ -138,7 +138,7 @@ export default function SidebarWidget() {
           toast.error("Transaction failed or rejected");
         }
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error("Failed to initiate transaction");
     }

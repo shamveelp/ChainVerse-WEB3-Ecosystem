@@ -107,7 +107,7 @@ export function MintNFTModal({ open, onOpenChange }: MintNFTModalProps) {
       toast.info('Creating metadata...', { duration: 2000 });
 
       // Create metadata
-      const metadata: any = {
+      const metadata: NFTMetadata = {
         name: formData.name,
         description: formData.description,
         image: imageUrl,
@@ -130,7 +130,7 @@ export function MintNFTModal({ open, onOpenChange }: MintNFTModalProps) {
       onOpenChange(false);
       resetForm();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error minting NFT:', error);
       // Don't show another toast here as mintAndListNFT already handles it
     } finally {

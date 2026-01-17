@@ -95,7 +95,7 @@ export default function CreateCommunityAdminPost({ onPostCreated, onCancel }: Cr
       } else {
         toast.error(response.error || "Failed to create post");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating post:", error);
       toast.error("Failed to create post");
     } finally {

@@ -124,9 +124,10 @@ export default function ProfilePage() {
       await relistNFT(relistModal.nft.tokenId, price);
       toast.success('NFT relisted successfully!');
       await loadMyNFTs(); // Reload to reflect changes
-    } catch (error: any) {
+      await loadMyNFTs(); // Reload to reflect changes
+    } catch (error: unknown) {
       console.error('Error relisting NFT:', error);
-      toast.error(error.message || 'Failed to relist NFT');
+      toast.error(error instanceof Error ? error.message : 'Failed to relist NFT');
       throw error; // Re-throw to prevent modal from closing
     }
   };
@@ -136,9 +137,10 @@ export default function ProfilePage() {
       await cancelListing(nft.tokenId);
       toast.success('Listing cancelled successfully!');
       await loadMyNFTs(); // Reload to reflect changes
-    } catch (error: any) {
+      await loadMyNFTs(); // Reload to reflect changes
+    } catch (error: unknown) {
       console.error('Error cancelling listing:', error);
-      toast.error(error.message || 'Failed to cancel listing');
+      toast.error(error instanceof Error ? error.message : 'Failed to cancel listing');
     }
   };
 

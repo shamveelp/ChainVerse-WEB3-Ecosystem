@@ -85,13 +85,13 @@ export default function PostCard({
       setLikesCount(response.likesCount)
 
       onLikeToggle?.(post._id, response.isLiked, response.likesCount)
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Revert optimistic update on error
       setIsLiked(isLiked)
       setLikesCount(likesCount)
 
       toast.error('Failed to update like', {
-        description: error.message || 'Please try again'
+        description: error instanceof Error ? error.message : 'Please try again'
       })
     } finally {
       setIsLiking(false)
@@ -121,9 +121,9 @@ export default function PostCard({
       }
 
       setSharesCount(response.sharesCount)
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to share post', {
-        description: error.message || 'Please try again'
+        description: error instanceof Error ? error.message : 'Please try again'
       })
     }
   }
@@ -149,9 +149,9 @@ export default function PostCard({
       onPostUpdate?.(response.data)
       setShowEditDialog(false)
       toast.success('Post updated successfully!')
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to update post', {
-        description: error.message || 'Please try again'
+        description: error instanceof Error ? error.message : 'Please try again'
       })
     } finally {
       setIsUpdating(false)
@@ -165,9 +165,9 @@ export default function PostCard({
       onPostDelete?.(post._id)
       setShowDeleteDialog(false)
       toast.success('Post deleted successfully!')
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to delete post', {
-        description: error.message || 'Please try again'
+        description: error instanceof Error ? error.message : 'Please try again'
       })
     } finally {
       setIsDeleting(false)

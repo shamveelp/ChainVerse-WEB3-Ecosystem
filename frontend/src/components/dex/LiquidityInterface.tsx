@@ -133,9 +133,9 @@ export default function LiquidityInterface() {
         coinAAmount: '',
         coinBAmount: ''
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Add liquidity failed:', error);
-      const errorMessage = error.reason || error.message || 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : (typeof error === 'object' && error !== null && 'reason' in error ? (error as { reason: string }).reason : 'Unknown error');
       setError(`Add liquidity failed: ${errorMessage}`);
       toast({
         variant: "destructive",

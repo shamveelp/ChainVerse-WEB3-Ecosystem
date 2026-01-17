@@ -39,20 +39,48 @@ export interface CheckInStatus {
   nextCheckInAvailable: Date | null;
 }
 
+export interface ReferralHistoryItem {
+  _id: string;
+  referredUser: {
+    _id: string;
+    username: string;
+    profilePic: string;
+    createdAt: string;
+  };
+  status: 'pending' | 'completed';
+  pointsEarned: number;
+  createdAt: string;
+}
+
+export interface PointsHistoryItem {
+  _id: string;
+  amount: number;
+  type: 'earn' | 'spend';
+  source: string;
+  description?: string;
+  createdAt: string;
+}
+
+export interface PointsSummary {
+  totalEarned: number;
+  totalSpent: number;
+  currentBalance: number;
+}
+
 interface UserProfileState {
   profile: UserProfile | null;
   loading: boolean;
   error: string | null;
-  
+
   // Referral data
   referralStats: ReferralStats | null;
-  referralHistory: any[];
+  referralHistory: ReferralHistoryItem[];
   referralLoading: boolean;
-  
+
   // Points data
   checkInStatus: CheckInStatus | null;
-  pointsHistory: any[];
-  pointsSummary: any;
+  pointsHistory: PointsHistoryItem[];
+  pointsSummary: PointsSummary | null;
   pointsLoading: boolean;
 }
 
@@ -60,12 +88,12 @@ const initialState: UserProfileState = {
   profile: null,
   loading: false,
   error: null,
-  
+
   // Referral
   referralStats: null,
   referralHistory: [],
   referralLoading: false,
-  
+
   // Points
   checkInStatus: null,
   pointsHistory: [],
@@ -97,7 +125,7 @@ export const userProfileSlice = createSlice({
         state.profile = { ...state.profile, ...action.payload };
       }
     },
-    
+
     // Referral actions
     setReferralLoading: (state, action: PayloadAction<boolean>) => {
       state.referralLoading = action.payload;
@@ -105,13 +133,13 @@ export const userProfileSlice = createSlice({
     setReferralStats: (state, action: PayloadAction<ReferralStats>) => {
       state.referralStats = action.payload;
     },
-    setReferralHistory: (state, action: PayloadAction<any[]>) => {
+    setReferralHistory: (state, action: PayloadAction<ReferralHistoryItem[]>) => {
       state.referralHistory = action.payload;
     },
-    appendReferralHistory: (state, action: PayloadAction<any[]>) => {
+    appendReferralHistory: (state, action: PayloadAction<ReferralHistoryItem[]>) => {
       state.referralHistory.push(...action.payload);
     },
-    
+
     // Points actions
     setPointsLoading: (state, action: PayloadAction<boolean>) => {
       state.pointsLoading = action.payload;
@@ -119,13 +147,13 @@ export const userProfileSlice = createSlice({
     setCheckInStatus: (state, action: PayloadAction<CheckInStatus>) => {
       state.checkInStatus = action.payload;
     },
-    setPointsHistory: (state, action: PayloadAction<any[]>) => {
+    setPointsHistory: (state, action: PayloadAction<PointsHistoryItem[]>) => {
       state.pointsHistory = action.payload;
     },
-    appendPointsHistory: (state, action: PayloadAction<any[]>) => {
+    appendPointsHistory: (state, action: PayloadAction<PointsHistoryItem[]>) => {
       state.pointsHistory.push(...action.payload);
     },
-    setPointsSummary: (state, action: PayloadAction<any>) => {
+    setPointsSummary: (state, action: PayloadAction<PointsSummary>) => {
       state.pointsSummary = action.payload;
     },
     updateTotalPoints: (state, action: PayloadAction<number>) => {
@@ -138,7 +166,7 @@ export const userProfileSlice = createSlice({
         state.profile.dailyCheckin.streak = action.payload;
       }
     },
-    
+
     // Clear all data
     clearProfileData: (state) => {
       state.profile = null;
@@ -152,11 +180,11 @@ export const userProfileSlice = createSlice({
   },
 });
 
-export const { 
-  setLoading, 
-  setProfile, 
-  setError, 
-  clearError, 
+export const {
+  setLoading,
+  setProfile,
+  setError,
+  clearError,
   updateProfile,
   setReferralLoading,
   setReferralStats,

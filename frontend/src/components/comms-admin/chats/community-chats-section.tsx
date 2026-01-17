@@ -10,7 +10,7 @@ import { communitySocketService } from "@/services/socket/communitySocketService
 import { communityAdminChatApiService, type CommunityGroupMessage } from "@/services/communityAdmin/communityAdminChatApiService"
 import { useCommunityAdminAuth } from "@/hooks/communityAdmin/useAuthCheck"
 
-interface Message extends CommunityGroupMessage {}
+interface Message extends CommunityGroupMessage { }
 
 export default function CommunityChatsSection() {
   const { isReady, isAuthenticated, admin: currentAdmin, token, loading: authLoading } = useCommunityAdminAuth()
@@ -69,7 +69,7 @@ export default function CommunityChatsSection() {
         setHasMore(response.hasMore || false)
         setNextCursor(response.nextCursor)
         setError(null)
-      } catch (apiError: any) {
+      } catch (apiError: unknown) {
         console.warn('API error, creating mock messages for testing:', apiError)
 
         // For testing: create mock messages if no real messages
@@ -97,7 +97,7 @@ export default function CommunityChatsSection() {
         setError(null)
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn('Load group messages error (non-critical):', err)
       if (componentMountedRef.current && reset) {
         setError(null)
@@ -136,14 +136,16 @@ export default function CommunityChatsSection() {
         socketSetupRef.current = true
         console.log('Setting up admin socket for group chat')
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await communitySocketService.connect(token as any)
         console.log('Admin socket connected for group chat')
 
-        const handleNewGroupMessage = (data: any) => {
+        const handleNewGroupMessage = (data: unknown) => {
           console.log('New group message received:', data)
           if (!componentMountedRef.current) return
 
-          const messageId = data.message._id
+          const payload = data as { message: Message }
+          const messageId = payload.message._id
 
           if (messageSentRef.current.has(messageId)) {
             console.log('Message already processed, skipping:', messageId)
@@ -158,54 +160,59 @@ export default function CommunityChatsSection() {
               console.log('Message already exists in state, skipping:', messageId)
               return prev
             }
-            return [...prev, data.message]
+            return [...prev, payload.message]
           })
           scrollToBottom()
         }
 
-        const handleGroupMessageSent = (data: any) => {
+        const handleGroupMessageSent = (data: unknown) => {
           console.log('Group message sent confirmation:', data)
           setSending(false)
         }
 
-        const handleGroupMessageEdited = (data: any) => {
+        const handleGroupMessageEdited = (data: unknown) => {
           console.log('Group message edited:', data)
           if (!componentMountedRef.current) return
 
+          const payload = data as { message: Message }
           setMessages(prev => prev.map(msg =>
-            msg._id === data.message._id ? data.message : msg
+            msg._id === payload.message._id ? payload.message : msg
           ))
         }
 
-        const handleGroupMessageDeleted = (data: any) => {
+        const handleGroupMessageDeleted = (data: unknown) => {
           console.log('Group message deleted:', data)
           if (!componentMountedRef.current) return
 
-          setMessages(prev => prev.filter(msg => msg._id !== data.messageId))
-          messageSentRef.current.delete(data.messageId)
+          const payload = data as { messageId: string }
+          setMessages(prev => prev.filter(msg => msg._id !== payload.messageId))
+          messageSentRef.current.delete(payload.messageId)
         }
 
-        const handleUserTypingStartGroup = (data: any) => {
-          if (data.userId !== currentAdmin?._id && componentMountedRef.current) {
-            setTypingUsers(prev => new Set([...prev, data.username]))
+        const handleUserTypingStartGroup = (data: unknown) => {
+          const payload = data as { userId: string; username: string }
+          if (payload.userId !== currentAdmin?._id && componentMountedRef.current) {
+            setTypingUsers(prev => new Set([...prev, payload.username]))
           }
         }
 
-        const handleUserTypingStopGroup = (data: any) => {
-          if (data.userId !== currentAdmin?._id && componentMountedRef.current) {
+        const handleUserTypingStopGroup = (data: unknown) => {
+          const payload = data as { userId: string; username: string }
+          if (payload.userId !== currentAdmin?._id && componentMountedRef.current) {
             setTypingUsers(prev => {
               const newSet = new Set(prev)
-              newSet.delete(data.username)
+              newSet.delete(payload.username)
               return newSet
             })
           }
         }
 
-        const handleGroupMessageError = (data: any) => {
+        const handleGroupMessageError = (data: unknown) => {
           console.warn('Group message error (non-critical):', data)
           if (!componentMountedRef.current) return
 
-          console.log('Group message error details:', data.error)
+          const payload = data as { error: string }
+          console.log('Group message error details:', payload.error)
           setSending(false)
         }
 
@@ -227,7 +234,7 @@ export default function CommunityChatsSection() {
         communitySocketService.onUserTypingStopGroup(handleUserTypingStopGroup)
         communitySocketService.onGroupMessageError(handleGroupMessageError)
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.warn('Failed to setup admin socket for group chat (non-critical):', error)
         socketSetupRef.current = false
       }
@@ -284,7 +291,7 @@ export default function CommunityChatsSection() {
         setSending(false)
       }, 5000)
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.warn('Failed to send message (non-critical):', error)
       setSending(false)
     }
@@ -345,7 +352,7 @@ export default function CommunityChatsSection() {
         communitySocketService.adminDeleteGroupMessage(messageId, currentAdmin.communityId)
       }
       toast.success('Message deleted successfully')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.warn('Delete failed, removing locally:', error)
       // Remove locally for testing
       setMessages(prev => prev.filter(msg => msg._id !== messageId))
@@ -451,11 +458,10 @@ export default function CommunityChatsSection() {
                           </div>
                         </div>
                         <div
-                          className={`mt-1 px-3 py-2 rounded-lg break-words ${
-                            isCurrentAdmin
-                              ? "bg-cyan-600 text-white rounded-br-none"
-                              : "bg-slate-800 text-slate-200 rounded-bl-none"
-                          }`}
+                          className={`mt-1 px-3 py-2 rounded-lg break-words ${isCurrentAdmin
+                            ? "bg-cyan-600 text-white rounded-br-none"
+                            : "bg-slate-800 text-slate-200 rounded-bl-none"
+                            }`}
                         >
                           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                         </div>

@@ -10,6 +10,18 @@ interface TradingChartProps {
   toToken?: string;
 }
 
+// Define types for chart data
+interface ChartDataPoint {
+  timestamp: number;
+  price?: number;
+  close?: number;
+  volume: number;
+  high?: number;
+  low?: number;
+  open?: number;
+  date?: string;
+}
+
 // Sample trading data as fallback
 const generateFallbackData = () => {
   const data = [];
@@ -62,12 +74,12 @@ export default function TradingChart({ fromToken = 'ETH', toToken = 'CoinA' }: T
       const response = await fetch(
         `${API_BASE_URL}/user/dex/chart?baseToken=${baseToken}&quoteToken=${quoteToken}&timeframe=${timeframe}&limit=100`
       );
-      
+
       const result = await response.json();
 
       if (result.success && result.data?.data?.length > 0) {
         // Transform API data to match chart format
-        const transformedData = result.data.data.map((item: any) => ({
+        const transformedData = result.data.data.map((item: ChartDataPoint) => ({
           date: new Date(item.timestamp).toLocaleDateString(),
           timestamp: item.timestamp,
           price: item.price || item.close || 0,
@@ -103,7 +115,7 @@ export default function TradingChart({ fromToken = 'ETH', toToken = 'CoinA' }: T
   const priceChange = currentPrice - previousPrice;
   const priceChangePercent = previousPrice > 0 ? (priceChange / previousPrice) * 100 : 0;
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl">
@@ -155,21 +167,19 @@ export default function TradingChart({ fromToken = 'ETH', toToken = 'CoinA' }: T
           <div className="flex bg-slate-800/50 rounded-xl p-1 mr-2 border border-slate-700/50">
             <button
               onClick={() => setChartType('area')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                chartType === 'area'
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${chartType === 'area'
                   ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
                   : 'text-slate-400 hover:text-white'
-              }`}
+                }`}
             >
               Area
             </button>
             <button
               onClick={() => setChartType('line')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                chartType === 'line'
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${chartType === 'line'
                   ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
                   : 'text-slate-400 hover:text-white'
-              }`}
+                }`}
             >
               Line
             </button>
@@ -181,11 +191,10 @@ export default function TradingChart({ fromToken = 'ETH', toToken = 'CoinA' }: T
               <button
                 key={timeframe.value}
                 onClick={() => setSelectedTimeframe(timeframe.value)}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                  selectedTimeframe === timeframe.value
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${selectedTimeframe === timeframe.value
                     ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
                     : 'text-slate-400 hover:text-white'
-                }`}
+                  }`}
               >
                 {timeframe.label}
               </button>
@@ -215,8 +224,8 @@ export default function TradingChart({ fromToken = 'ETH', toToken = 'CoinA' }: T
               <AreaChart data={priceData}>
                 <defs>
                   <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" opacity={0.3} />

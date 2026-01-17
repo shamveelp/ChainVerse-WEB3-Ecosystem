@@ -45,14 +45,31 @@ interface Message {
     type: 'community' | 'user' | 'token' | 'nft' | 'banner';
     field: string;
     prompt: string;
-    options?: any[];
+    options?: string[];
   }[];
-  questPreview?: any;
+  questPreview?: QuestData;
+}
+
+export interface QuestData {
+  title?: string;
+  description?: string;
+  participantLimit?: number;
+  rewardPool?: {
+    amount: number;
+    currency: string;
+  };
+  tasks?: unknown[];
+  bannerFile?: File;
+  startDate?: string | Date;
+  endDate?: string | Date;
+  selectionMethod?: 'fcfs' | 'random' | 'leaderboard';
+  isAIGenerated?: boolean;
+  aiPrompt?: string;
 }
 
 interface AIQuestChatProps {
-  onQuestGenerated: (questData: any) => void;
-  onSaveAndCreate?: (questData: any) => Promise<void>;
+  onQuestGenerated: (questData: QuestData) => void;
+  onSaveAndCreate?: (questData: QuestData) => Promise<void>;
   onClose?: () => void;
 }
 
@@ -67,10 +84,16 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
   const [currentMessage, setCurrentMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [questGenerated, setQuestGenerated] = useState(false);
-  const [generatedQuest, setGeneratedQuest] = useState<any>(null);
+  const [generatedQuest, setGeneratedQuest] = useState<QuestData | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [awaitingInput, setAwaitingInput] = useState<any>(null);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [awaitingInput, setAwaitingInput] = useState<{
+    type: string;
+    field: string;
+    label?: string;
+    fieldType?: string;
+    prompt: string;
+  } | null>(null);
+  const [searchResults, setSearchResults] = useState<unknown[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showManipulateOptions, setShowManipulateOptions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -141,7 +164,7 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
       setCurrentMessage('');
 
       // Update local state
-      let updatedValue: any = message;
+      let updatedValue: string | number = message;
       if (awaitingInput.fieldType === 'number') {
         updatedValue = parseFloat(message) || 0;
       }
@@ -202,22 +225,25 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
       } else {
         throw new Error(response.error || 'Failed to get AI response');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Check if it's a limit exceeded error
-      const errorMsg = error.message?.toLowerCase() || '';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorMsg = (error instanceof Error ? error.message : (error as any)?.response?.data?.message || String(error)).toLowerCase();
+
       const isLimitExceeded =
         errorMsg.includes('limit') ||
         errorMsg.includes('quota') ||
         errorMsg.includes('rate') ||
         errorMsg.includes('exceeded') ||
-        error.response?.status === 429;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (error as any)?.response?.status === 429;
 
       let errorContent = '';
 
       if (isLimitExceeded) {
         errorContent = `⚠️ **AI Quest Limit Exceeded**\n\nYou've reached your AI quest generation limit for now. Here are your options:\n\n• **Switch to Manual Mode**: Click the "Manual Creation" tab to create your quest manually\n• **Edit Existing Quest**: If a quest was already generated, you can edit it using the "Manipulate / Edit" button\n• **Try Again Later**: Your AI limit will reset soon\n\nWould you like to switch to manual creation?`;
       } else {
-        errorContent = `Error: ${error.message}. Please try again or rephrase your request.`;
+        errorContent = `Error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or rephrase your request.`;
       }
 
       const errorMessage: Message = {
@@ -244,15 +270,16 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
     handleSendMessage(template.prompt);
   };
 
-  const handleInputResponse = async (value: any) => {
+  const handleInputResponse = async (value: unknown) => {
     if (!awaitingInput) return;
 
-    let displayValue = value;
+    let displayValue: string | number | undefined = String(value);
     let internalId = '';
 
-    if (typeof value === 'object') {
-      displayValue = value.name || value.username || value.symbol || value.communityName;
-      internalId = value._id || value.id;
+    if (typeof value === 'object' && value !== null) {
+      const item = value as { name?: string; username?: string; symbol?: string; communityName?: string; _id?: string; id?: string };
+      displayValue = item.name || item.username || item.symbol || item.communityName;
+      internalId = item._id || item.id || '';
     }
 
     const responseMessage = `Selected ${awaitingInput.type}: ${displayValue} (ID: ${internalId})`;
@@ -331,7 +358,7 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
       if (response?.success && response.data) {
         setSearchResults(response.data);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Search error:', error);
     }
   };
@@ -347,7 +374,7 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
         : generatedQuest;
 
       await onSaveAndCreate(questWithBanner);
-    } catch (error) {
+    } catch (error: unknown) {
       // Error handling is likely done in the parent or should be shown here
     } finally {
       setIsLoading(false);
@@ -408,35 +435,38 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
                       <CommandList>
                         <CommandEmpty>No results found.</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-y-auto">
-                          {searchResults.map((item: any) => (
-                            <CommandItem
-                              key={item._id}
-                              value={item._id}
-                              onSelect={() => {
-                                handleInputResponse(item);
-                                setSearchOpen(false);
-                              }}
-                              className="text-white hover:bg-gray-700 cursor-pointer"
-                            >
-                              <div className="flex items-center gap-2 pointer-events-none">
-                                {(item.logo || item.profilePic) && (
-                                  <Image
-                                    src={item.logo || item.profilePic}
-                                    alt=""
-                                    className="w-6 h-6 rounded-full"
-                                  />
-                                )}
-                                <div>
-                                  <p className="font-medium">
-                                    {item.communityName || item.name || item.username}
-                                  </p>
-                                  <p className="text-xs text-gray-400">
-                                    @{item.username}
-                                  </p>
+                          {searchResults.map((item: unknown) => {
+                            const result = item as { _id: string; name?: string; username?: string; communityName?: string; logo?: string; profilePic?: string };
+                            return (
+                              <CommandItem
+                                key={result._id}
+                                value={result._id}
+                                onSelect={() => {
+                                  handleInputResponse(result);
+                                  setSearchOpen(false);
+                                }}
+                                className="text-white hover:bg-gray-700 cursor-pointer"
+                              >
+                                <div className="flex items-center gap-2 pointer-events-none">
+                                  {(result.logo || result.profilePic) && (
+                                    <Image
+                                      src={(result.logo || result.profilePic) || ''}
+                                      alt=""
+                                      className="w-6 h-6 rounded-full"
+                                    />
+                                  )}
+                                  <div>
+                                    <p className="font-medium">
+                                      {result.communityName || result.name || result.username}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                      @{result.username}
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
-                            </CommandItem>
-                          ))}
+                              </CommandItem>
+                            )
+                          })}
                         </CommandGroup>
                       </CommandList>
                     </Command>

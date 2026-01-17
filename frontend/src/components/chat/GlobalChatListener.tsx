@@ -46,8 +46,8 @@ export function GlobalChatListener() {
         }
 
         // Handle new message event (if user is in the conversation room)
-        const handleNewMessage = (data: any) => {
-            const { message, conversation } = data
+        const handleNewMessage = (data: unknown) => {
+            const { message } = data as { message: { _id: string; sender: { _id: string; username: string; name?: string }; content: string } }
 
             if (isMessageProcessed(message._id)) return
 
@@ -72,8 +72,8 @@ export function GlobalChatListener() {
 
         // Handle conversation updated event (if user is NOT in the conversation room but online)
         // This is broadcast to the user's personal room
-        const handleConversationUpdated = (data: any) => {
-            const { conversation } = data
+        const handleConversationUpdated = (data: unknown) => {
+            const { conversation } = data as { conversation: { lastMessage: { _id: string; sender: { _id: string; username: string; name?: string } | string; content: string } } }
             const lastMessage = conversation.lastMessage
 
             if (!lastMessage) return
@@ -120,7 +120,8 @@ export function GlobalChatListener() {
 
             // So `handleConversationUpdated` is the key listener for global (out-of-chat) notifications.
 
-            toast.info(`New message from ${lastMessage.sender.name || senderUsername}`, {
+            const senderName = typeof lastMessage.sender === 'object' ? lastMessage.sender.name : '';
+            toast.info(`New message from ${senderName || senderUsername}`, {
                 description: lastMessage.content.length > 50 ? `${lastMessage.content.substring(0, 50)}...` : lastMessage.content,
                 action: {
                     label: "Reply",
@@ -131,8 +132,8 @@ export function GlobalChatListener() {
         }
 
         // Handle Community Notifications
-        const handleCommunityNotification = (data: any) => {
-            const { type, title, message, link, messageId, communityId } = data;
+        const handleCommunityNotification = (data: unknown) => {
+            const { type, title, message, link, messageId, communityId } = data as { type: string; title: string; message: string; link?: string; messageId?: string; communityId?: string };
 
             if (messageId && isMessageProcessed(messageId)) return;
 

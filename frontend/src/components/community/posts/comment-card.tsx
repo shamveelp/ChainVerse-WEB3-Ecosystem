@@ -71,9 +71,9 @@ export default function CommentCard({
       setReplyContent('')
       setIsReplying(false)
       toast.success('Reply added successfully!')
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to add reply', {
-        description: error.message || 'Please try again'
+        description: error instanceof Error ? error.message : 'Please try again'
       })
     } finally {
       setIsLoading(false)
@@ -88,9 +88,9 @@ export default function CommentCard({
       await onEdit(comment._id, editContent.trim())
       setIsEditing(false)
       toast.success('Comment updated successfully!')
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to update comment', {
-        description: error.message || 'Please try again'
+        description: error instanceof Error ? error.message : 'Please try again'
       })
     } finally {
       setIsLoading(false)
@@ -104,9 +104,9 @@ export default function CommentCard({
     try {
       await onDelete(comment._id)
       toast.success('Comment deleted successfully!')
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to delete comment', {
-        description: error.message || 'Please try again'
+        description: error instanceof Error ? error.message : 'Please try again'
       })
     } finally {
       setIsLoading(false)
@@ -118,9 +118,9 @@ export default function CommentCard({
 
     try {
       await onLikeToggle(comment._id)
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to update like', {
-        description: error.message || 'Please try again'
+        description: error instanceof Error ? error.message : 'Please try again'
       })
     }
   }
@@ -141,7 +141,7 @@ export default function CommentCard({
     try {
       await onLoadReplies(comment._id)
       setRepliesLoaded(true)
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to load replies')
     } finally {
       setIsLoading(false)

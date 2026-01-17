@@ -28,9 +28,9 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: '0xaa36a7' }], // Sepolia Chain ID
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If network doesn't exist, add it
-      if (error.code === 4902) {
+      if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: number }).code === 4902) {
         try {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
@@ -157,6 +157,7 @@ export const useWallet = () => {
 // Add types for window.ethereum
 declare global {
   interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ethereum?: any;
   }
 }

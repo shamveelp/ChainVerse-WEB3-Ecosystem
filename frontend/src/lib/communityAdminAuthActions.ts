@@ -25,7 +25,7 @@ export const useCommunityAdminAuthActions = () => {
       if (result.success && result.data) {
         const data = result.data as LoginResponseData
         dispatch(login({
-          ...data.communityAdmin,
+          ...(data.communityAdmin as any),
           token: data.token
         }))
 
@@ -102,7 +102,7 @@ export const useCommunityAdminAuthActions = () => {
       if (result.success && result.data) {
         const data = result.data as LoginResponseData
         dispatch(login({
-          ...data.communityAdmin,
+          ...(data.communityAdmin as any),
           token: 'existing' // Token is in cookies
         }))
 

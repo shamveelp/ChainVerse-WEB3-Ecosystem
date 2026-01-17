@@ -13,8 +13,8 @@ interface WalletConnectButtonProps {
   showDebug?: boolean
 }
 
-export default function WalletConnectButton({ 
-  className = "", 
+export default function WalletConnectButton({
+  className = "",
   variant = "default",
   showDebug = false
 }: WalletConnectButtonProps) {
@@ -24,14 +24,14 @@ export default function WalletConnectButton({
 
   const handleClick = async () => {
     setError(null)
-    
+
     if (isConnected) {
       dispatch(openWallet())
     } else {
       try {
         await connect()
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Connection failed')
         console.error('Connection failed:', err)
       }
     }
@@ -63,34 +63,33 @@ export default function WalletConnectButton({
         onClick={handleClick}
         disabled={loading}
         variant={variant}
-        className={`${className} ${
-          variant === "default" 
+        className={`${className} ${variant === "default"
             ? "bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white"
             : ""
-        }`}
+          }`}
       >
         {loading ? (
           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
         ) : (
           <Wallet className="w-4 h-4 mr-2" />
         )}
-        {loading 
-          ? "Connecting..." 
-          : isConnected 
-            ? formatAddress(address!) 
+        {loading
+          ? "Connecting..."
+          : isConnected
+            ? formatAddress(address!)
             : "Connect Wallet"
         }
       </Button>
-      
+
       {error && (
         <div className="text-xs text-red-400 bg-red-900/20 p-2 rounded">
           {error}
         </div>
       )}
-      
+
       {showDebug && (
         <div className="text-xs text-slate-400">
-          MetaMask: {isMetaMaskInstalled ? '✅' : '❌'} | 
+          MetaMask: {isMetaMaskInstalled ? '✅' : '❌'} |
           Connected: {isConnected ? '✅' : '❌'}
         </div>
       )}

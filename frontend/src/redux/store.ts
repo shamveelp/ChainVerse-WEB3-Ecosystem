@@ -25,7 +25,7 @@ const createNoopStorage = () => {
     getItem(_key: string) {
       return Promise.resolve(null);
     },
-    setItem(_key: string, value: any) {
+    setItem(_key: string, value: unknown) {
       return Promise.resolve(value);
     },
     removeItem(_key: string) {

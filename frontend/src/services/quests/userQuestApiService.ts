@@ -10,7 +10,9 @@ import {
   MyQuest,
   TaskSubmission,
   LeaderboardParticipant,
-  PaginationResponse
+  PaginationResponse,
+  ParticipationStatus,
+  QuestStats
 } from "@/types/quests/user.types";
 
 class UserQuestApiService {
@@ -144,7 +146,7 @@ class UserQuestApiService {
     }
   }
 
-  async checkParticipationStatus(questId: string): Promise<ApiResponse<Record<string, unknown>>> {
+  async checkParticipationStatus(questId: string): Promise<ApiResponse<ParticipationStatus>> {
     try {
       const response = await api.get(USER_API_ROUTES.QUESTS.PARTICIPATION_STATUS(questId));
       return {
@@ -258,7 +260,7 @@ class UserQuestApiService {
   }
 
   // Quest stats and leaderboard
-  async getQuestStats(questId: string): Promise<ApiResponse<Record<string, unknown>>> {
+  async getQuestStats(questId: string): Promise<ApiResponse<QuestStats>> {
     try {
       const response = await api.get(USER_API_ROUTES.QUESTS.STATS(questId));
       return {

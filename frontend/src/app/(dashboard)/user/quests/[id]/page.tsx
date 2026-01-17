@@ -16,6 +16,13 @@ import { userQuestApiService } from '@/services/quests/userQuestApiService';
 import Navbar from '@/components/home/navbar';
 import { useAuth } from '@/hooks/useAuth';
 import {
+  Quest,
+  QuestTask,
+  ParticipationStatus,
+  QuestStats,
+  LeaderboardParticipant
+} from "@/types/quests/user.types";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -29,94 +36,9 @@ import {
 } from "@/components/ui/alert";
 import Image from 'next/image';
 
-interface Quest {
-  _id: string;
-  title: string;
-  description: string;
-  bannerImage?: string;
-  startDate: Date;
-  endDate: Date;
-  selectionMethod: string;
-  participantLimit: number;
-  rewardPool: {
-    amount: number;
-    currency: string;
-    rewardType: string;
-    customReward?: string;
-  };
-  status: string;
-  totalParticipants: number;
-  winnersSelected: boolean;
-  isAIGenerated?: boolean;
-  createdAt: Date;
-  community?: {
-    communityName: string;
-    logo: string;
-    username: string;
-  };
-  tasks?: QuestTask[];
-  isParticipating?: boolean;
-  participationStatus?: string;
-  completedTasks?: number;
-  canJoin?: boolean;
-  joinMessage?: string;
-  communityId?: string;
-  timeRemaining?: {
-    days: number;
-    hours: number;
-    minutes: number;
-    hasEnded: boolean;
-  };
-}
-
-interface QuestTask {
-  _id: string;
-  title: string;
-  description: string;
-  taskType: string;
-  isRequired: boolean;
-  order: number;
-  privilegePoints?: number;
-  completedBy: number;
-  isCompleted?: boolean;
-  submission?: any;
-  canSubmit?: boolean;
-  config?: any;
-}
-
-interface ParticipationStatus {
-  isParticipating: boolean;
-  status?: string;
-  joinedAt?: Date;
-  completedAt?: Date;
-  totalTasksCompleted?: number;
-  isWinner?: boolean;
-  rewardClaimed?: boolean;
-  rank?: number;
-}
-
-interface QuestStats {
-  totalParticipants: number;
-  completedParticipants: number;
-  inProgressParticipants: number;
-  winnerCount: number;
-  completionRate: number;
-}
-
-interface LeaderboardParticipant {
-  _id: string;
-  userId: {
-    _id: string;
-    username: string;
-    name: string;
-    profilePic: string;
-  };
-  rank: number;
-  totalTasksCompleted: number;
-  totalPrivilegePoints: number;
-  completedAt?: Date;
-  joinedAt: Date;
-  isWinner: boolean;
+// Local interfaces for state that might differ slightly or for internal use
+interface LeaderboardParticipantLocal extends LeaderboardParticipant {
+  // Add any local-only properties if needed, otherwise just use imported
 }
 
 export default function QuestDetailPage() {
@@ -161,13 +83,13 @@ export default function QuestDetailPage() {
       ]);
 
       if (questResponse.success && questResponse.data) {
-        setQuest(questResponse.data as any);
+        setQuest(questResponse.data);
 
         if (user) {
           // Check participation status
           const statusResponse = await userQuestApiService.checkParticipationStatus(questId);
           if (statusResponse.success && statusResponse.data) {
-            setParticipationStatus(statusResponse.data as unknown as ParticipationStatus);
+            setParticipationStatus(statusResponse.data);
 
             // If participating, get tasks
             if (statusResponse.data.isParticipating) {
@@ -192,7 +114,7 @@ export default function QuestDetailPage() {
       }
 
       if (statsResponse.success && statsResponse.data) {
-        setStats(statsResponse.data as unknown as QuestStats);
+        setStats(statsResponse.data);
       }
     } catch (error) {
       console.error("Failed to fetch quest data:", error);
@@ -241,11 +163,12 @@ export default function QuestDetailPage() {
       } else {
         throw new Error(response.error || "Failed to join quest");
       }
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "An error occurred while joining the quest"
       toast({
         variant: "destructive",
         title: "Failed to Join Quest",
-        description: error.message || "An error occurred while joining the quest",
+        description: message,
       });
     } finally {
       setJoining(false);
@@ -256,7 +179,7 @@ export default function QuestDetailPage() {
     if (!selectedTask) return;
 
     // Prepare data for validation
-    const validationData: any = {
+    const validationData: Record<string, unknown> = {
       text: submissionText,
       linkUrl: submissionLink,
       imageUrl: submissionImageUrl,
@@ -267,10 +190,10 @@ export default function QuestDetailPage() {
     // Add specific fields based on task type
     if (selectedTask.taskType === 'join_community') {
       const commId = selectedTask.config?.communityId || quest?.communityId;
-      validationData.communityId = (typeof commId === 'object' && commId !== null) ? (commId as any)._id : commId;
+      validationData.communityId = (typeof commId === 'object' && commId !== null) ? (commId as { _id: string })._id : commId;
     } else if (selectedTask.taskType === 'follow_user') {
       const userId = selectedTask.config?.targetUserId;
-      validationData.targetUserId = (typeof userId === 'object' && userId !== null) ? (userId as any)._id : userId;
+      validationData.targetUserId = (typeof userId === 'object' && userId !== null) ? (userId as { _id: string })._id : userId;
     }
 
     // Validate submission data
@@ -300,7 +223,15 @@ export default function QuestDetailPage() {
       }
 
       // Prepare submission data based on task type
-      const submissionData: any = {};
+      const submissionData: {
+        text?: string;
+        linkUrl?: string;
+        imageUrl?: string;
+        twitterUrl?: string;
+        walletAddress?: string;
+        communityId?: string;
+        targetUserId?: string;
+      } = {};
 
       switch (selectedTask.taskType) {
         case 'upload_screenshot':
@@ -315,12 +246,12 @@ export default function QuestDetailPage() {
           submissionData.walletAddress = submissionText;
           break;
         case 'join_community':
-          submissionData.communityId = validationData.communityId;
+          submissionData.communityId = validationData.communityId as string;
           submissionData.text = submissionText;
           submissionData.imageUrl = finalImageUrl;
           break;
         case 'follow_user':
-          submissionData.targetUserId = validationData.targetUserId;
+          submissionData.targetUserId = validationData.targetUserId as string;
           submissionData.text = submissionText;
           submissionData.imageUrl = finalImageUrl;
           break;
@@ -347,11 +278,12 @@ export default function QuestDetailPage() {
       } else {
         throw new Error(response.error || "Failed to submit task");
       }
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to submit task. Please try again."
       toast({
         variant: "destructive",
         title: "Submission Failed",
-        description: error.message || "Failed to submit task. Please try again.",
+        description: message,
       });
     } finally {
       setSubmitting(null);
@@ -506,6 +438,7 @@ export default function QuestDetailPage() {
                   <Image
                     src={quest.bannerImage}
                     alt={quest.title}
+                    fill
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
@@ -536,7 +469,14 @@ export default function QuestDetailPage() {
               <div className="relative shrink-0">
                 <div className="w-20 h-20 rounded-2xl bg-[#202020] border-4 border-[#0b0b0b] overflow-hidden shadow-xl -mt-10 relative z-10 flex items-center justify-center">
                   {quest.community ? (
-                    <Image src={quest.community.logo} alt={quest.community.communityName} className="w-full h-full object-cover" />
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={quest.community.logo}
+                        alt={quest.community.communityName}
+                        fill
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   ) : (
                     <Users className="h-8 w-8 text-gray-600" />
                   )}
@@ -730,7 +670,13 @@ export default function QuestDetailPage() {
                           <div className="col-span-5 flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden">
                               {participant.userId.profilePic ? (
-                                <Image src={participant.userId.profilePic} alt={participant.userId.username} className="w-full h-full object-cover" />
+                                <Image
+                                  src={participant.userId.profilePic}
+                                  alt={participant.userId.username}
+                                  width={32}
+                                  height={32}
+                                  className="w-full h-full object-cover"
+                                />
                               ) : (
                                 <span className="text-xs font-bold text-white">{participant.userId.username[0].toUpperCase()}</span>
                               )}
@@ -894,7 +840,7 @@ export default function QuestDetailPage() {
                     Action Required
                   </Label>
                   <div className="text-sm text-gray-300">
-                    {userQuestApiService.getTaskTypeInstructions(selectedTask.taskType, selectedTask.config || {})}
+                    {String(userQuestApiService.getTaskTypeInstructions(selectedTask.taskType, selectedTask.config || {}))}
                   </div>
                 </div>
 
@@ -913,7 +859,13 @@ export default function QuestDetailPage() {
                         />
                         <Label htmlFor="task-image" className="cursor-pointer block w-full h-full">
                           {submissionImageUrl ? (
-                            <Image src={submissionImageUrl} alt="Preview" className="max-h-48 mx-auto rounded-lg shadow-lg" />
+                            <Image
+                              src={submissionImageUrl}
+                              alt="Preview"
+                              width={400}
+                              height={300}
+                              className="max-h-48 mx-auto rounded-lg shadow-lg object-contain"
+                            />
                           ) : (
                             <div className="space-y-2">
                               <Upload className="h-8 w-8 text-gray-400 mx-auto" />
@@ -947,25 +899,24 @@ export default function QuestDetailPage() {
 
                   {(selectedTask.taskType === 'join_community' || selectedTask.taskType === 'follow_user') && (
                     <div className="space-y-4">
-                      {/* Target Link Button */}
-                      {(selectedTask.config?.communityId || quest?.communityId || selectedTask.config?.targetUserId) && (
+                      {(!!selectedTask.config?.communityId || !!quest?.communityId || !!selectedTask.config?.targetUserId) ? (
                         <Button
                           className="w-full bg-white text-black hover:bg-slate-200 h-12 gap-2"
                           onClick={() => {
                             let url = '#';
                             if (selectedTask.taskType === 'join_community') {
-                              const configComm = selectedTask.config?.communityId;
+                              const configComm = selectedTask.config?.communityId as Record<string, unknown> | string | undefined;
                               const isConfigObject = typeof configComm === 'object' && configComm !== null;
 
                               // Try to get username
-                              let communityUsername = isConfigObject ? configComm.username : undefined;
+                              let communityUsername = isConfigObject ? (configComm as Record<string, unknown>).username as string : undefined;
 
                               if (!communityUsername) {
                                 // Try quest community
                                 if (quest?.community?.username) {
                                   communityUsername = quest.community.username;
-                                } else if (quest?.communityId && typeof quest.communityId === 'object' && (quest.communityId as any).username) {
-                                  communityUsername = (quest.communityId as any).username;
+                                } else if (quest?.communityId && typeof quest.communityId === 'object' && (quest.communityId as Record<string, unknown>).username) {
+                                  communityUsername = (quest.communityId as Record<string, unknown>).username as string;
                                 }
                               }
 
@@ -973,9 +924,9 @@ export default function QuestDetailPage() {
                                 url = `/user/community/c/${communityUsername}`;
                               } else {
                                 // Fallback to ID
-                                let id = isConfigObject ? configComm._id : configComm;
+                                let id = isConfigObject ? (configComm as Record<string, unknown>)._id as string : configComm as string;
                                 if (!id && quest?.communityId) {
-                                  id = typeof quest.communityId === 'object' ? (quest.communityId as any)._id : quest.communityId;
+                                  id = typeof quest.communityId === 'object' ? (quest.communityId as Record<string, unknown>)._id as string : quest.communityId as string;
                                 }
                                 if (id) url = `/user/community/c/${id}`;
                               }
@@ -986,8 +937,8 @@ export default function QuestDetailPage() {
 
                               if (!username) {
                                 const targetUser = config.targetUserId;
-                                if (targetUser && typeof targetUser === 'object' && (targetUser as any).username) {
-                                  username = (targetUser as any).username;
+                                if (targetUser && typeof targetUser === 'object' && (targetUser as Record<string, unknown>).username) {
+                                  username = (targetUser as Record<string, unknown>).username as string;
                                 } else if (typeof targetUser === 'string') {
                                   // Fallback: If it's a string, it might be ID or username.
                                   // We prefer not to link if it's an ID, but if we must...
@@ -1007,7 +958,7 @@ export default function QuestDetailPage() {
                           {selectedTask.taskType === 'join_community' ? 'Go to Community' : 'Go to Profile'}
                           <ExternalLink className="h-3 w-3 opacity-50" />
                         </Button>
-                      )}
+                      ) : null}
 
                       <div className="space-y-2">
                         <Label className="text-white">Verify Username</Label>

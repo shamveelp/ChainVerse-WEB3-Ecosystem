@@ -450,7 +450,7 @@ class CommunityAdminApiService {
     }
   }
 
-  async updateCommunity(formData: FormData): Promise<ApiResponse> {
+  async updateCommunity(formData: FormData): Promise<ApiResponse<{ community: CommunityDetails }>> {
     try {
       const response = await api.put(COMMUNITY_ADMIN_API_ROUTES.COMMUNITY, formData, {
         headers: {

@@ -41,7 +41,7 @@ export default function CommunityAdminPostCard({ post, onLikeToggle, onPostUpdat
       } else {
         toast.error(response.error || "Failed to toggle like");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error toggling like:", error);
       toast.error("Failed to toggle like");
     }
@@ -66,7 +66,7 @@ export default function CommunityAdminPostCard({ post, onLikeToggle, onPostUpdat
       } else {
         toast.error(response.error || "Failed to update post");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating post:", error);
       toast.error("Failed to update post");
     } finally {
@@ -85,7 +85,7 @@ export default function CommunityAdminPostCard({ post, onLikeToggle, onPostUpdat
       } else {
         toast.error(response.error || "Failed to delete post");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting post:", error);
       toast.error("Failed to delete post");
     } finally {

@@ -32,7 +32,7 @@ export function CommunityView() {
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
   const [nextCursor, setNextCursor] = useState<string | undefined>()
-  const [selectedMedia, setSelectedMedia] = useState<any>(null)
+  const [selectedMedia, setSelectedMedia] = useState<{ type: 'image' | 'video'; url: string; filename: string } | null>(null)
   const [communityId, setCommunityId] = useState<string | null>(null)
 
   const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -74,12 +74,13 @@ export function CommunityView() {
       setHasMore(response.hasMore)
       setNextCursor(response.nextCursor)
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load channel messages:', err)
-      setError(err.message || 'Failed to load messages')
+      const errorMsg = err instanceof Error ? err.message : 'Failed to load messages';
+      setError(errorMsg)
       if (reset) {
         toast.error('Failed to load messages', {
-          description: err.message || 'Please try again'
+          description: errorMsg || 'Please try again'
         })
       }
     } finally {
@@ -118,31 +119,31 @@ export function CommunityView() {
         })
 
         // Listen for reaction updates
-        communitySocketService.onMessageReactionUpdated((data: any) => {
+        communitySocketService.onMessageReactionUpdated((data: { messageId: string; reactions: unknown[] }) => {
           console.log('Message reaction updated:', data)
           setMessages(prev => prev.map(msg =>
             msg._id === data.messageId
-              ? { ...msg, reactions: data.reactions as any[] }
+              ? { ...msg, reactions: data.reactions as Message['reactions'] }
               : msg
           ))
         })
 
         // Listen for errors
-        communitySocketService.onMessageError((data) => {
+        communitySocketService.onMessageError((data: { error: string }) => {
           console.error('Message error:', data)
           toast.error('Message Error', {
             description: data.error
           })
         })
 
-        communitySocketService.onReactionError((data) => {
+        communitySocketService.onReactionError((data: { error: string }) => {
           console.error('Reaction error:', data)
           toast.error('Reaction Error', {
             description: data.error
           })
         })
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to setup socket:', error)
       }
     }
@@ -197,10 +198,10 @@ export function CommunityView() {
       ))
 
       setSelectedMessageId(null)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Reaction error:', error)
       toast.error('Failed to update reaction', {
-        description: error.message
+        description: error instanceof Error ? error.message : "Unknown error"
       })
     }
   }
@@ -365,8 +366,8 @@ export function CommunityView() {
                           <button
                             key={reaction.emoji}
                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors ${reaction.userReacted
-                                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/30'
-                                : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
+                              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/30'
+                              : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
                               }`}
                             onClick={() => handleReaction(message._id, reaction.emoji)}
                           >

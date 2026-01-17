@@ -35,9 +35,12 @@ import {
 } from "@/components/ui/dialog"
 import {
   communityExploreApiService,
-  type CommunityProfile,
-  type JoinCommunityResponse
 } from '@/services/userCommunityServices/communityExploreApiService'
+import {
+  type ExploreCommunityProfile as CommunityProfile,
+  type JoinCommunityResponse,
+  type SocialLink
+} from '@/types/user/community-explore.types'
 import Image from 'next/image'
 
 interface CommunityProfilePageProps {
@@ -80,11 +83,12 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
         setMemberCount(communityData.memberCount)
 
 
-      } catch (err: any) {
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load community profile'
         console.error('Failed to fetch community:', err)
-        setError(err.message || 'Failed to load community profile')
+        setError(errorMessage)
         toast.error('Failed to load community', {
-          description: err.message || 'Please try again'
+          description: errorMessage
         })
       } finally {
         setLoading(false)
@@ -105,13 +109,14 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
       if (result.success) {
         setIsMember(true)
         setMemberCount(result.memberCount)
-        setCommunity(prev => prev ? { ...prev, isMember: true, memberCount: result.memberCount } : prev)
+        setCommunity((prev: CommunityProfile | null) => prev ? { ...prev, isMember: true, memberCount: result.memberCount } : prev)
         toast.success(result.message)
       }
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Please try again'
       console.error('Join community error:', error)
       toast.error('Failed to join community', {
-        description: error.message || 'Please try again'
+        description: errorMessage
       })
     } finally {
       setJoinActionInProgress(false)
@@ -134,14 +139,15 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
       if (result.success) {
         setIsMember(false)
         setMemberCount(result.memberCount)
-        setCommunity(prev => prev ? { ...prev, isMember: false, memberCount: result.memberCount } : prev)
+        setCommunity((prev: CommunityProfile | null) => prev ? { ...prev, isMember: false, memberCount: result.memberCount } : prev)
         toast.success(result.message)
         setShowLeaveDialog(false)
       }
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Please try again'
       console.error('Leave community error:', error)
       toast.error('Failed to leave community', {
-        description: error.message || 'Please try again'
+        description: errorMessage
       })
     } finally {
       setJoinActionInProgress(false)
@@ -361,7 +367,7 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
           {/* Social Links */}
           {community.socialLinks && community.socialLinks.length > 0 && (
             <div className="flex gap-4 mb-6 text-slate-400">
-              {community.socialLinks.map((link: any, index) => (
+              {community.socialLinks.map((link: SocialLink, index: number) => (
                 <a
                   key={index}
                   href={link.url}
@@ -381,7 +387,7 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
             <Card className="bg-slate-900/50 backdrop-blur-sm border-slate-700/50 p-4 mb-6">
               <h3 className="text-white font-semibold mb-3">Community Rules</h3>
               <div className="space-y-2">
-                {community.rules.map((rule, index) => (
+                {community.rules.map((rule: string, index: number) => (
                   <p key={index} className="text-slate-300 text-sm">
                     {index + 1}. {rule}
                   </p>

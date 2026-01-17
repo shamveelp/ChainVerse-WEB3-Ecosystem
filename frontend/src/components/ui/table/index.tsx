@@ -58,7 +58,7 @@ const TableCell: React.FC<TableCellProps> = ({
   className,
   ...props
 }) => {
-  const CellTag = (isHeader ? "th" : "td") as any;
+  const CellTag = (isHeader ? "th" : "td") as React.ElementType;
   return <CellTag className={`${className}`} {...props}>{children}</CellTag>;
 };
 

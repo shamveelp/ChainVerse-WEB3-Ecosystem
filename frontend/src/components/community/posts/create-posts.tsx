@@ -64,9 +64,9 @@ export default function CreatePost({ onPostCreated, className }: CreatePostProps
           description: 'Your media has been added to the post'
         })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to upload media', {
-        description: error.message || 'Please try again'
+        description: error instanceof Error ? error.message : 'Please try again'
       })
     } finally {
       setIsUploading(false)
@@ -196,13 +196,13 @@ export default function CreatePost({ onPostCreated, className }: CreatePostProps
             <div className="mt-4 mb-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex-1 bg-slate-800/50 rounded-full h-1 overflow-hidden">
-                  <div 
+                  <div
                     className={cn(
                       "h-full transition-all duration-300",
                       content.length > 1800 ? "bg-red-500" :
-                      content.length > 1500 ? "bg-orange-500" :
-                      content.length > 1000 ? "bg-yellow-500" :
-                      "bg-gradient-to-r from-cyan-500 to-blue-500"
+                        content.length > 1500 ? "bg-orange-500" :
+                          content.length > 1000 ? "bg-yellow-500" :
+                            "bg-gradient-to-r from-cyan-500 to-blue-500"
                     )}
                     style={{ width: `${getCharacterCountWidth()}%` }}
                   />
@@ -226,7 +226,7 @@ export default function CreatePost({ onPostCreated, className }: CreatePostProps
                   <ImageIcon className="h-5 w-5 mr-2" />
                   <span className="hidden sm:inline">Photo</span>
                 </Button>
-                
+
                 <Button
                   variant="ghost"
                   size="sm"
