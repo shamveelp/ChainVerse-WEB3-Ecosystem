@@ -27,6 +27,7 @@ import {
 import CreateCommunityAdminPost from "@/components/comms-admin/posts/CreateCommunityAdminPost";
 import CommunityAdminPostCard from "@/components/comms-admin/posts/CommunityAdminPostCard";
 import { ImageCropper } from "@/components/ui/img-cropper";
+import Image from "next/image";
 
 interface CommunityAdminProfile {
   _id: string;
@@ -484,7 +485,7 @@ export default function CommunityAdminProfile() {
             {/* Banner Image */}
             <div className="relative h-32 bg-gradient-to-r from-blue-600/30 to-purple-600/30 overflow-hidden group">
               {profile.bannerImage ? (
-                <img
+                <Image
                   src={profile.bannerImage}
                   alt="Banner"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"

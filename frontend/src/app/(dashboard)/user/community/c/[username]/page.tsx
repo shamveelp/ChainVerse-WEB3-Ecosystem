@@ -38,6 +38,7 @@ import {
   type CommunityProfile,
   type JoinCommunityResponse
 } from '@/services/userCommunityServices/communityExploreApiService'
+import Image from 'next/image'
 
 interface CommunityProfilePageProps {
   params: Promise<{
@@ -232,7 +233,7 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
 
         {/* Banner */}
         <div className="relative h-48 md:h-64">
-          <img
+          <Image
             src={community.banner || 'https://images.pexels.com/photos/924824/pexels-photo-924824.jpeg?auto=compress&cs=tinysrgb&w=1200&h=300'}
             alt="Community banner"
             className="w-full h-full object-cover"

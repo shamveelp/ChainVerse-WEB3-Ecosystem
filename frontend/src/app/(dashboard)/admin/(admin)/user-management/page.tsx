@@ -135,7 +135,7 @@ export default function UserManagement() {
     const halfMax = Math.floor(maxButtons / 2)
 
     let startPage = Math.max(1, currentPage - halfMax)
-    let endPage = Math.min(totalPages, startPage + maxButtons - 1)
+    const endPage = Math.min(totalPages, startPage + maxButtons - 1)
 
     if (endPage - startPage < maxButtons - 1) {
       startPage = Math.max(1, endPage - maxButtons + 1)

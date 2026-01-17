@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import MentionTextarea from './mention-textarea'
+import Image from 'next/image'
 
 interface PostCardProps {
   post: Post;
@@ -190,7 +191,7 @@ export default function PostCard({
                     <span className="text-white text-xl font-semibold">+{post.mediaUrls.length - 3}</span>
                   </div>
                 )}
-                <img
+                <Image
                   src={url}
                   alt={`Post media ${index + 1}`}
                   className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500"

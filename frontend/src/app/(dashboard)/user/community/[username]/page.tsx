@@ -26,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import Image from 'next/image'
 
 interface ProfilePageProps {
   params: Promise<{
@@ -298,7 +299,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       <div className="pb-32">
         {/* Banner */}
         <div className="relative h-32 md:h-48 bg-slate-800">
-          <img
+          <Image
             src={displayProfile.bannerImage || 'https://images.pexels.com/photos/924824/pexels-photo-924824.jpeg?auto=compress&cs=tinysrgb&w=1200&h=300'}
             alt="Profile banner"
             className="w-full h-full object-cover"
@@ -488,7 +489,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               <TabsContent value="media" className="mt-0">
                 <div className="text-center py-12 px-4">
                   <div className="w-[300px] h-[150px] mx-auto bg-slate-800/50 rounded-xl mb-6 flex items-center justify-center">
-                    <img src="https://abs.twimg.com/sticky/illustrations/empty-states/yellow-birds-power-line-800x400.v1.png" alt="No media" className="opacity-50 h-full w-auto p-4" />
+                    <Image src="https://abs.twimg.com/sticky/illustrations/empty-states/yellow-birds-power-line-800x400.v1.png" alt="No media" className="opacity-50 h-full w-auto p-4" />
                   </div>
                   <p className="text-2xl font-bold text-white mb-2">Lights, camera ... attachment!</p>
                   <p className="text-slate-500">When you send tweets with photos or videos, they will show up here.</p>

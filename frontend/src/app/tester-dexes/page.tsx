@@ -674,7 +674,7 @@ export default function App() {
                 <div className="space-y-4 border-t border-gray-700 pt-4">
                   <h3 className="text-lg font-semibold text-gray-100">Pool Information</h3>
                   {Object.entries(poolsData).map(([key, pool]) => {
-                    let poolName = key === 'coinA' ? 'ETH / CoinA' : key === 'coinB' ? 'ETH / CoinB' : 'CoinA / CoinB';
+                    const poolName = key === 'coinA' ? 'ETH / CoinA' : key === 'coinB' ? 'ETH / CoinB' : 'CoinA / CoinB';
                     return (
                       <div key={key} className="bg-gray-700 rounded-xl p-4">
                         <h4 className="font-medium text-gray-100 mb-2">{poolName}</h4>

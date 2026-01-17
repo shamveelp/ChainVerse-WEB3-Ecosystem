@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import axios from "axios"
+import Image from "next/image"
 
 interface Coin {
   id: string
@@ -153,7 +154,7 @@ export default function SwapBox() {
                 className="flex-1 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl font-bold py-6 bg-transparent text-white placeholder:text-gray-600"
               />
               <div className="flex items-center gap-2 text-white bg-white/5 rounded-xl px-3 py-2 h-auto border border-white/5 mx-2">
-                <img
+                <Image
                   src={fromCoin.image || "/placeholder.svg"}
                   alt={fromCoin.name}
                   className="w-6 h-6 rounded-full"
@@ -194,7 +195,7 @@ export default function SwapBox() {
                 className="flex-1 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl font-bold py-6 bg-transparent text-white placeholder:text-gray-600"
               />
               <div className="flex items-center gap-2 text-white bg-white/5 rounded-xl px-3 py-2 h-auto border border-white/5 mx-2">
-                <img src={toCoin.image || "/placeholder.svg"} alt={toCoin.name} className="w-6 h-6 rounded-full" />
+                <Image src={toCoin.image || "/placeholder.svg"} alt={toCoin.name} className="w-6 h-6 rounded-full" />
                 <span className="font-semibold uppercase">{toCoin.symbol}</span>
               </div>
             </div>

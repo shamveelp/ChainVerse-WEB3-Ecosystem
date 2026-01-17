@@ -5,6 +5,7 @@ import { X, Download, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
+import Image from "next/image"
 
 interface MediaViewerProps {
   media: {
@@ -75,7 +76,7 @@ export function MediaViewer({ media, onClose }: MediaViewerProps) {
         {/* Content */}
         <div className="flex-1 flex items-center justify-center p-4 bg-black/5">
           {media.type === 'image' ? (
-            <img
+            <Image
               src={media.url}
               alt={media.filename}
               className="max-w-full max-h-full object-contain"

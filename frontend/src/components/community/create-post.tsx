@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Image, Smile, Calendar, MapPin, Hash } from 'lucide-react'
+import { Image as ImageIcon, Smile, Calendar, MapPin, Hash } from 'lucide-react'
 
 export default function CreatePost() {
   const [content, setContent] = useState('')
@@ -38,7 +38,7 @@ export default function CreatePost() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 pt-4 border-t border-slate-700/50">
             <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto">
               <Button variant="ghost" size="icon" className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 flex-shrink-0">
-                <Image className="h-4 sm:h-5 w-4 sm:w-5" />
+                <ImageIcon className="h-4 sm:h-5 w-4 sm:w-5" />
               </Button>
               <Button variant="ghost" size="icon" className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 flex-shrink-0">
                 <Hash className="h-4 sm:h-5 w-4 sm:w-5" />

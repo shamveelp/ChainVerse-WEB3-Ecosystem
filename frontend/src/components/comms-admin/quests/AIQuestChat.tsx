@@ -35,6 +35,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ImageCropper } from "@/components/ui/image-cropper";
+import Image from 'next/image';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -419,7 +420,7 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
                             >
                               <div className="flex items-center gap-2 pointer-events-none">
                                 {(item.logo || item.profilePic) && (
-                                  <img
+                                  <Image
                                     src={item.logo || item.profilePic}
                                     alt=""
                                     className="w-6 h-6 rounded-full"
@@ -456,7 +457,7 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
                 {/* Banner Preview */}
                 {bannerPreview && (
                   <div className="h-24 rounded-lg bg-gray-900 border border-gray-700 overflow-hidden">
-                    <img src={bannerPreview} alt="Banner preview" className="h-full w-full object-cover" />
+                    <Image src={bannerPreview} alt="Banner preview" className="h-full w-full object-cover" />
                   </div>
                 )}
 

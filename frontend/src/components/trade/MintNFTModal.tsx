@@ -11,6 +11,7 @@ import { Upload, Loader2, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { uploadFileToIPFS as uploadToIPFS, uploadJSONToIPFS as uploadMetadataToIPFS, NFTMetadata } from '@/lib/nft/ipfs';
 import { useMarketplace } from '@/hooks/useMarketplace';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 interface MintNFTModalProps {
   open: boolean;
@@ -157,7 +158,7 @@ export function MintNFTModal({ open, onOpenChange }: MintNFTModalProps) {
             <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 hover:border-purple-400/50 transition-all duration-200">
               {previewUrl ? (
                 <div className="relative group">
-                  <img
+                  <Image
                     src={previewUrl}
                     alt="Preview"
                     className="w-full h-64 object-cover rounded-lg"

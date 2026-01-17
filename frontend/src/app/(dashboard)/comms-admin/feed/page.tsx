@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import communityAdminFeedApiService from '@/services/communityAdmin/communityAdminFeedApiService'
+import Image from 'next/image'
 
 // Reuse interfaces for consistency
 interface PostAuthor {
@@ -225,7 +226,7 @@ export default function CommunityAdminFeed() {
         {post.mediaUrls.map((url, i) => (
           <div key={i} className="relative rounded-lg overflow-hidden bg-gray-900 border border-red-900/20">
             {post.mediaType === 'image' ? (
-              <img src={url} alt="Post media" className="w-full h-auto object-contain max-h-[500px]" />
+              <Image src={url} alt="Post media" className="w-full h-auto object-contain max-h-[500px]" />
             ) : (
               <video src={url} controls className="w-full h-auto max-h-[500px]" />
             )}

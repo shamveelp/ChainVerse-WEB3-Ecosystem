@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Eye, ShoppingCart, Tag, ExternalLink } from 'lucide-react';
+import Image from 'next/image';
 
 interface NFTCardProps {
   nft: NFTItem;
@@ -47,7 +48,7 @@ export function NFTCard({
             </div>
           )}
           {!imageError && nft.metadata?.image ? (
-            <img
+            <Image
               src={nft.metadata.image}
               alt={nft.metadata.name || 'NFT'}
               className={`w-full h-full object-cover transition-all duration-500 ${

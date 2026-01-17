@@ -8,11 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Mail, Shield, Globe, MessageSquare, ExternalLink, Check, X, Clock, Calendar, User, FileText, Image, Link, AlertCircle, Loader2, Hash, CreditCard as Edit3 } from 'lucide-react';
+import { ArrowLeft, Mail, Shield, Globe, MessageSquare, ExternalLink, Check, X, Clock, Calendar, User, FileText, Image as ImageIcon, Link, AlertCircle, Loader2, Hash, CreditCard as Edit3 } from 'lucide-react';
 import { getCommunityRequestById, approveCommunityRequest, rejectCommunityRequest } from '@/services/adminApiService';
 import { toast } from '@/hooks/use-toast';
 import { CommunityRequest } from '@/types/community';
 import { ImageViewerModal } from '@/components/admin/image-viewer-modal';
+import Image from 'next/image';
 
 export default function CommunityRequestDetailPage() {
   const params = useParams();
@@ -392,7 +393,7 @@ export default function CommunityRequestDetailPage() {
           <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Image className="h-5 w-5 text-orange-400" />
+                <ImageIcon className="h-5 w-5 text-orange-400" />
                 Visual Assets
               </CardTitle>
             </CardHeader>
@@ -403,7 +404,7 @@ export default function CommunityRequestDetailPage() {
                     <h5 className="text-slate-400 font-medium">Community Logo</h5>
                     <div className="bg-slate-800/50 p-4 rounded-lg">
                       <ImageViewerModal imageUrl={request.logo} imageAlt="Community Logo">
-                        <img
+                        <Image
                           src={request.logo}
                           alt="Community Logo"
                           className="w-full h-64 object-contain rounded-lg bg-slate-900 cursor-pointer"
@@ -417,7 +418,7 @@ export default function CommunityRequestDetailPage() {
                     <h5 className="text-slate-400 font-medium">Community Banner</h5>
                     <div className="bg-slate-800/50 p-4 rounded-lg">
                       <ImageViewerModal imageUrl={request.banner} imageAlt="Community Banner">
-                        <img
+                        <Image
                           src={request.banner}
                           alt="Community Banner"
                           className="w-full h-64 object-cover rounded-lg bg-slate-900 cursor-pointer"

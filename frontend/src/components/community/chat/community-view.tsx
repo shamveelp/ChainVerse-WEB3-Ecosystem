@@ -15,6 +15,7 @@ import { Loader2, Pin, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import { communitySocketService } from "@/services/socket/communitySocketService"
 import { userCommunityChatApiService, type CommunityChannelMessage } from "@/services/userCommunityServices/userCommunityChatApiService"
+import Image from "next/image"
 
 interface Message extends CommunityChannelMessage { }
 
@@ -339,7 +340,7 @@ export function CommunityView() {
                               onClick={() => setSelectedMedia(media)}
                             >
                               {media.type === 'image' ? (
-                                <img
+                                <Image
                                   src={media.url}
                                   alt={media.filename}
                                   className="w-full h-auto max-h-96 object-cover"

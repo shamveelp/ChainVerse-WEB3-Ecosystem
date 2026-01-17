@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Home, Upload, Plus, Trash2, Users, Sparkles, Mail, User, Wallet, FileText, Share2, Image, Loader2, CheckCircle, X, AlertCircle, Crop } from 'lucide-react'
+import { Home, Upload, Plus, Trash2, Users, Sparkles, Mail, User, Wallet, FileText, Share2, Image as ImageIcon, Loader2, CheckCircle, X, AlertCircle, Crop } from 'lucide-react'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import { setTempEmail, setTempApplicationData } from '@/redux/slices/communityAdminAuthSlice'
 import { communityAdminApiService } from '@/services/communityAdminApiService'
@@ -17,6 +17,7 @@ import { toast } from '@/hooks/use-toast'
 import { validateCommunityForm } from '@/validations/communityAdminValidation'
 import { useDebounce } from '@/hooks/useDebounce'
 import { COMMUNITY_ADMIN_ROUTES, COMMON_ROUTES } from '@/routes'
+import Image from 'next/image'
 
 export default function CreateCommunityPage() {
   const router = useRouter()
@@ -697,7 +698,7 @@ export default function CreateCommunityPage() {
           <Card className="bg-black/80 backdrop-blur-xl border-red-800/30 shadow-2xl shadow-red-900/20">
             <CardHeader>
               <CardTitle className="text-xl font-bold text-white flex items-center gap-3">
-                <Image className="h-5 w-5 text-orange-400" />
+                <ImageIcon className="h-5 w-5 text-orange-400" />
                 Logo & Banner
               </CardTitle>
             </CardHeader>
@@ -712,7 +713,7 @@ export default function CreateCommunityPage() {
                     {logoPreviewUrl ? (
                       <div className="space-y-3">
                         <div className="w-20 h-20 mx-auto rounded-full overflow-hidden bg-gray-800">
-                          <img
+                          <Image
                             src={logoPreviewUrl}
                             alt="Logo preview"
                             className="w-full h-full object-cover"
@@ -768,7 +769,7 @@ export default function CreateCommunityPage() {
                     {bannerPreviewUrl ? (
                       <div className="space-y-3">
                         <div className="w-full h-24 mx-auto rounded-lg overflow-hidden bg-gray-800">
-                          <img
+                          <Image
                             src={bannerPreviewUrl}
                             alt="Banner preview"
                             className="w-full h-full object-cover"

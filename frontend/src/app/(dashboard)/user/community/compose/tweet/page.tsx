@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Image, X, Globe, Calendar, MapPin, Smile, Hash, ChevronLeft } from 'lucide-react'
+import { Image as ImageIcon, X, Globe, Calendar, MapPin, Smile, Hash, ChevronLeft } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
 
@@ -79,7 +79,7 @@ export default function ComposeTweetPage() {
                             <div className="flex items-center justify-between text-cyan-500">
                                 <div className="flex gap-2">
                                     <Button variant="ghost" size="icon" className="hover:bg-cyan-900/20 text-cyan-500 rounded-full">
-                                        <Image className="h-5 w-5" />
+                                        <ImageIcon className="h-5 w-5" />
                                     </Button>
                                     <Button variant="ghost" size="icon" className="hover:bg-cyan-900/20 text-cyan-500 rounded-full">
                                         <Hash className="h-5 w-5" />

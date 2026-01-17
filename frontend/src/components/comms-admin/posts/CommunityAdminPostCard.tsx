@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { communityAdminPostApiService, type CommunityAdminPost } from "@/services/communityAdmin/communityAdminPostApiService";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface CommunityAdminPostCardProps {
   post: CommunityAdminPost;
@@ -181,7 +182,7 @@ export default function CommunityAdminPostCard({ post, onLikeToggle, onPostUpdat
           {post.mediaUrls.length > 0 && post.mediaType !== "none" && (
             <div className="mt-2">
               {post.mediaType === "image" ? (
-                <img
+                <Image
                   src={post.mediaUrls[0]}
                   alt="Post media"
                   className="w-full max-h-96 object-cover rounded-lg"

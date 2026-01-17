@@ -17,6 +17,7 @@ import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
 import CommentCard from '@/components/community/posts/comment-card'
 import MentionTextarea from '@/components/community/posts/mention-textarea'
+import Image from 'next/image'
 
 interface PostPageProps {
   params: Promise<{
@@ -268,7 +269,7 @@ export default function PostPage({ params }: PostPageProps) {
                     <span className="text-white text-2xl font-semibold">+{post.mediaUrls.length - 3}</span>
                   </div>
                 )}
-                <img
+                <Image
                   src={url}
                   alt={`Post media ${index + 1}`}
                   className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500"

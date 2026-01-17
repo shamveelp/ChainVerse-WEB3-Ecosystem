@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
+import Image from 'next/image';
 
 interface Quest {
   _id: string;
@@ -447,7 +448,7 @@ export default function QuestsPage() {
                     <div className="relative h-48 overflow-hidden bg-slate-900">
                       {quest.bannerImage ? (
                         <>
-                          <img
+                          <Image
                             src={quest.bannerImage}
                             alt={quest.title}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"

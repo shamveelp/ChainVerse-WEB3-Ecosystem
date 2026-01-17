@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import communityAdminFeedApiService from "@/services/communityAdmin/communityAdminFeedApiService"
+import Image from "next/image"
 
 // Types (should match service)
 interface PostAuthor {
@@ -187,7 +188,7 @@ export default function CommunityAdminPostDetails() {
                 {post.mediaUrls.map((url, i) => (
                     <div key={i} className="relative rounded-lg overflow-hidden bg-gray-900 border border-red-900/20">
                         {post.mediaType === 'image' ? (
-                            <img src={url} alt="Post media" className="w-full h-auto object-contain max-h-[500px]" />
+                            <Image src={url} alt="Post media" className="w-full h-auto object-contain max-h-[500px]" />
                         ) : (
                             <video src={url} controls className="w-full h-auto max-h-[500px]" />
                         )}

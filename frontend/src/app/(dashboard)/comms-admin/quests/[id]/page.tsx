@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Image from 'next/image';
 
 interface Quest {
   _id: string;
@@ -128,7 +129,7 @@ export default function QuestDetailPage() {
       }
 
       if (statsResponse.success && statsResponse.data) {
-        setStats(statsResponse.data);
+        setStats(statsResponse.data as unknown as QuestStats);
       }
     } catch (error: any) {
       toast({
@@ -370,7 +371,7 @@ export default function QuestDetailPage() {
       {/* Quest Image */}
       {quest.bannerImage && (
         <div className="w-full h-64 rounded-lg overflow-hidden">
-          <img
+          <Image
             src={quest.bannerImage}
             alt={quest.title}
             className="w-full h-full object-cover"
@@ -610,7 +611,7 @@ export default function QuestDetailPage() {
                   {participants.map((participant) => (
                     <div key={participant._id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
                       <div className="flex items-center gap-4">
-                        <img
+                        <Image
                           src={participant.userId.profilePic || '/default-avatar.png'}
                           alt={participant.userId.username}
                           className="w-10 h-10 rounded-full object-cover"
@@ -779,7 +780,7 @@ export default function QuestDetailPage() {
           {selectedParticipant && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <img
+                <Image
                   src={selectedParticipant.userId.profilePic || '/default-avatar.png'}
                   alt={selectedParticipant.userId.username}
                   className="w-16 h-16 rounded-full object-cover"
@@ -858,7 +859,7 @@ export default function QuestDetailPage() {
                                   {submission.submissionData.imageUrl && (
                                     <div className="relative group mt-1">
                                       <a href={submission.submissionData.imageUrl} target="_blank" rel="noopener noreferrer" className="block">
-                                        <img src={submission.submissionData.imageUrl} alt="Proof" className="w-full h-32 object-cover rounded border border-gray-700" />
+                                        <Image src={submission.submissionData.imageUrl} alt="Proof" className="w-full h-32 object-cover rounded border border-gray-700" />
                                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded">
                                           <ExternalLink className="w-5 h-5 text-white" />
                                         </div>

@@ -27,6 +27,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
+import Image from 'next/image';
 
 interface Quest {
   _id: string;
@@ -166,7 +167,7 @@ export default function QuestDetailPage() {
           // Check participation status
           const statusResponse = await userQuestApiService.checkParticipationStatus(questId);
           if (statusResponse.success && statusResponse.data) {
-            setParticipationStatus(statusResponse.data);
+            setParticipationStatus(statusResponse.data as unknown as ParticipationStatus);
 
             // If participating, get tasks
             if (statusResponse.data.isParticipating) {
@@ -191,7 +192,7 @@ export default function QuestDetailPage() {
       }
 
       if (statsResponse.success && statsResponse.data) {
-        setStats(statsResponse.data);
+        setStats(statsResponse.data as unknown as QuestStats);
       }
     } catch (error) {
       console.error("Failed to fetch quest data:", error);
@@ -502,7 +503,7 @@ export default function QuestDetailPage() {
             <div className="relative group rounded-3xl overflow-hidden border border-white/5 bg-slate-900/50">
               {quest.bannerImage ? (
                 <div className="aspect-[21/9] w-full relative">
-                  <img
+                  <Image
                     src={quest.bannerImage}
                     alt={quest.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -535,7 +536,7 @@ export default function QuestDetailPage() {
               <div className="relative shrink-0">
                 <div className="w-20 h-20 rounded-2xl bg-[#202020] border-4 border-[#0b0b0b] overflow-hidden shadow-xl -mt-10 relative z-10 flex items-center justify-center">
                   {quest.community ? (
-                    <img src={quest.community.logo} alt={quest.community.communityName} className="w-full h-full object-cover" />
+                    <Image src={quest.community.logo} alt={quest.community.communityName} className="w-full h-full object-cover" />
                   ) : (
                     <Users className="h-8 w-8 text-gray-600" />
                   )}
@@ -729,7 +730,7 @@ export default function QuestDetailPage() {
                           <div className="col-span-5 flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden">
                               {participant.userId.profilePic ? (
-                                <img src={participant.userId.profilePic} alt={participant.userId.username} className="w-full h-full object-cover" />
+                                <Image src={participant.userId.profilePic} alt={participant.userId.username} className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-xs font-bold text-white">{participant.userId.username[0].toUpperCase()}</span>
                               )}
@@ -912,7 +913,7 @@ export default function QuestDetailPage() {
                         />
                         <Label htmlFor="task-image" className="cursor-pointer block w-full h-full">
                           {submissionImageUrl ? (
-                            <img src={submissionImageUrl} alt="Preview" className="max-h-48 mx-auto rounded-lg shadow-lg" />
+                            <Image src={submissionImageUrl} alt="Preview" className="max-h-48 mx-auto rounded-lg shadow-lg" />
                           ) : (
                             <div className="space-y-2">
                               <Upload className="h-8 w-8 text-gray-400 mx-auto" />

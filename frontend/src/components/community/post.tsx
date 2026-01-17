@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Heart, MessageCircle, Repeat2, Share, MoveHorizontal as MoreHorizontal, TrendingUp } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import Image from 'next/image'
 
 interface PostProps {
   id: string
@@ -101,7 +102,7 @@ export default function Post({
             <p className="text-white whitespace-pre-wrap leading-relaxed text-sm sm:text-base">{content}</p>
             {image && (
               <div className="mt-3 sm:mt-4 rounded-xl sm:rounded-2xl overflow-hidden border border-slate-700/50">
-                <img
+                <Image
                   src={image}
                   alt="Post image"
                   className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"

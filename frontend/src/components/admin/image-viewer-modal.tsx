@@ -10,6 +10,7 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut } from "lucide-react";
+import Image from "next/image";
 
 interface ImageViewerModalProps {
   imageUrl: string;
@@ -68,7 +69,7 @@ export function ImageViewerModal({
 
         {/* Image */}
         <div className="flex items-center justify-center w-full h-full overflow-auto">
-          <img
+          <Image
             src={imageUrl}
             alt={imageAlt}
             style={{

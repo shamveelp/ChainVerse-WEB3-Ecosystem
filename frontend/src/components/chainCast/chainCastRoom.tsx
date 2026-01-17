@@ -238,7 +238,7 @@ export default function ChainCastRoom({ chainCast, onLeave, onHangUp }: ChainCas
         chainCastSocketService.leaveChainCast(chainCast._id)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [chainCast._id, isAdmin]) // Only run once on mount essentially
 
 

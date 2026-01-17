@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Image, Video, Smile, Calendar, MapPin, Hash, X, Loader2, Upload, Sparkles } from 'lucide-react'
+import { Image as ImageIcon, Video, Smile, Calendar, MapPin, Hash, X, Loader2, Upload, Sparkles } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
 import { usePosts } from '@/hooks/usePosts'
@@ -12,6 +12,7 @@ import { postsApiService } from '@/services/postsApiService'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import MentionTextarea from './mention-textarea'
+import Image from 'next/image'
 
 interface CreatePostProps {
   onPostCreated?: () => void;
@@ -174,7 +175,7 @@ export default function CreatePost({ onPostCreated, className }: CreatePostProps
                       <X className="w-4 h-4 text-white" />
                     </button>
                     {mediaType === 'image' ? (
-                      <img
+                      <Image
                         src={url}
                         alt={`Upload ${index + 1}`}
                         className="w-full h-auto object-cover max-h-96 transition-transform duration-300 group-hover:scale-105"
@@ -222,7 +223,7 @@ export default function CreatePost({ onPostCreated, className }: CreatePostProps
                   onClick={() => handleMediaClick('image')}
                   disabled={isUploading || loading}
                 >
-                  <Image className="h-5 w-5 mr-2" />
+                  <ImageIcon className="h-5 w-5 mr-2" />
                   <span className="hidden sm:inline">Photo</span>
                 </Button>
                 

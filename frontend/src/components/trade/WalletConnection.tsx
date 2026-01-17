@@ -1,6 +1,7 @@
 'use client';
 
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import Image from 'next/image';
 import { useAccount } from 'wagmi';
 
 export function WalletConnection() {
@@ -71,10 +72,11 @@ export function WalletConnection() {
                           }}
                         >
                           {chain.iconUrl && (
-                            <img
+                            <Image
                               alt={chain.name ?? 'Chain icon'}
                               src={chain.iconUrl}
-                              style={{ width: 16, height: 16 }}
+                              width={16}
+                              height={16}
                             />
                           )}
                         </div>

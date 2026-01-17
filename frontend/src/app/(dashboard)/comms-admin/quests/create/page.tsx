@@ -22,6 +22,7 @@ import { AIQuestChat } from '@/components/comms-admin/quests/AIQuestChat';
 import { QuestAccessGuard } from '@/components/comms-admin/QuestAccessGuard';
 import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
 import { ImageCropper } from "@/components/ui/image-cropper";
+import Image from 'next/image';
 
 type TaskType = 'join_community' | 'follow_user' | 'twitter_post' | 'upload_screenshot' | 'nft_mint' | 'token_hold' | 'wallet_connect' | 'custom';
 
@@ -650,7 +651,7 @@ export default function CreateQuestPage() {
                     <div className="mt-2 space-y-3">
                       <div className="h-32 rounded-lg bg-gray-900 border border-gray-700 overflow-hidden relative">
                         {bannerPreview ? (
-                          <img src={bannerPreview} alt="Quest banner" className="h-full w-full object-cover" />
+                          <Image src={bannerPreview} alt="Quest banner" className="h-full w-full object-cover" />
                         ) : (
                           <div className="h-full w-full flex items-center justify-center">
                             <Badge className="bg-white/10 text-white">No Banner</Badge>

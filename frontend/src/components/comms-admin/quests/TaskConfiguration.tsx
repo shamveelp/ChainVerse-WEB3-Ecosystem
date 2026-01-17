@@ -30,6 +30,7 @@ import {
 import { Search, Check, ChevronsUpDown, X } from 'lucide-react';
 import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
 import { toast } from '@/components/ui/use-toast';
+import Image from 'next/image';
 
 interface TaskConfig {
   communityId?: string;
@@ -91,7 +92,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
     try {
       const response = await communityAdminQuestApiService.searchCommunities(query);
       if (response.success && response.data) {
-        setCommunities(response.data);
+        setCommunities(response.data as unknown as Community[]);
       }
     } catch (error) {
       console.error('Error searching communities:', error);
@@ -110,7 +111,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
     try {
       const response = await communityAdminQuestApiService.searchUsers(query);
       if (response.success && response.data) {
-        setUsers(response.data);
+        setUsers(response.data as unknown as User[]);
       }
     } catch (error) {
       console.error('Error searching users:', error);
@@ -206,7 +207,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                           >
                             <div className="flex items-center gap-2">
                               {community.logo && (
-                                <img src={community.logo} alt="" className="w-6 h-6 rounded-full" />
+                                <Image src={community.logo} alt="" className="w-6 h-6 rounded-full" width={24} height={24} />
                               )}
                               <div>
                                 <p className="font-medium">{community.communityName}</p>
@@ -274,7 +275,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                           >
                             <div className="flex items-center gap-2">
                               {user.profilePic && (
-                                <img src={user.profilePic} alt="" className="w-6 h-6 rounded-full" />
+                                <Image src={user.profilePic} alt="" className="w-6 h-6 rounded-full" />
                               )}
                               <div>
                                 <p className="font-medium">{user.name || user.username}</p>

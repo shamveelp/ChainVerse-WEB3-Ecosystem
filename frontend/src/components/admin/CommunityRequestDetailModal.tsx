@@ -23,12 +23,13 @@ import {
   Calendar,
   User,
   FileText,
-  Image,
+  Image as ImageIcon,
   Link,
   AlertCircle,
   Loader2
 } from 'lucide-react';
 import { CommunityRequest } from '@/types/community';
+import Image from 'next/image';
 
 interface CommunityRequestDetailModalProps {
   request: CommunityRequest | null;
@@ -296,7 +297,7 @@ export function CommunityRequestDetailModal({
           {/* Visual Assets */}
           <div>
             <h4 className="font-semibold text-slate-300 mb-4 border-b border-slate-700 pb-2 flex items-center gap-2">
-              <Image className="h-4 w-4" />
+              <ImageIcon className="h-4 w-4"/>
               Visual Assets
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -304,7 +305,7 @@ export function CommunityRequestDetailModal({
                 <div className="space-y-3">
                   <h5 className="text-slate-400 font-medium">Community Logo</h5>
                   <div className="bg-slate-800/50 p-4 rounded-lg">
-                    <img
+                    <Image
                       src={request.logo}
                       alt="Community Logo"
                       className="w-full h-48 object-contain rounded-lg bg-slate-900"
@@ -316,7 +317,7 @@ export function CommunityRequestDetailModal({
                 <div className="space-y-3">
                   <h5 className="text-slate-400 font-medium">Community Banner</h5>
                   <div className="bg-slate-800/50 p-4 rounded-lg">
-                    <img
+                    <Image
                       src={request.banner}
                       alt="Community Banner"
                       className="w-full h-48 object-cover rounded-lg bg-slate-900"

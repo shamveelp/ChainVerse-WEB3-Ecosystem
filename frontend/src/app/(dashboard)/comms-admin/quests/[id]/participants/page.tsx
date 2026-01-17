@@ -45,6 +45,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Image from 'next/image';
 
 interface Participant {
   _id: string;
@@ -439,7 +440,7 @@ export default function QuestParticipantsPage() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <img
+                        <Image
                           src={participant.userId.profilePic || '/default-avatar.png'}
                           alt={participant.userId.username}
                           className="w-12 h-12 rounded-full object-cover"
@@ -566,7 +567,7 @@ export default function QuestParticipantsPage() {
           {selectedParticipant && (
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <img
+                <Image
                   src={selectedParticipant.userId.profilePic || '/default-avatar.png'}
                   alt={selectedParticipant.userId.username}
                   className="w-16 h-16 rounded-full object-cover"

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { NFTWithMetadata } from '../../types/types-nft';
+import Image from 'next/image';
 
 interface RelistModalProps {
   isOpen: boolean;
@@ -98,7 +99,7 @@ export function RelistModal({
             {/* NFT Info */}
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
               {nft.imageUrl && (
-                <img
+                <Image
                   src={nft.imageUrl}
                   alt={nft.metadata?.name || `NFT #${nft.tokenId}`}
                   className="w-12 h-12 rounded-lg object-cover"

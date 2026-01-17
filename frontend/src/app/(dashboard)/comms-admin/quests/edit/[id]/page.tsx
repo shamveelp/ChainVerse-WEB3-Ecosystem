@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { communityAdminQuestApiService } from '@/services/quests/communityAdminQuestApiService';
+import Image from 'next/image';
 
 interface QuestTask {
   _id?: string;
@@ -365,7 +366,7 @@ export default function EditQuestPage() {
                 />
                 {bannerPreview && (
                   <div className="relative w-20 h-20 rounded-lg overflow-hidden">
-                    <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover" />
+                    <Image src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover" />
                   </div>
                 )}
               </div>

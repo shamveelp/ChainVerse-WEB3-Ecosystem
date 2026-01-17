@@ -1,6 +1,6 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from "react"
-import { Send, Image, Video, Loader as Loader2, AlertCircle as AlertCircle, Pin, Trash2, CreditCard as Edit2, Upload, X } from "lucide-react"
+import { Send, Image as ImageIcon, Video, Loader as Loader2, AlertCircle as AlertCircle, Pin, Trash2, CreditCard as Edit2, Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { communitySocketService } from "@/services/socket/communitySocketService"
 import { communityAdminChatApiService, type CommunityMessage } from "@/services/communityAdmin/communityAdminChatApiService"
 import { useCommunityAdminAuth } from "@/hooks/communityAdmin/useAuthCheck"
+import Image from "next/image"
 
 interface Message extends CommunityMessage {}
 
@@ -34,7 +35,7 @@ function MediaViewer({ media, onClose }: MediaViewerProps) {
           <X className="h-4 w-4" />
         </button>
         {media.type === 'image' ? (
-          <img
+          <Image
             src={media.url}
             alt={media.filename}
             className="max-w-full max-h-full object-contain"
@@ -603,7 +604,7 @@ export default function CommunitySection() {
                                     onClick={() => setSelectedMedia(media)}
                                   >
                                     {media.type === 'image' ? (
-                                      <img
+                                      <Image
                                         src={media.url}
                                         alt={media.filename}
                                         className="w-full h-auto max-h-96 object-cover"
@@ -653,7 +654,7 @@ export default function CommunitySection() {
               <div key={index} className="relative flex-shrink-0">
                 <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-800 flex items-center justify-center">
                   {file.type.startsWith('image/') ? (
-                    <img
+                    <Image
                       src={URL.createObjectURL(file)}
                       alt={file.name}
                       className="w-full h-full object-cover"

@@ -8,6 +8,7 @@ import { Upload, X, Image as ImageIcon, Video } from "lucide-react";
 import { communityAdminPostApiService, type CreatePostData, type CommunityAdminPost } from "@/services/communityAdmin/communityAdminPostApiService";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface CreateCommunityAdminPostProps {
   onPostCreated: (post: CommunityAdminPost) => void;
@@ -115,7 +116,7 @@ export default function CreateCommunityAdminPost({ onPostCreated, onCancel }: Cr
       {mediaPreview && (
         <div className="relative rounded-lg overflow-hidden">
           {mediaFile?.type.startsWith("image/") ? (
-            <img src={mediaPreview} alt="Preview" className="w-full h-48 object-cover" />
+            <Image src={mediaPreview} alt="Preview" className="w-full h-48 object-cover" />
           ) : (
             <video src={mediaPreview} controls className="w-full h-48 object-cover" />
           )}

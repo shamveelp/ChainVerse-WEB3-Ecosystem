@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { COMMUNITY_ADMIN_ROUTES } from "@/routes";
 import ChainCastJoinButton from "@/components/chainCast/chainCastJoinButton";
+import Image from "next/image";
 
 interface DashboardData {
   communityOverview: {
@@ -276,7 +277,7 @@ export default function CommunityAdminDashboard() {
             <Card className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 shadow-xl overflow-hidden hover:border-slate-700 transition-all duration-300">
               <div className="relative h-32 sm:h-40 bg-gradient-to-r from-violet-900/50 to-indigo-900/50">
                 {dashboardData.communityOverview.banner && (
-                  <img
+                  <Image
                     src={dashboardData.communityOverview.banner}
                     alt="Community Banner"
                     className="w-full h-full object-cover opacity-80"

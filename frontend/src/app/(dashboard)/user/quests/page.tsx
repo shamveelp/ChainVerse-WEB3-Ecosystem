@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Navbar from '@/components/home/navbar';
+import Image from 'next/image';
 
 interface Quest {
   _id: string;
@@ -362,11 +363,15 @@ export default function QuestsPage() {
                     <CardContent className="relative h-full flex items-end p-8">
                       <div className="space-y-4 w-full">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={quest.community?.logo}
-                            alt={quest.community?.communityName}
-                            className="w-12 h-12 rounded-full border-2 border-white/20"
-                          />
+                          {quest.community?.logo && (
+                            <Image
+                              src={quest.community.logo}
+                              alt={quest.community?.communityName || 'Community'}
+                              width={48}
+                              height={48}
+                              className="w-12 h-12 rounded-full border-2 border-white/20"
+                            />
+                          )}
                           <div>
                             <p className="text-white/80 text-sm">{quest.community?.communityName}</p>
                             <p className="text-white font-semibold">{quest.title}</p>
@@ -566,9 +571,11 @@ export default function QuestsPage() {
                               {/* Community Info */}
                               {myQuest.quest.community && (
                                 <div className="flex items-center gap-2">
-                                  <img
+                                  <Image
                                     src={myQuest.quest.community.logo}
                                     alt={myQuest.quest.community.communityName}
+                                    width={24}
+                                    height={24}
                                     className="w-6 h-6 rounded-full"
                                   />
                                   <span className="text-sm text-gray-300">{myQuest.quest.community.communityName}</span>
@@ -649,9 +656,11 @@ export default function QuestsPage() {
                           onClick={() => router.push(`/user/quests/${quest._id}`)}>
                           {quest.bannerImage && (
                             <div className="relative h-48 overflow-hidden rounded-t-lg">
-                              <img
+                              <Image
                                 src={quest.bannerImage}
                                 alt={quest.title}
+                                width={400}
+                                height={192}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               />
                               <div className="absolute top-3 right-3 flex gap-2">
@@ -706,9 +715,11 @@ export default function QuestsPage() {
                               {/* Community Info */}
                               {quest.community && (
                                 <div className="flex items-center gap-2">
-                                  <img
+                                  <Image
                                     src={quest.community.logo}
                                     alt={quest.community.communityName}
+                                    width={24}
+                                    height={24}
                                     className="w-6 h-6 rounded-full"
                                   />
                                   <span className="text-sm text-gray-300">{quest.community.communityName}</span>

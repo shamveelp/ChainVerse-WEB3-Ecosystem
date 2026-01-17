@@ -94,7 +94,7 @@ const ShinyText: React.FC<ShinyTextProps> = ({
         directionRef.current = direction === 'left' ? 1 : -1;
         elapsedRef.current = 0;
         progress.set(0);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        
     }, [direction]);
 
     // Transform: p=0 -> 150% (shine off right), p=100 -> -50% (shine off left)
