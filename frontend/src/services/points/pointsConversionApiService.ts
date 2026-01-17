@@ -152,7 +152,7 @@ export const pointsConversionApiService = {
 // Admin APIs
 export const adminPointsConversionApiService = {
   getAllConversions: async (page = 1, limit = 10, status?: string): Promise<ApiResponse<{
-    conversions: any[];
+    conversions: PointsConversion[];
     total: number;
     totalPages: number;
   }>> => {
@@ -182,7 +182,7 @@ export const adminPointsConversionApiService = {
     }
   },
 
-  approveConversion: async (conversionId: string, adminNote?: string): Promise<ApiResponse<any>> => {
+  approveConversion: async (conversionId: string, adminNote?: string): Promise<ApiResponse<PointsConversion>> => {
     try {
       const response = await API.post(ADMIN_API_ROUTES.POINTS_CONVERSION.APPROVE(conversionId), { adminNote });
 
@@ -203,7 +203,7 @@ export const adminPointsConversionApiService = {
     }
   },
 
-  rejectConversion: async (conversionId: string, reason: string): Promise<ApiResponse<any>> => {
+  rejectConversion: async (conversionId: string, reason: string): Promise<ApiResponse<PointsConversion>> => {
     try {
       const response = await API.post(ADMIN_API_ROUTES.POINTS_CONVERSION.REJECT(conversionId), { reason });
 
@@ -224,7 +224,7 @@ export const adminPointsConversionApiService = {
     }
   },
 
-  getConversionStats: async (): Promise<ApiResponse<any>> => {
+  getConversionStats: async (): Promise<ApiResponse<ConversionStats>> => {
     try {
       const response = await API.get(ADMIN_API_ROUTES.POINTS_CONVERSION.STATS);
 
@@ -245,7 +245,7 @@ export const adminPointsConversionApiService = {
     }
   },
 
-  getConversionById: async (conversionId: string): Promise<ApiResponse<any>> => {
+  getConversionById: async (conversionId: string): Promise<ApiResponse<PointsConversion>> => {
     try {
       const response = await API.get(ADMIN_API_ROUTES.POINTS_CONVERSION.BY_ID(conversionId));
 
@@ -272,7 +272,7 @@ export const adminPointsConversionApiService = {
     minimumCVC: number;
     claimFeeETH: string;
     effectiveFrom?: Date;
-  }): Promise<ApiResponse<any>> => {
+  }): Promise<ApiResponse<ConversionRate>> => {
     try {
       const response = await API.post(ADMIN_API_ROUTES.POINTS_CONVERSION.RATE_UPDATE, rateData);
 
@@ -293,7 +293,11 @@ export const adminPointsConversionApiService = {
     }
   },
 
-  getConversionRates: async (page = 1, limit = 10): Promise<ApiResponse<any>> => {
+  getConversionRates: async (page = 1, limit = 10): Promise<ApiResponse<{
+    rates: ConversionRate[];
+    total: number;
+    totalPages: number;
+  }>> => {
     try {
       const response = await API.get(`${ADMIN_API_ROUTES.POINTS_CONVERSION.RATES}?page=${page}&limit=${limit}`);
 
@@ -314,7 +318,7 @@ export const adminPointsConversionApiService = {
     }
   },
 
-  getCurrentRate: async (): Promise<ApiResponse<any>> => {
+  getCurrentRate: async (): Promise<ApiResponse<ConversionRate>> => {
     try {
       const response = await API.get(ADMIN_API_ROUTES.POINTS_CONVERSION.RATE_CURRENT);
 

@@ -17,11 +17,24 @@ import {
   GroupMessagesResponse
 } from "@/types/comms-admin/chat.types";
 
+interface UploadedMediaFile {
+  type: 'image' | 'video';
+  url: string;
+  publicId: string;
+  filename: string;
+}
+
+interface Reaction {
+  emoji: string;
+  count: number;
+  userReacted: boolean;
+}
+
 // Helper function to handle API errors
-const handleApiError = (error: any, defaultMessage: string) => {
+const handleApiError = (error: unknown, defaultMessage: string) => {
   const axiosError = error as AxiosError;
   const status = axiosError.response?.status;
-  const data = axiosError.response?.data as any;
+  const data = axiosError.response?.data as Record<string, unknown>;
 
   console.error("Community Admin Chat API Error:", {
     status: status,
@@ -52,8 +65,8 @@ const handleApiError = (error: any, defaultMessage: string) => {
     throw new Error("Server error. Please try again later");
   }
 
-  const errorMessage = data?.error ||
-    data?.message ||
+  const errorMessage = (data?.error as string) ||
+    (data?.message as string) ||
     axiosError.message ||
     defaultMessage;
   throw new Error(errorMessage);
@@ -274,7 +287,7 @@ export const communityAdminChatApiService = {
   },
 
   // Upload media for channel message
-  uploadChannelMedia: async (files: File[]): Promise<{ mediaFiles: any[] }> => {
+  uploadChannelMedia: async (files: File[]): Promise<{ mediaFiles: UploadedMediaFile[] }> => {
     try {
       if (!files || files.length === 0) {
         throw new Error("No files provided");
@@ -308,7 +321,7 @@ export const communityAdminChatApiService = {
   },
 
   // Get message reactions
-  getMessageReactions: async (messageId: string): Promise<any> => {
+  getMessageReactions: async (messageId: string): Promise<{ reactions: Reaction[] }> => {
     try {
       if (!messageId) {
         throw new Error("Message ID is required");

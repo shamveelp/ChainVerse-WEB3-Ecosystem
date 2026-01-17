@@ -7,6 +7,16 @@ import {
   ValidationFormResult
 } from "@/types/comms-admin/validation.types";
 
+export interface CommunityFormData {
+  email: string;
+  communityName: string;
+  communityUsername: string;
+  ethWallet?: string;
+  description?: string;
+  whyChooseUs?: string;
+  [key: string]: unknown;
+}
+
 export const checkEmailAvailability = async (email: string): Promise<ValidationResponse> => {
   try {
     const response = await API.post(COMMUNITY_ADMIN_API_ROUTES.CHECK_EMAIL, { email })
@@ -49,7 +59,7 @@ export const validateWalletAddress = (address: string): boolean => {
   return ethRegex.test(address)
 }
 
-export const validateCommunityForm = (formData: any): ValidationFormResult => {
+export const validateCommunityForm = (formData: CommunityFormData): ValidationFormResult => {
   const errors: Record<string, string> = {}
 
   if (!formData.email || !formData.email.trim()) {

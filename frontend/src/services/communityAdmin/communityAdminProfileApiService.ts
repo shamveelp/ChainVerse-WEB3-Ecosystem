@@ -10,6 +10,12 @@ import {
   UpdateProfileData
 } from "@/types/comms-admin/profile.types";
 
+interface ApiErrorResponse {
+  error?: string;
+  message?: string;
+  [key: string]: unknown;
+}
+
 class CommunityAdminProfileApiService {
   // Get profile
   async getProfile(): Promise<ApiResponse<CommunityAdminProfile>> {
@@ -21,7 +27,7 @@ class CommunityAdminProfileApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get community admin profile error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -50,7 +56,7 @@ class CommunityAdminProfileApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Update community admin profile error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -81,7 +87,7 @@ class CommunityAdminProfileApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Upload profile picture error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -112,7 +118,7 @@ class CommunityAdminProfileApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Upload banner image error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -125,7 +131,7 @@ class CommunityAdminProfileApiService {
   }
 
   // Get community stats
-  async getCommunityStats(period: string = 'week'): Promise<ApiResponse> {
+  async getCommunityStats(period: string = 'week'): Promise<ApiResponse<CommunityStats>> {
     try {
       const response = await api.get(`${COMMUNITY_ADMIN_API_ROUTES.COMMUNITY_STATS}?period=${period}`);
       return {
@@ -133,7 +139,7 @@ class CommunityAdminProfileApiService {
         data: response.data.data,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get community stats error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,

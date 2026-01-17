@@ -144,7 +144,7 @@ class UserQuestApiService {
     }
   }
 
-  async checkParticipationStatus(questId: string): Promise<ApiResponse<any>> {
+  async checkParticipationStatus(questId: string): Promise<ApiResponse<Record<string, unknown>>> {
     try {
       const response = await api.get(USER_API_ROUTES.QUESTS.PARTICIPATION_STATUS(questId));
       return {
@@ -258,7 +258,7 @@ class UserQuestApiService {
   }
 
   // Quest stats and leaderboard
-  async getQuestStats(questId: string): Promise<ApiResponse<any>> {
+  async getQuestStats(questId: string): Promise<ApiResponse<Record<string, unknown>>> {
     try {
       const response = await api.get(USER_API_ROUTES.QUESTS.STATS(questId));
       return {
@@ -302,7 +302,7 @@ class UserQuestApiService {
   }
 
   // Enhanced task type validation
-  validateTaskSubmissionData(taskType: string, submissionData: any): { valid: boolean; message?: string } {
+  validateTaskSubmissionData(taskType: string, submissionData: Record<string, unknown>): { valid: boolean; message?: string } {
     switch (taskType) {
       case 'join_community':
         if (!submissionData.communityId) {
@@ -319,7 +319,7 @@ class UserQuestApiService {
           return { valid: false, message: "Twitter post URL is required" };
         }
         const twitterUrlPattern = /^https:\/\/(twitter\.com|x\.com)\/\w+\/status\/\d+/;
-        if (!twitterUrlPattern.test(submissionData.twitterUrl)) {
+        if (!twitterUrlPattern.test(submissionData.twitterUrl as string)) {
           return { valid: false, message: "Please provide a valid Twitter post URL" };
         }
         break;
@@ -333,7 +333,7 @@ class UserQuestApiService {
           return { valid: false, message: "Wallet address is required" };
         }
         const ethAddressPattern = /^0x[a-fA-F0-9]{40}$/;
-        if (!ethAddressPattern.test(submissionData.walletAddress)) {
+        if (!ethAddressPattern.test(submissionData.walletAddress as string)) {
           return { valid: false, message: "Please provide a valid Ethereum wallet address" };
         }
         break;
@@ -347,7 +347,7 @@ class UserQuestApiService {
   }
 
   // Get task type instructions for UI
-  getTaskTypeInstructions(taskType: string, config: any): string {
+  getTaskTypeInstructions(taskType: string, config: Record<string, unknown>): string {
     switch (taskType) {
       case 'join_community':
         return config.communityName
@@ -366,7 +366,7 @@ class UserQuestApiService {
       case 'wallet_connect':
         return "Connect your wallet and provide your wallet address";
       case 'custom':
-        return config.customInstructions || "Follow the task instructions";
+        return (config.customInstructions as string) || "Follow the task instructions";
       default:
         return "Complete the task as instructed";
     }

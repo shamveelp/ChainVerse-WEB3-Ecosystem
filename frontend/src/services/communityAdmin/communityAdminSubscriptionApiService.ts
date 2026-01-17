@@ -9,6 +9,12 @@ import {
 } from "@/types/comms-admin/subscription.types";
 import { ApiResponse } from "@/types/common.types";
 
+interface ApiErrorResponse {
+  error?: string;
+  message?: string;
+  [key: string]: unknown;
+}
+
 class CommunityAdminSubscriptionApiService {
   async createOrder(communityId: string): Promise<ApiResponse<RazorpayOrder>> {
     try {
@@ -19,7 +25,7 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Create subscription order error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -40,7 +46,7 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Verify subscription payment error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -61,7 +67,7 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get subscription error:", {
         message: axiosError.message,
         response: axiosError.response?.data,
@@ -96,7 +102,7 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Retry payment error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -117,7 +123,7 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get time remaining error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -138,7 +144,7 @@ class CommunityAdminSubscriptionApiService {
         message: response.data.message,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Check ChainCast access error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,

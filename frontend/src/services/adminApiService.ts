@@ -2,6 +2,12 @@ import { AxiosError } from 'axios';
 import API from "@/lib/api-client";
 import { ADMIN_API_ROUTES } from "@/routes";
 
+interface ApiErrorData {
+  error?: string;
+  message?: string;
+  [key: string]: unknown;
+}
+
 // Auth Services
 export const adminLogin = async (email: string, password: string) => {
   try {
@@ -13,11 +19,11 @@ export const adminLogin = async (email: string, password: string) => {
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Admin login error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Admin login error:", axiosError.response?.data || axiosError.message);
     throw {
       success: false,
-      error: (axiosError.response?.data as any)?.message || axiosError.message || "Login failed",
+      error: axiosError.response?.data?.message || axiosError.message || "Login failed",
       response: axiosError.response,
     };
   }
@@ -31,11 +37,11 @@ export const forgotPassword = async (email: string) => {
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Forgot password error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Forgot password error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.message || axiosError.message || "Failed to send reset code",
+      error: axiosError.response?.data?.message || axiosError.message || "Failed to send reset code",
     };
   }
 };
@@ -48,11 +54,11 @@ export const verifyResetOtp = async (email: string, otp: string) => {
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Verify reset OTP error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Verify reset OTP error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.message || axiosError.message || "Invalid OTP",
+      error: axiosError.response?.data?.message || axiosError.message || "Invalid OTP",
     };
   }
 };
@@ -65,11 +71,11 @@ export const resetPassword = async (email: string, password: string) => {
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Reset password error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Reset password error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.message || axiosError.message || "Password reset failed",
+      error: axiosError.response?.data?.message || axiosError.message || "Password reset failed",
     };
   }
 };
@@ -82,11 +88,11 @@ export const getAdminProfile = async () => {
       admin: response.data.admin,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Get admin profile error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get admin profile error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.message || axiosError.message || "Failed to get profile",
+      error: axiosError.response?.data?.message || axiosError.message || "Failed to get profile",
     };
   }
 };
@@ -99,11 +105,11 @@ export const changeAdminPassword = async (currentPassword: string, newPassword: 
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Change password error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Change password error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.message || axiosError.message || "Failed to change password",
+      error: axiosError.response?.data?.message || axiosError.message || "Failed to change password",
     };
   }
 };
@@ -127,11 +133,11 @@ export const getUsers = async (page: number, limit: number = 10, search: string 
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Get users error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get users error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.message || axiosError.message || "Failed to fetch users",
+      error: axiosError.response?.data?.message || axiosError.message || "Failed to fetch users",
     };
   }
 };
@@ -141,8 +147,8 @@ export const getUserById = async (id: string) => {
     const response = await API.get(ADMIN_API_ROUTES.USER_BY_ID(id));
     return response.data.user || response.data;
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Get user by id error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get user by id error:", axiosError.response?.data || axiosError.message);
     throw axiosError;
   }
 };
@@ -152,8 +158,8 @@ export const toggleUserBan = async (userId: string, isBanned: boolean) => {
     const response = await API.patch(ADMIN_API_ROUTES.USER_BAN(userId), { isBanned });
     return response.data.user || response.data;
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Toggle user ban error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Toggle user ban error:", axiosError.response?.data || axiosError.message);
     throw axiosError;
   }
 };
@@ -164,8 +170,8 @@ export const toggleUserBlock = async (userId: string, isBlocked: boolean) => {
     const response = await API.get(ADMIN_API_ROUTES.USER_BY_ID(userId));
     return response.data.user || response.data;
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Toggle user block error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Toggle user block error:", axiosError.response?.data || axiosError.message);
     throw axiosError;
   }
 };
@@ -191,11 +197,11 @@ export const getAllCommunityRequests = async (page: number = 1, limit: number = 
       message: response.data.message
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Get community requests error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get community requests error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.message || axiosError.message || "Failed to fetch community requests",
+      error: axiosError.response?.data?.message || axiosError.message || "Failed to fetch community requests",
       data: [],
       total: 0,
       page: 1,
@@ -215,11 +221,11 @@ export const getCommunityRequestById = async (requestId: string) => {
       message: response.data.message
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Get community request by ID error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get community request by ID error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.message || axiosError.message || "Failed to fetch community request",
+      error: axiosError.response?.data?.message || axiosError.message || "Failed to fetch community request",
     };
   }
 };
@@ -233,11 +239,11 @@ export const approveCommunityRequest = async (requestId: string) => {
       request: response.data.request
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Approve community request error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Approve community request error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.message || axiosError.message || "Failed to approve request",
+      error: axiosError.response?.data?.message || axiosError.message || "Failed to approve request",
     };
   }
 };
@@ -251,11 +257,11 @@ export const rejectCommunityRequest = async (requestId: string, reason: string) 
       request: response.data.request
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Reject community request error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Reject community request error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.message || axiosError.message || "Failed to reject request",
+      error: axiosError.response?.data?.message || axiosError.message || "Failed to reject request",
     };
   }
 };
@@ -269,11 +275,11 @@ export const exportCommunityRequests = async () => {
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Export community requests error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Export community requests error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.error || axiosError.message || "Failed to export community requests",
+      error: axiosError.response?.data?.error || axiosError.message || "Failed to export community requests",
     };
   }
 };
@@ -294,11 +300,11 @@ export const getAllWallets = async (page: number = 1, limit: number = 20, search
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Get wallets error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get wallets error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.error || axiosError.message || "Failed to fetch wallets",
+      error: axiosError.response?.data?.error || axiosError.message || "Failed to fetch wallets",
     };
   }
 };
@@ -312,11 +318,11 @@ export const getWalletDetails = async (address: string) => {
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Get wallet details error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get wallet details error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.error || axiosError.message || "Failed to fetch wallet details",
+      error: axiosError.response?.data?.error || axiosError.message || "Failed to fetch wallet details",
     };
   }
 };
@@ -330,11 +336,11 @@ export const getWalletStats = async () => {
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Get wallet stats error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get wallet stats error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.error || axiosError.message || "Failed to fetch wallet statistics",
+      error: axiosError.response?.data?.error || axiosError.message || "Failed to fetch wallet statistics",
     };
   }
 };
@@ -352,11 +358,11 @@ export const getWalletTransactions = async (address: string, page: number = 1, l
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Get wallet transactions error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get wallet transactions error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.error || axiosError.message || "Failed to fetch wallet transactions",
+      error: axiosError.response?.data?.error || axiosError.message || "Failed to fetch wallet transactions",
     };
   }
 };
@@ -374,11 +380,11 @@ export const getWalletHistoryFromEtherscan = async (address: string, page: numbe
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Get wallet Etherscan history error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get wallet Etherscan history error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.error || axiosError.message || "Failed to fetch wallet history from Etherscan",
+      error: axiosError.response?.data?.error || axiosError.message || "Failed to fetch wallet history from Etherscan",
     };
   }
 };
@@ -396,11 +402,11 @@ export const getWalletAppHistory = async (address: string, page: number = 1, lim
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Get wallet app history error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Get wallet app history error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.error || axiosError.message || "Failed to fetch wallet app history",
+      error: axiosError.response?.data?.error || axiosError.message || "Failed to fetch wallet app history",
     };
   }
 };
@@ -414,11 +420,11 @@ export const exportWalletData = async () => {
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Export wallet data error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Export wallet data error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.error || axiosError.message || "Failed to export wallet data",
+      error: axiosError.response?.data?.error || axiosError.message || "Failed to export wallet data",
     };
   }
 };
@@ -432,11 +438,11 @@ export const refreshWalletData = async (address: string) => {
       message: response.data.message,
     };
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    console.error("Refresh wallet data error:", (axiosError.response?.data as any) || axiosError.message);
+    const axiosError = error as AxiosError<ApiErrorData>;
+    console.error("Refresh wallet data error:", axiosError.response?.data || axiosError.message);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.error || axiosError.message || "Failed to refresh wallet data",
+      error: axiosError.response?.data?.error || axiosError.message || "Failed to refresh wallet data",
     };
   }
 };
@@ -450,11 +456,11 @@ export const getWalletBlockchainTransactions = async (address: string, page?: nu
     const response = await API.get(`${ADMIN_API_ROUTES.WALLET_BLOCKCHAIN_TRANSACTIONS(address)}?${params.toString()}`);
     return response.data;
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+    const axiosError = error as AxiosError<ApiErrorData>;
     console.error('Error fetching blockchain transactions:', axiosError);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.error || axiosError.message || 'Failed to fetch blockchain transactions'
+      error: axiosError.response?.data?.error || axiosError.message || 'Failed to fetch blockchain transactions'
     };
   }
 };
@@ -464,11 +470,11 @@ export const getWalletContractInteractions = async (address: string) => {
     const response = await API.get(ADMIN_API_ROUTES.WALLET_CONTRACT_INTERACTIONS(address));
     return response.data;
   } catch (error) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+    const axiosError = error as AxiosError<ApiErrorData>;
     console.error('Error fetching contract interactions:', axiosError);
     return {
       success: false,
-      error: (axiosError.response?.data as any)?.error || axiosError.message || 'Failed to fetch contract interactions'
+      error: axiosError.response?.data?.error || axiosError.message || 'Failed to fetch contract interactions'
     };
   }
 };

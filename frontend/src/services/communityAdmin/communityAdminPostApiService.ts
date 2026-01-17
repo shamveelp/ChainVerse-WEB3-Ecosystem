@@ -5,7 +5,6 @@ import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 // Types
 import { ApiResponse } from "@/types/common.types";
 import {
-    PostAuthor,
     CommunityAdminPost,
     CommunityAdminComment,
     PostsResponse,
@@ -15,6 +14,12 @@ import {
     LikeResponse,
     MediaUploadResponse
 } from "@/types/comms-admin/posts.types";
+
+interface ApiErrorResponse {
+    error?: string;
+    message?: string;
+    [key: string]: unknown;
+}
 
 class CommunityAdminPostApiService {
     // Post CRUD operations
@@ -27,7 +32,7 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            const axiosError = error as AxiosError<any>;
+            const axiosError = error as AxiosError<ApiErrorResponse>;
             console.error("Create community admin post error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
@@ -47,7 +52,7 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
             };
         } catch (error) {
-            const axiosError = error as AxiosError<any>;
+            const axiosError = error as AxiosError<ApiErrorResponse>;
             console.error("Get community admin post error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
@@ -68,7 +73,7 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            const axiosError = error as AxiosError<any>;
+            const axiosError = error as AxiosError<ApiErrorResponse>;
             console.error("Update community admin post error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
@@ -88,7 +93,7 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            const axiosError = error as AxiosError<any>;
+            const axiosError = error as AxiosError<ApiErrorResponse>;
             console.error("Delete community admin post error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
@@ -113,7 +118,7 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
             };
         } catch (error) {
-            const axiosError = error as AxiosError<any>;
+            const axiosError = error as AxiosError<ApiErrorResponse>;
             console.error("Get community admin posts error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
@@ -135,7 +140,7 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            const axiosError = error as AxiosError<any>;
+            const axiosError = error as AxiosError<ApiErrorResponse>;
             console.error("Toggle community admin post like error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
@@ -157,7 +162,7 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            const axiosError = error as AxiosError<any>;
+            const axiosError = error as AxiosError<ApiErrorResponse>;
             console.error("Create community admin comment error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
@@ -181,7 +186,7 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
             };
         } catch (error) {
-            const axiosError = error as AxiosError<any>;
+            const axiosError = error as AxiosError<ApiErrorResponse>;
             console.error("Get community admin post comments error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
@@ -202,7 +207,7 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            const axiosError = error as AxiosError<any>;
+            const axiosError = error as AxiosError<ApiErrorResponse>;
             console.error("Toggle community admin comment like error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
@@ -232,7 +237,7 @@ class CommunityAdminPostApiService {
                 message: response.data.message
             };
         } catch (error) {
-            const axiosError = error as AxiosError<any>;
+            const axiosError = error as AxiosError<ApiErrorResponse>;
             console.error("Upload community admin post media error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,
@@ -245,7 +250,7 @@ class CommunityAdminPostApiService {
     }
 
     // Community members feed
-    async getCommunityMembersFeed(cursor?: string, limit: number = 10): Promise<ApiResponse<any>> {
+    async getCommunityMembersFeed(cursor?: string, limit: number = 10): Promise<ApiResponse<PostsResponse>> {
         try {
             const params = new URLSearchParams();
             if (cursor) params.append('cursor', cursor);
@@ -257,7 +262,7 @@ class CommunityAdminPostApiService {
                 data: response.data.data,
             };
         } catch (error) {
-            const axiosError = error as AxiosError<any>;
+            const axiosError = error as AxiosError<ApiErrorResponse>;
             console.error("Get community members feed error:", axiosError.response?.data || axiosError.message);
             return {
                 success: false,

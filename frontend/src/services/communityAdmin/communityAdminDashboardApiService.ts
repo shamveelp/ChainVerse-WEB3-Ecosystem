@@ -12,6 +12,12 @@ import {
   DashboardData
 } from "@/types/comms-admin/dashboard.types";
 
+interface ApiErrorData {
+  error?: string;
+  message?: string;
+  [key: string]: unknown;
+}
+
 class CommunityAdminDashboardApiService {
   // Get complete dashboard data
   async getDashboardData(period: string = 'week'): Promise<ApiResponse<DashboardData>> {
@@ -22,7 +28,7 @@ class CommunityAdminDashboardApiService {
         data: response.data.data,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorData>;
       console.error("Get dashboard data error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -43,7 +49,7 @@ class CommunityAdminDashboardApiService {
         data: response.data.data,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorData>;
       console.error("Get community overview error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -64,7 +70,7 @@ class CommunityAdminDashboardApiService {
         data: response.data.data,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorData>;
       console.error("Get community stats error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,

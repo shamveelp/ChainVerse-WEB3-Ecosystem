@@ -24,11 +24,12 @@ export const getAllCommunities = async (page: number = 1, limit: number = 10, se
             message: response.data.message
         };
     } catch (error) {
-        const axiosError = error as AxiosError<any>;
-        console.error("Get all communities error:", axiosError.response?.data || axiosError.message);
+        const axiosError = error as AxiosError<unknown>;
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        console.error("Get all communities error:", errorData || axiosError.message);
         return {
             success: false,
-            error: axiosError.response?.data?.message || axiosError.message || "Failed to fetch communities",
+            error: (errorData?.message as string) || axiosError.message || "Failed to fetch communities",
             data: [],
             total: 0,
             page: 1,
@@ -47,11 +48,12 @@ export const getCommunityById = async (id: string) => {
             message: response.data.message
         };
     } catch (error) {
-        const axiosError = error as AxiosError<any>;
-        console.error("Get community by id error:", axiosError.response?.data || axiosError.message);
+        const axiosError = error as AxiosError<unknown>;
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        console.error("Get community by id error:", errorData || axiosError.message);
         return {
             success: false,
-            error: axiosError.response?.data?.message || axiosError.message || "Failed to fetch community",
+            error: (errorData?.message as string) || axiosError.message || "Failed to fetch community",
         };
     }
 }
@@ -65,11 +67,12 @@ export const updateCommunityStatus = async (id: string, status: string) => {
             message: response.data.message || "Status updated successfully"
         };
     } catch (error) {
-        const axiosError = error as AxiosError<any>;
-        console.error("Update community status error:", axiosError.response?.data || axiosError.message);
+        const axiosError = error as AxiosError<unknown>;
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        console.error("Update community status error:", errorData || axiosError.message);
         return {
             success: false,
-            error: axiosError.response?.data?.message || axiosError.message || "Failed to update status",
+            error: (errorData?.message as string) || axiosError.message || "Failed to update status",
         };
     }
 }
@@ -83,11 +86,12 @@ export const updateVerificationStatus = async (id: string, isVerified: boolean) 
             message: response.data.message || "Verification status updated successfully"
         };
     } catch (error) {
-        const axiosError = error as AxiosError<any>;
-        console.error("Update verification status error:", axiosError.response?.data || axiosError.message);
+        const axiosError = error as AxiosError<unknown>;
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        console.error("Update verification status error:", errorData || axiosError.message);
         return {
             success: false,
-            error: axiosError.response?.data?.message || axiosError.message || "Failed to update verification status",
+            error: (errorData?.message as string) || axiosError.message || "Failed to update verification status",
         };
     }
 }
@@ -100,11 +104,12 @@ export const deleteCommunity = async (id: string) => {
             message: response.data.message || "Community deleted successfully"
         };
     } catch (error) {
-        const axiosError = error as AxiosError<any>;
-        console.error("Delete community error:", axiosError.response?.data || axiosError.message);
+        const axiosError = error as AxiosError<unknown>;
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        console.error("Delete community error:", errorData || axiosError.message);
         return {
             success: false,
-            error: axiosError.response?.data?.message || axiosError.message || "Failed to delete community",
+            error: (errorData?.message as string) || axiosError.message || "Failed to delete community",
         };
     }
 }
@@ -127,16 +132,17 @@ export const getCommunityMembers = async (id: string, page: number = 1, limit: n
             message: response.data.message
         };
     } catch (error) {
-        const axiosError = error as AxiosError<any>;
-        console.error("Get community members error:", axiosError.response?.data || axiosError.message);
+        const axiosError = error as AxiosError<unknown>;
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        console.error("Get community members error:", errorData || axiosError.message);
         return {
             success: false,
-            error: axiosError.response?.data?.message || axiosError.message || "Failed to fetch members",
+            error: (errorData?.message as string) || axiosError.message || "Failed to fetch members",
         };
     }
 }
 
-export const updateCommunitySettings = async (id: string, settings: any) => {
+export const updateCommunitySettings = async (id: string, settings: Record<string, unknown>) => {
     try {
         const response = await API.patch(ADMIN_API_ROUTES.COMMUNITY_MANAGEMENT_SETTINGS(id), { settings });
         return {
@@ -145,11 +151,12 @@ export const updateCommunitySettings = async (id: string, settings: any) => {
             message: response.data.message || "Settings updated successfully"
         };
     } catch (error) {
-        const axiosError = error as AxiosError<any>;
-        console.error("Update community settings error:", axiosError.response?.data || axiosError.message);
+        const axiosError = error as AxiosError<unknown>;
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        console.error("Update community settings error:", errorData || axiosError.message);
         return {
             success: false,
-            error: axiosError.response?.data?.message || axiosError.message || "Failed to update settings",
+            error: (errorData?.message as string) || axiosError.message || "Failed to update settings",
         };
     }
 }

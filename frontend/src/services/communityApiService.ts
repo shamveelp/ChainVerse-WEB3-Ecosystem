@@ -28,6 +28,13 @@ export type {
   SendMessageResponse
 };
 
+interface ApiErrorData {
+  error?: string;
+  message?: string;
+  success?: boolean;
+  data?: unknown;
+}
+
 // Helper function to handle API errors consistently
 const handleApiError = (error: AxiosError, defaultMessage: string) => {
   console.error("Community API Error:", {
@@ -59,15 +66,13 @@ const handleApiError = (error: AxiosError, defaultMessage: string) => {
     throw new Error("Server error. Please try again later");
   }
 
-  const errorMessage = (error.response?.data as any)?.error ||
-    (error.response?.data as any)?.message ||
-    error.message ||
-    defaultMessage;
+  const errorData = error.response?.data as ApiErrorData | undefined;
+  const errorMessage = errorData?.error || errorData?.message || error.message || defaultMessage;
   throw new Error(errorMessage);
 };
 
 // Helper function to transform profile data with better error handling
-const transformProfileData = (data: Partial<CommunityProfile> & Record<string, any>): CommunityProfile => {
+const transformProfileData = (data: Partial<CommunityProfile> & Record<string, unknown>): CommunityProfile => {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid profile data received');
   }
@@ -99,7 +104,7 @@ const transformProfileData = (data: Partial<CommunityProfile> & Record<string, a
       showFollowersCount: data.settings?.showFollowersCount ?? true,
       showFollowingCount: data.settings?.showFollowingCount ?? true
     },
-    joinDate: data.joinDate || data.createdAt || new Date().toISOString(),
+    joinDate: (data.joinDate as string) || (data.createdAt as string) || new Date().toISOString(),
     isOwnProfile: Boolean(data.isOwnProfile),
     isFollowing: Boolean(data.isFollowing)
   };

@@ -10,6 +10,15 @@ interface ApiErrorData {
   message?: string;
 }
 
+export interface AIContext {
+  walletConnected: boolean;
+  walletAddress?: string | null;
+  hasRecentActivity?: boolean;
+  balancesAvailable?: boolean;
+  timestamp?: string;
+  [key: string]: unknown;
+}
+
 class AiTradeApiService {
   // Generate unique session ID for chat
   static generateSessionId(): string {
@@ -22,7 +31,7 @@ class AiTradeApiService {
     sessionId: string;
     walletAddress?: string;
     walletConnected?: boolean;
-    context?: any;
+    context?: AIContext;
   }): Promise<AIChatResponse> {
     try {
       const response = await API.post(USER_API_ROUTES.AI_TRADING.CHAT_MESSAGE, data);
@@ -193,7 +202,7 @@ class AiTradeApiService {
   }
 
   // Get suggested responses based on context
-  static getSuggestedResponses(context?: any): string[] {
+  static getSuggestedResponses(context?: AIContext): string[] {
     const baseResponses = [
       "What tokens are available? 📊",
       "Show current prices 💰",
@@ -250,7 +259,7 @@ class AiTradeApiService {
   }
 
   // Get error message for common errors
-  static getErrorMessage(error: any): string {
+  static getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
       return error.message;
     }
@@ -331,9 +340,9 @@ class AiTradeApiService {
   // Generate context for better AI responses
   static generateContextForAI(
     walletAddress?: string,
-    recentTransactions?: any[],
-    tokenBalances?: any
-  ): any {
+    recentTransactions?: unknown[],
+    tokenBalances?: unknown
+  ): AIContext {
     return {
       walletConnected: !!walletAddress,
       walletAddress: walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : null,

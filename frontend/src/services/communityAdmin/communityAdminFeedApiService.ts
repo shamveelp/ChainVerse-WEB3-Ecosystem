@@ -2,7 +2,6 @@ import { AxiosError } from 'axios';
 import API from "@/lib/api-client";
 import { COMMUNITY_ADMIN_API_ROUTES } from "@/routes";
 import {
-  PostAuthor,
   CommunityPost,
   CommunityFeedResponse,
   CreateCommentData,
@@ -12,6 +11,12 @@ import {
   EngagementStats
 } from "@/types/comms-admin/feed.types";
 import { ApiResponse } from "@/types/common.types";
+
+interface ApiErrorResponse {
+  error?: string;
+  message?: string;
+  [key: string]: unknown;
+}
 
 class CommunityAdminFeedApiService {
   // Get community feed
@@ -32,7 +37,7 @@ class CommunityAdminFeedApiService {
         data: response.data.data,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get community feed error:", {
         message: axiosError.message,
         response: axiosError.response?.data,
@@ -59,7 +64,7 @@ class CommunityAdminFeedApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Toggle post like error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -81,7 +86,7 @@ class CommunityAdminFeedApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Create comment error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -103,7 +108,7 @@ class CommunityAdminFeedApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Share post error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -125,7 +130,7 @@ class CommunityAdminFeedApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Pin post error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -149,7 +154,7 @@ class CommunityAdminFeedApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Delete post error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -170,7 +175,7 @@ class CommunityAdminFeedApiService {
         data: response.data.data,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get engagement stats error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -191,7 +196,7 @@ class CommunityAdminFeedApiService {
         data: response.data.data
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get post error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -213,7 +218,7 @@ class CommunityAdminFeedApiService {
         data: response.data.data
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get comments error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,

@@ -11,6 +11,12 @@ import {
 } from "@/types/comms-admin/members.types";
 import { ApiResponse } from "@/types/common.types";
 
+interface ApiErrorResponse {
+  error?: string;
+  message?: string;
+  [key: string]: unknown;
+}
+
 class CommunityAdminMembersApiService {
   // Get community members
   async getCommunityMembers(filters: MemberFilters = {}): Promise<ApiResponse<MembersListResponse>> {
@@ -29,7 +35,7 @@ class CommunityAdminMembersApiService {
         data: response.data.data,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get community members error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -50,7 +56,7 @@ class CommunityAdminMembersApiService {
         data: response.data.data,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get member details error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -72,7 +78,7 @@ class CommunityAdminMembersApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Update member role error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -94,7 +100,7 @@ class CommunityAdminMembersApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Ban member error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -116,7 +122,7 @@ class CommunityAdminMembersApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Unban member error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -140,7 +146,7 @@ class CommunityAdminMembersApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Remove member error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -161,7 +167,7 @@ class CommunityAdminMembersApiService {
         data: response.data.data,
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get member activity error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,
@@ -183,7 +189,7 @@ class CommunityAdminMembersApiService {
         message: response.data.message
       };
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Bulk update members error:", axiosError.response?.data || axiosError.message);
       return {
         success: false,

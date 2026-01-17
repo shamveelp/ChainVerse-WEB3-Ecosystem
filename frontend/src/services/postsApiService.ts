@@ -79,73 +79,78 @@ const handleApiError = (error: AxiosError<ApiErrorData>, defaultMessage: string)
 };
 
 // Helper function to transform post data
-const transformPostData = (data: Partial<Post> & Record<string, unknown>): Post => {
+const transformPostData = (data: Record<string, unknown>): Post => {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid post data received');
   }
 
+  const author = (data.author as Record<string, unknown>) || {};
+
   return {
-    _id: data._id as string || '',
+    _id: (data._id as string) || '',
     author: {
-      _id: (data.author as any)?._id || '',
-      username: (data.author as any)?.username || '',
-      name: (data.author as any)?.name || '',
-      profilePic: (data.author as any)?.profilePic || '',
-      isVerified: Boolean((data.author as any)?.isVerified)
+      _id: (author._id as string) || '',
+      username: (author.username as string) || '',
+      name: (author.name as string) || '',
+      profilePic: (author.profilePic as string) || '',
+      isVerified: Boolean(author.isVerified)
     },
-    content: data.content as string || '',
-    mediaUrls: Array.isArray(data.mediaUrls) ? data.mediaUrls as string[] : [],
-    mediaType: data.mediaType as any || 'none',
-    hashtags: Array.isArray(data.hashtags) ? data.hashtags as string[] : [],
-    mentions: Array.isArray(data.mentions) ? data.mentions as string[] : [],
+    content: (data.content as string) || '',
+    mediaUrls: Array.isArray(data.mediaUrls) ? (data.mediaUrls as string[]) : [],
+    mediaType: (data.mediaType as 'none' | 'image' | 'video') || 'none',
+    hashtags: Array.isArray(data.hashtags) ? (data.hashtags as string[]) : [],
+    mentions: Array.isArray(data.mentions) ? (data.mentions as string[]) : [],
     likesCount: Number(data.likesCount) || 0,
     commentsCount: Number(data.commentsCount) || 0,
     sharesCount: Number(data.sharesCount) || 0,
     isLiked: Boolean(data.isLiked),
     isOwnPost: Boolean(data.isOwnPost),
-    createdAt: data.createdAt as string || new Date().toISOString(),
-    updatedAt: data.updatedAt as string || new Date().toISOString(),
+    createdAt: (data.createdAt as string) || new Date().toISOString(),
+    updatedAt: (data.updatedAt as string) || new Date().toISOString(),
     editedAt: data.editedAt as string
   };
 };
 
 // Helper function to transform comment data
-const transformCommentData = (data: Partial<Comment> & Record<string, unknown>): Comment => {
+const transformCommentData = (data: Record<string, unknown>): Comment => {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid comment data received');
   }
 
+  const author = (data.author as Record<string, unknown>) || {};
+  const community = (data.community as Record<string, unknown>);
+
   const comment: Comment = {
-    _id: data._id as string || '',
-    post: data.post as string || '',
+    _id: (data._id as string) || '',
+    post: (data.post as string) || '',
     author: {
-      _id: (data.author as any)?._id || '',
-      username: (data.author as any)?.username || '',
-      name: (data.author as any)?.name || '',
-      profilePic: (data.author as any)?.profilePic || '',
-      isVerified: Boolean((data.author as any)?.isVerified)
+      _id: (author._id as string) || '',
+      username: (author.username as string) || '',
+      name: (author.name as string) || '',
+      profilePic: (author.profilePic as string) || '',
+      isVerified: Boolean(author.isVerified)
     },
-    content: data.content as string || '',
+    content: (data.content as string) || '',
     parentComment: data.parentComment as string,
     likesCount: Number(data.likesCount) || 0,
     repliesCount: Number(data.repliesCount) || 0,
     isLiked: Boolean(data.isLiked),
     isOwnComment: Boolean(data.isOwnComment),
     postedAsCommunity: Boolean(data.postedAsCommunity),
-    community: data.community ? {
-      _id: (data.community as any)._id || '',
-      username: (data.community as any).username || '',
-      name: (data.community as any).name || '',
-      profilePic: (data.community as any).profilePic || ''
+    community: community ? {
+      _id: (community._id as string) || '',
+      username: (community.username as string) || '',
+      name: (community.name as string) || '',
+      profilePic: (community.profilePic as string) || ''
     } : undefined,
-    createdAt: data.createdAt as string || new Date().toISOString(),
-    updatedAt: data.updatedAt as string || new Date().toISOString(),
+    createdAt: (data.createdAt as string) || new Date().toISOString(),
+    updatedAt: (data.updatedAt as string) || new Date().toISOString(),
     editedAt: data.editedAt as string,
     replies: []
   };
 
   if (data.replies && Array.isArray(data.replies)) {
-    comment.replies = data.replies.map((reply: any) => transformCommentData(reply));
+    comment.replies = data.replies.map((reply: unknown) => transformCommentData(reply as Record<string, unknown>));
   }
 
   return comment;
@@ -177,7 +182,7 @@ export const postsApiService = {
 
       if (response.data?.success && response.data?.data) {
         const transformedPost = transformPostData(response.data.data.post);
-        const transformedComments = (response.data.data.comments || []).map((c: any) => transformCommentData(c));
+        const transformedComments = (response.data.data.comments || []).map((c: Record<string, unknown>) => transformCommentData(c));
 
         const result: PostDetailResponse = {
           post: transformedPost,
@@ -246,7 +251,7 @@ export const postsApiService = {
       const response = await API.get(`${USER_API_ROUTES.POSTS_FEED}?${params.toString()}`);
 
       if (response.data?.success && response.data?.data) {
-        const transformedPosts = (response.data.data.posts || []).map((p: any) => transformPostData(p));
+        const transformedPosts = (response.data.data.posts || []).map((p: Record<string, unknown>) => transformPostData(p));
         return {
           posts: transformedPosts,
           hasMore: Boolean(response.data.data.hasMore),
@@ -273,7 +278,7 @@ export const postsApiService = {
       const response = await API.get(`${USER_API_ROUTES.POSTS_USER(userId)}?${params.toString()}`);
 
       if (response.data?.success && response.data?.data) {
-        const transformedPosts = (response.data.data.posts || []).map((p: any) => transformPostData(p));
+        const transformedPosts = (response.data.data.posts || []).map((p: Record<string, unknown>) => transformPostData(p));
         return {
           posts: transformedPosts,
           hasMore: Boolean(response.data.data.hasMore),
@@ -300,7 +305,7 @@ export const postsApiService = {
       const response = await API.get(`${USER_API_ROUTES.POSTS_LIKED(userId)}?${params.toString()}`);
 
       if (response.data?.success && response.data?.data) {
-        const transformedPosts = (response.data.data.posts || []).map((p: any) => transformPostData(p));
+        const transformedPosts = (response.data.data.posts || []).map((p: Record<string, unknown>) => transformPostData(p));
         return {
           posts: transformedPosts,
           hasMore: Boolean(response.data.data.hasMore),
@@ -327,7 +332,7 @@ export const postsApiService = {
       const response = await API.get(`${USER_API_ROUTES.POSTS_TRENDING}?${params.toString()}`);
 
       if (response.data?.success && response.data?.data) {
-        const transformedPosts = (response.data.data.posts || []).map((p: any) => transformPostData(p));
+        const transformedPosts = (response.data.data.posts || []).map((p: Record<string, unknown>) => transformPostData(p));
         return {
           posts: transformedPosts,
           hasMore: Boolean(response.data.data.hasMore),
@@ -355,7 +360,7 @@ export const postsApiService = {
       const response = await API.get(`${USER_API_ROUTES.POSTS_SEARCH}?${params.toString()}`);
 
       if (response.data?.success && response.data?.data) {
-        const transformedPosts = (response.data.data.posts || []).map((p: any) => transformPostData(p));
+        const transformedPosts = (response.data.data.posts || []).map((p: Record<string, unknown>) => transformPostData(p));
         return {
           posts: transformedPosts,
           hasMore: Boolean(response.data.data.hasMore),
@@ -452,7 +457,7 @@ export const postsApiService = {
       const response = await API.get(`${USER_API_ROUTES.POST_COMMENTS(postId)}?${params.toString()}`);
 
       if (response.data?.success && response.data?.data) {
-        const transformedComments = (response.data.data.comments || []).map((c: any) => transformCommentData(c));
+        const transformedComments = (response.data.data.comments || []).map((c: Record<string, unknown>) => transformCommentData(c));
         return {
           comments: transformedComments,
           hasMore: Boolean(response.data.data.hasMore),
@@ -479,7 +484,7 @@ export const postsApiService = {
       const response = await API.get(`${USER_API_ROUTES.POST_COMMENT_REPLIES(commentId)}?${params.toString()}`);
 
       if (response.data?.success && response.data?.data) {
-        const transformedComments = (response.data.data.comments || []).map((c: any) => transformCommentData(c));
+        const transformedComments = (response.data.data.comments || []).map((c: Record<string, unknown>) => transformCommentData(c));
         return {
           comments: transformedComments,
           hasMore: Boolean(response.data.data.hasMore),

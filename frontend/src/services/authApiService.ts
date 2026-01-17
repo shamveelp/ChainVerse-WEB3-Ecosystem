@@ -26,7 +26,7 @@ export const login = async (email: string, password: string) => {
 
 export const register = async (username: string, email: string, password: string, name: string, referralCode?: string) => {
   try {
-    const payload: any = { username, email, password, name }
+    const payload: Record<string, unknown> = { username, email, password, name }
 
     // Only include referralCode if it has a value
     if (referralCode && referralCode.trim()) {
@@ -50,7 +50,7 @@ export const register = async (username: string, email: string, password: string
 
 export const signup = async (username: string, email: string, password: string, name: string, referralCode: string | undefined, otp: string) => {
   try {
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       username,
       email,
       password,
@@ -199,7 +199,7 @@ export const logout = async () => {
 
 export const googleLogin = async (credential: string, referralCode?: string) => {
   try {
-    const payload: any = { token: credential }
+    const payload: Record<string, unknown> = { token: credential }
     if (referralCode && referralCode.trim()) {
       payload.referralCode = referralCode.trim().toUpperCase()
     }

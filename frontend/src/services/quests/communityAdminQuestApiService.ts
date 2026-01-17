@@ -235,7 +235,7 @@ class CommunityAdminQuestApiService {
     }
   }
 
-  async getParticipantDetails(questId: string, participantId: string): Promise<ApiResponse<any>> {
+  async getParticipantDetails(questId: string, participantId: string): Promise<ApiResponse<Record<string, unknown>>> {
     try {
       const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.QUESTS.PARTICIPANT_DETAILS(questId, participantId));
       return {
@@ -256,7 +256,7 @@ class CommunityAdminQuestApiService {
     }
   }
 
-  async selectWinners(questId: string, method?: 'fcfs' | 'random' | 'leaderboard'): Promise<ApiResponse<{ winners: any[]; message: string }>> {
+  async selectWinners(questId: string, method?: 'fcfs' | 'random' | 'leaderboard'): Promise<ApiResponse<{ winners: Record<string, unknown>[]; message: string }>> {
     try {
       const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.SELECT_WINNERS, {
         questId,
@@ -280,7 +280,7 @@ class CommunityAdminQuestApiService {
     }
   }
 
-  async selectReplacementWinners(questId: string, count: number = 1): Promise<ApiResponse<{ winners: any[]; message: string }>> {
+  async selectReplacementWinners(questId: string, count: number = 1): Promise<ApiResponse<{ winners: Record<string, unknown>[]; message: string }>> {
     try {
       const response = await api.post(COMMUNITY_ADMIN_API_ROUTES.QUESTS.SELECT_REPLACEMENT(questId), {
         count
@@ -349,7 +349,7 @@ class CommunityAdminQuestApiService {
   }
 
   // Analytics and Stats
-  async getQuestStats(questId: string): Promise<ApiResponse<any>> {
+  async getQuestStats(questId: string): Promise<ApiResponse<Record<string, unknown>>> {
     try {
       const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.QUESTS.STATS(questId));
       return {
@@ -391,7 +391,7 @@ class CommunityAdminQuestApiService {
     }
   }
 
-  async getQuestLeaderboard(questId: string): Promise<ApiResponse<any[]>> {
+  async getQuestLeaderboard(questId: string): Promise<ApiResponse<Record<string, unknown>[]>> {
     try {
       const response = await api.get(COMMUNITY_ADMIN_API_ROUTES.QUESTS.LEADERBOARD(questId));
       return {
@@ -443,7 +443,7 @@ class CommunityAdminQuestApiService {
   }
 
   // Search Communities
-  async searchCommunities(query: string): Promise<ApiResponse<any[]>> {
+  async searchCommunities(query: string): Promise<ApiResponse<Record<string, unknown>[]>> {
     try {
       const response = await api.get(`${USER_API_ROUTES.COMMUNITIES.SEARCH}?query=${encodeURIComponent(query)}&type=communities`);
       return {
@@ -465,7 +465,7 @@ class CommunityAdminQuestApiService {
   }
 
   // Search Users
-  async searchUsers(query: string): Promise<ApiResponse<any[]>> {
+  async searchUsers(query: string): Promise<ApiResponse<Record<string, unknown>[]>> {
     try {
       const response = await api.get(`${USER_API_ROUTES.COMMUNITIES.SEARCH}?query=${encodeURIComponent(query)}&type=users`);
       return {
@@ -487,7 +487,7 @@ class CommunityAdminQuestApiService {
   }
 
   // Chat with AI
-  async chatWithAI(message: string, conversationHistory?: any[]): Promise<ApiResponse<{
+  async chatWithAI(message: string, conversationHistory?: Record<string, unknown>[]): Promise<ApiResponse<{
     response: string;
     questGenerated?: boolean;
     questData?: CreateQuestData;
@@ -520,6 +520,7 @@ class CommunityAdminQuestApiService {
     }
   }
 }
+
 
 export const communityAdminQuestApiService = new CommunityAdminQuestApiService();
 export default communityAdminQuestApiService;

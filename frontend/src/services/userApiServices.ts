@@ -17,8 +17,19 @@ interface ApiErrorData {
   success?: boolean;
 }
 
+interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+  // For specific endpoints that might return flat props
+  available?: boolean;
+  profilePic?: string;
+  imageUrl?: string;
+}
+
 // Helper function to handle API errors
-const handleApiError = (error: AxiosError<ApiErrorData>, defaultMessage: string) => {
+const handleApiError = <T = unknown>(error: AxiosError<ApiErrorData>, defaultMessage: string): ApiResponse<T> => {
   console.error("User API Error:", {
     status: error.response?.status,
     statusText: error.response?.statusText,
@@ -41,7 +52,7 @@ const handleApiError = (error: AxiosError<ApiErrorData>, defaultMessage: string)
 
 export const userApiService = {
   // Profile management
-  getProfile: async (): Promise<any> => {
+  getProfile: async (): Promise<ApiResponse<UserProfile>> => {
     try {
       const response = await API.get(USER_API_ROUTES.GET_PROFILE);
 
@@ -61,7 +72,7 @@ export const userApiService = {
     }
   },
 
-  updateProfile: async (data: any): Promise<any> => {
+  updateProfile: async (data: Record<string, unknown>): Promise<ApiResponse<UserProfile>> => {
     try {
       const response = await API.put(USER_API_ROUTES.UPDATE_PROFILE, data);
 
@@ -81,7 +92,7 @@ export const userApiService = {
     }
   },
 
-  checkUsernameAvailability: async (username: string): Promise<any> => {
+  checkUsernameAvailability: async (username: string): Promise<ApiResponse> => {
     try {
       const response = await API.get(`${USER_API_ROUTES.CHECK_USERNAME}?username=${username}`);
       return {
@@ -98,7 +109,7 @@ export const userApiService = {
     }
   },
 
-  uploadProfileImage: async (file: File): Promise<any> => {
+  uploadProfileImage: async (file: File): Promise<ApiResponse<UserProfile>> => {
     try {
       const formData = new FormData();
       formData.append("image", file);
@@ -128,7 +139,7 @@ export const userApiService = {
   },
 
   // Security
-  changePassword: async (data: any): Promise<any> => {
+  changePassword: async (data: Record<string, unknown>): Promise<ApiResponse> => {
     try {
       const response = await API.post(USER_API_ROUTES.CHANGE_PASSWORD, data);
 
@@ -146,7 +157,7 @@ export const userApiService = {
   },
 
   // Stats and Rewards
-  getStats: async (): Promise<any> => {
+  getStats: async (): Promise<ApiResponse> => {
     try {
       const response = await API.get(USER_API_ROUTES.USER_STATS);
 
@@ -167,7 +178,7 @@ export const userApiService = {
   },
 
   // Notifications
-  getNotificationSettings: async (): Promise<any> => {
+  getNotificationSettings: async (): Promise<ApiResponse> => {
     try {
       const response = await API.get(USER_API_ROUTES.NOTIFICATION_SETTINGS);
 
@@ -187,7 +198,7 @@ export const userApiService = {
     }
   },
 
-  updateNotificationSettings: async (settings: any): Promise<any> => {
+  updateNotificationSettings: async (settings: Record<string, unknown>): Promise<ApiResponse> => {
     try {
       const response = await API.put(USER_API_ROUTES.NOTIFICATION_SETTINGS_UPDATE, settings);
 
@@ -223,7 +234,7 @@ export const userApiService = {
   },
 
   // Onboarding
-  completeOnboarding: async (step: string): Promise<any> => {
+  completeOnboarding: async (step: string): Promise<ApiResponse> => {
     try {
       const response = await API.post(USER_API_ROUTES.COMPLETE_ONBOARDING, { step });
 
@@ -255,7 +266,7 @@ export const userApiService = {
   },
 
   // Points and Daily Check-in
-  getCheckInStatus: async (): Promise<any> => {
+  getCheckInStatus: async (): Promise<ApiResponse<CheckInStatus>> => {
     try {
       const response = await API.get(USER_API_ROUTES.POINTS_CHECKIN_STATUS);
       if (response.data?.success) {
@@ -270,7 +281,7 @@ export const userApiService = {
     }
   },
 
-  getCheckInCalendar: async (month?: number, year?: number): Promise<any> => {
+  getCheckInCalendar: async (month?: number, year?: number): Promise<ApiResponse> => {
     try {
       const params = new URLSearchParams();
       if (month) params.append("month", month.toString());
@@ -289,7 +300,7 @@ export const userApiService = {
     }
   },
 
-  getPointsHistory: async (page: number = 1, limit: number = 10): Promise<any> => {
+  getPointsHistory: async (page: number = 1, limit: number = 10): Promise<ApiResponse> => {
     try {
       const response = await API.get(`${USER_API_ROUTES.POINTS_HISTORY}?page=${page}&limit=${limit}`);
       if (response.data?.success) {
@@ -304,7 +315,7 @@ export const userApiService = {
     }
   },
 
-  performDailyCheckIn: async (): Promise<any> => {
+  performDailyCheckIn: async (): Promise<ApiResponse<DailyCheckInResult>> => {
     try {
       const response = await API.post(USER_API_ROUTES.POINTS_DAILY_CHECKIN);
       if (response.data?.success) {
@@ -320,7 +331,7 @@ export const userApiService = {
   },
 
   // Referrals
-  getReferralStats: async (): Promise<any> => {
+  getReferralStats: async (): Promise<ApiResponse<ReferralStats>> => {
     try {
       const response = await API.get(USER_API_ROUTES.REFERRALS_STATS);
       if (response.data?.success) {
@@ -335,7 +346,7 @@ export const userApiService = {
     }
   },
 
-  getReferralHistory: async (page: number = 1, limit: number = 10): Promise<any> => {
+  getReferralHistory: async (page: number = 1, limit: number = 10): Promise<ApiResponse> => {
     try {
       const response = await API.get(`${USER_API_ROUTES.REFERRALS_HISTORY}?page=${page}&limit=${limit}`);
       if (response.data?.success) {

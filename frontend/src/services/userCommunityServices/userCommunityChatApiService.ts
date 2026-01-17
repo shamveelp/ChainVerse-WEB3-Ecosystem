@@ -17,6 +17,12 @@ import {
 } from "@/types/community/chat.types";
 import { SendGroupMessageRequest } from "@/types/user/community-chat.types";
 
+interface Reaction {
+  emoji: string;
+  count: number;
+  userReacted: boolean;
+}
+
 // Helper function to handle API errors
 const handleApiError = (error: AxiosError, defaultMessage: string) => {
   console.error("User Community Chat API Error:", {
@@ -50,8 +56,8 @@ const handleApiError = (error: AxiosError, defaultMessage: string) => {
     }
   }
 
-  const errorMessage = (error.response?.data as any)?.error ||
-    (error.response?.data as any)?.message ||
+  const errorMessage = (error.response?.data as Record<string, unknown>)?.error as string ||
+    (error.response?.data as Record<string, unknown>)?.message as string ||
     error.message ||
     defaultMessage;
   throw new Error(errorMessage);
@@ -90,7 +96,7 @@ export const userCommunityChatApiService = {
   },
 
   // React to channel message
-  reactToChannelMessage: async (messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: any[] }> => {
+  reactToChannelMessage: async (messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: Reaction[] }> => {
     try {
       if (!messageId?.trim() || !emoji?.trim()) {
         throw new Error("Message ID and emoji are required");
@@ -119,7 +125,7 @@ export const userCommunityChatApiService = {
   },
 
   // Remove reaction from channel message
-  removeChannelMessageReaction: async (messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: any[] }> => {
+  removeChannelMessageReaction: async (messageId: string, emoji: string): Promise<{ success: boolean; message: string; reactions: Reaction[] }> => {
     try {
       if (!messageId?.trim() || !emoji?.trim()) {
         throw new Error("Message ID and emoji are required");

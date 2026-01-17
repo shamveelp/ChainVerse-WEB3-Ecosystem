@@ -10,8 +10,8 @@ interface ApiErrorData {
 export const walletService = {
   connectWallet: async () => {
     try {
-      if (typeof window !== "undefined" && (window as any).ethereum) {
-        const accounts = await (window as any).ethereum.request({ method: "eth_requestAccounts" });
+      if (typeof window !== "undefined" && window.ethereum) {
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" }) as string[];
         const walletAddress = accounts[0];
 
         const response = await API.post(USER_API_ROUTES.WALLET.CONNECT, {

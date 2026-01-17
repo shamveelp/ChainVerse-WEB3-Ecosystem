@@ -21,8 +21,8 @@ export type {
 import { ApiResponse } from "@/types/common.types";
 
 // Helper function to handle API errors
-const handleApiError = (error: any, defaultMessage: string) => {
-  const axiosError = error as AxiosError<any>;
+const handleApiError = (error: unknown, defaultMessage: string) => {
+  const axiosError = error as AxiosError<Record<string, unknown>>;
   console.error("My Communities API Error:", {
     status: axiosError.response?.status,
     statusText: axiosError.response?.statusText,
@@ -52,43 +52,45 @@ const handleApiError = (error: any, defaultMessage: string) => {
     throw new Error("Server error. Please try again later");
   }
 
-  const errorMessage = axiosError.response?.data?.error ||
-    axiosError.response?.data?.message ||
+  const errorMessage = (axiosError.response?.data?.error as string) ||
+    (axiosError.response?.data?.message as string) ||
     axiosError.message ||
     defaultMessage;
   throw new Error(errorMessage);
 };
 
 // Helper function to transform community data
-const transformMyCommunityData = (data: Partial<MyCommunity> & Record<string, any>): MyCommunity => {
+const transformMyCommunityData = (data: Partial<MyCommunity> & Record<string, unknown>): MyCommunity => {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid community data received');
   }
 
+  const settings = (data.settings as Record<string, unknown>) || {};
+
   return {
     _id: data._id || '',
-    communityName: data.communityName || '',
-    username: data.username || '',
-    description: data.description || '',
-    category: data.category || '',
-    logo: data.logo || '',
-    banner: data.banner || '',
+    communityName: (data.communityName as string) || '',
+    username: (data.username as string) || '',
+    description: (data.description as string) || '',
+    category: (data.category as string) || '',
+    logo: (data.logo as string) || '',
+    banner: (data.banner as string) || '',
     isVerified: Boolean(data.isVerified),
     memberCount: Number(data.memberCount) || 0,
-    memberRole: data.memberRole || 'member',
-    joinedAt: data.joinedAt ? new Date(data.joinedAt) : new Date(),
-    lastActiveAt: data.lastActiveAt ? new Date(data.lastActiveAt) : undefined,
+    memberRole: (data.memberRole as 'owner' | 'admin' | 'moderator' | 'member') || 'member',
+    joinedAt: data.joinedAt ? new Date(data.joinedAt as unknown as string | number | Date) : new Date(),
+    lastActiveAt: data.lastActiveAt ? new Date(data.lastActiveAt as unknown as string | number | Date) : undefined,
     unreadPosts: Number(data.unreadPosts) || 0,
     totalPosts: Number(data.totalPosts) || 0,
     isActive: Boolean(data.isActive),
     settings: {
-      allowChainCast: data.settings?.allowChainCast || false,
-      allowGroupChat: data.settings?.allowGroupChat || true,
-      allowPosts: data.settings?.allowPosts || true,
-      allowQuests: data.settings?.allowQuests || false
+      allowChainCast: Boolean(settings.allowChainCast),
+      allowGroupChat: settings.allowGroupChat !== false,
+      allowPosts: settings.allowPosts !== false,
+      allowQuests: Boolean(settings.allowQuests)
     },
     notifications: Boolean(data.notifications),
-    createdAt: data.createdAt ? new Date(data.createdAt) : new Date()
+    createdAt: data.createdAt ? new Date(data.createdAt as unknown as string | number | Date) : new Date()
   };
 };
 
@@ -174,14 +176,14 @@ export const userMyCommunitiesApiService = {
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
         return {
-          activities: (data.activities || []).map((activity: any) => ({
-            communityId: activity.communityId || '',
-            communityName: activity.communityName || '',
-            username: activity.username || '',
-            logo: activity.logo || '',
-            lastActiveAt: new Date(activity.lastActiveAt),
+          activities: (data.activities || []).map((activity: Record<string, unknown>) => ({
+            communityId: (activity.communityId as string) || '',
+            communityName: (activity.communityName as string) || '',
+            username: (activity.username as string) || '',
+            logo: (activity.logo as string) || '',
+            lastActiveAt: new Date(activity.lastActiveAt as string | number),
             unreadPosts: Number(activity.unreadPosts) || 0,
-            recentActivity: activity.recentActivity || 'No recent activity'
+            recentActivity: (activity.recentActivity as string) || 'No recent activity'
           })),
           totalUnreadPosts: Number(data.totalUnreadPosts) || 0,
           mostActiveToday: data.mostActiveToday || []

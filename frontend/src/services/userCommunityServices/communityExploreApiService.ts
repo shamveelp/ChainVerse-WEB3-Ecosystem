@@ -60,78 +60,83 @@ const handleApiError = (error: AxiosError, defaultMessage: string) => {
     throw new Error("Server error. Please try again later");
   }
 
-  const errorMessage = (error.response?.data as any)?.error ||
-    (error.response?.data as any)?.message ||
+  const errorMessage = (error.response?.data as Record<string, unknown>)?.error ||
+    (error.response?.data as Record<string, unknown>)?.message ||
     error.message ||
     defaultMessage;
-  throw new Error(errorMessage);
+  throw new Error(errorMessage as string);
 };
 
 // Helper function to transform community data
-const transformCommunityData = (data: any): Community => {
+const transformCommunityData = (data: Record<string, unknown>): Community => {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid community data received');
   }
 
+  const settings = (data.settings as Record<string, unknown>) || {};
+
   return {
-    _id: data._id || '',
-    communityName: data.communityName || '',
-    username: data.username || '',
-    description: data.description || '',
-    category: data.category || '',
-    logo: data.logo || '',
-    banner: data.banner || '',
+    _id: (data._id as string) || '',
+    communityName: (data.communityName as string) || '',
+    username: (data.username as string) || '',
+    description: (data.description as string) || '',
+    category: (data.category as string) || '',
+    logo: (data.logo as string) || '',
+    banner: (data.banner as string) || '',
     isVerified: Boolean(data.isVerified),
     memberCount: Number(data.memberCount) || 0,
     isMember: Boolean(data.isMember),
-    createdAt: data.createdAt || new Date().toISOString(),
-    rules: data.rules || [],
-    socialLinks: data.socialLinks || [],
+    createdAt: (data.createdAt as string) || new Date().toISOString(),
+    rules: Array.isArray(data.rules) ? (data.rules as string[]) : [],
+    socialLinks: (data.socialLinks as string[]) || [],
     settings: {
-      allowChainCast: data.settings?.allowChainCast || false,
-      allowGroupChat: data.settings?.allowGroupChat || true,
-      allowPosts: data.settings?.allowPosts || true,
-      allowQuests: data.settings?.allowQuests || false
+      allowChainCast: Boolean(settings.allowChainCast),
+      allowGroupChat: settings.allowGroupChat !== false,
+      allowPosts: settings.allowPosts !== false,
+      allowQuests: Boolean(settings.allowQuests)
     },
-    memberRole: data.memberRole,
+    memberRole: data.memberRole as 'owner' | 'admin' | 'moderator' | 'member' | undefined,
     isAdmin: Boolean(data.isAdmin)
   };
 };
 
 // Helper function to transform user data
-const transformUserData = (data: any): UserProfile => {
+const transformUserData = (data: Record<string, unknown>): UserProfile => {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid user data received');
   }
 
+  const socialLinks = (data.socialLinks as Record<string, unknown>) || {};
+  const settings = (data.settings as Record<string, unknown>) || {};
+
   return {
-    _id: data._id || '',
-    username: data.username || '',
-    name: data.name || '',
-    email: data.email || '',
-    profilePic: data.profilePic || '',
+    _id: (data._id as string) || '',
+    username: (data.username as string) || '',
+    name: (data.name as string) || '',
+    email: (data.email as string) || '',
+    profilePic: (data.profilePic as string) || '',
     followersCount: Number(data.followersCount) || 0,
     followingCount: Number(data.followingCount) || 0,
-    bio: data.bio || '',
-    location: data.location || '',
-    website: data.website || '',
-    bannerImage: data.bannerImage || '',
+    bio: (data.bio as string) || '',
+    location: (data.location as string) || '',
+    website: (data.website as string) || '',
+    bannerImage: (data.bannerImage as string) || '',
     isVerified: Boolean(data.isVerified),
     postsCount: Number(data.postsCount) || 0,
     likesReceived: Number(data.likesReceived) || 0,
     socialLinks: {
-      twitter: data.socialLinks?.twitter || '',
-      instagram: data.socialLinks?.instagram || '',
-      linkedin: data.socialLinks?.linkedin || '',
-      github: data.socialLinks?.github || ''
+      twitter: (socialLinks.twitter as string) || '',
+      instagram: (socialLinks.instagram as string) || '',
+      linkedin: (socialLinks.linkedin as string) || '',
+      github: (socialLinks.github as string) || ''
     },
     settings: {
-      isProfilePublic: data.settings?.isProfilePublic !== false,
-      allowDirectMessages: data.settings?.allowDirectMessages !== false,
-      showFollowersCount: data.settings?.showFollowersCount !== false,
-      showFollowingCount: data.settings?.showFollowingCount !== false
+      isProfilePublic: settings.isProfilePublic !== false,
+      allowDirectMessages: settings.allowDirectMessages !== false,
+      showFollowersCount: settings.showFollowersCount !== false,
+      showFollowingCount: settings.showFollowingCount !== false
     },
-    joinDate: new Date(data.joinDate || data.createdAt || Date.now()),
+    joinDate: new Date((data.joinDate || data.createdAt || Date.now()) as string | number),
     isOwnProfile: Boolean(data.isOwnProfile),
     isFollowing: Boolean(data.isFollowing)
   };
@@ -164,15 +169,15 @@ export const communityExploreApiService = {
         const data = response.data.data;
 
         // Transform communities
-        const communities = (data.communities || []).map(transformCommunityData);
+        const communities = (data.communities as Record<string, unknown>[] || []).map(transformCommunityData);
 
         // Transform users
-        const users = (data.users || []).map((user: any) => ({
-          _id: user._id || '',
-          username: user.username || '',
-          name: user.name || user.username || '',
-          profilePic: user.profilePic || '',
-          bio: user.bio || '',
+        const users = (data.users as Record<string, unknown>[] || []).map((user: Record<string, unknown>) => ({
+          _id: (user._id as string) || '',
+          username: (user.username as string) || '',
+          name: (user.name as string) || (user.username as string) || '',
+          profilePic: (user.profilePic as string) || '',
+          bio: (user.bio as string) || '',
           isVerified: Boolean(user.isVerified),
           followersCount: Number(user.followersCount) || 0,
           isFollowing: Boolean(user.isFollowing)
@@ -214,7 +219,7 @@ export const communityExploreApiService = {
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
-        const communities = (data.communities || []).map(transformCommunityData);
+        const communities = (data.communities as Record<string, unknown>[] || []).map(transformCommunityData);
 
         return {
           communities,
