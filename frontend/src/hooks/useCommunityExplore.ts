@@ -15,7 +15,7 @@ import {
   setError,
   clearError,
 } from '@/redux/slices/communityExploreSlice';
-import { 
+import {
   communityExploreApiService,
   type Community,
   type SearchResponse,
@@ -54,13 +54,14 @@ export const useCommunityExplore = () => {
       dispatch(clearError());
 
       const results = await communityExploreApiService.search(query.trim(), type, cursor, limit);
-      
+
       dispatch(setSearchResults(results));
       dispatch(setSearchQuery(query.trim()));
       dispatch(setSearchFilter(type));
-      
+
       return results;
-    } catch (error: any) {
+    } catch (err) {
+      const error  = err as Error;
       console.error('Search failed:', error);
       dispatch(setError(error.message || 'Search failed'));
       toast.error('Search failed', {
@@ -83,10 +84,11 @@ export const useCommunityExplore = () => {
       dispatch(clearError());
 
       const response = await communityExploreApiService.getPopularCommunities(cursor, limit, category);
-      
+
       dispatch(setPopularCommunities(response.communities));
       return response.communities;
-    } catch (error: any) {
+    } catch (err) {
+      const error  = err as Error;
       console.error('Failed to get popular communities:', error);
       dispatch(setError(error.message || 'Failed to load popular communities'));
       toast.error('Failed to load popular communities', {
@@ -110,10 +112,11 @@ export const useCommunityExplore = () => {
       dispatch(clearError());
 
       const community = await communityExploreApiService.getCommunityProfile(username.trim());
-      
+
       dispatch(setCurrentCommunity(community));
       return community;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Failed to get community profile:', error);
       dispatch(setError(error.message || 'Failed to load community profile'));
       toast.error('Failed to load community', {
@@ -134,11 +137,11 @@ export const useCommunityExplore = () => {
 
     try {
       const result = await communityExploreApiService.joinCommunity(communityUsername.trim());
-      
+
       if (result.success) {
         // Find community ID from current state to update membership
         let communityId: string | null = null;
-        
+
         if (currentCommunity && currentCommunity.username === communityUsername.trim()) {
           communityId = currentCommunity._id;
         } else {
@@ -159,9 +162,10 @@ export const useCommunityExplore = () => {
         toast.success(result.message);
         return true;
       }
-      
+
       return false;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Join community failed:', error);
       toast.error('Failed to join community', {
         description: error.message || 'Please try again'
@@ -179,11 +183,11 @@ export const useCommunityExplore = () => {
 
     try {
       const result = await communityExploreApiService.leaveCommunity(communityUsername.trim());
-      
+
       if (result.success) {
         // Find community ID from current state to update membership
         let communityId: string | null = null;
-        
+
         if (currentCommunity && currentCommunity.username === communityUsername.trim()) {
           communityId = currentCommunity._id;
         } else {
@@ -204,9 +208,10 @@ export const useCommunityExplore = () => {
         toast.success(result.message);
         return true;
       }
-      
+
       return false;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Leave community failed:', error);
       toast.error('Failed to leave community', {
         description: error.message || 'Please try again'

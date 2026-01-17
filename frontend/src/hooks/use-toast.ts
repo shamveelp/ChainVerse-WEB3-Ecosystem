@@ -4,12 +4,11 @@ import * as React from "react"
 import { toast as sonnerToast } from "sonner"
 import type { ToastProps } from "@/components/ui/toast"
 
-// Dummy types to maintain compatibility without full implementation
 type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
-  action?: any
+  action?: React.ReactNode
 }
 
 function useToast() {
@@ -23,9 +22,9 @@ function useToast() {
 // Adapter to map Shadcn toast calls to Sonner
 function legacyToast({ variant, title, description, action, ...props }: Omit<ToasterToast, "id">) {
   // Extract action props if available
-  let actionProps: any = {}
+  let actionProps: Record<string, unknown> = {}
   if (React.isValidElement(action)) {
-    const { props: elementProps } = action as any
+    const { props: elementProps } = action as React.ReactElement<{ children?: React.ReactNode; altText?: string; onClick?: () => void }>;
     if (elementProps) {
       // Try to get label and onClick from the action component (usually ToastAction)
       // If altText is present (common in ToastAction), use it as fallback label

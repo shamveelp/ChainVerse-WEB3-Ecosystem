@@ -9,6 +9,16 @@ import { ListedToken, NFTWithMetadata, NFTMetadata, SaleDetails, MarketplaceStat
 import { client } from '@/lib/thirdweb-client';
 import { sepolia } from 'thirdweb/chains';
 
+interface RawToken {
+  tokenId: bigint;
+  owner: string;
+  seller: string;
+  creator: string;
+  price: bigint;
+  currentlyListed: boolean;
+  createdAt: bigint;
+}
+
 export const useNFTContract = () => {
   const account = useActiveAccount();
   const { mutateAsync: sendTransaction } = useSendTransaction();
@@ -53,7 +63,8 @@ export const useNFTContract = () => {
       setTxHash(result.transactionHash);
 
       return result;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error & { reason?: string };
       const message = error.reason || error.message || 'Failed to create token';
       setError(message);
       throw new Error(message);
@@ -83,7 +94,8 @@ export const useNFTContract = () => {
       setTxHash(result.transactionHash);
 
       return result;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error & { reason?: string };
       const message = error.reason || error.message || 'Failed to buy NFT';
       setError(message);
       throw new Error(message);
@@ -120,7 +132,8 @@ export const useNFTContract = () => {
       setTxHash(result.transactionHash);
 
       return result;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error & { reason?: string };
       const message = error.reason || error.message || 'Failed to relist NFT';
       setError(message);
       throw new Error(message);
@@ -149,7 +162,8 @@ export const useNFTContract = () => {
       setTxHash(result.transactionHash);
 
       return result;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error & { reason?: string };
       const message = error.reason || error.message || 'Failed to cancel listing';
       setError(message);
       throw new Error(message);
@@ -167,7 +181,7 @@ export const useNFTContract = () => {
         params: [],
       });
 
-      return (result as any[]).map((item: any) => ({
+      return (result as unknown as RawToken[]).map((item) => ({
         tokenId: item.tokenId,
         owner: item.owner,
         seller: item.seller,
@@ -176,7 +190,7 @@ export const useNFTContract = () => {
         currentlyListed: item.currentlyListed,
         createdAt: item.createdAt,
       }));
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching all NFTs:', error);
       return [];
     }
@@ -192,7 +206,7 @@ export const useNFTContract = () => {
         params: [],
       });
 
-      return (result as any[]).map((item: any) => ({
+      return (result as unknown as RawToken[]).map((item) => ({
         tokenId: item.tokenId,
         owner: item.owner,
         seller: item.seller,
@@ -201,7 +215,7 @@ export const useNFTContract = () => {
         currentlyListed: item.currentlyListed,
         createdAt: item.createdAt,
       }));
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching my NFTs:', error);
       return [];
     }
@@ -216,17 +230,19 @@ export const useNFTContract = () => {
         params: [tokenId],
       });
 
-      if (Number((item as any).tokenId) === 0) return null;
+      const rawItem = item as unknown as RawToken;
+
+      if (Number(rawItem.tokenId) === 0) return null;
       return {
-        tokenId: (item as any).tokenId,
-        owner: (item as any).owner,
-        seller: (item as any).seller,
-        creator: (item as any).creator,
-        price: (item as any).price,
-        currentlyListed: (item as any).currentlyListed,
-        createdAt: (item as any).createdAt,
+        tokenId: rawItem.tokenId,
+        owner: rawItem.owner,
+        seller: rawItem.seller,
+        creator: rawItem.creator,
+        price: rawItem.price,
+        currentlyListed: rawItem.currentlyListed,
+        createdAt: rawItem.createdAt,
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Error fetching token ${tokenId}:`, error);
       return null;
     }
@@ -241,7 +257,7 @@ export const useNFTContract = () => {
         params: [],
       });
       return ethers.formatEther(listPrice);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching list price:', error);
       return '0.000001';
     }
@@ -256,7 +272,7 @@ export const useNFTContract = () => {
         params: [],
       });
       return ethers.formatEther(minPrice);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching min price:', error);
       return '0.000001';
     }
@@ -277,7 +293,7 @@ export const useNFTContract = () => {
         totalSold: Number(totalSold),
         currentListings: Number(currentListings),
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching marketplace stats:', error);
       return { totalTokens: 0, totalSold: 0, currentListings: 0 };
     }
@@ -299,7 +315,7 @@ export const useNFTContract = () => {
 
       const metadata: NFTMetadata = await response.json();
       return metadata;
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Error fetching metadata for token ${tokenId}:`, error);
       return null;
     }

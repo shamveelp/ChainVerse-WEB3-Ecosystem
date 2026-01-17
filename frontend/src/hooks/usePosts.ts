@@ -20,11 +20,12 @@ export const usePosts = () => {
 
       // Add new post to the beginning of the list
       setPosts(prevPosts => [newPost, ...prevPosts]);
-      
+
       toast.success('Post created successfully!');
       return newPost;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to create post';
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || 'Failed to create post';
       setError(errorMessage);
       toast.error('Failed to create post', {
         description: errorMessage
@@ -45,14 +46,15 @@ export const usePosts = () => {
       const updatedPost = response.data;
 
       // Update post in the list
-      setPosts(prevPosts => prevPosts.map(post => 
+      setPosts(prevPosts => prevPosts.map(post =>
         post._id === postId ? updatedPost : post
       ));
-      
+
       toast.success('Post updated successfully!');
       return updatedPost;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to update post';
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || 'Failed to update post';
       setError(errorMessage);
       toast.error('Failed to update post', {
         description: errorMessage
@@ -73,11 +75,12 @@ export const usePosts = () => {
 
       // Remove post from the list
       setPosts(prevPosts => prevPosts.filter(post => post._id !== postId));
-      
+
       toast.success('Post deleted successfully!');
       return true;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to delete post';
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || 'Failed to delete post';
       setError(errorMessage);
       toast.error('Failed to delete post', {
         description: errorMessage
@@ -104,7 +107,7 @@ export const usePosts = () => {
       }));
 
       const response = await postsApiService.togglePostLike(postId);
-      
+
       // Update with server response
       setPosts(prevPosts => prevPosts.map(post => {
         if (post._id === postId) {
@@ -116,7 +119,7 @@ export const usePosts = () => {
         }
         return post;
       }));
-    } catch (err: any) {
+    } catch (err) {
       // Revert optimistic update on error
       setPosts(prevPosts => prevPosts.map(post => {
         if (post._id === postId) {
@@ -129,7 +132,8 @@ export const usePosts = () => {
         return post;
       }));
 
-      const errorMessage = err.message || 'Failed to update like';
+      const error = err as Error;
+      const errorMessage = error.message || 'Failed to update like';
       toast.error('Failed to update like', {
         description: errorMessage
       });
@@ -183,8 +187,11 @@ export const usePosts = () => {
 
       setHasMore(response.hasMore);
       setNextCursor(response.nextCursor);
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to load posts';
+      setHasMore(response.hasMore);
+      setNextCursor(response.nextCursor);
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || 'Failed to load posts';
       setError(errorMessage);
       if (!refresh) {
         toast.error('Failed to load posts', {
@@ -227,7 +234,7 @@ export const usePosts = () => {
 
   // Update post in list (for external updates)
   const updatePostInList = useCallback((updatedPost: Post) => {
-    setPosts(prevPosts => prevPosts.map(post => 
+    setPosts(prevPosts => prevPosts.map(post =>
       post._id === updatedPost._id ? updatedPost : post
     ));
   }, []);

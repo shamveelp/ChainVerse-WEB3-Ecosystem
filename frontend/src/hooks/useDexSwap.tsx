@@ -13,8 +13,31 @@ import { TokenBalance, SwapForm } from '@/types/types-dex';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
 
+interface SwapData {
+    txHash: string;
+    walletAddress: string;
+    fromToken: string;
+    toToken: string;
+    fromAmount: string;
+    toAmount: string;
+    actualFromAmount: string;
+    actualToAmount: string;
+    exchangeRate: number;
+    slippage: number;
+    gasUsed: string;
+    gasFee: string;
+    blockNumber: number;
+    priceImpact: number;
+}
+
+interface EthersError extends Error {
+    reason?: string;
+    transaction?: { hash: string };
+    code?: string;
+}
+
 class DexSwapAPI {
-    static async recordSwap(swapData: any) {
+    static async recordSwap(swapData: SwapData) {
         const token = localStorage.getItem('access_token');
         const response = await fetch(`${API_BASE_URL}/user/dex/swap/record`, {
             method: 'POST',
@@ -263,14 +286,15 @@ export const useDexSwap = () => {
             setSwapForm(prev => ({ ...prev, fromAmount: '', toAmount: '' }));
 
             return tx.hash;
-        } catch (error: any) {
-            console.error('Swap failed:', error);
-            const errorMessage = error.reason || error.message || 'Unknown error';
+        } catch (error) {
+            const err = error as EthersError;
+            console.error('Swap failed:', err);
+            const errorMessage = err.reason || err.message || 'Unknown error';
             setError(`Swap failed: ${errorMessage}`);
 
-            if (error.transaction?.hash) {
+            if (err.transaction?.hash) {
                 try {
-                    await DexSwapAPI.updateSwapStatus(error.transaction.hash, 'failed');
+                    await DexSwapAPI.updateSwapStatus(err.transaction.hash, 'failed');
                 } catch (dbError) {
                     console.error('Failed to update swap status to failed:', dbError);
                 }

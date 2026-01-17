@@ -9,12 +9,12 @@ export const useFollow = () => {
   const [loadingFollowers, setLoadingFollowers] = useState(false);
   const [loadingFollowing, setLoadingFollowing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  
+
   // Use refs to store the latest values for callbacks
   const followersDataRef = useRef<FollowListResponse | null>(null);
   const followingDataRef = useRef<FollowListResponse | null>(null);
   const loadingMoreRef = useRef(false);
-  
+
   // Update refs whenever state changes
   followersDataRef.current = followersData;
   followingDataRef.current = followingData;
@@ -22,12 +22,13 @@ export const useFollow = () => {
 
   const followUser = useCallback(async (username: string): Promise<boolean> => {
     if (!username) return false;
-    
+
     setLoading(true);
     try {
       const result = await communityApiService.followUser(username);
       return true;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Follow user error:', error);
       throw error;
     } finally {
@@ -37,12 +38,13 @@ export const useFollow = () => {
 
   const unfollowUser = useCallback(async (username: string): Promise<boolean> => {
     if (!username) return false;
-    
+
     setLoading(true);
     try {
       const result = await communityApiService.unfollowUser(username);
       return true;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Unfollow user error:', error);
       throw error;
     } finally {
@@ -55,10 +57,11 @@ export const useFollow = () => {
     try {
       const result = await communityApiService.getFollowers(cursor);
       setFollowersData(result);
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Get followers error:', error);
-      toast.error("Failed to load followers", { 
-        description: error.message || "Please try again" 
+      toast.error("Failed to load followers", {
+        description: error.message || "Please try again"
       });
       setFollowersData(null);
     } finally {
@@ -71,10 +74,11 @@ export const useFollow = () => {
     try {
       const result = await communityApiService.getFollowing(cursor);
       setFollowingData(result);
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Get following error:', error);
-      toast.error("Failed to load following", { 
-        description: error.message || "Please try again" 
+      toast.error("Failed to load following", {
+        description: error.message || "Please try again"
       });
       setFollowingData(null);
     } finally {
@@ -84,12 +88,13 @@ export const useFollow = () => {
 
   const getUserFollowers = useCallback(async (username: string, cursor?: string): Promise<void> => {
     if (!username) return;
-    
+
     setLoadingFollowers(true);
     try {
       const result = await communityApiService.getUserFollowers(username, cursor);
       setFollowersData(result);
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Get user followers error:', error);
       throw error;
     } finally {
@@ -99,12 +104,13 @@ export const useFollow = () => {
 
   const getUserFollowing = useCallback(async (username: string, cursor?: string): Promise<void> => {
     if (!username) return;
-    
+
     setLoadingFollowing(true);
     try {
       const result = await communityApiService.getUserFollowing(username, cursor);
       setFollowingData(result);
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Get user following error:', error);
       throw error;
     } finally {
@@ -115,15 +121,15 @@ export const useFollow = () => {
   const loadMoreFollowers = useCallback(async (username?: string): Promise<void> => {
     const currentData = followersDataRef.current;
     const isLoadingMore = loadingMoreRef.current;
-    
+
     if (!currentData?.hasMore || isLoadingMore) return;
 
     setLoadingMore(true);
     try {
-      const result = username 
+      const result = username
         ? await communityApiService.getUserFollowers(username, currentData.nextCursor)
         : await communityApiService.getFollowers(currentData.nextCursor);
-      
+
       setFollowersData(prev => {
         if (!prev) return result;
         return {
@@ -131,10 +137,11 @@ export const useFollow = () => {
           users: [...prev.users, ...result.users]
         };
       });
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Load more followers error:', error);
-      toast.error("Failed to load more followers", { 
-        description: error.message || "Please try again" 
+      toast.error("Failed to load more followers", {
+        description: error.message || "Please try again"
       });
     } finally {
       setLoadingMore(false);
@@ -144,15 +151,15 @@ export const useFollow = () => {
   const loadMoreFollowing = useCallback(async (username?: string): Promise<void> => {
     const currentData = followingDataRef.current;
     const isLoadingMore = loadingMoreRef.current;
-    
+
     if (!currentData?.hasMore || isLoadingMore) return;
 
     setLoadingMore(true);
     try {
-      const result = username 
+      const result = username
         ? await communityApiService.getUserFollowing(username, currentData.nextCursor)
         : await communityApiService.getFollowing(currentData.nextCursor);
-      
+
       setFollowingData(prev => {
         if (!prev) return result;
         return {
@@ -160,10 +167,11 @@ export const useFollow = () => {
           users: [...prev.users, ...result.users]
         };
       });
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Load more following error:', error);
-      toast.error("Failed to load more following", { 
-        description: error.message || "Please try again" 
+      toast.error("Failed to load more following", {
+        description: error.message || "Please try again"
       });
     } finally {
       setLoadingMore(false);
@@ -172,13 +180,13 @@ export const useFollow = () => {
 
   const updateUserFollowStatus = useCallback((userId: string, isFollowing: boolean): void => {
     if (!userId) return;
-    
+
     // Update followers list
     setFollowersData(prev => {
       if (!prev) return null;
       return {
         ...prev,
-        users: prev.users.map(user => 
+        users: prev.users.map(user =>
           user._id === userId ? { ...user, isFollowing } : user
         )
       };
@@ -189,7 +197,7 @@ export const useFollow = () => {
       if (!prev) return null;
       return {
         ...prev,
-        users: prev.users.map(user => 
+        users: prev.users.map(user =>
           user._id === userId ? { ...user, isFollowing } : user
         )
       };

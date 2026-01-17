@@ -23,7 +23,7 @@ export const useChat = () => {
 
 
   // Socket event handlers refs to prevent re-registering
-  const socketEventHandlers = useRef<{ [key: string]: (data: any) => void }>({});
+  const socketEventHandlers = useRef<{ [key: string]: (data: unknown) => void }>({});
   const socketInitialized = useRef(false);
   const processedMessageIds = useRef<Set<string>>(new Set());
 
@@ -38,8 +38,9 @@ export const useChat = () => {
         setSocketConnected(true);
 
         socketInitialized.current = true;
-      } catch (error: any) {
-        console.warn('⚠️ Socket connection failed, using HTTP fallback:', error.message);
+      } catch (error) {
+        const err = error as Error;
+        console.warn('⚠️ Socket connection failed, using HTTP fallback:', err.message);
         setSocketConnected(false);
         // Don't show error toast for socket connection failures
         // The app should still work with HTTP API fallback
@@ -74,27 +75,27 @@ export const useChat = () => {
     };
 
     // New message handler
-    const handleNewMessage = (data: { message: MessageResponse; conversation: ConversationResponse }) => {
-
-      if (isMessageProcessed(data.message._id)) return;
+    const handleNewMessage = (data: unknown) => {
+      const payload = data as { message: MessageResponse; conversation: ConversationResponse };
+      if (isMessageProcessed(payload.message._id)) return;
 
       // Set the correct isOwnMessage flag based on current user
-      const isOwnMessage = data.message.sender._id === currentUser?._id;
+      const isOwnMessage = payload.message.sender._id === currentUser?._id;
       const messageWithCorrectOwnership = {
-        ...data.message,
+        ...payload.message,
         isOwnMessage
       };
 
       // Add message to the conversation if not already present
       setMessages(prev => {
-        const existingMessages = prev[data.conversation._id] || [];
+        const existingMessages = prev[payload.conversation._id] || [];
         // Check for duplicates
         if (existingMessages.some(m => m._id === messageWithCorrectOwnership._id)) {
           return prev;
         }
         return {
           ...prev,
-          [data.conversation._id]: [
+          [payload.conversation._id]: [
             ...existingMessages,
             messageWithCorrectOwnership
           ]
@@ -103,14 +104,14 @@ export const useChat = () => {
 
       // Update conversation list
       setConversations(prev => {
-        const existingIndex = prev.findIndex(conv => conv._id === data.conversation._id);
+        const existingIndex = prev.findIndex(conv => conv._id === payload.conversation._id);
         if (existingIndex >= 0) {
           const updated = [...prev];
-          updated[existingIndex] = { ...data.conversation, lastMessage: messageWithCorrectOwnership };
+          updated[existingIndex] = { ...payload.conversation, lastMessage: messageWithCorrectOwnership };
           // Move to top
           return [updated[existingIndex], ...updated.slice(0, existingIndex), ...updated.slice(existingIndex + 1)];
         } else {
-          return [{ ...data.conversation, lastMessage: messageWithCorrectOwnership }, ...prev];
+          return [{ ...payload.conversation, lastMessage: messageWithCorrectOwnership }, ...prev];
         }
       });
 
@@ -121,26 +122,27 @@ export const useChat = () => {
       // }
     };
 
-    const handleMessageSent = (data: { message: MessageResponse; conversation: ConversationResponse }) => {
+    const handleMessageSent = (data: unknown) => {
+      const payload = data as { message: MessageResponse; conversation: ConversationResponse };
 
       setSendingMessage(false);
 
-      if (isMessageProcessed(data.message._id)) return;
+      if (isMessageProcessed(payload.message._id)) return;
 
       // Ensure the sent message is marked as own message
       const messageWithCorrectOwnership = {
-        ...data.message,
+        ...payload.message,
         isOwnMessage: true
       };
 
       // Add message to the conversation if not already present
       setMessages(prev => {
-        const existing = prev[data.conversation._id] || [];
+        const existing = prev[payload.conversation._id] || [];
         const messageExists = existing.some(msg => msg._id === messageWithCorrectOwnership._id);
         if (!messageExists) {
           return {
             ...prev,
-            [data.conversation._id]: [...existing, messageWithCorrectOwnership]
+            [payload.conversation._id]: [...existing, messageWithCorrectOwnership]
           };
         }
         return prev;
@@ -148,24 +150,24 @@ export const useChat = () => {
 
       // Update conversation list
       setConversations(prev => {
-        const existingIndex = prev.findIndex(conv => conv._id === data.conversation._id);
+        const existingIndex = prev.findIndex(conv => conv._id === payload.conversation._id);
         if (existingIndex >= 0) {
           const updated = [...prev];
-          updated[existingIndex] = { ...data.conversation, lastMessage: messageWithCorrectOwnership };
+          updated[existingIndex] = { ...payload.conversation, lastMessage: messageWithCorrectOwnership };
           return [updated[existingIndex], ...updated.slice(0, existingIndex), ...updated.slice(existingIndex + 1)];
         } else {
-          return [{ ...data.conversation, lastMessage: messageWithCorrectOwnership }, ...prev];
+          return [{ ...payload.conversation, lastMessage: messageWithCorrectOwnership }, ...prev];
         }
       });
     };
 
-    const handleMessageEdited = (data: { message: MessageResponse }) => {
-
+    const handleMessageEdited = (data: unknown) => {
+      const payload = data as { message: MessageResponse };
 
       // Set the correct isOwnMessage flag for edited messages
-      const isOwnMessage = data.message.sender._id === currentUser?._id;
+      const isOwnMessage = payload.message.sender._id === currentUser?._id;
       const messageWithCorrectOwnership = {
-        ...data.message,
+        ...payload.message,
         isOwnMessage
       };
 
@@ -177,84 +179,86 @@ export const useChat = () => {
       }));
     };
 
-    const handleMessageDeleted = (data: { messageId: string }) => {
-
+    const handleMessageDeleted = (data: unknown) => {
+      const payload = data as { messageId: string };
 
       setMessages(prev => {
         const updated = { ...prev };
         Object.keys(updated).forEach(conversationId => {
           updated[conversationId] = updated[conversationId].map(msg =>
-            msg._id === data.messageId ? { ...msg, isDeleted: true, content: 'This message was deleted' } : msg
+            msg._id === payload.messageId ? { ...msg, isDeleted: true, content: 'This message was deleted' } : msg
           );
         });
         return updated;
       });
     };
 
-    const handleMessagesRead = (data: { userId: string; conversationId: string; readAt: Date }) => {
-
+    const handleMessagesRead = (data: unknown) => {
+      const payload = data as { userId: string; conversationId: string; readAt: Date };
 
       setMessages(prev => ({
         ...prev,
-        [data.conversationId]: (prev[data.conversationId] || []).map(msg => ({
+        [payload.conversationId]: (prev[payload.conversationId] || []).map(msg => ({
           ...msg,
-          readBy: msg.readBy.some(r => r.user === data.userId)
+          readBy: msg.readBy.some(r => r.user === payload.userId)
             ? msg.readBy
-            : [...msg.readBy, { user: data.userId, readAt: data.readAt }]
+            : [...msg.readBy, { user: payload.userId, readAt: payload.readAt }]
         }))
       }));
     };
 
-    const handleConversationUpdated = (data: { conversation: ConversationResponse }) => {
-
+    const handleConversationUpdated = (data: unknown) => {
+      const payload = data as { conversation: ConversationResponse };
 
       setConversations(prev => {
-        const existingIndex = prev.findIndex(conv => conv._id === data.conversation._id);
+        const existingIndex = prev.findIndex(conv => conv._id === payload.conversation._id);
         if (existingIndex >= 0) {
           const updated = [...prev];
-          updated[existingIndex] = data.conversation;
+          updated[existingIndex] = payload.conversation;
           return updated;
         } else {
-          return [data.conversation, ...prev];
+          return [payload.conversation, ...prev];
         }
       });
     };
 
-    const handleUserTypingStart = (data: { userId: string; username: string }) => {
-
+    const handleUserTypingStart = (data: unknown) => {
+      // const payload = data as { userId: string; username: string };
       // TODO: Implement typing indicators UI
     };
 
-    const handleUserTypingStop = (data: { userId: string; username: string }) => {
-
+    const handleUserTypingStop = (data: unknown) => {
+      // const payload = data as { userId: string; username: string };
       // TODO: Implement typing indicators UI
     };
 
-    const handleUserStatusChanged = (data: { userId: string; isOnline: boolean; lastSeen?: Date }) => {
-
+    const handleUserStatusChanged = (data: unknown) => {
+      const payload = data as { userId: string; isOnline: boolean; lastSeen?: Date };
 
       setOnlineUsers(prev => {
         const updated = new Set(prev);
-        if (data.isOnline) {
-          updated.add(data.userId);
+        if (payload.isOnline) {
+          updated.add(payload.userId);
         } else {
-          updated.delete(data.userId);
+          updated.delete(payload.userId);
         }
         return updated;
       });
     };
 
-    const handleMessageError = (data: { error: string }) => {
-      console.error('❌ Message error:', data);
+    const handleMessageError = (data: unknown) => {
+      const payload = data as { error: string };
+      console.error('❌ Message error:', payload);
       setSendingMessage(false);
-      setError(data.error);
-      toast.error(data.error);
+      setError(payload.error);
+      toast.error(payload.error);
     };
 
-    const handleConversationError = (data: { error: string }) => {
-      console.error('❌ Conversation error:', data);
-      setError(data.error);
-      toast.error(data.error);
+    const handleConversationError = (data: unknown) => {
+      const payload = data as { error: string };
+      console.error('❌ Conversation error:', payload);
+      setError(payload.error);
+      toast.error(payload.error);
     };
 
     // Store handlers in ref
@@ -274,17 +278,17 @@ export const useChat = () => {
 
     // Register event listeners
     try {
-      socketService.onNewMessage(handleNewMessage as any);
-      socketService.onMessageSent(handleMessageSent as any);
-      socketService.onMessageEdited(handleMessageEdited as any);
-      socketService.onMessageDeleted(handleMessageDeleted as any);
-      socketService.onMessagesRead(handleMessagesRead as any);
-      socketService.onConversationUpdated(handleConversationUpdated as any);
-      socketService.onUserTypingStart(handleUserTypingStart as any);
-      socketService.onUserTypingStop(handleUserTypingStop as any);
-      socketService.onUserStatusChanged(handleUserStatusChanged as any);
-      socketService.onMessageError(handleMessageError as any);
-      socketService.onConversationError(handleConversationError as any);
+      socketService.onNewMessage(handleNewMessage);
+      socketService.onMessageSent(handleMessageSent);
+      socketService.onMessageEdited(handleMessageEdited);
+      socketService.onMessageDeleted(handleMessageDeleted);
+      socketService.onMessagesRead(handleMessagesRead);
+      socketService.onConversationUpdated(handleConversationUpdated);
+      socketService.onUserTypingStart(handleUserTypingStart);
+      socketService.onUserTypingStop(handleUserTypingStop);
+      socketService.onUserStatusChanged(handleUserStatusChanged);
+      socketService.onMessageError(handleMessageError);
+      socketService.onConversationError(handleConversationError);
 
 
     } catch (error) {
@@ -294,17 +298,17 @@ export const useChat = () => {
     return () => {
       // Cleanup event listeners
       try {
-        socketService.offNewMessage(handleNewMessage as any);
-        socketService.offMessageSent(handleMessageSent as any);
-        socketService.offMessageEdited(handleMessageEdited as any);
-        socketService.offMessageDeleted(handleMessageDeleted as any);
-        socketService.offMessagesRead(handleMessagesRead as any);
-        socketService.offConversationUpdated(handleConversationUpdated as any);
-        socketService.offUserTypingStart(handleUserTypingStart as any);
-        socketService.offUserTypingStop(handleUserTypingStop as any);
-        socketService.offUserStatusChanged(handleUserStatusChanged as any);
-        socketService.offMessageError(handleMessageError as any);
-        socketService.offConversationError(handleConversationError as any);
+        socketService.offNewMessage(handleNewMessage);
+        socketService.offMessageSent(handleMessageSent);
+        socketService.offMessageEdited(handleMessageEdited);
+        socketService.offMessageDeleted(handleMessageDeleted);
+        socketService.offMessagesRead(handleMessagesRead);
+        socketService.offConversationUpdated(handleConversationUpdated);
+        socketService.offUserTypingStart(handleUserTypingStart);
+        socketService.offUserTypingStop(handleUserTypingStop);
+        socketService.offUserStatusChanged(handleUserStatusChanged);
+        socketService.offMessageError(handleMessageError);
+        socketService.offConversationError(handleConversationError);
 
       } catch (error) {
         console.warn('⚠️ Socket event cleanup failed:', error);
@@ -332,9 +336,10 @@ export const useChat = () => {
       setNextCursorConversations(response.nextCursor);
 
 
-    } catch (error: any) {
-      console.error('❌ Failed to fetch conversations:', error);
-      setError(error.message);
+    } catch (error) {
+      const err = error as Error;
+      console.error('❌ Failed to fetch conversations:', err);
+      setError(err.message);
       toast.error('Failed to load conversations');
     } finally {
       setLoading(false);
@@ -367,9 +372,10 @@ export const useChat = () => {
       }));
 
 
-    } catch (error: any) {
-      console.error('❌ Failed to fetch messages:', error);
-      setError(error.message);
+    } catch (error) {
+      const err = error as Error;
+      console.error('❌ Failed to fetch messages:', err);
+      setError(err.message);
       toast.error('Failed to load messages');
     } finally {
       setLoading(false);
@@ -423,9 +429,10 @@ export const useChat = () => {
         setSendingMessage(false);
 
       }
-    } catch (error: any) {
-      console.error('❌ Failed to send message:', error);
-      setError(error.message);
+    } catch (error) {
+      const err = error as Error;
+      console.error('❌ Failed to send message:', err);
+      setError(err.message);
       setSendingMessage(false);
       toast.error('Failed to send message');
     }
@@ -458,9 +465,10 @@ export const useChat = () => {
       }
 
 
-    } catch (error: any) {
-      console.error('❌ Failed to edit message:', error);
-      setError(error.message);
+    } catch (error) {
+      const err = error as Error;
+      console.error('❌ Failed to edit message:', err);
+      setError(err.message);
       toast.error('Failed to edit message');
     }
   }, [socketConnected]);
@@ -490,9 +498,10 @@ export const useChat = () => {
 
 
       toast.success('Message deleted');
-    } catch (error: any) {
-      console.error('❌ Failed to delete message:', error);
-      setError(error.message);
+    } catch (error) {
+      const err = error as Error;
+      console.error('❌ Failed to delete message:', err);
+      setError(err.message);
       toast.error('Failed to delete message');
     }
   }, [socketConnected]);
@@ -516,7 +525,7 @@ export const useChat = () => {
       );
 
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Failed to mark messages as read:', error);
     }
   }, [socketConnected]);
@@ -540,11 +549,12 @@ export const useChat = () => {
 
 
       return conversation;
-    } catch (error: any) {
-      console.error('❌ Failed to get/create conversation:', error);
-      setError(error.message);
+    } catch (error) {
+      const err = error as Error;
+      console.error('❌ Failed to get/create conversation:', err);
+      setError(err.message);
       toast.error('Failed to open conversation');
-      throw error;
+      throw err;
     } finally {
       setLoading(false);
     }

@@ -22,11 +22,13 @@ export const useComments = () => {
       if (!commentData.parentCommentId) {
         setComments(prevComments => [newComment, ...prevComments]);
       }
-      
+
       toast.success('Comment added successfully!');
       return newComment;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to create comment';
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || 'Failed to create comment';
+      console.error('Error creating comment:', errorMessage);
       setError(errorMessage);
       toast.error('Failed to add comment', {
         description: errorMessage
@@ -47,14 +49,16 @@ export const useComments = () => {
       const updatedComment = response.data;
 
       // Update comment in the list
-      setComments(prevComments => prevComments.map(comment => 
+      setComments(prevComments => prevComments.map(comment =>
         comment._id === commentId ? updatedComment : comment
       ));
-      
+
       toast.success('Comment updated successfully!');
       return updatedComment;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to update comment';
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || 'Failed to update comment';
+      console.error('Error updating comment:', errorMessage);
       setError(errorMessage);
       toast.error('Failed to update comment', {
         description: errorMessage
@@ -75,11 +79,13 @@ export const useComments = () => {
 
       // Remove comment from the list
       setComments(prevComments => prevComments.filter(comment => comment._id !== commentId));
-      
+
       toast.success('Comment deleted successfully!');
       return true;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to delete comment';
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || 'Failed to delete comment';
+      console.error('Error deleting comment:', errorMessage);
       setError(errorMessage);
       toast.error('Failed to delete comment', {
         description: errorMessage
@@ -106,7 +112,7 @@ export const useComments = () => {
       }));
 
       const response = await postsApiService.toggleCommentLike(commentId);
-      
+
       // Update with server response
       setComments(prevComments => prevComments.map(comment => {
         if (comment._id === commentId) {
@@ -118,7 +124,8 @@ export const useComments = () => {
         }
         return comment;
       }));
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as Error;
       // Revert optimistic update on error
       setComments(prevComments => prevComments.map(comment => {
         if (comment._id === commentId) {
@@ -131,7 +138,8 @@ export const useComments = () => {
         return comment;
       }));
 
-      const errorMessage = err.message || 'Failed to update like';
+      const errorMessage = error.message || 'Failed to update like';
+      console.error('Error toggling like:', errorMessage);
       toast.error('Failed to update like', {
         description: errorMessage
       });
@@ -160,8 +168,10 @@ export const useComments = () => {
 
       setHasMore(response.hasMore);
       setNextCursor(response.nextCursor);
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to load comments';
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || 'Failed to load comments';
+      console.error('Error loading comments:', { postId, error: errorMessage });
       setError(errorMessage);
       if (!refresh) {
         toast.error('Failed to load comments', {
@@ -180,8 +190,9 @@ export const useComments = () => {
     try {
       const response = await postsApiService.getCommentReplies(commentId);
       return response.comments;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to load replies';
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || 'Failed to load replies';
       toast.error('Failed to load replies', {
         description: errorMessage
       });
@@ -212,7 +223,7 @@ export const useComments = () => {
 
   // Update comment in list (for external updates)
   const updateCommentInList = useCallback((updatedComment: Comment) => {
-    setComments(prevComments => prevComments.map(comment => 
+    setComments(prevComments => prevComments.map(comment =>
       comment._id === updatedComment._id ? updatedComment : comment
     ));
   }, []);

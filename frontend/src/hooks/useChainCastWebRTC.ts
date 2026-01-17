@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { chainCastSocketService } from '@/services/socket/chainCastSocketService'
+import { ChainCastParticipant } from '@/types/socket/chaincast.types'
 
 interface UseChainCastWebRTCOptions {
   chainCastId: string
   isAdmin: boolean
   localStream: MediaStream | null
   userId: string
-  participants: any[] // Pass current participants list
+  participants: ChainCastParticipant[] // Pass current participants list
 }
 
 interface RemoteStream {
@@ -87,8 +88,8 @@ export const useChainCastWebRTC = (options: UseChainCastWebRTCOptions) => {
         for (const candidate of queue) {
           try {
             await pc.addIceCandidate(new RTCIceCandidate(candidate))
-          } catch (e) {
-            console.error('Failed to add queued candidate:', e)
+          } catch (err) {
+            console.error('Failed to add queued candidate:', err)
           }
         }
         iceCandidatesQueueRef.current.delete(fromUserId)
@@ -262,7 +263,7 @@ export const useChainCastWebRTC = (options: UseChainCastWebRTCOptions) => {
       if (queue && queue.length > 0) {
         console.log(`🧊 Processing ${queue.length} queued ICE candidates for ${fromUserId}`)
         queue.forEach(candidate => {
-          pc!.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error('Failed to add queued candidate:', e))
+          pc!.addIceCandidate(new RTCIceCandidate(candidate)).catch(err => console.error('Failed to add queued candidate:', err))
         })
         iceCandidatesQueueRef.current.delete(fromUserId)
       }
@@ -304,7 +305,7 @@ export const useChainCastWebRTC = (options: UseChainCastWebRTCOptions) => {
     chainCastSocketService.onWebRTCIceCandidate(iceHandler)
 
     // Handle participant joined - create peer connection
-    const participantHandler = (participant: any) => {
+    const participantHandler = (participant: ChainCastParticipant) => {
       if (isAdmin && localStream && participant.userId !== userId) {
         console.log('👤 New viewer joined, creating peer connection:', participant.userId)
         createPeerConnectionForViewer(participant.userId)

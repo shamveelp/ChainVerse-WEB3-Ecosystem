@@ -13,6 +13,15 @@ import { useToast } from "@/hooks/use-toast"
 import * as authApiService from "@/services/authApiService"
 import { COMMON_ROUTES, USER_ROUTES } from "@/routes"
 
+// Interface for registration data
+interface RegistrationData {
+  username: string;
+  name: string;
+  email: string;
+  password: string;
+  referralCode?: string;
+}
+
 export function useAuthActions() {
   const dispatch = useDispatch()
   const router = useRouter()
@@ -33,10 +42,12 @@ export function useAuthActions() {
       } else {
         throw new Error(response.error || "Invalid credentials")
       }
-    } catch (error: any) {
+    }
+    catch (error) {
+      const err = error as Error;
       toast({
         title: "Login Failed",
-        description: error.message || "An unexpected error occurred.",
+        description: err.message || "An unexpected error occurred.",
         variant: "destructive",
       })
       return false
@@ -68,8 +79,9 @@ export function useAuthActions() {
           variant: "destructive",
         })
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || "Google login failed"
+    } catch (err) {
+      const error = err as any; // googleLogin logic in catch seems to expect axios-like error, keeping as any cast but inside catch
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || "Google login failed"
       toast({
         title: "Google Login Failed",
         description: errorMessage,
@@ -90,7 +102,7 @@ export function useAuthActions() {
         description: "You have been successfully logged out",
       })
       router.push(USER_ROUTES.LOGIN)
-    } catch (error: any) {
+    } catch {
       // Even if logout fails on server, clear local state
       dispatch(reduxLogout())
       toast({
@@ -127,11 +139,12 @@ export function useAuthActions() {
       } else {
         throw new Error(response.error || "Failed to send OTP")
       }
-    } catch (error: any) {
-      console.error("Registration OTP error:", error)
+    } catch (error) {
+      const err = error as Error;
+      console.error("Registration OTP error:", err)
       toast({
         title: "Registration Failed",
-        description: error.message || "Failed to send OTP",
+        description: err.message || "Failed to send OTP",
         variant: "destructive",
       })
       return false
@@ -165,11 +178,12 @@ export function useAuthActions() {
       } else {
         throw new Error(response.error || "Failed to send reset code")
       }
-    } catch (error: any) {
-      console.error("Forgot password OTP error:", error)
+    } catch (error) {
+      const err = error as Error;
+      console.error("Forgot password OTP error:", err)
       toast({
         title: "Failed to Send Reset Code",
-        description: error.message || "Please try again later",
+        description: err.message || "Please try again later",
         variant: "destructive",
       })
       return false
@@ -181,7 +195,7 @@ export function useAuthActions() {
   const verifyOtp = async (
     otp: string,
     type: "register" | "forgot-password",
-    tempUserData?: any,
+    tempUserData?: RegistrationData,
     tempEmail?: string,
   ) => {
     dispatch(setLoading(true))
@@ -230,11 +244,12 @@ export function useAuthActions() {
         }
       }
       return false
-    } catch (error: any) {
-      console.error("OTP verification error:", error)
+    } catch (error) {
+      const err = error as Error;
+      console.error("OTP verification error:", err)
       toast({
         title: "Verification Failed",
-        description: error.message || "Invalid OTP",
+        description: err.message || "Invalid OTP",
         variant: "destructive",
       })
       return false
@@ -263,11 +278,12 @@ export function useAuthActions() {
       } else {
         throw new Error(response.error || "Failed to reset password")
       }
-    } catch (error: any) {
-      console.error("Reset password error:", error)
+    } catch (error) {
+      const err = error as Error;
+      console.error("Reset password error:", err)
       toast({
         title: "Password Reset Failed",
-        description: error.message || "Failed to reset password. Please try again.",
+        description: err.message || "Failed to reset password. Please try again.",
         variant: "destructive",
       })
       return false

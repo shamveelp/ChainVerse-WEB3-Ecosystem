@@ -34,7 +34,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
       setIsConnecting(true)
       console.log('🎥 Initializing media stream:', { video, audio })
 
-      // Stop existing stream if any
+      // Stop existing stream if 
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => {
           track.stop()
@@ -82,8 +82,8 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
         localVideoRef.current.srcObject = stream
         try {
           await localVideoRef.current.play()
-        } catch (e) {
-          console.error('Auto-play failed:', e)
+        } catch (err) {
+          console.error('Auto-play failed:', err)
         }
         console.log('📺 Video element source set and playing')
       }
@@ -108,13 +108,14 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
 
       return stream
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Failed to get user media:', error)
 
       let errorMessage = 'Failed to access camera/microphone'
       let showToast = true
+      const err = error as Error;
 
-      switch (error.name) {
+      switch (err.name) {
         case 'NotAllowedError':
           errorMessage = 'Camera/Microphone access denied. Please enable permissions and refresh.'
           break
@@ -137,7 +138,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
       }
 
       // Liberal fallback - still set connected for audio-only or view-only mode
-      if (error.name === 'NotAllowedError' && !video) {
+      if (err.name === 'NotAllowedError' && !video) {
         console.log('🔊 Falling back to view-only mode')
         setIsConnected(true)
         setIsVideoEnabled(false)
@@ -157,7 +158,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
     if (localVideoRef.current && localStream) {
       console.log('🔄 Syncing stream to video element via effect')
       localVideoRef.current.srcObject = localStream
-      localVideoRef.current.play().catch(e => console.error('Play error:', e))
+      localVideoRef.current.play().catch(err => console.error('Play error:', err))
     }
   }, [localStream])
 

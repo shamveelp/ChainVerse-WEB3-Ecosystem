@@ -2,16 +2,16 @@
 
 import { useEffect, useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
-import { 
-  connectWallet as connectWalletAction, 
-  disconnectWallet, 
-  setLoading, 
-  updateBalance 
+import {
+  connectWallet as connectWalletAction,
+  disconnectWallet,
+  setLoading,
+  updateBalance
 } from '@/redux/slices/walletSlice'
-import { 
-  connectWallet, 
-  getWalletBalance, 
-  setupWalletListeners, 
+import {
+  connectWallet,
+  getWalletBalance,
+  setupWalletListeners,
   removeWalletListeners,
   checkWalletConnection
 } from '@/services/walletApiService'
@@ -24,14 +24,15 @@ export const useWallet = () => {
     try {
       dispatch(setLoading(true))
       const walletData = await connectWallet()
-      
+
       dispatch(connectWalletAction({
         address: walletData.address,
         balance: walletData.balance
       }))
-    } catch (error: any) {
-      console.error('Wallet connection failed:', error)
-      alert(error.message || 'Failed to connect wallet')
+    } catch (error) {
+      const err = error as Error;
+      console.error('Wallet connection failed:', err)
+      alert(err.message || 'Failed to connect wallet')
     } finally {
       dispatch(setLoading(false))
     }
@@ -43,7 +44,7 @@ export const useWallet = () => {
 
   const refreshBalance = useCallback(async () => {
     if (!address) return
-    
+
     try {
       const newBalance = await getWalletBalance(address)
       dispatch(updateBalance(newBalance))
@@ -63,7 +64,7 @@ export const useWallet = () => {
   }, [address, dispatch, handleConnect])
 
   // Handle network changes
-  const handleNetworkChange = useCallback((chainId: string) => {
+  const handleNetworkChange = useCallback(() => {
     // Refresh balance when network changes
     refreshBalance()
   }, [refreshBalance])
@@ -78,7 +79,7 @@ export const useWallet = () => {
         }
       }
     }
-    
+
     checkConnection()
   }, [isConnected, handleConnect])
 
@@ -86,7 +87,7 @@ export const useWallet = () => {
   useEffect(() => {
     if (isConnected) {
       setupWalletListeners(handleAccountChange, handleNetworkChange)
-      
+
       return () => {
         removeWalletListeners(handleAccountChange, handleNetworkChange)
       }
@@ -97,7 +98,7 @@ export const useWallet = () => {
   useEffect(() => {
     if (isConnected && address) {
       const interval = setInterval(refreshBalance, 30000) // Refresh every 30 seconds
-      
+
       return () => clearInterval(interval)
     }
   }, [isConnected, address, refreshBalance])

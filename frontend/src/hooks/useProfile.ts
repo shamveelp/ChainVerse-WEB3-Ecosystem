@@ -7,7 +7,21 @@ import { userApiService } from "@/services/userApiServices";
 import { login, setLoading } from "@/redux/slices/userAuthSlice";
 
 // Use any for local data to avoid conflict with Redux types
-type LocalUserType = any;
+interface UserProfile {
+  _id: string;
+  username: string;
+  email: string;
+  name: string;
+  phone?: string;
+  createdAt: string;
+  stats?: {
+    followersCount: number;
+    followingCount: number;
+    postsCount: number;
+  };
+  profileImage?: string;
+  [key: string]: unknown;
+}
 
 interface UsernameCheck {
   checking: boolean;
@@ -18,7 +32,7 @@ interface UsernameCheck {
 export const useProfile = () => {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.userAuth);
-  const [profile, setProfile] = useState<LocalUserType | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLocalLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [usernameCheck, setUsernameCheck] = useState<UsernameCheck>({
@@ -34,23 +48,28 @@ export const useProfile = () => {
     try {
       const response = await userApiService.getProfile();
       if (response.success && response.data) {
-        const userData: LocalUserType = {
+        const userData: UserProfile = {
           _id: response.data._id,
           username: response.data.username,
           email: response.data.email,
           // profileImage: response.data.profilePic,
           name: response.data.name,
           phone: response.data.phone,
-          createdAt: response.data.createdAt,
-          stats: response.data.stats,
+          createdAt: String(response.data.createdAt),
+          stats: {
+            followersCount: response.data.followersCount,
+            followingCount: response.data.followingCount,
+            postsCount: 0 // Placeholder as it's not in the API response yet
+          },
         };
         setProfile(userData);
         dispatch(login({ user: userData })); // Update Redux with user data
       } else {
         setError(response.error || "Failed to fetch profile");
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch profile");
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || "Failed to fetch profile");
     } finally {
       dispatch(setLoading(false));
       setLocalLoading(false);
@@ -65,25 +84,27 @@ export const useProfile = () => {
       try {
         const response = await userApiService.updateProfile(data);
         if (response.success && response.data) {
-          const userData: LocalUserType = {
+          const userData: UserProfile = {
             _id: response.data._id,
             username: response.data.username,
             email: response.data.email,
             // profileImage: response.data.profilePic,
             name: response.data.name,
             phone: response.data.phone,
-            createdAt: response.data.createdAt,
-            stats: response.data.stats,
+            createdAt: String(response.data.createdAt),
+            stats: {
+              followersCount: response.data.followersCount,
+              followingCount: response.data.followingCount,
+              postsCount: 0
+            },
           };
           setProfile(userData);
           dispatch(login({ user: userData })); // Update Redux with new profile
           return true;
-        } else {
-          setError(response.error || "Failed to update profile");
-          return false;
         }
-      } catch (err: any) {
-        setError(err.message || "Failed to update profile");
+      } catch (err) {
+        const error = err as Error;
+        setError(error.message || "Failed to update profile");
         return false;
       } finally {
         dispatch(setLoading(false));
@@ -99,16 +120,17 @@ export const useProfile = () => {
       const response = await userApiService.checkUsernameAvailability(username);
       setUsernameCheck({
         checking: false,
-        available: response.available,
+        available: !!response.available,
         lastChecked: username,
       });
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as Error;
       setUsernameCheck({
         checking: false,
         available: false,
         lastChecked: username,
       });
-      setError(err.message || "Failed to check username");
+      setError(error.message || "Failed to check username");
     }
   }, []);
 
@@ -120,7 +142,7 @@ export const useProfile = () => {
       try {
         const response = await userApiService.uploadProfileImage(file);
         if (response.success) {
-          const updatedProfile = { ...profile, profileImage: response.imageUrl } as LocalUserType;
+          const updatedProfile = { ...profile, profileImage: response.imageUrl } as UserProfile;
           setProfile(updatedProfile);
           dispatch(login({ user: updatedProfile }));
           return response;
@@ -128,9 +150,10 @@ export const useProfile = () => {
           setError(response.error || "Failed to upload image");
           return response;
         }
-      } catch (err: any) {
-        setError(err.message || "Failed to upload image");
-        return { success: false, error: err.message };
+      } catch (err) {
+        const error = err as Error;
+        setError(error.message || "Failed to upload image");
+        return { success: false, error: error.message };
       } finally {
         dispatch(setLoading(false));
         setLocalLoading(false);

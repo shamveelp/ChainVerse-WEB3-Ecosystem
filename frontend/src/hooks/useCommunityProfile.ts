@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { RootState } from '@/redux/store';
-import { 
+import {
   setLoading,
   setProfile,
   setError,
@@ -24,28 +24,28 @@ export const useCommunityProfile = () => {
   const router = useRouter();
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 3;
-  
+
   // Add safety check for communityProfile state
   const communityProfileState = useSelector((state: RootState) => state?.communityProfile || {});
   const userAuthState = useSelector((state: RootState) => state?.userAuth || {});
-  
+
   // Provide default values if state is undefined
-  const { 
-    profile = null, 
-    loading = false, 
-    error = null, 
-    viewedProfile = null, 
-    viewedProfileLoading = false, 
-    updating = false, 
-    uploadingBanner = false 
+  const {
+    profile = null,
+    loading = false,
+    error = null,
+    viewedProfile = null,
+    viewedProfileLoading = false,
+    updating = false,
+    uploadingBanner = false
   } = communityProfileState;
-  
+
   const { user = null } = userAuthState;
 
   // Fetch own community profile with force refresh option
   const fetchCommunityProfile = useCallback(async (forceRefresh: boolean = false): Promise<CommunityProfile | null> => {
     if (!user) {
-      
+
       router.replace("/user/login");
       return null;
     }
@@ -56,23 +56,27 @@ export const useCommunityProfile = () => {
     }
 
     if (loading && !forceRefresh) {
-      
+
       return profile;
     }
 
     dispatch(setLoading(true));
     dispatch(clearError());
-    
+
     try {
-      
+
       const response = await communityApiService.getCommunityProfile();
       dispatch(setProfile(response.data));
       setRetryCount(0);
       return response.data;
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to fetch community profile";
+      dispatch(setProfile(response.data));
+      setRetryCount(0);
+      return response.data;
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || "Failed to fetch community profile";
       console.error('Fetch community profile error:', errorMessage);
-      
+
       if (errorMessage.includes("not authenticated") || errorMessage.includes("401")) {
         toast.error("Session expired", { description: "Please log in again" });
         dispatch(logout());
@@ -80,9 +84,9 @@ export const useCommunityProfile = () => {
         router.replace("/user/login");
         return null;
       }
-      
+
       dispatch(setError(errorMessage));
-      
+
       // Retry logic with exponential backoff
       if (retryCount < maxRetries && !forceRefresh) {
         const delay = Math.pow(2, retryCount) * 1000;
@@ -93,7 +97,7 @@ export const useCommunityProfile = () => {
       } else {
         toast.error("Error loading profile", { description: errorMessage });
       }
-      
+
       return null;
     } finally {
       dispatch(setLoading(false));
@@ -114,14 +118,15 @@ export const useCommunityProfile = () => {
 
     dispatch(setViewedProfileLoading(true));
     try {
-      
+
       const response = await communityApiService.getCommunityProfileByUsername(username);
       dispatch(setViewedProfile(response.data));
       return response.data;
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to fetch community profile";
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || "Failed to fetch community profile";
       console.error('Fetch profile by username error:', errorMessage);
-      
+
       if (errorMessage.includes("not found")) {
         toast.error("User not found", { description: `@${username} doesn't exist` });
       } else if (errorMessage.includes("private")) {
@@ -129,7 +134,7 @@ export const useCommunityProfile = () => {
       } else {
         toast.error("Error loading profile", { description: errorMessage });
       }
-      
+
       return null;
     } finally {
       dispatch(setViewedProfileLoading(false));
@@ -141,7 +146,7 @@ export const useCommunityProfile = () => {
     if (viewedProfile && viewedProfile.username === username) {
       dispatch(updateViewedProfileFollowStatus({ isFollowing, followersCount }));
     }
-    
+
     // Also update own profile if we're viewing our own profile
     if (profile && profile.username === username) {
       dispatch(setProfile({
@@ -175,8 +180,9 @@ export const useCommunityProfile = () => {
         toast.error("Failed to update profile", { description: response.error });
         return false;
       }
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to update profile";
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || "Failed to update profile";
       console.error('Update profile error:', errorMessage);
       toast.error("Failed to update profile", { description: errorMessage });
       return false;
@@ -217,8 +223,9 @@ export const useCommunityProfile = () => {
         toast.error("Failed to upload banner image", { description: response.error });
         return false;
       }
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to upload banner image";
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || "Failed to upload banner image";
       console.error('Upload banner error:', errorMessage);
       toast.error("Failed to upload banner image", { description: errorMessage });
       return false;

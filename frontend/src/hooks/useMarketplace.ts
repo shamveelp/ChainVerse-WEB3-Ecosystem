@@ -25,6 +25,16 @@ export interface MarketStats {
   activeItems: number;
 }
 
+interface ContractItem {
+  itemId: bigint;
+  nftContract: string;
+  tokenId: bigint;
+  seller: string;
+  owner: string;
+  price: bigint;
+  sold: boolean;
+}
+
 export function useMarketplace() {
   const { address } = useAccount();
   const chainId = useChainId();
@@ -96,13 +106,15 @@ export function useMarketplace() {
   }, [statsData]);
 
   // Fetch metadata for NFTs
-  const loadNFTsWithMetadata = async (items: any[]): Promise<NFTItem[]> => {
-    if (!items || items.length === 0) return [];
+  const loadNFTsWithMetadata = async (items: unknown[]): Promise<NFTItem[]> => {
+    if (!items || !Array.isArray(items) || items.length === 0) return [];
+
+    const contractItems = items as ContractItem[];
 
 
 
     const itemsWithMetadata = await Promise.all(
-      items.map(async (item) => {
+      contractItems.map(async (item) => {
         try {
           // Get token URI from the NFT contract
           const tokenURI = await readContract(config, {
@@ -143,11 +155,13 @@ export function useMarketplace() {
       if (!marketItemsQuery.data) return;
 
       setLoadingData(true);
+      setLoadingData(true);
       try {
-        const items = await loadNFTsWithMetadata(marketItemsQuery.data as any[]);
+        const items = await loadNFTsWithMetadata(marketItemsQuery.data as unknown[]);
 
         setMarketItems(items);
-      } catch (error) {
+      } catch (err) {
+        const error = err as Error;
         console.error('Error loading market items:', error);
         toast.error('Failed to load marketplace items');
       } finally {
@@ -162,7 +176,7 @@ export function useMarketplace() {
       if (!myNFTsQuery.data) return;
 
       try {
-        const items = await loadNFTsWithMetadata(myNFTsQuery.data as any[]);
+        const items = await loadNFTsWithMetadata(myNFTsQuery.data as unknown[]);
 
         setMyNFTs(items);
       } catch (error) {
@@ -177,7 +191,7 @@ export function useMarketplace() {
       if (!listedItemsQuery.data) return;
 
       try {
-        const items = await loadNFTsWithMetadata(listedItemsQuery.data as any[]);
+        const items = await loadNFTsWithMetadata(listedItemsQuery.data as unknown[]);
 
         setListedItems(items);
       } catch (error) {
@@ -220,10 +234,15 @@ export function useMarketplace() {
       toast.success('NFT successfully listed for sale!');
 
       // Refresh all data
+      // Refresh all data
       await refreshData();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
+      // Wagmi/viem errors usually have details in 'shortMessage' or 'message'
+      // We accept that default Error type might not have 'shortMessage', so we handle safely
+      const shortMessage = (error as unknown as { shortMessage?: string }).shortMessage;
       console.error('Error listing NFT:', error);
-      toast.error(error.shortMessage || error.message || 'Failed to list NFT');
+      toast.error(shortMessage || error.message || 'Failed to list NFT');
       throw error;
     }
   };
@@ -247,9 +266,11 @@ export function useMarketplace() {
       toast.success('NFT purchased successfully! 🎉');
 
       await refreshData();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
+      const shortMessage = (error as unknown as { shortMessage?: string }).shortMessage;
       console.error('Error buying NFT:', error);
-      toast.error(error.shortMessage || error.message || 'Failed to purchase NFT');
+      toast.error(shortMessage || error.message || 'Failed to purchase NFT');
       throw error;
     }
   };
@@ -291,9 +312,11 @@ export function useMarketplace() {
       }
 
       await refreshData();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
+      const shortMessage = (error as unknown as { shortMessage?: string }).shortMessage;
       console.error('Error minting NFT:', error);
-      toast.error(error.shortMessage || error.message || 'Failed to mint NFT');
+      toast.error(shortMessage || error.message || 'Failed to mint NFT');
       throw error;
     }
   };
