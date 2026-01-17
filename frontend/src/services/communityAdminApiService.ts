@@ -10,6 +10,12 @@ import {
   CheckExistenceResponse
 } from "@/types/comms-admin/community-admin.types"
 
+interface ApiErrorResponse {
+  error?: string;
+  message?: string;
+  [key: string]: unknown;
+}
+
 class CommunityAdminApiService {
   // Live validation endpoints
   async checkEmailExists(email: string): Promise<CheckExistenceResponse> {
@@ -21,7 +27,7 @@ class CommunityAdminApiService {
         message: response.data.message
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Check email error:", axiosError)
       throw new Error(axiosError.response?.data?.message || axiosError.message || "Failed to check email")
     }
@@ -36,7 +42,7 @@ class CommunityAdminApiService {
         message: response.data.message
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Check username error:", axiosError)
       throw new Error(axiosError.response?.data?.message || axiosError.message || "Failed to check username")
     }
@@ -112,7 +118,7 @@ class CommunityAdminApiService {
         message: response.data.message
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Submit application error:", {
         message: axiosError.message,
         response: axiosError.response?.data,
@@ -121,8 +127,8 @@ class CommunityAdminApiService {
 
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Application submission failed",
       }
@@ -184,12 +190,12 @@ class CommunityAdminApiService {
         message: response.data.message
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Reapply application error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Application resubmission failed",
       }
@@ -207,12 +213,12 @@ class CommunityAdminApiService {
         message: response.data.message,
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Set password error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Password setting failed",
       }
@@ -230,12 +236,12 @@ class CommunityAdminApiService {
         message: response.data.message,
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Verify OTP error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "OTP verification failed",
       }
@@ -252,12 +258,12 @@ class CommunityAdminApiService {
         message: response.data.message,
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Resend OTP error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Failed to resend OTP",
       }
@@ -280,12 +286,12 @@ class CommunityAdminApiService {
         message: response.data.message
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Community admin login error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Login failed",
       }
@@ -297,12 +303,12 @@ class CommunityAdminApiService {
       await api.post(COMMUNITY_ADMIN_API_ROUTES.LOGOUT)
       return { success: true }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Community admin logout error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Logout failed",
       }
@@ -319,12 +325,12 @@ class CommunityAdminApiService {
         }
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Refresh token error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Token refresh failed",
       }
@@ -342,12 +348,12 @@ class CommunityAdminApiService {
         message: response.data.message,
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Forgot password error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Failed to send reset code",
       }
@@ -365,12 +371,12 @@ class CommunityAdminApiService {
         message: response.data.message,
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Verify forgot password OTP error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Invalid OTP",
       }
@@ -388,12 +394,12 @@ class CommunityAdminApiService {
         message: response.data.message,
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Reset password error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Password reset failed",
       }
@@ -411,12 +417,12 @@ class CommunityAdminApiService {
         },
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get profile error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Failed to get profile",
       }
@@ -432,12 +438,12 @@ class CommunityAdminApiService {
         data: response.data,
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get community details error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Failed to get community details",
       }
@@ -457,12 +463,12 @@ class CommunityAdminApiService {
         message: response.data.message
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Update community error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Failed to update community",
       }
@@ -477,12 +483,12 @@ class CommunityAdminApiService {
         data: response.data,
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       console.error("Get community members error:", axiosError.response?.data || axiosError.message)
       return {
         success: false,
-        error: (axiosError.response?.data as any)?.error ||
-          (axiosError.response?.data as any)?.message ||
+        error: axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           axiosError.message ||
           "Failed to get community members",
       }

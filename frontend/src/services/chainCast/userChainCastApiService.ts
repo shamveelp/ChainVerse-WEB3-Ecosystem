@@ -31,7 +31,6 @@ import {
   JoinChainCastResponse,
   CanJoinResponse
 } from "@/types/user/chaincast.types";
-import { ApiResponse } from "@/types/common.types";
 
 // Import types for proper typing
 import type { ChainCast, ChainCastsResponse, ReactionsResponse } from "@/types/comms-admin/chaincast.types";
@@ -39,6 +38,7 @@ import type { ChainCast, ChainCastsResponse, ReactionsResponse } from "@/types/c
 interface ApiErrorData {
   error?: string;
   message?: string;
+  [key: string]: unknown;
 }
 
 // Helper function to handle API errors

@@ -16,11 +16,12 @@ import {
   ReactionsResponse
 } from "@/types/comms-admin/chaincast.types";
 
-import { ApiResponse } from "@/types/common.types";
+
 
 interface ApiErrorData {
   error?: string;
   message?: string;
+  [key: string]: unknown;
 }
 
 // Helper function to handle API errors
@@ -316,7 +317,7 @@ export const communityAdminChainCastApiService = {
   },
 
   // Analytics
-  getAnalytics: async (period: string = 'week'): Promise<any> => {
+  getAnalytics: async (period: string = 'week'): Promise<unknown> => {
     try {
       const params = new URLSearchParams();
       params.append('period', period);
