@@ -13,8 +13,7 @@ import { useComments } from '@/hooks/useComments'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { formatTimeAgo, formatStats, formatFullDate } from '@/utils/format'
-import Sidebar from "@/components/community/sidebar"
-import RightSidebar from "@/components/community/right-sidebar"
+
 import CommentCard from '@/components/community/posts/comment-card'
 import MentionTextarea from '@/components/community/posts/mention-textarea'
 import Image from 'next/image'
@@ -351,271 +350,242 @@ export default function PostPage({ params }: PostPageProps) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-slate-950">
-        <Sidebar />
-        <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen">
-          <div className="max-w-2xl mx-auto h-screen overflow-y-auto">
-            <div className="flex items-center justify-center min-h-screen">
-              <div className="text-center space-y-4">
-                <Loader2 className="h-12 w-12 animate-spin text-cyan-500 mx-auto" />
-                <p className="text-slate-400 text-lg">Loading post...</p>
-              </div>
-            </div>
-          </div>
-        </main>
-        <RightSidebar />
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-cyan-500 mx-auto" />
+          <p className="text-slate-400 text-lg">Loading post...</p>
+        </div>
       </div>
     )
   }
 
   if (error || !post) {
     return (
-      <div className="flex min-h-screen bg-slate-950">
-        <Sidebar />
-        <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen">
-          <div className="max-w-2xl mx-auto h-screen overflow-y-auto">
-            <div className="flex items-center justify-center min-h-screen">
-              <div className="text-center space-y-4">
-                <p className="text-slate-400 text-lg">{error || 'Post not found'}</p>
-                <Button
-                  onClick={handleBack}
-                  variant="outline"
-                  className="border-slate-600 hover:bg-slate-800"
-                >
-                  Go Back
-                </Button>
-              </div>
-            </div>
-          </div>
-        </main>
-        <RightSidebar />
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-4">
+          <p className="text-slate-400 text-lg">{error || 'Post not found'}</p>
+          <Button
+            onClick={handleBack}
+            variant="outline"
+            className="border-slate-600 hover:bg-slate-800"
+          >
+            Go Back
+          </Button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-950">
-      {/* Left Sidebar */}
-      <Sidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-80 xl:mr-80 min-h-screen">
-        <div className="max-w-2xl mx-auto h-screen overflow-y-auto scrollbar-hidden">
-          <div className="space-y-0">
-            {/* Header */}
-            <div className="sticky top-0 bg-slate-950/90 backdrop-blur-xl border-b border-slate-700/50 p-6 z-10">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleBack}
-                  className="text-slate-400 hover:text-white hover:bg-slate-800 rounded-full w-10 h-10"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div>
-                  <h2 className="text-xl font-bold text-white">Post</h2>
-                  <p className="text-slate-400 text-sm">by @{post.author.username}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Post Content */}
-            <div className="p-6">
-              <Card className="bg-slate-900/60 backdrop-blur-sm border-slate-700/50 p-8 shadow-xl">
-                <div className="flex gap-4">
-                  <Avatar
-                    className="w-14 h-14 ring-2 ring-slate-700/50 flex-shrink-0 cursor-pointer hover:ring-cyan-400/50 transition-all"
-                    onClick={handleAuthorClick}
-                  >
-                    <AvatarImage src={post.author.profilePic} alt={post.author.name} />
-                    <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
-                      {post.author.name.charAt(0)?.toUpperCase() || post.author.username.charAt(0)?.toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-4">
-                      <h3
-                        className="font-semibold text-white hover:underline cursor-pointer text-lg"
-                        onClick={handleAuthorClick}
-                      >
-                        {post.author.name}
-                      </h3>
-                      {post.author.isVerified && (
-                        <div className="w-5 h-5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      )}
-                      <span
-                        className="text-slate-400 cursor-pointer hover:underline"
-                        onClick={handleAuthorClick}
-                      >
-                        @{post.author.username}
-                      </span>
-                      {post.hashtags.includes('trending') && (
-                        <div className="flex items-center gap-1 bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full">
-                          <TrendingUp className="w-3 h-3" />
-                          <span className="text-xs font-medium">Trending</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="mb-6">
-                      {renderContent()}
-                      {renderMedia()}
-                    </div>
-
-                    <div className="text-slate-500 text-sm mb-6 flex items-center gap-2">
-                      <span>{formatFullDate(post.createdAt)}</span>
-                      {post.editedAt && (
-                        <>
-                          <span>·</span>
-                          <span>Edited</span>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between py-4 border-t border-b border-slate-700/50">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full px-4 py-3 transition-all"
-                      >
-                        <MessageCircle className="w-5 h-5" />
-                        <span className="font-medium">{formatStats(post.commentsCount)}</span>
-                        <span className="hidden sm:inline">Comments</span>
-                      </Button>
-
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleLike}
-                        className={cn(
-                          "flex items-center gap-2 rounded-full px-4 py-3 transition-all",
-                          post.isLiked
-                            ? "text-red-400 hover:text-red-300 hover:bg-red-400/10"
-                            : "text-slate-400 hover:text-red-400 hover:bg-red-400/10"
-                        )}
-                      >
-                        <Heart className={cn("w-5 h-5", post.isLiked && "fill-current")} />
-                        <span className="font-medium">{formatStats(post.likesCount)}</span>
-                        <span className="hidden sm:inline">Likes</span>
-                      </Button>
-
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleShare}
-                        className="flex items-center gap-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-full px-4 py-3 transition-all"
-                      >
-                        <Share className="w-5 h-5" />
-                        <span className="font-medium">{formatStats(post.sharesCount)}</span>
-                        <span className="hidden sm:inline">Shares</span>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Comment Form */}
-            {currentUser && (
-              <div className="px-6 pb-6">
-                <Card className="bg-slate-900/60 backdrop-blur-sm border-slate-700/50 p-6 shadow-lg">
-                  <div className="flex gap-4">
-                    <Avatar className="w-12 h-12 ring-2 ring-slate-700/50 flex-shrink-0">
-                      <AvatarImage
-                        src={profile?.profilePic || currentUser?.profileImage || ''}
-                        alt={profile?.name || currentUser?.name || currentUser?.username || 'User'}
-                      />
-                      <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
-                        {(profile?.name || currentUser?.name || currentUser?.username)?.charAt(0)?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="flex-1">
-                      <MentionTextarea
-                        value={commentContent}
-                        onChange={setCommentContent}
-                        placeholder="Write a comment..."
-                        className="min-h-[100px] text-base"
-                        maxLength={1000}
-                      />
-
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="text-sm text-slate-400">
-                          {commentContent.length}/1000
-                        </div>
-                        <Button
-                          onClick={handleComment}
-                          disabled={!commentContent.trim() || isCommenting || commentContent.length > 1000}
-                          className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-full px-6"
-                        >
-                          {isCommenting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                          <Send className="w-4 h-4 mr-2" />
-                          Comment
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            )}
-
-            {/* Comments Section */}
-            <div className="px-6 pb-8">
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-white mb-2">Comments</h3>
-                <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent"></div>
-              </div>
-
-              {comments.length > 0 ? (
-                <div className="space-y-6">
-                  {comments.map((comment) => (
-                    <CommentCard
-                      key={comment._id}
-                      comment={comment}
-                      onReply={handleReply}
-                      onLikeToggle={toggleCommentLike}
-                      replies={commentsWithReplies[comment._id] || []}
-                      onLoadReplies={handleLoadReplies}
-                    />
-                  ))}
-
-                  {/* Load more comments sentinel */}
-                  {hasMoreComments && (
-                    <div
-                      ref={loadMoreRef}
-                      className="flex justify-center pt-6"
-                    >
-                      {commentsLoading ? (
-                        <div className="flex items-center gap-2 text-slate-400">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Loading more...</span>
-                        </div>
-                      ) : (
-                        <div className="h-4 w-full" />
-                      )}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <MessageCircle className="h-16 w-16 mx-auto mb-4 text-slate-600" />
-                  <h4 className="text-xl font-semibold text-white mb-2">No comments yet</h4>
-                  <p className="text-slate-400 mb-4">Be the first to share your thoughts!</p>
-                </div>
-              )}
-            </div>
+    <div className="space-y-0 pb-10">
+      {/* Header */}
+      <div className="sticky top-[4.5rem] bg-slate-950/90 backdrop-blur-xl border-b border-slate-700/50 p-6 z-10 transition-all duration-300">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            className="text-slate-400 hover:text-white hover:bg-slate-800 rounded-full w-10 h-10"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h2 className="text-xl font-bold text-white">Post</h2>
+            <p className="text-slate-400 text-sm">by @{post.author.username}</p>
           </div>
         </div>
-      </main>
+      </div>
 
-      {/* Right Sidebar */}
-      <RightSidebar />
+      {/* Post Content */}
+      <div className="p-6">
+        <Card className="bg-slate-900/60 backdrop-blur-sm border-slate-700/50 p-8 shadow-xl">
+          <div className="flex gap-4">
+            <Avatar
+              className="w-14 h-14 ring-2 ring-slate-700/50 flex-shrink-0 cursor-pointer hover:ring-cyan-400/50 transition-all"
+              onClick={handleAuthorClick}
+            >
+              <AvatarImage src={post.author.profilePic} alt={post.author.name} />
+              <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
+                {post.author.name.charAt(0)?.toUpperCase() || post.author.username.charAt(0)?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-4">
+                <h3
+                  className="font-semibold text-white hover:underline cursor-pointer text-lg"
+                  onClick={handleAuthorClick}
+                >
+                  {post.author.name}
+                </h3>
+                {post.author.isVerified && (
+                  <div className="w-5 h-5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+                <span
+                  className="text-slate-400 cursor-pointer hover:underline"
+                  onClick={handleAuthorClick}
+                >
+                  @{post.author.username}
+                </span>
+                {post.hashtags.includes('trending') && (
+                  <div className="flex items-center gap-1 bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full">
+                    <TrendingUp className="w-3 h-3" />
+                    <span className="text-xs font-medium">Trending</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-6">
+                {renderContent()}
+                {renderMedia()}
+              </div>
+
+              <div className="text-slate-500 text-sm mb-6 flex items-center gap-2">
+                <span>{formatFullDate(post.createdAt)}</span>
+                {post.editedAt && (
+                  <>
+                    <span>·</span>
+                    <span>Edited</span>
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between py-4 border-t border-b border-slate-700/50">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full px-4 py-3 transition-all"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  <span className="font-medium">{formatStats(post.commentsCount)}</span>
+                  <span className="hidden sm:inline">Comments</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLike}
+                  className={cn(
+                    "flex items-center gap-2 rounded-full px-4 py-3 transition-all",
+                    post.isLiked
+                      ? "text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                      : "text-slate-400 hover:text-red-400 hover:bg-red-400/10"
+                  )}
+                >
+                  <Heart className={cn("w-5 h-5", post.isLiked && "fill-current")} />
+                  <span className="font-medium">{formatStats(post.likesCount)}</span>
+                  <span className="hidden sm:inline">Likes</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleShare}
+                  className="flex items-center gap-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-full px-4 py-3 transition-all"
+                >
+                  <Share className="w-5 h-5" />
+                  <span className="font-medium">{formatStats(post.sharesCount)}</span>
+                  <span className="hidden sm:inline">Shares</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Comment Form */}
+      {currentUser && (
+        <div className="px-6 pb-6">
+          <Card className="bg-slate-900/60 backdrop-blur-sm border-slate-700/50 p-6 shadow-lg">
+            <div className="flex gap-4">
+              <Avatar className="w-12 h-12 ring-2 ring-slate-700/50 flex-shrink-0">
+                <AvatarImage
+                  src={profile?.profilePic || currentUser?.profileImage || ''}
+                  alt={profile?.name || currentUser?.name || currentUser?.username || 'User'}
+                />
+                <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
+                  {(profile?.name || currentUser?.name || currentUser?.username)?.charAt(0)?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+
+              <div className="flex-1">
+                <MentionTextarea
+                  value={commentContent}
+                  onChange={setCommentContent}
+                  placeholder="Write a comment..."
+                  className="min-h-[100px] text-base"
+                  maxLength={1000}
+                />
+
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-slate-400">
+                    {commentContent.length}/1000
+                  </div>
+                  <Button
+                    onClick={handleComment}
+                    disabled={!commentContent.trim() || isCommenting || commentContent.length > 1000}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-full px-6"
+                  >
+                    {isCommenting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    <Send className="w-4 h-4 mr-2" />
+                    Comment
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Comments Section */}
+      <div className="px-6 pb-8">
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-white mb-2">Comments</h3>
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent"></div>
+        </div>
+
+        {comments.length > 0 ? (
+          <div className="space-y-6">
+            {comments.map((comment) => (
+              <CommentCard
+                key={comment._id}
+                comment={comment}
+                onReply={handleReply}
+                onLikeToggle={toggleCommentLike}
+                replies={commentsWithReplies[comment._id] || []}
+                onLoadReplies={handleLoadReplies}
+              />
+            ))}
+
+            {/* Load more comments sentinel */}
+            {hasMoreComments && (
+              <div
+                ref={loadMoreRef}
+                className="flex justify-center pt-6"
+              >
+                {commentsLoading ? (
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Loading more...</span>
+                  </div>
+                ) : (
+                  <div className="h-4 w-full" />
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <MessageCircle className="h-16 w-16 mx-auto mb-4 text-slate-600" />
+            <h4 className="text-xl font-semibold text-white mb-2">No comments yet</h4>
+            <p className="text-slate-400 mb-4">Be the first to share your thoughts!</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
