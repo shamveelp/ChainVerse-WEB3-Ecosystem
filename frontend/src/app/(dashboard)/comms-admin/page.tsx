@@ -280,7 +280,8 @@ export default function CommunityAdminDashboard() {
                   <Image
                     src={dashboardData.communityOverview.banner}
                     alt="Community Banner"
-                    className="w-full h-full object-cover opacity-80"
+                    fill
+                    className="object-cover opacity-80"
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-900/50 to-transparent" />
