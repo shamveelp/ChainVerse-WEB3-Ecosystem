@@ -41,6 +41,11 @@ interface ReferralHistoryItem {
   createdAt: string;
 }
 
+interface ReferralHistoryResponse {
+  referrals: ReferralHistoryItem[];
+  total: number;
+}
+
 export default function ReferPage() {
   const { profile } = useSelector((state: RootState) => state.userProfile);
   const [referralStats, setReferralStats] = useState<ReferralData | null>(null);
@@ -76,7 +81,7 @@ export default function ReferPage() {
       setHistoryLoading(true);
       const result = await userApiService.getReferralHistory(pageNum, limit);
       if (result.success && result.data) {
-        const data = result.data as any;
+        const data = result.data as unknown as ReferralHistoryResponse;
         if (pageNum === 1) {
           setReferralHistory(data.referrals || []);
         } else {
