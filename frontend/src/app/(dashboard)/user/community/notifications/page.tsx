@@ -16,7 +16,7 @@ export default function NotificationsPage() {
   const router = useRouter()
   const [filter, setFilter] = useState('all')
   const { conversations, fetchConversations, loading: chatLoading, markMessagesAsRead } = useChat()
-  const [systemNotifications, setSystemNotifications] = useState<any[]>([])
+  const [systemNotifications, setSystemNotifications] = useState<unknown[]>([])
   const [sysLoading, setSysLoading] = useState(true)
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
 

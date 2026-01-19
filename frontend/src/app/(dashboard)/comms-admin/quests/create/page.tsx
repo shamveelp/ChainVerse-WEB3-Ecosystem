@@ -71,6 +71,7 @@ interface CreateQuestData {
   tasks: QuestTask[];
   isAIGenerated?: boolean;
   aiPrompt?: string;
+  bannerFile?: File;
 }
 
 const taskTypes: Array<{ value: TaskType; label: string; description: string; available: boolean }> = [
@@ -295,7 +296,7 @@ export default function CreateQuestPage() {
     }));
   };
 
-  const updateTask = (index: number, field: string, value: any) => {
+  const updateTask = (index: number, field: string, value: string | boolean | number) => {
     setQuestData(prev => ({
       ...prev,
       tasks: prev.tasks.map((task, i) => {
@@ -303,8 +304,8 @@ export default function CreateQuestPage() {
         if (field === 'taskType') {
           return {
             ...task,
-            taskType: value,
-            config: getDefaultTaskConfig(value)
+            taskType: value as TaskType,
+            config: getDefaultTaskConfig(value as TaskType)
           };
         }
         return { ...task, [field]: value };
@@ -455,11 +456,11 @@ export default function CreateQuestPage() {
 
     setLoading(true);
     try {
-      const response = await communityAdminQuestApiService.createQuest(dataToSubmit as any);
+      const response = await communityAdminQuestApiService.createQuest(dataToSubmit as unknown as import("@/types/comms-admin/quests.types").CreateQuestData);
 
       if (response.success && response.data) {
         // Upload banner if provided
-        const bannerToUpload = (dataToSubmit as any).bannerFile || bannerFile;
+        const bannerToUpload = dataToSubmit.bannerFile || bannerFile;
         if (bannerToUpload) {
           await communityAdminQuestApiService.uploadQuestBanner(response.data._id, bannerToUpload);
         }
@@ -472,11 +473,12 @@ export default function CreateQuestPage() {
       } else {
         throw new Error(response.error || "Failed to create quest");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to create quest";
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to create quest",
+        description: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -724,7 +726,7 @@ export default function CreateQuestPage() {
                     <Label>Reward Type</Label>
                     <Select
                       value={questData.rewardPool.rewardType}
-                      onValueChange={(value: any) => setQuestData(prev => ({
+                      onValueChange={(value: 'token' | 'nft' | 'points' | 'custom') => setQuestData(prev => ({
                         ...prev,
                         rewardPool: {
                           ...prev.rewardPool,
@@ -999,7 +1001,7 @@ export default function CreateQuestPage() {
                             <TaskConfiguration
                               taskType={task.taskType}
                               config={task.config}
-                              onChange={(config: any) => updateTaskConfig(index, config)}
+                              onChange={(config: Partial<TaskConfig>) => updateTaskConfig(index, config)}
                             />
                           </div>
 

@@ -59,6 +59,16 @@ interface PointsSummary {
   };
 }
 
+interface CheckInCalendarResponse {
+  checkIns: CheckInCalendarData[];
+}
+
+interface PointsHistoryResponse {
+  history: PointsHistoryItem[];
+  summary: PointsSummary;
+  total: number;
+}
+
 export default function PointsPage() {
   const dispatch = useDispatch();
   const { profile } = useSelector((state: RootState) => state.userProfile);
@@ -114,7 +124,8 @@ export default function PointsPage() {
     try {
       const result = await userApiService.getCheckInCalendar(month, year);
       if (result.success && result.data) {
-        setCheckInCalendar((result.data as any).checkIns || []);
+        const data = result.data as unknown as CheckInCalendarResponse;
+        setCheckInCalendar(data.checkIns || []);
       }
     } catch (error) {
       console.error("Error fetching calendar:", error);
@@ -125,7 +136,7 @@ export default function PointsPage() {
     try {
       const result = await userApiService.getPointsHistory(page, 10);
       if (result.success && result.data) {
-        const data = result.data as any;
+        const data = result.data as unknown as PointsHistoryResponse;
         if (page === 1) {
           setPointsHistory(data.history || []);
         } else {

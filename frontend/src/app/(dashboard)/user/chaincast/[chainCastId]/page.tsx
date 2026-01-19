@@ -66,7 +66,8 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
         // Adapt for user with proper role settings
         const adaptedChainCast = {
           ...chainCastData,
-          userRole: chainCastData.isParticipant ? 'participant' : 'viewer',
+          userRole: chainCastData.isParticipant ? 'viewer' : 'viewer',
+          userRoleOriginal: chainCastData.isParticipant ? 'participant' : 'viewer',
           canJoin: true,
           canModerate: false, // Regular users start without moderation powers
           isParticipant: chainCastData.isParticipant || false,
@@ -86,7 +87,7 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
           }
         }
 
-        setChainCast(adaptedChainCast as any)
+        setChainCast(adaptedChainCast as unknown as ChainCast)
 
         // Check if user is already a participant
         if (chainCastData.isParticipant) {
@@ -98,11 +99,12 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
           setCanJoinData(joinPermissions)
         }
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load ChainCast:', err)
-        setError(err.message || 'Failed to load ChainCast')
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load ChainCast'
+        setError(errorMessage)
         toast.error('Failed to load ChainCast', {
-          description: err.message || 'Please try again'
+          description: errorMessage
         })
       } finally {
         setLoading(false)
@@ -127,18 +129,19 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
       if (result.success) {
         setHasJoined(true)
         // Update chainCast to reflect participation
-        setChainCast((prev: any) => prev ? {
+        setChainCast((prev: ChainCast | null) => prev ? {
           ...prev,
           isParticipant: true,
-          userRole: 'participant'
+          userRole: 'viewer'
         } : null)
         toast.success(result.message)
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Join ChainCast error:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to join ChainCast'
       toast.error('Failed to join ChainCast', {
-        description: err.message || 'Please try again'
+        description: errorMessage
       })
     } finally {
       setJoining(false)
@@ -153,7 +156,7 @@ export default function ChainCastPage({ params }: ChainCastPageProps) {
       await userChainCastApiService.leaveChainCast(chainCast._id)
       toast.success('Left ChainCast successfully')
       router.back()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Leave ChainCast error:', err)
       toast.error('Failed to leave ChainCast')
       // Navigate back anyway

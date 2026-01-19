@@ -112,7 +112,7 @@ export default function QuestsPage() {
       const response = await communityAdminQuestApiService.getQuests({
         page: currentPage,
         limit: 6,
-        status: activeTab === 'all' ? undefined : activeTab as any,
+        status: activeTab === 'all' ? undefined : activeTab as 'draft' | 'active' | 'ended' | 'cancelled',
         search: searchTerm || undefined
       });
 
@@ -164,11 +164,12 @@ export default function QuestsPage() {
       } else {
         throw new Error(response.error || "Failed to delete quest");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete quest";
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to delete quest",
+        description: errorMessage,
       });
     } finally {
       setActionLoading(false);
@@ -190,11 +191,12 @@ export default function QuestsPage() {
       } else {
         throw new Error(response.error || "Failed to start quest");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to start quest";
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to start quest",
+        description: errorMessage,
       });
     } finally {
       setActionLoading(false);
@@ -216,11 +218,12 @@ export default function QuestsPage() {
       } else {
         throw new Error(response.error || "Failed to end quest");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to end quest";
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to end quest",
+        description: errorMessage,
       });
     } finally {
       setActionLoading(false);

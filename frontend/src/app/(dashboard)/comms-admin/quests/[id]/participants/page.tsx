@@ -47,6 +47,16 @@ import {
 } from "@/components/ui/dialog";
 import Image from 'next/image';
 
+interface Submission {
+  taskType: string;
+  status: string;
+  taskTitle: string;
+  submissionData?: {
+    text?: string;
+  };
+  submittedAt: string;
+}
+
 interface Participant {
   _id: string;
   userId: {
@@ -63,7 +73,12 @@ interface Participant {
   isWinner: boolean;
   rewardClaimed: boolean;
   walletAddress?: string;
-  submissions?: any[];
+  submissions?: Submission[];
+}
+
+interface QuestTask {
+  _id: string;
+  title: string;
 }
 
 interface Quest {
@@ -73,8 +88,16 @@ interface Quest {
   totalParticipants: number;
   participantLimit: number;
   winnersSelected: boolean;
-  tasks?: any[];
+  tasks?: QuestTask[];
   selectionMethod: string;
+}
+
+interface ParticipantsResponse {
+  participants?: Participant[];
+  items?: Participant[];
+  pagination?: {
+    pages: number;
+  };
 }
 
 export default function QuestParticipantsPage() {
@@ -109,15 +132,15 @@ export default function QuestParticipantsPage() {
     try {
       const response = await communityAdminQuestApiService.getQuest(questId);
       if (response.success && response.data) {
-        setQuest(response.data);
+        setQuest(response.data as unknown as Quest);
       } else {
         throw new Error(response.error || "Failed to fetch quest");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to fetch quest data",
+        description: error instanceof Error ? error.message : "Failed to fetch quest data",
       });
       router.push('/comms-admin/quests');
     }
@@ -135,7 +158,7 @@ export default function QuestParticipantsPage() {
       });
 
       if (response.success && response.data) {
-        const data = response.data as any;
+        const data = response.data as unknown as ParticipantsResponse;
         setParticipants(data.participants || data.items || []);
         setTotalPages(data.pagination?.pages || 1);
       }
@@ -152,7 +175,7 @@ export default function QuestParticipantsPage() {
       if (response.success && response.data) {
         setSelectedParticipant({ ...participant, ...response.data });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -172,11 +195,11 @@ export default function QuestParticipantsPage() {
         fetchParticipants();
         setSelectedParticipant(null);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to disqualify participant",
+        description: error instanceof Error ? error.message : "Failed to disqualify participant",
       });
     }
   };
@@ -185,7 +208,7 @@ export default function QuestParticipantsPage() {
     if (!quest) return;
 
     try {
-      const response = await communityAdminQuestApiService.selectWinners(questId, quest.selectionMethod as any);
+      const response = await communityAdminQuestApiService.selectWinners(questId, quest.selectionMethod as 'fcfs' | 'random');
       if (response.success) {
         toast({
           title: "Success",
@@ -194,11 +217,11 @@ export default function QuestParticipantsPage() {
         fetchQuestData();
         fetchParticipants();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to select winners",
+        description: error instanceof Error ? error.message : "Failed to select winners",
       });
     }
   };
@@ -623,16 +646,16 @@ export default function QuestParticipantsPage() {
                 <div>
                   <h4 className="text-sm font-semibold text-white mb-2">Task Submissions:</h4>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {selectedParticipant.submissions.map((submission: any, index: number) => (
+                    {selectedParticipant.submissions.map((submission, index) => (
                       <div key={index} className="bg-gray-800 p-3 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <Badge variant="outline" className="text-xs">
                             {submission.taskType}
                           </Badge>
                           <Badge className={`text-xs ${submission.status === 'approved' ? 'bg-green-600' :
-                              submission.status === 'rejected' ? 'bg-red-600' :
-                                submission.status === 'auto_verified' ? 'bg-blue-600' :
-                                  'bg-yellow-600'
+                            submission.status === 'rejected' ? 'bg-red-600' :
+                              submission.status === 'auto_verified' ? 'bg-blue-600' :
+                                'bg-yellow-600'
                             }`}>
                             {submission.status}
                           </Badge>

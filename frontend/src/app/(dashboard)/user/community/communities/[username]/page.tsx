@@ -13,7 +13,7 @@ import ChainCastJoinButton from "@/components/chainCast/chainCastJoinButton"
 import CommunityChainCastList from "@/components/chainCast/communityChainCastList"
 import { toast } from "sonner"
 import { communitySocketService } from "@/services/socket/communitySocketService"
-import { communityExploreApiService } from "@/services/userCommunityServices/communityExploreApiService"
+import { communityExploreApiService, type Community } from "@/services/userCommunityServices/communityExploreApiService"
 
 type ViewType = "community" | "chats" | "chaincasts"
 
@@ -27,7 +27,7 @@ export default function CommunityPage({ params }: CommunityPageProps) {
   // Resolve params using React's use hook
   const { username } = use(params)
   const searchParams = useSearchParams()
-  
+
   // Initialize activeView based on tab query parameter
   const getInitialView = (): ViewType => {
     const tab = searchParams.get("tab")
@@ -37,9 +37,9 @@ export default function CommunityPage({ params }: CommunityPageProps) {
   }
 
   const [activeView, setActiveView] = useState<ViewType>(getInitialView())
-  const [communityData, setCommunityData] = useState<any>(null)
+  const [communityData, setCommunityData] = useState<Community | null>(null)
   const [loading, setLoading] = useState(true)
-  
+
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
   const token = useSelector((state: RootState) => state.userAuth?.token)
 
@@ -50,7 +50,7 @@ export default function CommunityPage({ params }: CommunityPageProps) {
         setLoading(true)
         const data = await communityExploreApiService.getCommunityProfile(username)
         setCommunityData(data)
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to load community data:', error)
         toast.error('Failed to load community details')
       } finally {
@@ -71,10 +71,10 @@ export default function CommunityPage({ params }: CommunityPageProps) {
       try {
         await communitySocketService.connect(token)
         console.log('Connected to community socket')
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to connect to community socket:', error)
         toast.error('Connection Error', {
-          description: 'Failed to connect to real-time messaging'
+          description: error instanceof Error ? error.message : 'Failed to connect to real-time messaging'
         })
       }
     }
@@ -143,31 +143,28 @@ export default function CommunityPage({ params }: CommunityPageProps) {
             <div className="flex space-x-1 bg-slate-900/50 rounded-lg p-1">
               <button
                 onClick={() => handleViewChange("community")}
-                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                  activeView === "community"
+                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${activeView === "community"
                     ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30"
                     : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-                }`}
+                  }`}
               >
                 Community
               </button>
               <button
                 onClick={() => handleViewChange("chats")}
-                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                  activeView === "chats"
+                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${activeView === "chats"
                     ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30"
                     : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-                }`}
+                  }`}
               >
                 Group Chat
               </button>
               <button
                 onClick={() => handleViewChange("chaincasts")}
-                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                  activeView === "chaincasts"
+                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${activeView === "chaincasts"
                     ? "bg-gradient-to-r from-red-500/20 to-pink-500/20 text-white border border-red-400/30"
                     : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-                }`}
+                  }`}
               >
                 ChainCasts
               </button>
@@ -178,27 +175,24 @@ export default function CommunityPage({ params }: CommunityPageProps) {
           <div className="flex-1 overflow-hidden relative">
             {/* Community View */}
             <div
-              className={`absolute inset-0 transition-opacity duration-300 ${
-                activeView === "community" ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-300 ${activeView === "community" ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
             >
               <CommunityView />
             </div>
 
             {/* Community Chats View */}
             <div
-              className={`absolute inset-0 transition-opacity duration-300 ${
-                activeView === "chats" ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-300 ${activeView === "chats" ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
             >
               <CommunityChatsView />
             </div>
 
             {/* ChainCasts View */}
             <div
-              className={`absolute inset-0 transition-opacity duration-300 ${
-                activeView === "chaincasts" ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-300 ${activeView === "chaincasts" ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
             >
               <div className="h-full overflow-y-auto p-4">
                 {communityData?._id ? (

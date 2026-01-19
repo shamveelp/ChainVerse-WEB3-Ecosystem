@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { 
-  Users, 
-  Search, 
-  Loader2, 
+import {
+  Users,
+  Search,
+  Loader2,
   AlertCircle,
   Crown,
   Shield,
@@ -28,10 +28,10 @@ import { RootState } from '@/redux/store'
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
 import { toast } from 'sonner'
-import { 
-  communityExploreApiService, 
+import {
+  communityExploreApiService,
   type CommunityMember,
-  type CommunityMemberListResponse 
+  type CommunityMemberListResponse
 } from '@/services/userCommunityServices/communityExploreApiService'
 
 interface CommunityMembersPageProps {
@@ -77,32 +77,33 @@ export default function CommunityMembersPage({ params }: CommunityMembersPagePro
       } else {
         setLoadingMore(true)
       }
-      
+
       setError(null)
-      
-      
+
+
       const response: CommunityMemberListResponse = await communityExploreApiService.getCommunityMembers(
         communityUsername,
         cursor,
         20
       )
-      
+
       if (reset) {
         setMembers(response.members)
       } else {
         setMembers(prev => [...prev, ...response.members])
       }
-      
+
       setHasMore(response.hasMore)
       setNextCursor(response.nextCursor)
       setTotalCount(response.totalCount)
-      
-      
-    } catch (err: any) {
+
+
+    } catch (err: unknown) {
       console.error('Failed to fetch members:', err)
-      setError(err.message || 'Failed to load community members')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load community members'
+      setError(errorMessage)
       toast.error('Failed to load members', {
-        description: err.message || 'Please try again'
+        description: errorMessage
       })
     } finally {
       setLoading(false)
@@ -127,7 +128,7 @@ export default function CommunityMembersPage({ params }: CommunityMembersPagePro
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim()
-      filtered = filtered.filter(member => 
+      filtered = filtered.filter(member =>
         member.user.username.toLowerCase().includes(query) ||
         member.user.name.toLowerCase().includes(query)
       )
@@ -276,11 +277,10 @@ export default function CommunityMembersPage({ params }: CommunityMembersPagePro
                       variant={activeFilter === filter.id ? "secondary" : "ghost"}
                       size="sm"
                       onClick={() => setActiveFilter(filter.id)}
-                      className={`flex-shrink-0 ${
-                        activeFilter === filter.id
+                      className={`flex-shrink-0 ${activeFilter === filter.id
                           ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30'
                           : 'text-slate-400 hover:text-white'
-                      }`}
+                        }`}
                     >
                       <Icon className="w-4 h-4 mr-1" />
                       {filter.label}
@@ -300,8 +300,8 @@ export default function CommunityMembersPage({ params }: CommunityMembersPagePro
                       {searchQuery.trim() ? 'No members found' : 'No members yet'}
                     </p>
                     <p className="text-sm text-slate-500">
-                      {searchQuery.trim() 
-                        ? 'Try different search terms' 
+                      {searchQuery.trim()
+                        ? 'Try different search terms'
                         : 'Members will appear here when they join'
                       }
                     </p>

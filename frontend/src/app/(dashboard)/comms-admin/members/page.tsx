@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { communityAdminMembersApiService } from "@/services/communityAdmin/communityAdminMembersApiService";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
+import type { MemberFilters } from "@/types/comms-admin/members.types";
 
 interface CommunityMember {
   _id: string;
@@ -125,9 +126,9 @@ export default function CommunityAdminMembers() {
         cursor: isInitial ? undefined : cursor,
         limit: 20,
         search: searchQuery || undefined,
-        role: roleFilter === 'all' ? undefined : roleFilter as any,
-        status: statusFilter === 'all' ? undefined : statusFilter as any,
-        sortBy: sortBy as any
+        role: roleFilter === 'all' ? undefined : roleFilter as MemberFilters['role'],
+        status: statusFilter === 'all' ? undefined : statusFilter as MemberFilters['status'],
+        sortBy: sortBy as MemberFilters['sortBy']
       };
 
       const response = await communityAdminMembersApiService.getCommunityMembers(filters);
@@ -145,7 +146,7 @@ export default function CommunityAdminMembers() {
       } else {
         toast.error(response.error || 'Failed to load community members');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading members:', error);
       toast.error('Failed to load community members');
     } finally {
@@ -191,7 +192,7 @@ export default function CommunityAdminMembers() {
       } else {
         toast.error(response.error || 'Failed to ban member');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to ban member');
     } finally {
       setActionLoading(false);
@@ -215,7 +216,7 @@ export default function CommunityAdminMembers() {
       } else {
         toast.error(response.error || 'Failed to unban member');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to unban member');
     } finally {
       setActionLoading(false);
@@ -238,7 +239,7 @@ export default function CommunityAdminMembers() {
       } else {
         toast.error(response.error || 'Failed to remove member');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to remove member');
     } finally {
       setActionLoading(false);
@@ -268,7 +269,7 @@ export default function CommunityAdminMembers() {
       } else {
         toast.error(response.error || 'Failed to update member role');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to update member role');
     } finally {
       setActionLoading(false);

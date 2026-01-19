@@ -112,10 +112,11 @@ export default function ProfilePage({ params }: ProfilePageProps) {
             }
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to fetch profile:', err)
+        const errorMessage = err instanceof Error ? err.message : 'Please try again'
         toast.error('Failed to load profile', {
-          description: err.message || 'Please try again'
+          description: errorMessage
         })
       }
     }

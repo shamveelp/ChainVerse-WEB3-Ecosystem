@@ -100,7 +100,7 @@ export default function ExplorePage() {
         setPopularCommunities(response.communities)
         setPopularHasMore(response.hasMore)
         setPopularCursor(response.nextCursor)
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to load popular communities:', error)
         toast.error('Failed to load popular communities')
       } finally {
@@ -147,10 +147,11 @@ export default function ExplorePage() {
         setSearchHasMore(results.hasMore)
         setSearchCursor(results.nextCursor)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Search failed:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Please try again'
       toast.error('Search failed', {
-        description: error.message || 'Please try again'
+        description: errorMessage
       })
       if (reset) {
         setSearchResults(null)
@@ -234,7 +235,7 @@ export default function ExplorePage() {
       setPopularCommunities(prev => [...prev, ...response.communities])
       setPopularHasMore(response.hasMore)
       setPopularCursor(response.nextCursor)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to load more popular communities:', error)
       toast.error('Failed to load more communities')
     } finally {
@@ -279,10 +280,11 @@ export default function ExplorePage() {
             : c
         )
       )
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`${action} community error:`, error)
+      const errorMessage = error instanceof Error ? error.message : 'Please try again'
       toast.error(`Failed to ${action} community`, {
-        description: error.message || 'Please try again'
+        description: errorMessage
       })
     }
   }

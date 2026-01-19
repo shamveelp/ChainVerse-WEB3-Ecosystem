@@ -60,7 +60,22 @@ interface QuestTask {
   isRequired: boolean;
   order: number;
   completedBy: number;
-  config?: any;
+  config?: Record<string, unknown>;
+}
+
+interface SubmissionData {
+  imageUrl?: string;
+  twitterUrl?: string;
+  text?: string;
+  linkUrl?: string;
+  communityName?: string;
+  targetUsername?: string;
+}
+
+interface Submission {
+  taskId: string | { _id: string };
+  submittedAt: string | Date;
+  submissionData?: SubmissionData;
 }
 
 interface Participant {
@@ -78,7 +93,7 @@ interface Participant {
   totalTasksCompleted: number;
   isWinner: boolean;
   walletAddress?: string;
-  submissions?: any[];
+  submissions?: Submission[];
 }
 
 interface QuestStats {
@@ -131,11 +146,12 @@ export default function QuestDetailPage() {
       if (statsResponse.success && statsResponse.data) {
         setStats(statsResponse.data as unknown as QuestStats);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch quest data";
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to fetch quest data",
+        description: errorMessage,
       });
       router.push('/comms-admin/quests');
     } finally {
@@ -151,7 +167,16 @@ export default function QuestDetailPage() {
       });
 
       if (response.success && response.data) {
-        const data = response.data as any;
+        interface ParticipantsResponse {
+          participants?: Participant[];
+          items?: Participant[];
+          pagination?: {
+            pages: number;
+          };
+        }
+
+        // ... inside fetchParticipants
+        const data = response.data as unknown as ParticipantsResponse;
         setParticipants(data.participants || data.items || []);
         setTotalParticipantsPages(data.pagination?.pages || 1);
       }
@@ -170,11 +195,11 @@ export default function QuestDetailPage() {
         });
         fetchQuestData();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to start quest",
+        description: error instanceof Error ? error.message : "Failed to start quest",
       });
     }
   };
@@ -189,11 +214,11 @@ export default function QuestDetailPage() {
         });
         fetchQuestData();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to end quest",
+        description: error instanceof Error ? error.message : "Failed to end quest",
       });
     }
   };
@@ -209,11 +234,11 @@ export default function QuestDetailPage() {
         fetchQuestData();
         fetchParticipants();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to select winners",
+        description: error instanceof Error ? error.message : "Failed to select winners",
       });
     }
   };
@@ -224,7 +249,7 @@ export default function QuestDetailPage() {
       if (response.success && response.data) {
         setSelectedParticipant({ ...participant, ...response.data });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -244,11 +269,11 @@ export default function QuestDetailPage() {
         fetchParticipants();
         setSelectedParticipant(null);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to disqualify participant",
+        description: error instanceof Error ? error.message : "Failed to disqualify participant",
       });
     }
   };
@@ -826,10 +851,14 @@ export default function QuestDetailPage() {
                   <h4 className="text-sm font-semibold text-white mb-3">Task Submissions</h4>
                   <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
                     {quest.tasks?.map((task) => {
-                      const submission = selectedParticipant.submissions?.find((s: any) => {
-                        const sTaskId = s.taskId?._id || s.taskId;
+                      const submission = selectedParticipant.submissions?.find((s) => {
+                        const sTaskId = typeof s.taskId === 'object' && s.taskId !== null && '_id' in s.taskId
+                          ? (s.taskId as { _id: string })._id
+                          : s.taskId;
                         return String(sTaskId) === String(task._id);
                       });
+
+                      const submissionData = submission?.submissionData;
 
                       return (
                         <div key={task._id} className="bg-gray-800/50 p-3 rounded-lg border border-gray-700/50">
@@ -842,7 +871,7 @@ export default function QuestDetailPage() {
                               <div className="flex flex-col items-end">
                                 <Badge className="bg-green-600/20 text-green-400 border-green-600/30 mb-1">Completed</Badge>
                                 <span className="text-[10px] text-gray-500">
-                                  {new Date(submission.submittedAt).toLocaleDateString()}
+                                  {new Date(submission.submittedAt as string).toLocaleDateString()}
                                 </span>
                               </div>
                             ) : (
@@ -854,12 +883,12 @@ export default function QuestDetailPage() {
                             <div className="mt-2 text-sm bg-black/20 p-2 rounded">
                               <p className="text-xs text-gray-500 mb-1">Submission Details:</p>
 
-                              {submission.submissionData ? (
+                              {submissionData ? (
                                 <>
-                                  {submission.submissionData.imageUrl && (
+                                  {submissionData.imageUrl && (
                                     <div className="relative group mt-1">
-                                      <a href={submission.submissionData.imageUrl} target="_blank" rel="noopener noreferrer" className="block">
-                                        <Image src={submission.submissionData.imageUrl} alt="Proof" className="w-full h-32 object-cover rounded border border-gray-700" />
+                                      <a href={submissionData.imageUrl} target="_blank" rel="noopener noreferrer" className="block">
+                                        <Image src={submissionData.imageUrl} alt="Proof" className="w-full h-32 object-cover rounded border border-gray-700" />
                                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded">
                                           <ExternalLink className="w-5 h-5 text-white" />
                                         </div>
@@ -867,28 +896,28 @@ export default function QuestDetailPage() {
                                     </div>
                                   )}
 
-                                  {submission.submissionData.twitterUrl && (
-                                    <a href={submission.submissionData.twitterUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-400 hover:text-blue-300 break-all mt-1">
+                                  {submissionData.twitterUrl && (
+                                    <a href={submissionData.twitterUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-400 hover:text-blue-300 break-all mt-1">
                                       <ExternalLink className="w-3 h-3 mr-1 flex-shrink-0" />
-                                      {submission.submissionData.twitterUrl}
+                                      {submissionData.twitterUrl}
                                     </a>
                                   )}
 
-                                  {submission.submissionData.text && (
-                                    <p className="text-gray-300 mt-1 p-2 bg-gray-900/50 rounded">{submission.submissionData.text}</p>
+                                  {submissionData.text && (
+                                    <p className="text-gray-300 mt-1 p-2 bg-gray-900/50 rounded">{submissionData.text}</p>
                                   )}
 
-                                  {submission.submissionData.linkUrl && (
-                                    <a href={submission.submissionData.linkUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-400 hover:text-blue-300 truncate mt-1">
+                                  {submissionData.linkUrl && (
+                                    <a href={submissionData.linkUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-400 hover:text-blue-300 truncate mt-1">
                                       <ExternalLink className="w-3 h-3 mr-1" />
-                                      {submission.submissionData.linkUrl}
+                                      {submissionData.linkUrl}
                                     </a>
                                   )}
 
                                   {(task.taskType === 'join_community' || task.taskType === 'follow_user') && (
                                     <div className="text-gray-300 flex items-center mt-1">
                                       <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
-                                      <span>ID Verified: {submission.submissionData.communityName || submission.submissionData.targetUsername || 'Success'}</span>
+                                      <span>ID Verified: {submissionData.communityName || submissionData.targetUsername || 'Success'}</span>
                                     </div>
                                   )}
                                 </>

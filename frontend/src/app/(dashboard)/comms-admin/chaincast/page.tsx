@@ -119,11 +119,12 @@ function ChainCastPageContent() {
         setSummary(response.summary)
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load ChainCasts:', err)
-      setError(err.message || 'Failed to load ChainCasts')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load ChainCasts'
+      setError(errorMessage)
       toast.error('Failed to load ChainCasts', {
-        description: err.message || 'Please try again'
+        description: errorMessage
       })
     } finally {
       setLoading(false)
@@ -167,10 +168,10 @@ function ChainCastPageContent() {
       setShowCreateDialog(false)
       resetForm()
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Create ChainCast error:', err)
       toast.error('Failed to create ChainCast', {
-        description: err.message || 'Please try again'
+        description: err instanceof Error ? err.message : 'Please try again'
       })
     } finally {
       setActionLoading({ create: false })
@@ -191,10 +192,10 @@ function ChainCastPageContent() {
       // Navigate to the ChainCast room for the admin
       router.push(`/comms-admin/chaincast/${chainCast._id}/room`)
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Start ChainCast error:', err)
       toast.error('Failed to start ChainCast', {
-        description: err.message || 'Please try again'
+        description: err instanceof Error ? err.message : 'Please try again'
       })
     } finally {
       setActionLoading({ [chainCast._id]: false })
@@ -219,10 +220,10 @@ function ChainCastPageContent() {
 
       toast.success('ChainCast ended successfully')
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('End ChainCast error:', err)
       toast.error('Failed to end ChainCast', {
-        description: err.message || 'Please try again'
+        description: err instanceof Error ? err.message : 'Please try again'
       })
     } finally {
       setActionLoading({ [chainCast._id]: false })
@@ -244,10 +245,10 @@ function ChainCastPageContent() {
       toast.success('ChainCast deleted successfully')
       setShowDeleteDialog(null)
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Delete ChainCast error:', err)
       toast.error('Failed to delete ChainCast', {
-        description: err.message || 'Please try again'
+        description: err instanceof Error ? err.message : 'Please try again'
       })
     } finally {
       setActionLoading({ delete: false })

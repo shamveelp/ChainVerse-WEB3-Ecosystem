@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  User, Mail, MapPin, Globe, Calendar, Upload, Edit3, Save, X, Activity, 
-  Users, TrendingUp, MessageSquare, Award, Crown, ExternalLink, Camera, 
+import {
+  User, Mail, MapPin, Globe, Calendar, Upload, Edit3, Save, X, Activity,
+  Users, TrendingUp, MessageSquare, Award, Crown, ExternalLink, Camera,
   Heart, MessageCircle, Loader2, Plus, List, Image as ImageIconLucide,
   Crop, RotateCcw, ZoomIn, ZoomOut, Move, Check
 } from "lucide-react";
@@ -86,7 +86,7 @@ export default function CommunityAdminProfile() {
     location: "",
     website: ""
   });
-  
+
   // Form errors
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -121,7 +121,7 @@ export default function CommunityAdminProfile() {
       } else {
         toast.error(response.error || "Failed to load profile");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching profile:", error);
       toast.error("Failed to load profile");
     } finally {
@@ -153,7 +153,7 @@ export default function CommunityAdminProfile() {
       } else {
         toast.error(response.error || "Failed to load posts");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading posts:", error);
       toast.error("Failed to load posts");
     } finally {
@@ -255,7 +255,7 @@ export default function CommunityAdminProfile() {
       } else {
         toast.error(response.error || "Failed to update profile");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile");
     } finally {
@@ -284,7 +284,7 @@ export default function CommunityAdminProfile() {
     setCropperImage(imageUrl);
     setCropperType(type);
     setShowImageCropper(true);
-    
+
     // Clear the input
     event.target.value = '';
   };
@@ -316,14 +316,14 @@ export default function CommunityAdminProfile() {
           toast.error(response.error || 'Failed to upload banner image');
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading image:', error);
       toast.error('Failed to upload image');
     } finally {
       setUploading(false);
       setUploadingBanner(false);
       setShowImageCropper(false);
-      
+
       // Clean up object URL
       if (cropperImage) {
         URL.revokeObjectURL(cropperImage);
@@ -353,7 +353,7 @@ export default function CommunityAdminProfile() {
   };
 
   const onPostUpdated = (updatedPost: CommunityAdminPost) => {
-    setPosts(prev => prev.map(post => 
+    setPosts(prev => prev.map(post =>
       post._id === updatedPost._id ? updatedPost : post
     ));
   };
@@ -421,7 +421,7 @@ export default function CommunityAdminProfile() {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-950 flex items-center justify-center">
         <div className="text-center space-y-6">
           <p className="text-white text-xl font-semibold">Failed to load profile</p>
-          <Button onClick={fetchProfile} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">    
+          <Button onClick={fetchProfile} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
             Retry
           </Button>
         </div>
@@ -921,7 +921,7 @@ export default function CommunityAdminProfile() {
               Adjust your image to fit perfectly. {cropperType === 'profile' ? 'Use a square crop for best results.' : 'Use a wide crop for best results.'}
             </DialogDescription>
           </DialogHeader>
-          
+
           {cropperImage && (
             <ImageCropper
               imageSrc={cropperImage}
@@ -931,7 +931,7 @@ export default function CommunityAdminProfile() {
                 URL.revokeObjectURL(cropperImage);
                 setCropperImage('');
               }}
-              aspectRatio={cropperType === 'profile' ? 1 : 16/9}
+              aspectRatio={cropperType === 'profile' ? 1 : 16 / 9}
               cropType={cropperType}
             />
           )}

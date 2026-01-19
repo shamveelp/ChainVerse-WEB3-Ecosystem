@@ -109,10 +109,12 @@ export default function CommunitiesPage() {
 
         setStats(response.stats);
         setHasMore(response.hasMore);
+        setHasMore(response.hasMore);
         setNextCursor(response.nextCursor);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to load communities:", err);
-        setError(err.message || "Failed to load communities");
+        const errorMessage = err instanceof Error ? err.message : "Failed to load communities";
+        setError(errorMessage);
         toast.error("Failed to load communities");
       } finally {
         setLoading(false);
@@ -174,7 +176,7 @@ export default function CommunitiesPage() {
         toast.success(result.message);
         setShowLeaveDialog(null);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Leave community error:", error);
       toast.error("Failed to leave community");
     } finally {

@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ArrowLeft, Loader2, Users } from 'lucide-react'
 import { useFollow } from '@/hooks/useFollow'
 import { useCommunityProfile } from '@/hooks/useCommunityProfile'
-import { communityApiService } from '@/services/communityApiService'
+import { communityApiService, type UserFollowInfo } from '@/services/communityApiService'
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
 import { toast } from 'sonner'
@@ -30,10 +30,10 @@ export default function FollowingPage({ params }: FollowingPageProps) {
   const router = useRouter()
   const resolvedParams = use(params)
   const { username } = resolvedParams
-  
+
   const [profileName, setProfileName] = useState('')
   const [showUnfollowDialog, setShowUnfollowDialog] = useState(false)
-  const [userToUnfollow, setUserToUnfollow] = useState<any>(null)
+  const [userToUnfollow, setUserToUnfollow] = useState<UserFollowInfo | null>(null)
 
   const {
     followingData,
@@ -62,10 +62,11 @@ export default function FollowingPage({ params }: FollowingPageProps) {
 
         // Get following
         await getUserFollowing(username)
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to fetch data:', error)
+        const errorMessage = error instanceof Error ? error.message : 'Please try again'
         toast.error('Failed to load following', {
-          description: error.message || 'Please try again'
+          description: errorMessage
         })
       }
     }
@@ -77,22 +78,23 @@ export default function FollowingPage({ params }: FollowingPageProps) {
     }
   }, [username])
 
-  const handleFollowClick = async (userToFollow: any) => {
+  const handleFollowClick = async (userToFollow: UserFollowInfo) => {
     try {
       const success = await followUser(userToFollow.username)
       if (success) {
         updateUserFollowStatus(userToFollow._id, true)
         toast.success(`You are now following @${userToFollow.username}`)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Follow error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Please try again'
       toast.error('Failed to follow user', {
-        description: error.message || 'Please try again'
+        description: errorMessage
       })
     }
   }
 
-  const handleUnfollowClick = (userToFollow: any) => {
+  const handleUnfollowClick = (userToFollow: UserFollowInfo) => {
     setUserToUnfollow(userToFollow)
     setShowUnfollowDialog(true)
   }
@@ -108,15 +110,16 @@ export default function FollowingPage({ params }: FollowingPageProps) {
         setShowUnfollowDialog(false)
         setUserToUnfollow(null)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Unfollow error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Please try again'
       toast.error('Failed to unfollow user', {
-        description: error.message || 'Please try again'
+        description: errorMessage
       })
     }
   }
 
-  const handleFollowToggle = async (userToFollow: any) => {
+  const handleFollowToggle = async (userToFollow: UserFollowInfo) => {
     if (userToFollow.isFollowing) {
       handleUnfollowClick(userToFollow)
     } else {
@@ -197,7 +200,7 @@ export default function FollowingPage({ params }: FollowingPageProps) {
                     key={following._id}
                     className="flex items-center justify-between p-4 border-b border-slate-700/50 hover:bg-slate-900/30 transition-colors"
                   >
-                    <div 
+                    <div
                       className="flex items-center space-x-3 flex-1 cursor-pointer"
                       onClick={() => handleProfileClick(following.username)}
                     >
@@ -214,7 +217,7 @@ export default function FollowingPage({ params }: FollowingPageProps) {
                           {following.name.charAt(0)?.toUpperCase() || following.username.charAt(0)?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="text-white font-semibold truncate">
@@ -242,11 +245,10 @@ export default function FollowingPage({ params }: FollowingPageProps) {
                       }}
                       disabled={followActionLoading}
                       size="sm"
-                      className={`ml-3 ${
-                        following.isFollowing
+                      className={`ml-3 ${following.isFollowing
                           ? 'bg-slate-800 text-white hover:bg-red-600 hover:text-white border border-slate-600'
                           : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white'
-                      }`}
+                        }`}
                     >
                       {followActionLoading && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
                       {following.isFollowing ? 'Following' : 'Follow'}

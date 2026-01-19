@@ -37,7 +37,7 @@ interface QuestTask {
   taskType: string;
   isRequired: boolean;
   order: number;
-  config?: any;
+  config?: Record<string, unknown>;
 }
 
 interface UpdateQuestData {
@@ -129,11 +129,12 @@ export default function EditQuestPage() {
       } else {
         throw new Error(response.error || "Failed to fetch quest");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch quest";
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to fetch quest",
+        description: errorMessage,
       });
       router.push('/comms-admin/quests');
     } finally {
@@ -165,7 +166,7 @@ export default function EditQuestPage() {
     }));
   };
 
-  const updateTask = (index: number, field: string, value: any) => {
+  const updateTask = (index: number, field: string, value: string | boolean | number) => {
     setQuestData(prev => ({
       ...prev,
       tasks: prev.tasks.map((task, i) =>
@@ -223,11 +224,12 @@ export default function EditQuestPage() {
       } else {
         throw new Error(response.error || "Failed to update quest");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to update quest";
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update quest",
+        description: errorMessage,
       });
     } finally {
       setSaving(false);
@@ -384,7 +386,7 @@ export default function EditQuestPage() {
               <Label>Reward Type</Label>
               <Select
                 value={questData.rewardPool.rewardType}
-                onValueChange={(value: any) => setQuestData(prev => ({
+                onValueChange={(value: 'token' | 'nft' | 'points' | 'custom') => setQuestData(prev => ({
                   ...prev,
                   rewardPool: { ...prev.rewardPool, rewardType: value }
                 }))}

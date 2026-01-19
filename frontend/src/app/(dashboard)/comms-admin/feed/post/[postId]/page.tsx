@@ -69,6 +69,13 @@ interface Comment {
 }
 
 
+interface CommentsResponse {
+    comments: Comment[];
+    nextCursor?: string;
+    hasMore: boolean;
+}
+
+
 export default function CommunityAdminPostDetails() {
     const { postId } = useParams()
     const router = useRouter()
@@ -127,7 +134,7 @@ export default function CommunityAdminPostDetails() {
             setLoadingComments(true)
             const response = await communityAdminFeedApiService.getPostComments(postId as string, isInitial ? undefined : commentsCursor)
             if (response.success && response.data) {
-                const data = response.data as any
+                const data = response.data as unknown as CommentsResponse
                 if (isInitial) {
                     setComments(data.comments)
                 } else {

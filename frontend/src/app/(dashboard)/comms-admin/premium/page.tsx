@@ -148,7 +148,7 @@ export default function PremiumPage() {
         description: "Lifetime Premium Subscription",
         image: "/logo.png",
         order_id: orderResponse.data.orderId,
-        handler: async (response: any) => {
+        handler: async (response: { razorpay_payment_id: string, razorpay_order_id: string, razorpay_signature: string }) => {
           const paymentData = {
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_order_id: response.razorpay_order_id,
@@ -186,13 +186,14 @@ export default function PremiumPage() {
         },
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to process payment",
+        description: error instanceof Error ? error.message : "Failed to process payment",
       });
     } finally {
       setLoading(false);
@@ -215,7 +216,7 @@ export default function PremiumPage() {
         description: "Lifetime Premium Subscription - Retry",
         image: "/logo.png",
         order_id: retryResponse.data.orderId,
-        handler: async (response: any) => {
+        handler: async (response: { razorpay_payment_id: string, razorpay_order_id: string, razorpay_signature: string }) => {
           const paymentData = {
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_order_id: response.razorpay_order_id,
@@ -252,13 +253,14 @@ export default function PremiumPage() {
         },
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to retry payment",
+        description: error instanceof Error ? error.message : "Failed to retry payment",
       });
     } finally {
       setRetryLoading(false);
@@ -285,18 +287,18 @@ export default function PremiumPage() {
       {/* Payment Status Alert */}
       {subscription && ['pending', 'failed', 'expired'].includes(subscription.status) && (
         <Card className={`${subscription.status === 'failed'
-            ? 'bg-gradient-to-r from-red-950/50 to-yellow-950/50 border-red-600/40'
-            : subscription.status === 'expired'
-              ? 'bg-gradient-to-r from-gray-950/50 to-red-950/50 border-gray-600/40'
-              : 'bg-gradient-to-r from-blue-950/50 to-yellow-950/50 border-blue-600/40'
+          ? 'bg-gradient-to-r from-red-950/50 to-yellow-950/50 border-red-600/40'
+          : subscription.status === 'expired'
+            ? 'bg-gradient-to-r from-gray-950/50 to-red-950/50 border-gray-600/40'
+            : 'bg-gradient-to-r from-blue-950/50 to-yellow-950/50 border-blue-600/40'
           } backdrop-blur-xl`}>
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${subscription.status === 'failed'
-                  ? 'bg-red-600/20'
-                  : subscription.status === 'expired'
-                    ? 'bg-gray-600/20'
-                    : 'bg-blue-600/20'
+                ? 'bg-red-600/20'
+                : subscription.status === 'expired'
+                  ? 'bg-gray-600/20'
+                  : 'bg-blue-600/20'
                 }`}>
                 {subscription.status === 'failed' ? (
                   <AlertCircle className="h-6 w-6 text-red-400" />
@@ -401,10 +403,10 @@ export default function PremiumPage() {
               onClick={handleUpgrade}
               disabled={Boolean(loading || subscription?.status === "active" || (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0))}
               className={`w-full py-3 text-lg font-semibold ${subscription?.status === "active"
-                  ? "bg-gray-600 cursor-not-allowed"
-                  : (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)
-                    ? "bg-blue-600 cursor-not-allowed"
-                    : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
+                ? "bg-gray-600 cursor-not-allowed"
+                : (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)
+                  ? "bg-blue-600 cursor-not-allowed"
+                  : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
                 }`}
             >
               {loading ? (
@@ -465,10 +467,10 @@ export default function PremiumPage() {
               onClick={handleUpgrade}
               disabled={Boolean(loading || subscription?.status === "active" || (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0))}
               className={`py-3 px-6 text-lg font-semibold ${subscription?.status === "active"
-                  ? "bg-gray-600 cursor-not-allowed"
-                  : (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)
-                    ? "bg-blue-600 cursor-not-allowed"
-                    : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
+                ? "bg-gray-600 cursor-not-allowed"
+                : (subscription && ['pending', 'failed'].includes(subscription.status) && timeRemaining && timeRemaining.minutes > 0)
+                  ? "bg-blue-600 cursor-not-allowed"
+                  : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white"
                 }`}
             >
               {loading ? (

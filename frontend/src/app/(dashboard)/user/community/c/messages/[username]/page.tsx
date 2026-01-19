@@ -36,10 +36,10 @@ export default function CommunityPage({ params }: CommunityPageProps) {
       try {
         await communitySocketService.connect(token)
         console.log('Connected to community socket')
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to connect to community socket:', error)
         toast.error('Connection Error', {
-          description: 'Failed to connect to real-time messaging'
+          description: error instanceof Error ? error.message : 'Failed to connect to real-time messaging'
         })
       }
     }
@@ -61,18 +61,16 @@ export default function CommunityPage({ params }: CommunityPageProps) {
       <div className="flex-1 overflow-hidden relative">
         {/* Community View */}
         <div
-          className={`absolute inset-0 transition-opacity duration-300 ${
-            activeView === "community" ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
+          className={`absolute inset-0 transition-opacity duration-300 ${activeView === "community" ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
         >
           <CommunityView />
         </div>
 
         {/* Community Chats View */}
         <div
-          className={`absolute inset-0 transition-opacity duration-300 ${
-            activeView === "chats" ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
+          className={`absolute inset-0 transition-opacity duration-300 ${activeView === "chats" ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
         >
           <CommunityChatsView />
         </div>

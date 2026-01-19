@@ -67,13 +67,14 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
           }
         }
 
-        setChainCast(adaptedChainCast as any)
+        setChainCast(adaptedChainCast as unknown as ChainCast)
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load ChainCast:', err)
-        setError(err.message || 'Failed to load ChainCast')
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load ChainCast'
+        setError(errorMessage)
         toast.error('Failed to load ChainCast', {
-          description: err.message || 'Please try again'
+          description: errorMessage
         })
       } finally {
         setLoading(false)
@@ -88,7 +89,7 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
     try {
       toast.success('Left ChainCast (still running)')
       router.push('/comms-admin/chaincast')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to leave ChainCast:', err)
       toast.error('Failed to leave ChainCast')
       // Navigate back anyway
@@ -105,7 +106,7 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
       }
 
       router.push('/comms-admin/chaincast')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to end ChainCast:', err)
       toast.error('Failed to end ChainCast')
       // Navigate back anyway

@@ -145,7 +145,7 @@ export default function CommunityAdminDashboard() {
       } else {
         toast.error(response.error || "Failed to fetch dashboard data");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching dashboard data:", error);
       toast.error("Failed to fetch dashboard data");
     } finally {
@@ -549,8 +549,8 @@ export default function CommunityAdminDashboard() {
                     <div
                       key={feature.title}
                       className={`p-4 rounded-xl border transition-all duration-300 cursor-pointer hover:scale-105 ${feature.enabled
-                          ? "border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 hover:border-emerald-500/50"
-                          : "border-slate-800 bg-slate-800/50 hover:bg-slate-800"
+                        ? "border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 hover:border-emerald-500/50"
+                        : "border-slate-800 bg-slate-800/50 hover:bg-slate-800"
                         }`}
                       onClick={feature.onClick}
                     >
