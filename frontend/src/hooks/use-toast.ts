@@ -4,7 +4,7 @@ import * as React from "react"
 import { toast as sonnerToast } from "sonner"
 import type { ToastProps } from "@/components/ui/toast"
 
-type ToasterToast = ToastProps & {
+export type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode

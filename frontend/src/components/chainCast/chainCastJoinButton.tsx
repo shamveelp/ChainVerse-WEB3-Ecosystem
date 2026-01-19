@@ -87,9 +87,10 @@ export default function ChainCastJoinButton({
         setCanJoin({ canJoin: false })
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to check live ChainCasts:', error)
-      setError(error.message)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to check live ChainCasts'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -113,10 +114,11 @@ export default function ChainCastJoinButton({
       // Navigate directly to ChainCast page for joining
       router.push(`/user/chaincast/${liveChainCast._id}`)
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Join ChainCast error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to join ChainCast'
       toast.error('Failed to join ChainCast', {
-        description: error.message || 'Please try again'
+        description: errorMessage || 'Please try again'
       })
     } finally {
       setJoining(false)

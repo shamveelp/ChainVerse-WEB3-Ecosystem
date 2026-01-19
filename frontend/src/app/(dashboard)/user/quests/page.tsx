@@ -92,7 +92,7 @@ interface MyQuest {
 }
 
 // Static data for top quests carousel
-const topQuestsData = [
+const topQuestsData: Quest[] = [
   {
     _id: "1",
     title: "DeFi Masters Challenge",
@@ -102,7 +102,12 @@ const topQuestsData = [
     totalParticipants: 2847,
     participantLimit: 100,
     status: "active",
-    community: { communityName: "DeFi Alliance", logo: "https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=100&q=80" }
+    community: { communityName: "DeFi Alliance", logo: "https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=100&q=80", username: "defi_alliance" },
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 86400000 * 7),
+    selectionMethod: "raffle",
+    winnersSelected: false,
+    createdAt: new Date()
   },
   {
     _id: "2",
@@ -113,7 +118,12 @@ const topQuestsData = [
     totalParticipants: 1956,
     participantLimit: 50,
     status: "active",
-    community: { communityName: "NFT Creators Hub", logo: "https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=100&q=80" }
+    community: { communityName: "NFT Creators Hub", logo: "https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=100&q=80", username: "nft_creators" },
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 86400000 * 5),
+    selectionMethod: "top_score",
+    winnersSelected: false,
+    createdAt: new Date()
   },
   {
     _id: "3",
@@ -124,7 +134,12 @@ const topQuestsData = [
     totalParticipants: 3421,
     participantLimit: 200,
     status: "active",
-    community: { communityName: "Dev3 Community", logo: "https://images.unsplash.com/photo-1580927752452-89d86da3fa0a?w=100&q=80" }
+    community: { communityName: "Dev3 Community", logo: "https://images.unsplash.com/photo-1580927752452-89d86da3fa0a?w=100&q=80", username: "dev3" },
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 86400000 * 10),
+    selectionMethod: "raffle",
+    winnersSelected: false,
+    createdAt: new Date()
   },
   {
     _id: "4",
@@ -135,7 +150,12 @@ const topQuestsData = [
     totalParticipants: 4102,
     participantLimit: 150,
     status: "active",
-    community: { communityName: "Traders United", logo: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=100&q=80" }
+    community: { communityName: "Traders United", logo: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=100&q=80", username: "traders" },
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 86400000 * 3),
+    selectionMethod: "top_score",
+    winnersSelected: false,
+    createdAt: new Date()
   },
   {
     _id: "5",
@@ -146,7 +166,12 @@ const topQuestsData = [
     totalParticipants: 2134,
     participantLimit: 75,
     status: "active",
-    community: { communityName: "GameFi Guild", logo: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=100&q=80" }
+    community: { communityName: "GameFi Guild", logo: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=100&q=80", username: "gamefi" },
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 86400000 * 2),
+    selectionMethod: "raffle",
+    winnersSelected: false,
+    createdAt: new Date()
   }
 ];
 
@@ -155,7 +180,7 @@ export default function QuestsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [quests, setQuests] = useState<Quest[]>([]);
   const [myQuests, setMyQuests] = useState<MyQuest[]>([]);
-  const [topQuests, setTopQuests] = useState<Quest[]>(topQuestsData as any);
+  const [topQuests, setTopQuests] = useState<Quest[]>(topQuestsData);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
@@ -196,11 +221,11 @@ export default function QuestsPage() {
         const response = await userQuestApiService.getAvailableQuests({
           page: currentPage,
           limit: 12,
-          status: activeTab === 'all' ? undefined : activeTab as any,
+          status: activeTab === 'all' ? undefined : (activeTab as unknown as 'draft' | 'active' | 'ended'),
           search: searchTerm || undefined,
           sortBy,
           sortOrder,
-          rewardType: rewardFilter === 'all' ? undefined : rewardFilter as any
+          rewardType: rewardFilter === 'all' ? undefined : (rewardFilter as unknown as 'token' | 'nft' | 'points' | 'custom')
         });
         if (response.success && response.data) {
           setQuests(response.data.quests || []);

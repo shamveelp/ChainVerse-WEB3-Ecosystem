@@ -88,10 +88,11 @@ export default function PostPage({ params }: PostPageProps) {
 
         // Load comments
         await loadComments(postId, true)
-      } catch (err: any) {
-        setError(err.message || 'Failed to load post')
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+        setError(errorMessage)
         toast.error('Failed to load post', {
-          description: err.message || 'Please try again'
+          description: errorMessage || 'Please try again'
         })
       } finally {
         setLoading(false)
@@ -129,7 +130,7 @@ export default function PostPage({ params }: PostPageProps) {
         isLiked: response.isLiked,
         likesCount: response.likesCount
       } : null)
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Revert optimistic update on error
       setPost(prev => prev ? {
         ...prev,
@@ -137,8 +138,9 @@ export default function PostPage({ params }: PostPageProps) {
         likesCount: post.isLiked ? post.likesCount + 1 : post.likesCount - 1
       } : null)
 
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update like'
       toast.error('Failed to update like', {
-        description: error.message || 'Please try again'
+        description: errorMessage || 'Please try again'
       })
     }
   }
@@ -164,9 +166,10 @@ export default function PostPage({ params }: PostPageProps) {
         ...prev,
         sharesCount: response.sharesCount
       } : null)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to share post'
       toast.error('Failed to share post', {
-        description: error.message || 'Please try again'
+        description: errorMessage || 'Please try again'
       })
     }
   }
@@ -192,9 +195,10 @@ export default function PostPage({ params }: PostPageProps) {
           commentsCount: prev.commentsCount + 1
         } : null)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add comment'
       toast.error('Failed to add comment', {
-        description: error.message || 'Please try again'
+        description: errorMessage || 'Please try again'
       })
     } finally {
       setIsCommenting(false)
@@ -227,9 +231,10 @@ export default function PostPage({ params }: PostPageProps) {
           commentsCount: prev.commentsCount + 1
         } : null)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add reply'
       toast.error('Failed to add reply', {
-        description: error.message || 'Please try again'
+        description: errorMessage || 'Please try again'
       })
     }
   }
@@ -241,7 +246,7 @@ export default function PostPage({ params }: PostPageProps) {
         ...prev,
         [commentId]: replies
       }))
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to load replies')
     }
   }

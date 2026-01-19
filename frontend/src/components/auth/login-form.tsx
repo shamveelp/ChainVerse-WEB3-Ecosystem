@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
-import { GoogleLogin } from "@react-oauth/google"
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google"
 import API from "@/lib/api-client"
 import { login as reduxLogin, setLoading } from "@/redux/slices/userAuthSlice"
 import { useAuthActions } from "@/lib/auth-actions"
@@ -89,7 +89,7 @@ export function LoginForm() {
     }
   }
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     if (credentialResponse.credential) {
       await googleLogin(credentialResponse.credential)
     }
@@ -222,7 +222,7 @@ export function LoginForm() {
               <Checkbox
                 id="remember"
                 checked={rememberMe}
-                onCheckedChange={(checked: any) => setRememberMe(checked as boolean)}
+                onCheckedChange={(checked: boolean | "indeterminate") => setRememberMe(checked === true)}
                 className="w-4 h-4 border-white/20 data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500 data-[state=checked]:text-black"
               />
               <label

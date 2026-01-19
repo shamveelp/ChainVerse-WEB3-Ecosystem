@@ -66,7 +66,7 @@ interface Subscription {
   updatedAt: Date;
 }
 
-interface LoginPayload {
+export interface LoginPayload {
   _id: string;
   name: string;
   email: string;

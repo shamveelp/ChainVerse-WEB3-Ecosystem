@@ -219,10 +219,13 @@ export default function ChainCastRoom({ chainCast, onLeave, onHangUp }: ChainCas
 
         if (mounted) setLoading(false)
 
-      } catch (error: any) {
+        if (mounted) setLoading(false)
+
+      } catch (error: unknown) {
         console.error('❌ Failed to initialize:', error)
         if (mounted) {
-          setConnectionError(error.message)
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+          setConnectionError(errorMessage)
           setLoading(false)
           setIsJoined(true)
         }
@@ -244,18 +247,30 @@ export default function ChainCastRoom({ chainCast, onLeave, onHangUp }: ChainCas
 
   const setupSocketListeners = useCallback(() => {
     // Connection
-    chainCastSocketService.onJoinedChainCast((data: any) => {
+    chainCastSocketService.onJoinedChainCast((data: {
+      participantCount: number;
+      canStream?: boolean;
+      participants?: {
+        userId: string;
+        username: string;
+        userType?: string;
+        hasVideo?: boolean;
+        hasAudio?: boolean;
+        isMuted?: boolean;
+        isVideoOff?: boolean;
+      }[]
+    }) => {
       console.log('✅ Joined:', data)
       setParticipantCount(data.participantCount || 1)
       if (data.canStream) setCanStream(true)
 
       if (data.participants && Array.isArray(data.participants)) {
         console.log('👥 Initial participants:', data.participants.length)
-        data.participants.forEach((p: any) => {
+        data.participants.forEach((p) => {
           addParticipant({
             userId: p.userId,
             username: p.username,
-            userType: p.userType || 'user',
+            userType: (p.userType as 'user' | 'communityAdmin') || 'user',
             hasVideo: p.hasVideo || false,
             hasAudio: p.hasAudio || false,
             isMuted: p.isMuted || false,

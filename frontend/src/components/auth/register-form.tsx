@@ -8,7 +8,7 @@ import { Eye, EyeOff, User, Mail, Lock, Bitcoin, Loader2, Wand2, CheckCircle, XC
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { GoogleLogin } from "@react-oauth/google"
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google"
 import { useAuthActions } from "@/lib/auth-actions"
 import { useSelector, useDispatch } from "react-redux"
 import type { RootState } from "@/redux/store"
@@ -94,7 +94,7 @@ export function RegisterForm() {
     try {
       const result = await generateUsername()
       if (result.success) {
-        setFormData((prev: any) => ({ ...prev, username: result.username }))
+        setFormData((prev) => ({ ...prev, username: result.username! }))
         setUsernameAvailable(true)
         toast({
           title: "Username Generated",
@@ -188,7 +188,7 @@ export function RegisterForm() {
     }
   }
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     if (credentialResponse.credential) {
       await googleLogin(credentialResponse.credential, formData.referralCode)
     }

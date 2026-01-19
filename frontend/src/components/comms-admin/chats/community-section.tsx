@@ -324,11 +324,11 @@ export default function CommunitySection() {
     setSending(true)
 
     try {
-      let mediaFiles: any[] = []
+      let mediaFiles: { type: 'image' | 'video'; url: string; filename: string; size?: number }[] = []
 
       // Upload media files if any
       if (filesToUpload.length > 0) {
-        mediaFiles = await uploadMedia(filesToUpload)
+        mediaFiles = (await uploadMedia(filesToUpload)) as unknown as { type: 'image' | 'video'; url: string; filename: string; size?: number }[]
       }
 
       // Determine message type

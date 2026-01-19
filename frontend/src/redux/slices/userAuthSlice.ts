@@ -64,7 +64,7 @@ export const userAuthSlice = createSlice({
     setTempEmail: (state, action: PayloadAction<string>) => {
       state.tempEmail = action.payload
     },
-    setTempUserData: (state, action: PayloadAction<{ username: string; email: string; password: string; name: string; referralCode?: string }>) => {
+    setTempUserData: (state, action: PayloadAction<{ username: string; email: string; password: string; name: string; referralCode?: string } | null>) => {
       state.tempUserData = action.payload
     },
     setResetToken: (state, action: PayloadAction<string>) => {

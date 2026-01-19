@@ -18,6 +18,15 @@ export type ChartConfig = {
   )
 }
 
+interface PayloadItem {
+  value?: number | string
+  name?: string
+  dataKey?: string
+  payload?: Record<string, unknown>
+  color?: string
+  [key: string]: unknown
+}
+
 type ChartContextProps = {
   config: ChartConfig
 }
@@ -125,7 +134,7 @@ function ChartTooltipContent({
     indicator?: "line" | "dot" | "dashed"
     nameKey?: string
     labelKey?: string
-    payload?: any[]
+    payload?: PayloadItem[]
     label?: string
   }) {
   const { config } = useChart()
@@ -181,11 +190,11 @@ function ChartTooltipContent({
     >
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {(payload as any[]).map((_item, index) => {
-          const item = _item as any
+        {(payload as PayloadItem[]).map((_item, index) => {
+          const item = _item
           const key = `${nameKey || item.name || item.dataKey || "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
-          const indicatorColor = color || item.payload?.fill || item.color
+          const indicatorColor = color || (item.payload as { fill?: string })?.fill || item.color
 
           return (
             <div
@@ -196,7 +205,8 @@ function ChartTooltipContent({
               )}
             >
               {formatter && item?.value !== undefined && item.name ? (
-                formatter(item.value, item.name, item, index, item.payload)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                formatter(item.value, item.name, item, index, payload as any)
               ) : (
                 <>
                   {itemConfig?.icon ? (
@@ -259,7 +269,12 @@ function ChartLegendContent({
   payload,
   verticalAlign = "bottom",
   nameKey,
-}: any) {
+}: React.ComponentProps<"div"> & {
+  hideIcon?: boolean
+  payload?: PayloadItem[]
+  verticalAlign?: "top" | "bottom"
+  nameKey?: string
+}) {
   const { config } = useChart()
 
   if (!payload?.length) {
@@ -274,7 +289,7 @@ function ChartLegendContent({
         className
       )}
     >
-      {payload.map((item: any) => {
+      {payload.map((item) => {
         const key = `${nameKey || item.dataKey || "value"}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)
 

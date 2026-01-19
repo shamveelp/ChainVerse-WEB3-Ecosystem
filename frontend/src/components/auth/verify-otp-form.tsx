@@ -125,7 +125,11 @@ export function VerifyOtpForm() {
         )
 
         if (result.success) {
-          dispatch(reduxLogin({ user: result.user as any, token: result.token }))
+          if (result.user) {
+            dispatch(reduxLogin({ user: result.user, token: result.token }))
+          } else {
+            throw new Error("User data missing in response");
+          }
 
           toast({
             title: "Account Created Successfully",
@@ -151,11 +155,12 @@ export function VerifyOtpForm() {
           throw new Error(result.error)
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("OTP verification error:", err);
+      const errorMessage = err instanceof Error ? err.message : "OTP verification failed";
       toast({
         title: "Verification Failed",
-        description: err.message || "OTP verification failed",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -181,10 +186,11 @@ export function VerifyOtpForm() {
       } else {
         throw new Error(result.error)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to resend OTP";
       toast({
         title: "Failed to Resend",
-        description: err.message || "Failed to resend OTP",
+        description: errorMessage,
         variant: "destructive",
       })
     }
@@ -231,7 +237,7 @@ export function VerifyOtpForm() {
               {otp.map((digit, index) => (
                 <Input
                   key={index}
-                  ref={(el: any) => (inputRefs.current[index] = el)}
+                  ref={(el: HTMLInputElement | null) => { inputRefs.current[index] = el }}
                   type="text"
                   value={digit}
                   onChange={(e) => handleOtpChange(index, e.target.value)}

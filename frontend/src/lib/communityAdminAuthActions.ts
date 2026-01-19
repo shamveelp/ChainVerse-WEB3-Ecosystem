@@ -1,6 +1,6 @@
 import { useDispatch } from 'react-redux'
 import { useRouter } from 'next/navigation'
-import { login, logout, setLoading, setApplicationStatus, setSubscription } from '@/redux/slices/communityAdminAuthSlice'
+import { login, logout, setLoading, setApplicationStatus, updateToken, setSubscription, LoginPayload } from '@/redux/slices/communityAdminAuthSlice'
 import { communityAdminApiService } from '@/services/communityAdminApiService'
 import { communityAdminSubscriptionApiService } from '@/services/communityAdmin/communityAdminSubscriptionApiService'
 import { toast } from '@/hooks/use-toast'
@@ -25,9 +25,9 @@ export const useCommunityAdminAuthActions = () => {
       if (result.success && result.data) {
         const data = result.data as LoginResponseData
         dispatch(login({
-          ...(data.communityAdmin as any),
+          ...(data.communityAdmin as unknown as Record<string, unknown>),
           token: data.token
-        }))
+        } as unknown as LoginPayload))
 
         // Fetch subscription immediately after login to set premium access
         try {
@@ -102,9 +102,9 @@ export const useCommunityAdminAuthActions = () => {
       if (result.success && result.data) {
         const data = result.data as LoginResponseData
         dispatch(login({
-          ...(data.communityAdmin as any),
+          ...(data.communityAdmin as unknown as Record<string, unknown>),
           token: 'existing' // Token is in cookies
-        }))
+        } as unknown as LoginPayload))
 
         // Fetch subscription when checking auth status
         try {

@@ -59,7 +59,7 @@ export function ForgotPasswordForm() {
       const response = await API.post("/api/user/forgot-password", { email })
 
       dispatch(setTempEmail(email))
-      dispatch(setTempUserData(null as any))
+      dispatch(setTempUserData(null))
 
       toast({
         title: "Verification Code Sent",
