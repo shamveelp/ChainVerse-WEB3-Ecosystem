@@ -21,7 +21,7 @@ export const ADMIN_ROUTES = {
   BUY_CRYPTO_MANAGEMENT: '/admin/buy-crypto-management',
 
   // NFT
-  NFT_MARKETPLACE_MANAGEMENT: '/nft-marketplace-management',
+  NFT_MARKETPLACE_MANAGEMENT: '/admin/nft-marketplace-management',
 
   // Community
   COMMUNITY_REQUESTS: '/admin/community-requests',

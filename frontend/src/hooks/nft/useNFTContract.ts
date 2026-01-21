@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { ethers } from 'ethers';
 import { useActiveAccount, useSendTransaction } from 'thirdweb/react';
 import { prepareContractCall, getContract, readContract } from 'thirdweb';
@@ -26,16 +26,16 @@ export const useNFTContract = () => {
   const [txHash, setTxHash] = useState<string>('');
   const [error, setError] = useState<string>('');
 
-  // Initialize contract with ABI
-  const contract = getContract({
+  // Initialize contract with ABI - Memoized to prevent infinite loops in hooks
+  const contract = useMemo(() => getContract({
     client,
     address: NFT_MARKETPLACE_ADDRESS,
     chain: sepolia,
     abi: NFT_MARKETPLACE_ABI,
-  });
+  }), []);
 
   // CREATE TOKEN
-  const createToken = async (tokenURI: string, price: string) => {
+  const createToken = useCallback(async (tokenURI: string, price: string) => {
     if (!account) {
       throw new Error('Wallet not connected');
     }
@@ -71,10 +71,10 @@ export const useNFTContract = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [account, contract, sendTransaction]);
 
   // BUY NFT
-  const buyNFT = async (tokenId: bigint, price: bigint) => {
+  const buyNFT = useCallback(async (tokenId: bigint, price: bigint) => {
     if (!account) {
       throw new Error('Wallet not connected');
     }
@@ -102,10 +102,10 @@ export const useNFTContract = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [account, contract, sendTransaction]);
 
   // RELIST NFT
-  const relistNFT = async (tokenId: bigint, price: string) => {
+  const relistNFT = useCallback(async (tokenId: bigint, price: string) => {
     if (!account) {
       throw new Error('Wallet not connected');
     }
@@ -140,10 +140,10 @@ export const useNFTContract = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [account, contract, sendTransaction]);
 
   // CANCEL LISTING
-  const cancelListing = async (tokenId: bigint) => {
+  const cancelListing = useCallback(async (tokenId: bigint) => {
     if (!account) {
       throw new Error('Wallet not connected');
     }
@@ -170,10 +170,10 @@ export const useNFTContract = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [account, contract, sendTransaction]);
 
   // GET ALL NFTs
-  const getAllNFTs = async (): Promise<ListedToken[]> => {
+  const getAllNFTs = useCallback(async (): Promise<ListedToken[]> => {
     try {
       const result = await readContract({
         contract,
@@ -194,10 +194,10 @@ export const useNFTContract = () => {
       console.error('Error fetching all NFTs:', error);
       return [];
     }
-  };
+  }, [contract]);
 
   // GET MY NFTs
-  const getMyNFTs = async (): Promise<ListedToken[]> => {
+  const getMyNFTs = useCallback(async (): Promise<ListedToken[]> => {
     if (!account) return [];
     try {
       const result = await readContract({
@@ -219,10 +219,10 @@ export const useNFTContract = () => {
       console.error('Error fetching my NFTs:', error);
       return [];
     }
-  };
+  }, [account, contract]);
 
   // GET LISTED TOKEN FOR ID
-  const getListedTokenForId = async (tokenId: bigint): Promise<ListedToken | null> => {
+  const getListedTokenForId = useCallback(async (tokenId: bigint): Promise<ListedToken | null> => {
     try {
       const item = await readContract({
         contract,
@@ -246,10 +246,10 @@ export const useNFTContract = () => {
       console.error(`Error fetching token ${tokenId}:`, error);
       return null;
     }
-  };
+  }, [contract]);
 
   // GET LIST PRICE
-  const getListPrice = async (): Promise<string> => {
+  const getListPrice = useCallback(async (): Promise<string> => {
     try {
       const listPrice = await readContract({
         contract,
@@ -261,10 +261,10 @@ export const useNFTContract = () => {
       console.error('Error fetching list price:', error);
       return '0.000001';
     }
-  };
+  }, [contract]);
 
   // GET MIN PRICE
-  const getMinPrice = async (): Promise<string> => {
+  const getMinPrice = useCallback(async (): Promise<string> => {
     try {
       const minPrice = await readContract({
         contract,
@@ -276,10 +276,10 @@ export const useNFTContract = () => {
       console.error('Error fetching min price:', error);
       return '0.000001';
     }
-  };
+  }, [contract]);
 
   // MARKETPLACE STATS
-  const getMarketplaceStats = async (): Promise<MarketplaceStats> => {
+  const getMarketplaceStats = useCallback(async (): Promise<MarketplaceStats> => {
     try {
       const result = await readContract({
         contract,
@@ -297,10 +297,10 @@ export const useNFTContract = () => {
       console.error('Error fetching marketplace stats:', error);
       return { totalTokens: 0, totalSold: 0, currentListings: 0 };
     }
-  };
+  }, [contract]);
 
   // FETCH NFT METADATA
-  const fetchNFTMetadata = async (tokenId: bigint): Promise<NFTMetadata | null> => {
+  const fetchNFTMetadata = useCallback(async (tokenId: bigint): Promise<NFTMetadata | null> => {
     try {
       const tokenURI = await readContract({
         contract,
@@ -319,10 +319,10 @@ export const useNFTContract = () => {
       console.error(`Error fetching metadata for token ${tokenId}:`, error);
       return null;
     }
-  };
+  }, [contract]);
 
   // ENRICH NFTS WITH METADATA
-  const enrichNFTsWithMetadata = async (nfts: ListedToken[]): Promise<NFTWithMetadata[]> => {
+  const enrichNFTsWithMetadata = useCallback(async (nfts: ListedToken[]): Promise<NFTWithMetadata[]> => {
     const enrichedNFTs = await Promise.allSettled(
       nfts.map(async (nft): Promise<NFTWithMetadata> => {
         const metadata = await fetchNFTMetadata(nft.tokenId);
@@ -338,7 +338,7 @@ export const useNFTContract = () => {
     return enrichedNFTs
       .filter((result): result is PromiseFulfilledResult<NFTWithMetadata> => result.status === 'fulfilled')
       .map((result) => result.value);
-  };
+  }, [fetchNFTMetadata]);
 
   // SALE COMPUTATION
   const calculateSaleDetails = (price: bigint): SaleDetails => {

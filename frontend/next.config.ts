@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "res.cloudinary.com",
       },
+      {
+        protocol: "https",
+        hostname: "gateway.pinata.cloud",
+      },
+      {
+        protocol: "https",
+        hostname: "ipfs.io",
+      },
     ],
   },
 };

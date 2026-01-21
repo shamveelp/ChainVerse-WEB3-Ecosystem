@@ -104,7 +104,7 @@ export default function NFTMarketplaceHome() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pointer-events-none">
           <div className="flex flex-col items-center justify-center min-h-[600px] text-center space-y-12">
             <h2 className="text-4xl md:text-7xl font-bold text-white tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
-              NEXT GEN SPEED
+              NEXT GEN ASSET
             </h2>
 
             <div ref={cardsContainerRef} className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl mt-12 pointer-events-auto">

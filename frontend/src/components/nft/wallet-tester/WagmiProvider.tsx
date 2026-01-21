@@ -10,7 +10,7 @@ import { walletConnect, injected, metaMask, coinbaseWallet } from 'wagmi/connect
 
 const config = getDefaultConfig({
   appName: 'Wallet App',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '88511e4f451458e370e28f3ea7e2a9e2',
   chains: [sepolia, baseSepolia, bscTestnet],
   transports: {
     [sepolia.id]: http(),
