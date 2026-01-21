@@ -16,7 +16,18 @@ import {
     Tag,
     ChevronLeft,
     ChevronRight,
-    Loader2
+    Loader2,
+    TrendingUp,
+    Layers,
+    Zap,
+    Plus,
+    ArrowRight,
+    Calendar,
+    MoreHorizontal,
+    LayoutGrid,
+    List,
+    DollarSign,
+    Eye
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -36,6 +47,7 @@ import { NFT_MARKETPLACE_ADDRESS } from '@/lib/nft/contracts';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { ethers } from 'ethers';
+import Link from 'next/link'; // Added Link import
 
 // Helper component for Stat Card
 const StatCard = ({ title, value, subtitle, icon: Icon, gradient }: {
@@ -73,8 +85,9 @@ export default function NFTMarketplaceManagement() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sortBy, setSortBy] = useState('recent');
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const itemsPerPage = viewMode === 'grid' ? 12 : 10;
 
     const { getAllNFTs, getMarketplaceStats, enrichNFTsWithMetadata } = useNFTContract();
 
@@ -165,12 +178,12 @@ export default function NFTMarketplaceManagement() {
             (currentPage - 1) * itemsPerPage,
             currentPage * itemsPerPage
         );
-    }, [filteredNFTs, currentPage]);
+    }, [filteredNFTs, currentPage, itemsPerPage]);
 
     // Reset pagination when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, statusFilter, sortBy]);
+    }, [searchTerm, statusFilter, sortBy, viewMode]);
 
     const handleRefresh = () => {
         loadNFTs(true);
@@ -229,6 +242,19 @@ export default function NFTMarketplaceManagement() {
                     className="flex items-center gap-4"
                 >
                     <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setViewMode(viewMode === 'grid' ? 'table' : 'grid')}
+                        className="h-12 border-white/10 bg-white/5 hover:bg-white/10 text-white rounded-2xl flex items-center gap-2 px-6"
+                    >
+                        {viewMode === 'grid' ? (
+                            <><List className="h-5 w-5" /> List View</>
+                        ) : (
+                            <><LayoutGrid className="h-5 w-5" /> Grid View</>
+                        )}
+                    </Button>
+
+                    <Button
                         onClick={handleRefresh}
                         disabled={refreshing}
                         variant="outline"
@@ -270,7 +296,7 @@ export default function NFTMarketplaceManagement() {
                 />
             </motion.div>
 
-            {/* Management Table Content */}
+            {/* Management Content */}
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -329,197 +355,229 @@ export default function NFTMarketplaceManagement() {
                         </div>
                     </CardHeader>
 
-                    <CardContent className="p-0">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse min-w-[1000px]">
-                                <thead>
-                                    <tr className="bg-white/[0.02] border-b border-white/5">
-                                        <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest text-slate-500">Asset Identity</th>
-                                        <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest text-slate-500">Valuation</th>
-                                        <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest text-slate-500">Chain Context</th>
-                                        <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest text-slate-500">Status</th>
-                                        <th className="px-8 py-5 text-sm font-bold uppercase tracking-widest text-slate-500 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/5">
-                                    <AnimatePresence mode="popLayout">
-                                        {filteredNFTs.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={5} className="px-8 py-32 text-center">
-                                                    <motion.div
-                                                        initial={{ opacity: 0 }}
-                                                        animate={{ opacity: 1 }}
-                                                        className="flex flex-col items-center gap-4"
-                                                    >
-                                                        <div className="h-20 w-20 rounded-full bg-slate-800/30 flex items-center justify-center mb-2">
-                                                            <Search className="h-10 w-10 text-slate-600" />
+                    <CardContent className="p-8">
+                        <AnimatePresence mode="wait">
+                            {loading ? (
+                                <motion.div
+                                    key="loading"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="flex flex-col items-center justify-center py-32 space-y-4"
+                                >
+                                    <Loader2 className="h-12 w-12 text-blue-500 animate-spin" />
+                                    <p className="text-slate-400 font-bold tracking-widest uppercase text-xs">Synchronizing with Ethereum...</p>
+                                </motion.div>
+                            ) : filteredNFTs.length === 0 ? (
+                                <motion.div
+                                    key="no-results"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="flex flex-col items-center gap-4 py-20 text-center"
+                                >
+                                    <div className="h-20 w-20 rounded-full bg-slate-800/30 flex items-center justify-center mb-2">
+                                        <Search className="h-10 w-10 text-slate-600" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-slate-200">No assets matching criteria</h3>
+                                    <p className="text-slate-500 max-w-sm mx-auto">
+                                        Try changing your filters or searching for a different ID.
+                                    </p>
+                                    <Button
+                                        variant="link"
+                                        className="text-blue-400 hover:text-blue-300 h-auto p-0 text-lg"
+                                        onClick={() => {
+                                            setSearchTerm('');
+                                            setStatusFilter('all');
+                                            setSortBy('recent');
+                                        }}
+                                    >
+                                        Clear all filters
+                                    </Button>
+                                </motion.div>
+                            ) : viewMode === 'grid' ? (
+                                <motion.div
+                                    key="grid-view"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                                >
+                                    {paginatedNFTs.map((token, index) => (
+                                        <motion.div
+                                            key={token.tokenId.toString()}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.4, delay: index * 0.05 }}
+                                        >
+                                            <Link href={`/admin/nft-marketplace-management/${token.tokenId}`}>
+                                                <div className="group relative bg-[#1A1D29] border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-blue-500/50 hover:shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)] transition-all duration-500 cursor-pointer">
+                                                    {/* Image Container */}
+                                                    <div className="relative aspect-square overflow-hidden">
+                                                        {token.imageUrl ? (
+                                                            <Image
+                                                                src={token.imageUrl}
+                                                                alt={token.metadata?.name || 'NFT'}
+                                                                fill
+                                                                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                                            />
+                                                        ) : (
+                                                            <div className="h-full w-full flex items-center justify-center bg-slate-900/50">
+                                                                <ImageIcon className="h-12 w-12 text-slate-700" />
+                                                            </div>
+                                                        )}
+
+                                                        {/* Status Overlay */}
+                                                        <div className="absolute top-4 left-4 flex gap-2">
+                                                            <Badge className={`${token.currentlyListed ? 'bg-blue-500' : 'bg-slate-700'} border-none px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase`}>
+                                                                {token.currentlyListed ? 'Market Listed' : 'Vaulted'}
+                                                            </Badge>
                                                         </div>
-                                                        <h3 className="text-2xl font-bold text-slate-200">No assets matching criteria</h3>
-                                                        <p className="text-slate-500 max-w-sm mx-auto">
-                                                            We couldn't find any NFTs that match your current search or filter settings. Try resetting your filters.
-                                                        </p>
-                                                        <Button
-                                                            variant="link"
-                                                            className="text-blue-400 hover:text-blue-300 h-auto p-0 text-lg"
-                                                            onClick={() => {
-                                                                setSearchTerm('');
-                                                                setStatusFilter('all');
-                                                                setSortBy('recent');
-                                                            }}
-                                                        >
-                                                            Clear all filters
-                                                        </Button>
-                                                    </motion.div>
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            paginatedNFTs.map((token, index) => {
-                                                return (
-                                                    <motion.tr
-                                                        initial={{ opacity: 0, y: 10 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                                                        key={token.tokenId.toString()}
-                                                        className="hover:bg-white/[0.03] transition-all group"
-                                                    >
-                                                        <td className="px-8 py-6">
-                                                            <div className="flex items-center gap-6">
-                                                                <div className="relative h-16 w-16 flex-shrink-0 rounded-2xl overflow-hidden border-2 border-white/5 bg-slate-800 shadow-xl group-hover:border-blue-500/30 transition-colors">
-                                                                    {token.imageUrl ? (
-                                                                        <Image
-                                                                            src={token.imageUrl}
-                                                                            alt={token.metadata?.name || 'NFT'}
-                                                                            fill
-                                                                            className="object-cover group-hover:scale-110 transition-transform duration-700"
-                                                                        />
-                                                                    ) : (
-                                                                        <div className="h-full w-full flex items-center justify-center">
-                                                                            <ImageIcon className="h-8 w-8 text-slate-600" />
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                                <div className="space-y-1">
-                                                                    <div className="text-xl font-black text-white flex items-center gap-3">
-                                                                        {token.metadata?.name || `Token #${token.tokenId}`}
-                                                                        <span className="text-sm font-medium text-slate-500 px-2 py-1 bg-slate-800 rounded-lg group-hover:bg-blue-500/20 transition-colors">#{token.tokenId.toString()}</span>
-                                                                    </div>
-                                                                    <div className="text-sm text-slate-400 font-light line-clamp-1 max-w-[320px]">
-                                                                        {token.metadata?.description || 'No descriptive metadata captured'}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-8 py-6">
+
+                                                        {/* ID Overlay */}
+                                                        <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10">
+                                                            <span className="text-xs font-mono text-white/80">TOKEN #{token.tokenId.toString()}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Content */}
+                                                    <div className="p-6 space-y-4">
+                                                        <div className="space-y-1">
+                                                            <h3 className="text-xl font-black text-white truncate group-hover:text-blue-400 transition-colors">
+                                                                {token.metadata?.name || `Asset #${token.tokenId}`}
+                                                            </h3>
+                                                            <p className="text-sm text-slate-500 truncate font-medium">
+                                                                Owner: {token.owner.slice(0, 6)}...{token.owner.slice(-4)}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="flex items-center justify-between pt-4 border-t border-white/5">
                                                             <div className="flex flex-col">
-                                                                <div className="text-2xl font-black text-blue-400 font-mono tracking-tighter">
-                                                                    {token.formattedPrice} <span className="text-lg font-bold">ETH</span>
-                                                                </div>
-                                                                <div className="flex items-center gap-1.5 mt-1">
-                                                                    <span className="h-2 w-2 rounded-full bg-blue-500/50" />
-                                                                    <span className="text-[11px] text-slate-500 uppercase font-black tracking-widest">
-                                                                        Market Valuation
-                                                                    </span>
+                                                                <span className="text-[10px] uppercase font-black tracking-widest text-slate-500">Inventory Price</span>
+                                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                                    <span className="text-2xl font-black text-white">{token.formattedPrice}</span>
+                                                                    <span className="text-xs font-bold text-slate-600">ETH</span>
                                                                 </div>
                                                             </div>
-                                                        </td>
-                                                        <td className="px-8 py-6">
-                                                            <div className="space-y-3">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="px-2 py-1 bg-slate-800/40 rounded-lg text-[10px] uppercase font-black text-slate-500 min-w-[70px] text-center">Owner</div>
-                                                                    <code className="text-slate-300 font-mono text-sm tracking-tighter hover:text-blue-400 cursor-pointer transition-colors">
-                                                                        {formatAddress(token.owner)}
-                                                                    </code>
-                                                                </div>
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="px-2 py-1 bg-slate-800/40 rounded-lg text-[10px] uppercase font-black text-slate-500 min-w-[70px] text-center">Seller</div>
-                                                                    <code className="text-slate-300 font-mono text-sm tracking-tighter hover:text-purple-400 cursor-pointer transition-colors">
-                                                                        {formatAddress(token.seller)}
-                                                                    </code>
-                                                                </div>
+                                                            <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500 transition-all duration-500">
+                                                                <Eye className="h-6 w-6 text-blue-400 group-hover:text-white" />
                                                             </div>
-                                                        </td>
-                                                        <td className="px-8 py-6">
-                                                            <div className="flex flex-col gap-2">
-                                                                {token.currentlyListed ? (
-                                                                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full w-fit">
-                                                                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                                                                        <span className="text-xs font-black text-emerald-400 uppercase tracking-widest">Listed</span>
-                                                                    </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </motion.div>
+                                    ))}
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="table-view"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="overflow-hidden rounded-[2rem] border border-white/5 bg-white-[0.01]"
+                                >
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-white/5 bg-white/[0.02]">
+                                                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Asset Identity</th>
+                                                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Status</th>
+                                                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Market Price</th>
+                                                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Escrow Address</th>
+                                                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {paginatedNFTs.map((token, index) => (
+                                                <motion.tr
+                                                    key={token.tokenId.toString()}
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ delay: index * 0.05 }}
+                                                    className="group hover:bg-white/[0.03] transition-all"
+                                                >
+                                                    <td className="px-8 py-6">
+                                                        <div className="flex items-center gap-5">
+                                                            <div className="relative h-14 w-14 rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                                                                {token.imageUrl ? (
+                                                                    <Image src={token.imageUrl} alt="NFT" fill className="object-cover" />
                                                                 ) : (
-                                                                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/40 border border-white/5 rounded-full w-fit">
-                                                                        <div className="h-2 w-2 rounded-full bg-slate-600" />
-                                                                        <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Inactive</span>
+                                                                    <div className="h-full w-full bg-slate-800 flex items-center justify-center">
+                                                                        <ImageIcon className="h-6 w-6 text-slate-600" />
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                        </td>
-                                                        <td className="px-8 py-6 text-right">
-                                                            <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <a
-                                                                    href={`https://sepolia.etherscan.io/token/${NFT_MARKETPLACE_ADDRESS}?a=${token.tokenId.toString()}`}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    title="View on Etherscan"
-                                                                >
-                                                                    <Button size="icon" variant="ghost" className="h-12 w-12 rounded-2xl text-slate-400 hover:text-white hover:bg-white/10 transition-all">
-                                                                        <ExternalLink className="h-6 w-6" />
-                                                                    </Button>
-                                                                </a>
-                                                                <Button size="icon" variant="ghost" className="h-12 w-12 rounded-2xl text-slate-400 hover:text-white hover:bg-white/10">
-                                                                    <MoreVertical className="h-6 w-6" />
-                                                                </Button>
+                                                            <div>
+                                                                <div className="text-lg font-black text-white">{token.metadata?.name || `Token #${token.tokenId}`}</div>
+                                                                <div className="text-xs text-slate-500 font-mono">ID: {token.tokenId.toString()}</div>
                                                             </div>
-                                                        </td>
-                                                    </motion.tr>
-                                                );
-                                            })
-                                        )}
-                                    </AnimatePresence>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination Controls */}
-                        <div className="px-10 py-8 bg-black/20 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
-                            <div className="flex flex-col sm:flex-row items-center gap-6 text-sm font-bold text-slate-500 uppercase tracking-widest">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-slate-200">{filteredNFTs.length}</span> Assets Tracked
-                                </div>
-                                <div className="hidden sm:block h-6 w-px bg-white/10" />
-                                <div className="flex items-center gap-3 text-emerald-400/80">
-                                    <span className="h-2 w-2 bg-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
-                                    Live Network Feed
-                                </div>
-                            </div>
-
-                            {totalPages > 1 && (
-                                <div className="flex items-center gap-3">
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-12 w-12 bg-white/5 border-white/10 text-white rounded-xl disabled:opacity-20 transition-all active:scale-90"
-                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                        disabled={currentPage === 1}
-                                    >
-                                        <ChevronLeft className="h-6 w-6" />
-                                    </Button>
-                                    <div className="flex items-center gap-2 px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-lg font-black text-white min-w-[120px] justify-center">
-                                        <span className="text-blue-400">{currentPage}</span>
-                                        <span className="text-slate-600">/</span>
-                                        <span className="text-slate-400">{totalPages}</span>
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-12 w-12 bg-white/5 border-white/10 text-white rounded-xl disabled:opacity-20 transition-all active:scale-90"
-                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                        disabled={currentPage === totalPages}
-                                    >
-                                        <ChevronRight className="h-6 w-6" />
-                                    </Button>
-                                </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-6">
+                                                        <Badge className={`${token.currentlyListed ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-slate-800 text-slate-400 border-white/5'} px-4 py-1.5 rounded-full border shadow-sm`}>
+                                                            {token.currentlyListed ? 'Active' : 'Private'}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="px-8 py-6 text-xl font-black text-white">
+                                                        {token.formattedPrice} <span className="text-xs text-slate-500 font-bold uppercase ml-1">ETH</span>
+                                                    </td>
+                                                    <td className="px-8 py-6">
+                                                        <code className="text-xs text-slate-500 font-mono bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                                                            {token.owner.slice(0, 12)}...{token.owner.slice(-8)}
+                                                        </code>
+                                                    </td>
+                                                    <td className="px-8 py-6 text-right">
+                                                        <Link href={`/admin/nft-marketplace-management/${token.tokenId}`}>
+                                                            <Button size="icon" variant="ghost" className="h-10 w-10 rounded-xl hover:bg-blue-500 hover:text-white transition-all">
+                                                                <Eye className="h-5 w-5" />
+                                                            </Button>
+                                                        </Link>
+                                                    </td>
+                                                </motion.tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </motion.div>
                             )}
-                        </div>
+                        </AnimatePresence>
+
+                        {/* Pagination Section */}
+                        {!loading && filteredNFTs.length > 0 && (
+                            <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-6 px-4">
+                                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                                    Displaying <span className="text-white">{paginatedNFTs.length}</span> of <span className="text-white">{filteredNFTs.length}</span> Assets
+                                </p>
+
+                                {totalPages > 1 && (
+                                    <div className="flex items-center gap-3">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-12 w-12 bg-white/5 border-white/10 text-white rounded-2xl flex items-center justify-center hover:bg-white/10 disabled:opacity-30"
+                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                            disabled={currentPage === 1}
+                                        >
+                                            <ChevronLeft className="h-6 w-6" />
+                                        </Button>
+                                        <div className="h-12 px-6 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-2 font-black">
+                                            <span className="text-blue-400">{currentPage}</span>
+                                            <span className="text-slate-600">/</span>
+                                            <span className="text-slate-400">{totalPages}</span>
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-12 w-12 bg-white/5 border-white/10 text-white rounded-2xl flex items-center justify-center hover:bg-white/10 disabled:opacity-30"
+                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                            disabled={currentPage === totalPages}
+                                        >
+                                            <ChevronRight className="h-6 w-6" />
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </motion.div>
