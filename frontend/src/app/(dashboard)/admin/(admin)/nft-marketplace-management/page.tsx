@@ -253,7 +253,7 @@ export default function NFTMarketplaceManagement() {
                     transition={{ duration: 0.5 }}
                 >
                     <h1 className="text-5xl font-black bg-gradient-to-br from-white via-slate-300 to-slate-600 bg-clip-text text-transparent tracking-tighter">
-                        Marketplace Management
+                        ChainVerse NFT Marketplace Management
                     </h1>
                     <p className="text-slate-400 mt-3 flex items-center gap-2 text-lg font-light">
                         <BarChart3 className="h-5 w-5 text-blue-400" />
