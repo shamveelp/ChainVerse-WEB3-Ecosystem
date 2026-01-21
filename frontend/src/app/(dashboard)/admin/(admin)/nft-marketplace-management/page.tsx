@@ -27,7 +27,8 @@ import {
     LayoutGrid,
     List,
     DollarSign,
-    Eye
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -45,9 +46,10 @@ import { useNFTContract } from '@/hooks/nft/useNFTContract';
 import { ListedToken, NFTMetadata, MarketplaceStats, NFTWithMetadata } from '@/types/types-nft';
 import { NFT_MARKETPLACE_ADDRESS } from '@/lib/nft/contracts';
 import { Skeleton } from '@/components/ui/skeleton';
-import Image from 'next/image';
 import { ethers } from 'ethers';
 import Link from 'next/link'; // Added Link import
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../../../../convex/_generated/api";
 
 // Helper component for Stat Card
 const StatCard = ({ title, value, subtitle, icon: Icon, gradient }: {
@@ -90,6 +92,30 @@ export default function NFTMarketplaceManagement() {
     const itemsPerPage = viewMode === 'grid' ? 12 : 10;
 
     const { getAllNFTs, getMarketplaceStats, enrichNFTsWithMetadata } = useNFTContract();
+
+    // Convex Integration
+    const hiddenTokenIds = useQuery(api.nft.getHiddenTokenIds, { contract: NFT_MARKETPLACE_ADDRESS });
+    const setVisibility = useMutation(api.nft.setVisibility);
+
+    const isHidden = (id: string) => hiddenTokenIds?.includes(id) ?? false;
+
+    const toggleVisibility = async (e: React.MouseEvent, tokenId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const currentlyHidden = isHidden(tokenId);
+        try {
+            await setVisibility({
+                chainId: 11155111,
+                contract: NFT_MARKETPLACE_ADDRESS,
+                tokenId: tokenId,
+                hidden: !currentlyHidden
+            });
+            toast.success(`NFT ${!currentlyHidden ? 'Hidden' : 'Visible'}`);
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to update visibility");
+        }
+    };
 
     // 1. Initial Fetch of Data
     const loadNFTs = useCallback(async (isRefresh = false) => {
@@ -416,11 +442,10 @@ export default function NFTMarketplaceManagement() {
                                                     {/* Image Container */}
                                                     <div className="relative aspect-square overflow-hidden">
                                                         {token.imageUrl ? (
-                                                            <Image
+                                                            <img
                                                                 src={token.imageUrl}
                                                                 alt={token.metadata?.name || 'NFT'}
-                                                                fill
-                                                                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                                                className="object-cover w-full h-full absolute inset-0 transition-transform duration-700 group-hover:scale-110"
                                                             />
                                                         ) : (
                                                             <div className="h-full w-full flex items-center justify-center bg-slate-900/50">
@@ -433,6 +458,11 @@ export default function NFTMarketplaceManagement() {
                                                             <Badge className={`${token.currentlyListed ? 'bg-blue-500' : 'bg-slate-700'} border-none px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase`}>
                                                                 {token.currentlyListed ? 'Market Listed' : 'Vaulted'}
                                                             </Badge>
+                                                            {isHidden(token.tokenId.toString()) && (
+                                                                <Badge className="bg-red-500 border-none px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase">
+                                                                    Hidden
+                                                                </Badge>
+                                                            )}
                                                         </div>
 
                                                         {/* ID Overlay */}
@@ -460,8 +490,18 @@ export default function NFTMarketplaceManagement() {
                                                                     <span className="text-xs font-bold text-slate-600">ETH</span>
                                                                 </div>
                                                             </div>
-                                                            <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500 transition-all duration-500">
-                                                                <Eye className="h-6 w-6 text-blue-400 group-hover:text-white" />
+                                                            <div className="flex items-center gap-2">
+                                                                <Button
+                                                                    size="icon"
+                                                                    variant="ghost"
+                                                                    className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${isHidden(token.tokenId.toString()) ? 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white' : 'bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white'}`}
+                                                                    onClick={(e) => toggleVisibility(e, token.tokenId.toString())}
+                                                                >
+                                                                    {isHidden(token.tokenId.toString()) ? <EyeOff className="h-6 w-6" /> : <Eye className="h-6 w-6" />}
+                                                                </Button>
+                                                                <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500 transition-all duration-500">
+                                                                    <Eye className="h-6 w-6 text-blue-400 group-hover:text-white" />
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -501,7 +541,7 @@ export default function NFTMarketplaceManagement() {
                                                         <div className="flex items-center gap-5">
                                                             <div className="relative h-14 w-14 rounded-2xl overflow-hidden border border-white/10 shadow-xl">
                                                                 {token.imageUrl ? (
-                                                                    <Image src={token.imageUrl} alt="NFT" fill className="object-cover" />
+                                                                    <img src={token.imageUrl} alt="NFT" className="object-cover w-full h-full absolute inset-0" />
                                                                 ) : (
                                                                     <div className="h-full w-full bg-slate-800 flex items-center justify-center">
                                                                         <ImageIcon className="h-6 w-6 text-slate-600" />
@@ -515,9 +555,16 @@ export default function NFTMarketplaceManagement() {
                                                         </div>
                                                     </td>
                                                     <td className="px-8 py-6">
-                                                        <Badge className={`${token.currentlyListed ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-slate-800 text-slate-400 border-white/5'} px-4 py-1.5 rounded-full border shadow-sm`}>
-                                                            {token.currentlyListed ? 'Active' : 'Private'}
-                                                        </Badge>
+                                                        <div className="flex gap-2">
+                                                            <Badge className={`${token.currentlyListed ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-slate-800 text-slate-400 border-white/5'} px-4 py-1.5 rounded-full border shadow-sm`}>
+                                                                {token.currentlyListed ? 'Active' : 'Private'}
+                                                            </Badge>
+                                                            {isHidden(token.tokenId.toString()) && (
+                                                                <Badge className="bg-red-500/10 text-red-400 border-red-500/20 px-4 py-1.5 rounded-full border shadow-sm">
+                                                                    Hidden
+                                                                </Badge>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="px-8 py-6 text-xl font-black text-white">
                                                         {token.formattedPrice} <span className="text-xs text-slate-500 font-bold uppercase ml-1">ETH</span>
@@ -533,6 +580,14 @@ export default function NFTMarketplaceManagement() {
                                                                 <Eye className="h-5 w-5" />
                                                             </Button>
                                                         </Link>
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className={`h-10 w-10 rounded-xl transition-all ml-2 ${isHidden(token.tokenId.toString()) ? 'hover:bg-red-500 text-red-500 hover:text-white' : 'hover:bg-green-500 text-green-500 hover:text-white'}`}
+                                                            onClick={(e) => toggleVisibility(e, token.tokenId.toString())}
+                                                        >
+                                                            {isHidden(token.tokenId.toString()) ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                                        </Button>
                                                     </td>
                                                 </motion.tr>
                                             ))}
@@ -581,6 +636,6 @@ export default function NFTMarketplaceManagement() {
                     </CardContent>
                 </Card>
             </motion.div>
-        </div>
+        </div >
     );
 }

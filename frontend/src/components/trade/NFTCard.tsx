@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Eye, ShoppingCart, Tag, ExternalLink } from 'lucide-react';
-import Image from 'next/image';
 
 interface NFTCardProps {
   nft: NFTItem;
@@ -17,12 +16,12 @@ interface NFTCardProps {
   showBuyButton?: boolean;
 }
 
-export function NFTCard({ 
-  nft, 
-  onBuy, 
-  onList, 
-  showListButton = false, 
-  showBuyButton = false 
+export function NFTCard({
+  nft,
+  onBuy,
+  onList,
+  showListButton = false,
+  showBuyButton = false
 }: NFTCardProps) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
@@ -48,12 +47,11 @@ export function NFTCard({
             </div>
           )}
           {!imageError && nft.metadata?.image ? (
-            <Image
+            <img
               src={nft.metadata.image}
               alt={nft.metadata.name || 'NFT'}
-              className={`w-full h-full object-cover transition-all duration-500 ${
-                imageLoading ? 'opacity-0 scale-110' : 'opacity-100 scale-100 group-hover:scale-110'
-              }`}
+              className={`w-full h-full object-cover transition-all duration-500 ${imageLoading ? 'opacity-0 scale-110' : 'opacity-100 scale-100 group-hover:scale-110'
+                }`}
               onLoad={handleImageLoad}
               onError={handleImageError}
               loading="lazy"
@@ -63,10 +61,10 @@ export function NFTCard({
               <Eye className="w-12 h-12 text-gray-400" />
             </div>
           )}
-          
+
           {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
+
           {/* Status Badge */}
           <div className="absolute top-3 right-3">
             {nft.sold ? (
@@ -81,7 +79,7 @@ export function NFTCard({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-4 space-y-4">
         {/* Title and Description */}
         <div>
@@ -92,7 +90,7 @@ export function NFTCard({
             {nft.metadata?.description || 'No description available'}
           </p>
         </div>
-        
+
         {/* Price */}
         <div className="flex items-center justify-between">
           <div>
@@ -104,13 +102,13 @@ export function NFTCard({
               <span className="text-sm text-purple-300 font-medium">ETH</span>
             </div>
           </div>
-          
+
           <div className="text-right">
             <p className="text-xs text-gray-400">Token ID</p>
             <p className="text-sm font-mono text-white">#{nft.tokenId.toString()}</p>
           </div>
         </div>
-        
+
         {/* Attributes */}
         {nft.metadata?.attributes && nft.metadata.attributes.length > 0 && (
           <div className="space-y-2">
@@ -126,8 +124,8 @@ export function NFTCard({
                 </Badge>
               ))}
               {nft.metadata.attributes.length > 3 && (
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className="text-xs bg-gray-600/20 border-gray-400/30 text-gray-300"
                 >
                   +{nft.metadata.attributes.length - 3} more
@@ -137,7 +135,7 @@ export function NFTCard({
           </div>
         )}
       </CardContent>
-      
+
       <CardFooter className="p-4 pt-0 space-y-3">
         {/* Action Buttons */}
         <div className="w-full space-y-2">
@@ -150,7 +148,7 @@ export function NFTCard({
               Buy for {formatEther(nft.price)} ETH
             </Button>
           )}
-          
+
           {showListButton && onList && !nft.sold && (
             <Button
               onClick={() => onList(nft.tokenId)}
@@ -162,7 +160,7 @@ export function NFTCard({
             </Button>
           )}
         </div>
-        
+
         {/* Seller/Owner Info */}
         <div className="text-xs text-gray-400 space-y-1 border-t border-gray-700/50 pt-3">
           <div className="flex justify-between items-center">

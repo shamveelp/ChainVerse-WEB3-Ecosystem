@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Eye, Heart, ShoppingCart, AlertCircle, User, Calendar, DollarSign, Zap, Tag, MoreVertical, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -69,13 +68,11 @@ export function NFTCard({
             {/* NFT Image */}
             <div className="relative aspect-square overflow-hidden">
               {!imageError && nft.imageUrl ? (
-                <Image
+                <img
                   src={nft.imageUrl}
                   alt={nft.metadata?.name || `NFT #${nft.tokenId}`}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="object-cover w-full h-full absolute inset-0 transition-transform duration-700 group-hover:scale-110"
                   onError={() => setImageError(true)}
-                  unoptimized
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">

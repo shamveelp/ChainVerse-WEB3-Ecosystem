@@ -168,7 +168,7 @@ export default function CreatePage() {
                 <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-muted-foreground/50 transition-colors">
                   {preview ? (
                     <div className="space-y-4">
-                      <Image
+                      <img
                         src={preview}
                         alt="Preview"
                         className="mx-auto max-h-64 rounded-lg"

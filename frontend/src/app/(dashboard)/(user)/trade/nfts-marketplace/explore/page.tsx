@@ -12,6 +12,9 @@ import { useNFTContract } from '@/hooks/nft/useNFTContract';
 import { NFTWithMetadata } from '@/types/types-nft';
 import { useActiveAccount } from 'thirdweb/react';
 import { toast } from 'sonner';
+import { useQuery } from "convex/react";
+import { api } from "../../../../../../../convex/_generated/api";
+import { NFT_MARKETPLACE_ADDRESS } from '@/lib/nft/contracts';
 
 const sortOptions = [
   { value: 'recent', label: 'Recently Listed' },
@@ -34,6 +37,8 @@ export default function ExplorePage() {
     buyNFT,
     isLoading: isBuying
   } = useNFTContract();
+
+  const hiddenTokenIds = useQuery(api.nft.getHiddenTokenIds, { contract: NFT_MARKETPLACE_ADDRESS });
 
   useEffect(() => {
     loadNFTs();
@@ -68,6 +73,11 @@ export default function ExplorePage() {
         nft.metadata?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         nft.tokenId.toString().includes(searchTerm)
       );
+    }
+
+    // Apply hidden filter
+    if (hiddenTokenIds) {
+      filtered = filtered.filter(nft => !hiddenTokenIds.includes(nft.tokenId.toString()));
     }
 
     // Apply sorting

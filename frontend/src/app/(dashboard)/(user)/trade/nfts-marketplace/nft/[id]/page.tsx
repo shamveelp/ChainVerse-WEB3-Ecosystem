@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
+
 import {
   ArrowLeft,
   Heart,
@@ -205,14 +205,11 @@ export default function NFTDetailPage() {
               <Card className="overflow-hidden bg-gradient-to-br from-background/95 to-muted/20">
                 <div className="aspect-square relative">
                   {!imageError && nft.imageUrl ? (
-                    <Image
+                    <img
                       src={nft.imageUrl}
                       alt={nft.metadata?.name || `NFT #${nft.tokenId}`}
-                      fill
-                      className="object-cover"
+                      className="object-cover w-full h-full absolute inset-0"
                       onError={() => setImageError(true)}
-                      unoptimized
-                      priority
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
