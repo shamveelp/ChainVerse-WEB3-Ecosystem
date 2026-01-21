@@ -335,7 +335,7 @@ export default function NFTMarketplaceManagement() {
                                 <div className="h-10 w-10 rounded-2xl bg-blue-500/20 flex items-center justify-center">
                                     <History className="h-6 w-6 text-blue-400" />
                                 </div>
-                                Token Inventory
+                                NFT Inventory
                             </CardTitle>
 
                             <div className="flex flex-col sm:flex-row items-center gap-4">

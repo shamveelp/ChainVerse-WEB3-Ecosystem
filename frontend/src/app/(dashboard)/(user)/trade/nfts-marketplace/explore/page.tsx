@@ -100,7 +100,7 @@ export default function ExplorePage() {
     }
 
     setFilteredNFTs(filtered);
-  }, [searchTerm, sortBy, enrichedNFTs]);
+  }, [searchTerm, sortBy, enrichedNFTs, hiddenTokenIds]);
 
   const handleBuyNFT = async (nft: NFTWithMetadata) => {
     if (!account) {

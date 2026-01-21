@@ -80,7 +80,10 @@ const navItems: NavItem[] = [
   {
     icon: <Palette />,
     name: "NFT Marketplace",
-    path: ADMIN_ROUTES.NFT_MARKETPLACE_MANAGEMENT,
+    subItems: [
+      { name: "NFT Inventory", path: ADMIN_ROUTES.NFT_MARKETPLACE_MANAGEMENT, pro: false },
+      { name: "NFT Enquiries", path: ADMIN_ROUTES.NFT_MARKETPLACE_ENQUIRIES, pro: false },
+    ],
   },
   {
     icon: <Globe />,

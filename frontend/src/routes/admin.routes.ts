@@ -22,6 +22,7 @@ export const ADMIN_ROUTES = {
 
   // NFT
   NFT_MARKETPLACE_MANAGEMENT: '/admin/nft-marketplace-management',
+  NFT_MARKETPLACE_ENQUIRIES: '/admin/nft-marketplace-enquiries',
 
   // Community
   COMMUNITY_REQUESTS: '/admin/community-requests',

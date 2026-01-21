@@ -40,7 +40,7 @@ export const getHiddenTokenIds = query({
     handler: async (ctx, args) => {
         const rows = await ctx.db
             .query("nftVisibility")
-            .filter(q => q.eq(q.field("contract"), args.contract))
+            .withIndex("by_contract_token", q => q.eq("contract", args.contract))
             .collect();
 
         return rows.filter(r => r.hidden).map(r => r.tokenId);
