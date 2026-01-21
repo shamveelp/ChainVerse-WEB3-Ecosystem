@@ -42,3 +42,4 @@ next-env.d.ts
 
 DEX_SETUP_GUIDE.txt
 tester-codes
+.env.local
