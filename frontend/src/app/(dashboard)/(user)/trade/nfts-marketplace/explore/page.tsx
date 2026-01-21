@@ -15,6 +15,21 @@ import { toast } from 'sonner';
 import { useQuery } from "convex/react";
 import { api } from "../../../../../../../convex/_generated/api";
 import { NFT_MARKETPLACE_ADDRESS } from '@/lib/nft/contracts';
+import { useMutation } from "convex/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertCircle, Scale, MessageSquareWarning } from 'lucide-react';
+
 
 const sortOptions = [
   { value: 'recent', label: 'Recently Listed' },
@@ -185,6 +200,18 @@ export default function ExplorePage() {
 
         </motion.div>
 
+        {/* Rules and Report Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="mb-8 flex gap-4"
+        >
+          <RulesDialog />
+          <ReportDialog />
+        </motion.div>
+
+
         {/* Results Counter */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -234,5 +261,188 @@ export default function ExplorePage() {
         )}
       </div>
     </div>
+  );
+}
+
+function RulesDialog() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="gap-2">
+          <Scale className="h-4 w-4" />
+          Platform Rules
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Marketplace Rules & Guidelines</DialogTitle>
+          <DialogDescription>
+            Please respect our community standards to keep the marketplace safe and enjoyable for everyone.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm text-foreground mb-2 font-medium">Concept</p>
+            <p className="text-sm text-muted-foreground">
+              ChainVerse NFT Marketplace is a platform where every user can understand the concept of NFTs and explore via testnets. We encourage creativity and learning.
+            </p>
+          </div>
+          <ul className="space-y-3">
+            <li className="flex gap-3 text-sm">
+              <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
+              <span><strong>No 18+ Content:</strong> Explicit or adult content is strictly prohibited.</span>
+            </li>
+            <li className="flex gap-3 text-sm">
+              <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
+              <span><strong>Privacy First:</strong> Do not use personal photos of yourself or others without consent.</span>
+            </li>
+            <li className="flex gap-3 text-sm">
+              <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
+              <span><strong>Be Purposeful:</strong> Avoid creating NFTs of random, meaningless objects. Ensure your creations have intent.</span>
+            </li>
+            <li className="flex gap-3 text-sm">
+              <span className="h-5 w-5 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center text-xs font-bold shrink-0">✓</span>
+              <span><strong>Original Art:</strong> Create yours own art! We celebrate unique and original creations.</span>
+            </li>
+          </ul>
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={() => setOpen(false)}>
+            I Understand
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ReportDialog() {
+  const [tokenId, setTokenId] = useState('');
+  const [reason, setReason] = useState('18+');
+  const [otherReason, setOtherReason] = useState('');
+  const [detailedReason, setDetailedReason] = useState('');
+  const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const createReport = useMutation(api.nftReports.createReport);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const finalReason = reason === 'other' ? otherReason : reason;
+      if (!tokenId) {
+        toast.error("Token ID is required");
+        return;
+      }
+      if (reason === 'other' && !otherReason.trim()) {
+        toast.error("Please specify the 'other' reason");
+        return;
+      }
+
+      await createReport({
+        tokenId,
+        reason: finalReason,
+        detailedReason,
+      });
+
+      toast.success("Report submitted successfully");
+      setOpen(false);
+      // Reset form
+      setTokenId('');
+      setReason('18+');
+      setOtherReason('');
+      setDetailedReason('');
+    } catch (error) {
+      console.error("Failed to submit report:", error);
+      toast.error("Failed to submit report. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="destructive" className="gap-2">
+          <MessageSquareWarning className="h-4 w-4" />
+          Report Issue
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Report an Issue</DialogTitle>
+          <DialogDescription>
+            Found something that violates our rules? Let us know.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="tokenId">Token ID (NFT ID)</Label>
+            <Input
+              id="tokenId"
+              placeholder="e.g. 123"
+              value={tokenId}
+              onChange={(e) => setTokenId(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Reason for reporting</Label>
+            <RadioGroup value={reason} onValueChange={setReason} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted/50 cursor-pointer">
+                <RadioGroupItem value="18+" id="r1" />
+                <Label htmlFor="r1" className="cursor-pointer">18+ Content</Label>
+              </div>
+              <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted/50 cursor-pointer">
+                <RadioGroupItem value="personal" id="r2" />
+                <Label htmlFor="r2" className="cursor-pointer">Personal/Private Photo</Label>
+              </div>
+              <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted/50 cursor-pointer">
+                <RadioGroupItem value="spam" id="r3" />
+                <Label htmlFor="r3" className="cursor-pointer">Spam/Random</Label>
+              </div>
+              <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted/50 cursor-pointer">
+                <RadioGroupItem value="other" id="r4" />
+                <Label htmlFor="r4" className="cursor-pointer">Other</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {reason === 'other' && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+              <Label htmlFor="other">Please specify</Label>
+              <Input
+                id="other"
+                placeholder="What is the issue?"
+                value={otherReason}
+                onChange={(e) => setOtherReason(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="details">Additional Details (Optional)</Label>
+            <Textarea
+              id="details"
+              placeholder="Provide any extra context..."
+              value={detailedReason}
+              onChange={(e) => setDetailedReason(e.target.value)}
+              className="resize-none"
+              rows={3}
+            />
+          </div>
+          <DialogFooter className="pt-4">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? 'Submitting...' : 'Submit Report'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

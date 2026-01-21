@@ -19,6 +19,7 @@ import {
     Table,
     TableBody,
     TableCell,
+    TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
@@ -298,10 +299,10 @@ export default function CommunityDetailsPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="hover:bg-transparent border-white/5">
-                                        <TableCell isHeader>User</TableCell>
-                                        <TableCell isHeader>Role</TableCell>
-                                        <TableCell isHeader>Joined Date</TableCell>
-                                        <TableCell isHeader>Status</TableCell>
+                                        <TableHead>User</TableHead>
+                                        <TableHead>Role</TableHead>
+                                        <TableHead>Joined Date</TableHead>
+                                        <TableHead>Status</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>

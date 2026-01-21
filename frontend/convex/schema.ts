@@ -10,4 +10,12 @@ export default defineSchema({
         explicit: v.boolean(),
         createdAfterModeration: v.boolean(),
     }).index("by_contract_token", ["contract", "tokenId"]),
+    nftReports: defineTable({
+        tokenId: v.string(),
+        reason: v.string(),
+        detailedReason: v.optional(v.string()),
+        status: v.string(), // "pending", "solved"
+        reporterId: v.optional(v.string()),
+        createdAt: v.number(),
+    }).index("by_status", ["status"]).index("by_token", ["tokenId"]),
 });

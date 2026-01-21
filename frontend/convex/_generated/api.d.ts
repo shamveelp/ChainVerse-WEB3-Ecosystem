@@ -9,6 +9,7 @@
  */
 
 import type * as nft from "../nft.js";
+import type * as nftReports from "../nftReports.js";
 
 import type {
   ApiFromModules,
@@ -18,6 +19,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   nft: typeof nft;
+  nftReports: typeof nftReports;
 }>;
 
 /**

@@ -7,6 +7,7 @@ import {
     Table,
     TableBody,
     TableCell,
+    TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
@@ -249,12 +250,12 @@ export default function AdminCommunityManagementPage() {
                 <Table>
                     <TableHeader className="bg-white/5">
                         <TableRow className="hover:bg-transparent border-white/5">
-                            <TableCell isHeader className="w-[300px]">Community</TableCell>
-                            <TableCell isHeader>Owner / Info</TableCell>
-                            <TableCell isHeader>Status</TableCell>
-                            <TableCell isHeader>Verified</TableCell>
-                            <TableCell isHeader>Created</TableCell>
-                            <TableCell isHeader className="text-right">Actions</TableCell>
+                            <TableHead className="w-[300px]">Community</TableHead>
+                            <TableHead>Owner / Info</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Verified</TableHead>
+                            <TableHead>Created</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
