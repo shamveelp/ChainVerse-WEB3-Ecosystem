@@ -16,7 +16,7 @@ const server = createServer(app);
 // Setup Socket.IO
 const io = new SocketIOServer(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || 'https://chainverse.shamveelp.xyz',
     credentials: true,
     methods: ["GET", "POST"]
   },
