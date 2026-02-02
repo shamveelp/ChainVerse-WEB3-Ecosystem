@@ -19,6 +19,9 @@ import {
     Layers
 } from "lucide-react";
 
+import Link from "next/link";
+import { COMMON_ROUTES, USER_ROUTES } from "@/routes";
+
 // Register ScrollTrigger
 if (typeof window !== "undefined") {
     gsap.registerPlugin(ScrollTrigger);
@@ -31,7 +34,8 @@ const steps = [
         description: "ChainVerse is a revolutionary Web3 ecosystem designed to bridge the gap between traditional finance and the decentralized future. We provide a seamless, secure, and intuitive platform for all your blockchain needs.",
         icon: <Rocket className="w-8 h-8 text-blue-400" />,
         color: "from-blue-500 to-cyan-400",
-        side: "left"
+        side: "left",
+        href: COMMON_ROUTES.HOME
     },
     {
         id: "trade",
@@ -39,7 +43,8 @@ const steps = [
         description: "Experience institutional-grade trading tools at your fingertips. Our decentralized exchange offers deep liquidity, low latency, and a wide variety of order types for professional traders.",
         icon: <Zap className="w-8 h-8 text-yellow-400" />,
         color: "from-yellow-500 to-orange-400",
-        side: "right"
+        side: "right",
+        href: USER_ROUTES.MARKET
     },
     {
         id: "swap",
@@ -47,7 +52,8 @@ const steps = [
         description: "Exchange tokens across multiple chains instantly. Our smart router finds the best prices and lowest slippage, ensuring you get the most value for every trade.",
         icon: <Repeat className="w-8 h-8 text-green-400" />,
         color: "from-green-500 to-emerald-400",
-        side: "left"
+        side: "left",
+        href: COMMON_ROUTES.SWAP
     },
     {
         id: "liquidity",
@@ -55,7 +61,8 @@ const steps = [
         description: "Put your assets to work. Provide liquidity to our pools and earn a share of trading fees. Our automated market maker ensures efficient price discovery and steady rewards.",
         icon: <Droplets className="w-8 h-8 text-indigo-400" />,
         color: "from-indigo-500 to-purple-400",
-        side: "right"
+        side: "right",
+        href: COMMON_ROUTES.LIQUIDITY
     },
     {
         id: "buy",
@@ -63,7 +70,8 @@ const steps = [
         description: "Easily transition from fiat to crypto. Support for credit cards, bank transfers, and local payment methods makes entering the Web3 space simpler than ever.",
         icon: <CreditCard className="w-8 h-8 text-pink-400" />,
         color: "from-pink-500 to-rose-400",
-        side: "left"
+        side: "left",
+        href: COMMON_ROUTES.BUY
     },
     {
         id: "nft",
@@ -71,7 +79,8 @@ const steps = [
         description: "Discover, collect, and trade unique digital assets. Our marketplace supports creators and collectors with low fees and high-performance browsing.",
         icon: <ImageIcon className="w-8 h-8 text-purple-400" />,
         color: "from-purple-500 to-fuchsia-400",
-        side: "right"
+        side: "right",
+        href: USER_ROUTES.NFT_EXPLORE
     },
     {
         id: "community",
@@ -79,7 +88,8 @@ const steps = [
         description: "Be part of the governance. Join our community-led DAO to vote on proposals, participate in discussions, and shape the future of ChainVerse.",
         icon: <Users className="w-8 h-8 text-cyan-400" />,
         color: "from-cyan-500 to-blue-400",
-        side: "left"
+        side: "left",
+        href: USER_ROUTES.COMMUNITY
     },
     {
         id: "quests",
@@ -87,7 +97,8 @@ const steps = [
         description: "Learn and earn through gamified challenges. Complete quests, gain experience, and unlock exclusive rewards as you explore the ecosystem.",
         icon: <Trophy className="w-8 h-8 text-amber-400" />,
         color: "from-amber-500 to-yellow-400",
-        side: "right"
+        side: "right",
+        href: USER_ROUTES.QUESTS
     }
 ];
 
@@ -244,9 +255,11 @@ export default function GetStartedPage() {
                                                 {step.description}
                                             </p>
 
-                                            <button className="flex items-center gap-2 text-sm font-semibold text-blue-400 group/btn hover:text-blue-300 transition-colors">
-                                                Explore Feature <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                                            </button>
+                                            <Link href={step.href}>
+                                                <button className="flex items-center gap-2 text-sm font-semibold text-blue-400 group/btn hover:text-blue-300 transition-colors">
+                                                    Explore Feature <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                                </button>
+                                            </Link>
                                         </div>
                                     </div>
 
@@ -281,9 +294,11 @@ export default function GetStartedPage() {
                                         <p className="text-gray-400 text-sm leading-relaxed mb-6">
                                             {step.description}
                                         </p>
-                                        <button className="flex items-center gap-2 text-sm font-semibold text-blue-400">
-                                            Explore Feature <ArrowRight className="w-4 h-4" />
-                                        </button>
+                                        <Link href={step.href}>
+                                            <button className="flex items-center gap-2 text-sm font-semibold text-blue-400">
+                                                Explore Feature <ArrowRight className="w-4 h-4" />
+                                            </button>
+                                        </Link>
                                     </div>
 
                                     {/* Vertical Line for Mobile */}
@@ -306,12 +321,16 @@ export default function GetStartedPage() {
                             Join thousands of users who are already building the future of finance on ChainVerse.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button className="px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
-                                Launch App <Zap className="w-4 h-4 fill-black" />
-                            </button>
-                            <button className="px-8 py-4 bg-white/5 border border-white/10 font-bold rounded-full hover:bg-white/10 transition-colors">
-                                Read Documentation
-                            </button>
+                            <Link href="/">
+                                <button className="px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                                    Launch App <Zap className="w-4 h-4 fill-black" />
+                                </button>
+                            </Link>
+                            <Link href={COMMON_ROUTES.DOCS}>
+                                <button className="px-8 py-4 bg-white/5 border border-white/10 font-bold rounded-full hover:bg-white/10 transition-colors">
+                                    Read Documentation
+                                </button>
+                            </Link>
                         </div>
                     </div>
                 </div>

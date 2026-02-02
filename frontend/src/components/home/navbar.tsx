@@ -188,6 +188,12 @@ export default function Navbar() {
                   Quests
                 </Link>
                 <Link
+                  href={COMMON_ROUTES.DOCS}
+                  className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300"
+                >
+                  Docs
+                </Link>
+                <Link
                   href={COMMON_ROUTES.ABOUT}
                   className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 whitespace-nowrap"
                 >
@@ -346,6 +352,13 @@ export default function Navbar() {
                         onClick={() => setIsOpen(false)}
                       >
                         Quests
+                      </Link>
+                      <Link
+                        href={COMMON_ROUTES.DOCS}
+                        className="text-2xl font-medium text-gray-300 hover:text-white hover:bg-white/5 px-4 py-3 rounded-xl transition-all"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Docs
                       </Link>
                       <Link
                         href={COMMON_ROUTES.ABOUT}
