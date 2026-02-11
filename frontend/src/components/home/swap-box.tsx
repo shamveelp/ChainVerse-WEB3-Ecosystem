@@ -33,12 +33,15 @@ export default function SwapBox() {
 
   // Fetch only BTC and ETH to get real prices
   useEffect(() => {
+    const controller = new AbortController()
+
     const fetchCoins = async () => {
       setIsLoading(true)
       try {
         const response = await axios.get(
           "https://api.coingecko.com/api/v3/coins/markets",
           {
+            signal: controller.signal,
             params: {
               vs_currency: "usd",
               ids: "bitcoin,ethereum", // Fetch only these two
@@ -63,13 +66,21 @@ export default function SwapBox() {
           }
         }
       } catch (error) {
-        console.error("Failed to fetch coins:", error)
+        if (axios.isCancel(error)) {
+          // Silent on cancel
+        } else {
+          console.error("Failed to fetch coins:", error)
+        }
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchCoins()
+
+    return () => {
+      controller.abort()
+    }
   }, []) // Run only once
 
   const updateEstimate = (val: string, type: "from" | "to", fCoin: Coin, tCoin: Coin) => {
