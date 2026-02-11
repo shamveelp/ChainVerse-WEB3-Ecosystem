@@ -27,17 +27,76 @@ export default function LiquidityInterface() {
   });
   const [error, setError] = useState('');
 
+  const ensureCorrectNetwork = async () => {
+    if (!window.ethereum) return false;
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const network = await provider.getNetwork();
+    const chainId = Number(network.chainId);
+
+    if (chainId !== 11155111) {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0xaa36a7' }], // 11155111 in hex
+        });
+        return true;
+      } catch (switchError: any) {
+        if (switchError.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: '0xaa36a7',
+                  chainName: 'Sepolia',
+                  nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
+                  rpcUrls: ['https://rpc.sepolia.org'],
+                  blockExplorerUrls: ['https://sepolia.etherscan.io'],
+                },
+              ],
+            });
+            return true;
+          } catch (addError) {
+            setError('Failed to add Sepolia network to wallet');
+            return false;
+          }
+        }
+        setError('Please switch to Sepolia network to continue');
+        return false;
+      }
+    }
+    return true;
+  };
+
   const loadUserBalances = async () => {
-    if (!account?.address || !window.ethereum) return;
+    if (!account?.address) return;
 
     setRefreshingBalances(true);
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      let provider: any;
+      const SEPOLIA_RPC = "https://rpc.ankr.com/eth_sepolia";
+
+      if (window.ethereum) {
+        const browserProvider = new ethers.BrowserProvider(window.ethereum);
+        const network = await browserProvider.getNetwork().catch(() => null);
+        if (network && Number(network.chainId) === 11155111) {
+          provider = browserProvider;
+        } else {
+          provider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
+        }
+      } else {
+        provider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
+      }
+
+      // If we are on wrong network, user balances will be 0 from RPC
+      // but we should at least try if on correct network
       const { balances: newBalances } = await loadBalances(provider, account.address);
       setBalances(newBalances);
+      setError('');
     } catch (error) {
       console.error('Failed to load balances:', error);
-      setError('Failed to load balances');
+      // Don't show blocking error for balances
     } finally {
       setRefreshingBalances(false);
     }
@@ -50,6 +109,13 @@ export default function LiquidityInterface() {
     setError('');
 
     try {
+      // Force network switch if needed
+      const isCorrectNetwork = await ensureCorrectNetwork();
+      if (!isCorrectNetwork) {
+        setLoading(false);
+        return;
+      }
+
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const dexContract = new ethers.Contract(CONTRACTS.dex, DEX_ABI, signer);

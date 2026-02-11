@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { CONTRACTS, ERC20_ABI, DEX_ABI } from './contracts';
 import { TokenBalance, PoolData } from '@/types/types-dex';
 
-export const loadBalances = async (provider: ethers.BrowserProvider, address: string): Promise<{
+export const loadBalances = async (provider: any, address: string): Promise<{
   balances: TokenBalance;
   poolsData: { [key: string]: PoolData };
 }> => {
@@ -20,31 +20,38 @@ export const loadBalances = async (provider: ethers.BrowserProvider, address: st
     };
 
     const dexContract = new ethers.Contract(CONTRACTS.dex, DEX_ABI, provider);
-    const coinAPool = await dexContract.pools(CONTRACTS.coinA);
-    const coinBPool = await dexContract.pools(CONTRACTS.coinB);
-    const tokenPool = await dexContract.tokenPool();
-    const userCoinALiquidity = await dexContract.getUserLiquidity(CONTRACTS.coinA);
-    const userCoinBLiquidity = await dexContract.getUserLiquidity(CONTRACTS.coinB);
-    const userTokenLiquidity = await dexContract.getTokenPoolUserLiquidity();
+
+    // Safety check for contract existence
+    const code = await provider.getCode(CONTRACTS.dex);
+    if (code === '0x' || code === '0x0') {
+      throw new Error(`DEX contract at ${CONTRACTS.dex} not found. Ensure you are on the correct network.`);
+    }
+
+    const coinAPool = await dexContract.pools(CONTRACTS.coinA).catch(() => ({ ethReserve: 0n, tokenReserve: 0n, totalLiquidity: 0n }));
+    const coinBPool = await dexContract.pools(CONTRACTS.coinB).catch(() => ({ ethReserve: 0n, tokenReserve: 0n, totalLiquidity: 0n }));
+    const tokenPool = await dexContract.tokenPool().catch(() => ({ coinAReserve: 0n, coinBReserve: 0n, totalLiquidity: 0n }));
+    const userCoinALiquidity = await dexContract.getUserLiquidity(CONTRACTS.coinA).catch(() => 0n);
+    const userCoinBLiquidity = await dexContract.getUserLiquidity(CONTRACTS.coinB).catch(() => 0n);
+    const userTokenLiquidity = await dexContract.getTokenPoolUserLiquidity().catch(() => 0n);
 
     const poolsData = {
       coinA: {
-        ethReserve: ethers.formatEther(coinAPool.ethReserve),
-        tokenReserve: ethers.formatUnits(coinAPool.tokenReserve, 18),
-        totalLiquidity: ethers.formatUnits(coinAPool.totalLiquidity, 18),
-        userLiquidity: ethers.formatUnits(userCoinALiquidity, 18)
+        ethReserve: ethers.formatEther(coinAPool.ethReserve || 0n),
+        tokenReserve: ethers.formatUnits(coinAPool.tokenReserve || 0n, 18),
+        totalLiquidity: ethers.formatUnits(coinAPool.totalLiquidity || 0n, 18),
+        userLiquidity: ethers.formatUnits(userCoinALiquidity || 0n, 18)
       },
       coinB: {
-        ethReserve: ethers.formatEther(coinBPool.ethReserve),
-        tokenReserve: ethers.formatUnits(coinBPool.tokenReserve, 18),
-        totalLiquidity: ethers.formatUnits(coinBPool.totalLiquidity, 18),
-        userLiquidity: ethers.formatUnits(userCoinBLiquidity, 18)
+        ethReserve: ethers.formatEther(coinBPool.ethReserve || 0n),
+        tokenReserve: ethers.formatUnits(coinBPool.tokenReserve || 0n, 18),
+        totalLiquidity: ethers.formatUnits(coinBPool.totalLiquidity || 0n, 18),
+        userLiquidity: ethers.formatUnits(userCoinBLiquidity || 0n, 18)
       },
       tokenPool: {
-        ethReserve: ethers.formatUnits(tokenPool.coinAReserve, 18),
-        tokenReserve: ethers.formatUnits(tokenPool.coinBReserve, 18),
-        totalLiquidity: ethers.formatUnits(tokenPool.totalLiquidity, 18),
-        userLiquidity: ethers.formatUnits(userTokenLiquidity, 18)
+        ethReserve: ethers.formatUnits(tokenPool.coinAReserve || 0n, 18),
+        tokenReserve: ethers.formatUnits(tokenPool.coinBReserve || 0n, 18),
+        totalLiquidity: ethers.formatUnits(tokenPool.totalLiquidity || 0n, 18),
+        userLiquidity: ethers.formatUnits(userTokenLiquidity || 0n, 18)
       }
     };
 
@@ -56,7 +63,7 @@ export const loadBalances = async (provider: ethers.BrowserProvider, address: st
 };
 
 export const calculateSwapOutput = async (
-  provider: ethers.BrowserProvider,
+  provider: any,
   fromToken: string,
   toToken: string,
   fromAmount: string
@@ -114,33 +121,40 @@ export const calculateSwapOutput = async (
   }
 };
 
-export const loadGlobalPoolsData = async (provider: ethers.BrowserProvider): Promise<{ [key: string]: PoolData }> => {
+export const loadGlobalPoolsData = async (provider: any): Promise<{ [key: string]: PoolData }> => {
   try {
     const dexContract = new ethers.Contract(CONTRACTS.dex, DEX_ABI, provider);
-    const coinAPool = await dexContract.pools(CONTRACTS.coinA);
-    const coinBPool = await dexContract.pools(CONTRACTS.coinB);
-    const tokenPool = await dexContract.tokenPool();
+
+    // Safety check for contract existence
+    const code = await provider.getCode(CONTRACTS.dex);
+    if (code === '0x' || code === '0x0') {
+      throw new Error(`DEX contract not found. Please switch to Sepolia.`);
+    }
+
+    const coinAPool = await dexContract.pools(CONTRACTS.coinA).catch(() => ({ ethReserve: 0n, tokenReserve: 0n, totalLiquidity: 0n }));
+    const coinBPool = await dexContract.pools(CONTRACTS.coinB).catch(() => ({ ethReserve: 0n, tokenReserve: 0n, totalLiquidity: 0n }));
+    const tokenPool = await dexContract.tokenPool().catch(() => ({ coinAReserve: 0n, coinBReserve: 0n, totalLiquidity: 0n }));
 
     // For global data, we don't know the user, so userLiquidity is 0
     const userLiquidity = '0';
 
     return {
       coinA: {
-        ethReserve: ethers.formatEther(coinAPool.ethReserve),
-        tokenReserve: ethers.formatUnits(coinAPool.tokenReserve, 18),
-        totalLiquidity: ethers.formatUnits(coinAPool.totalLiquidity, 18),
+        ethReserve: ethers.formatEther(coinAPool.ethReserve || 0n),
+        tokenReserve: ethers.formatUnits(coinAPool.tokenReserve || 0n, 18),
+        totalLiquidity: ethers.formatUnits(coinAPool.totalLiquidity || 0n, 18),
         userLiquidity
       },
       coinB: {
-        ethReserve: ethers.formatEther(coinBPool.ethReserve),
-        tokenReserve: ethers.formatUnits(coinBPool.tokenReserve, 18),
-        totalLiquidity: ethers.formatUnits(coinBPool.totalLiquidity, 18),
+        ethReserve: ethers.formatEther(coinBPool.ethReserve || 0n),
+        tokenReserve: ethers.formatUnits(coinBPool.tokenReserve || 0n, 18),
+        totalLiquidity: ethers.formatUnits(coinBPool.totalLiquidity || 0n, 18),
         userLiquidity
       },
       tokenPool: {
-        ethReserve: ethers.formatUnits(tokenPool.coinAReserve, 18),
-        tokenReserve: ethers.formatUnits(tokenPool.coinBReserve, 18),
-        totalLiquidity: ethers.formatUnits(tokenPool.totalLiquidity, 18),
+        ethReserve: ethers.formatUnits(tokenPool.coinAReserve || 0n, 18),
+        tokenReserve: ethers.formatUnits(tokenPool.coinBReserve || 0n, 18),
+        totalLiquidity: ethers.formatUnits(tokenPool.totalLiquidity || 0n, 18),
         userLiquidity
       }
     };

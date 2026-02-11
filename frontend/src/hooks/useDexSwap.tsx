@@ -92,44 +92,134 @@ export const useDexSwap = () => {
     });
 
     const loadUserBalances = useCallback(async () => {
-        if (!window.ethereum) return;
+        // We always want to fetch prices, even if no wallet is connected or on wrong network
+        const SEPOLIA_RPC = "https://rpc.ankr.com/eth_sepolia";
+        const staticProvider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
 
         setRefreshingBalances(true);
         try {
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            let poolsData;
+            let browserProvider: ethers.BrowserProvider | null = null;
+            let currentChainId: number | null = null;
 
-            if (account?.address) {
-                const data = await loadBalances(provider, account.address);
-                setBalances(data.balances);
-                poolsData = data.poolsData;
-            } else {
-                poolsData = await loadGlobalPoolsData(provider);
+            if (window.ethereum) {
+                browserProvider = new ethers.BrowserProvider(window.ethereum);
+                const network = await browserProvider.getNetwork();
+                currentChainId = Number(network.chainId);
             }
 
-            // Calculate prices
-            const ethCoinAPrice = poolsData.coinA.ethReserve && poolsData.coinA.tokenReserve && parseFloat(poolsData.coinA.ethReserve) > 0
-                ? (parseFloat(poolsData.coinA.tokenReserve) / parseFloat(poolsData.coinA.ethReserve)).toFixed(6)
-                : '0';
+            // Always fetch global prices using static provider to ensure they show up
+            let poolsData;
+            try {
+                poolsData = await loadGlobalPoolsData(staticProvider);
+                setError('');
+            } catch (poolError) {
+                console.error('Global pools load failure:', poolError);
+                // Fallback attempt if static RPC fails
+                if (browserProvider && currentChainId === 11155111) {
+                    poolsData = await loadGlobalPoolsData(browserProvider);
+                }
+            }
 
-            const ethCoinBPrice = poolsData.coinB.ethReserve && poolsData.coinB.tokenReserve && parseFloat(poolsData.coinB.ethReserve) > 0
-                ? (parseFloat(poolsData.coinB.tokenReserve) / parseFloat(poolsData.coinB.ethReserve)).toFixed(6)
-                : '0';
+            // If on correct network and account connected, fetch user balances
+            if (browserProvider && currentChainId === 11155111 && account?.address) {
+                try {
+                    const data = await loadBalances(browserProvider, account.address);
+                    setBalances(data.balances);
+                    // Use more accurate poolsData from browser provider if available
+                    poolsData = data.poolsData;
+                } catch (balanceError) {
+                    console.error('User balance load failure:', balanceError);
+                }
+            } else if (browserProvider && currentChainId !== 11155111) {
+                // Keep balances at 0 but don't show blocking error if we have prices
+                setBalances({ eth: '0', coinA: '0', coinB: '0' });
+                if (!poolsData) setError('Please switch to Sepolia network to see user balances');
+            }
 
-            setTokenPrices({ ethCoinA: ethCoinAPrice, ethCoinB: ethCoinBPrice });
+            // Calculate and set prices from whatever poolsData we managed to get
+            if (poolsData) {
+                const ethCoinAPrice = poolsData.coinA.ethReserve && poolsData.coinA.tokenReserve && parseFloat(poolsData.coinA.ethReserve) > 0
+                    ? (parseFloat(poolsData.coinA.tokenReserve) / parseFloat(poolsData.coinA.ethReserve)).toFixed(6)
+                    : '0';
+
+                const ethCoinBPrice = poolsData.coinB.ethReserve && poolsData.coinB.tokenReserve && parseFloat(poolsData.coinB.ethReserve) > 0
+                    ? (parseFloat(poolsData.coinB.tokenReserve) / parseFloat(poolsData.coinB.ethReserve)).toFixed(6)
+                    : '0';
+
+                setTokenPrices({ ethCoinA: ethCoinAPrice, ethCoinB: ethCoinBPrice });
+            }
         } catch (error) {
             console.error('Failed to load balances/prices:', error);
-            setError('Failed to load balances/prices');
+            if (!tokenPrices.ethCoinA || tokenPrices.ethCoinA === '0') {
+                setError('Failed to fetch market prices');
+            }
         } finally {
             setRefreshingBalances(false);
         }
-    }, [account?.address]);
+    }, [account?.address, tokenPrices.ethCoinA]);
+
+    const ensureCorrectNetwork = async () => {
+        if (!window.ethereum) return false;
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const network = await provider.getNetwork();
+        const chainId = Number(network.chainId);
+
+        if (chainId !== 11155111) {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0xaa36a7' }], // 11155111 in hex
+                });
+                return true;
+            } catch (switchError: any) {
+                // This error code indicates that the chain has not been added to MetaMask.
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [
+                                {
+                                    chainId: '0xaa36a7',
+                                    chainName: 'Sepolia',
+                                    nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
+                                    rpcUrls: ['https://rpc.sepolia.org'],
+                                    blockExplorerUrls: ['https://sepolia.etherscan.io'],
+                                },
+                            ],
+                        });
+                        return true;
+                    } catch (addError) {
+                        setError('Failed to add Sepolia network to wallet');
+                        return false;
+                    }
+                }
+                setError('Please switch to Sepolia network to continue');
+                return false;
+            }
+        }
+        return true;
+    };
 
     const calculateOutput = useCallback(async () => {
-        if (!account?.address || !window.ethereum || !swapForm.fromAmount) return;
+        if (!swapForm.fromAmount) return;
 
         try {
-            const provider = new ethers.BrowserProvider(window.ethereum);
+            let provider: any;
+            const SEPOLIA_RPC = "https://rpc.ankr.com/eth_sepolia";
+
+            if (window.ethereum) {
+                const browserProvider = new ethers.BrowserProvider(window.ethereum);
+                const network = await browserProvider.getNetwork();
+                if (Number(network.chainId) === 11155111) {
+                    provider = browserProvider;
+                } else {
+                    provider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
+                }
+            } else {
+                provider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
+            }
+
             const dexContract = new ethers.Contract(CONTRACTS.dex, DEX_ABI, provider);
 
             const amountIn = ethers.parseUnits(swapForm.fromAmount, 18);
@@ -178,9 +268,9 @@ export const useDexSwap = () => {
             setError('');
         } catch (error) {
             console.error('Failed to calculate swap output:', error);
-            setError('Failed to calculate swap output');
+            // Don't show blocking error for background calculations
         }
-    }, [account?.address, swapForm.fromAmount, swapForm.fromToken, swapForm.toToken]);
+    }, [swapForm.fromAmount, swapForm.fromToken, swapForm.toToken]);
 
     const executeSwap = useCallback(async () => {
         if (!account?.address || !window.ethereum || !swapForm.fromAmount || !swapForm.toAmount) return;
@@ -189,6 +279,13 @@ export const useDexSwap = () => {
         setError('');
 
         try {
+            // Force network switch if needed
+            const isCorrectNetwork = await ensureCorrectNetwork();
+            if (!isCorrectNetwork) {
+                setLoading(false);
+                return;
+            }
+
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
             const dexContract = new ethers.Contract(CONTRACTS.dex, DEX_ABI, signer);
