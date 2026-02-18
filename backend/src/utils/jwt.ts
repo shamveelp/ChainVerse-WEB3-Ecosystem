@@ -60,46 +60,57 @@ export class JwtService implements IJwtService {
 
   setTokens(res: Response, accessToken: string, refreshToken: string): void {
     const isProduction = process.env.NODE_ENV === "production"
+    const cookieDomain = process.env.COOKIE_DOMAIN || undefined
+
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: "lax",
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 15 * 60 * 1000, // 15 minutes
       path: "/",
+      domain: cookieDomain
     })
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: "lax",
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: "/",
+      domain: cookieDomain
     })
   }
 
   setAccessToken(res: Response, accessToken: string): void {
     const isProduction = process.env.NODE_ENV === "production"
+    const cookieDomain = process.env.COOKIE_DOMAIN || undefined
+
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: "lax",
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 15 * 60 * 1000, // 15 minutes
       path: "/",
+      domain: cookieDomain
     })
   }
 
   clearTokens(res: Response): void {
     const isProduction = process.env.NODE_ENV === "production"
+    const cookieDomain = process.env.COOKIE_DOMAIN || undefined
+
     res.clearCookie("accessToken", {
       httpOnly: true,
       secure: isProduction,
-      sameSite: "lax",
+      sameSite: isProduction ? "none" : "lax",
       path: "/",
+      domain: cookieDomain
     })
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: isProduction,
-      sameSite: "lax",
+      sameSite: isProduction ? "none" : "lax",
       path: "/",
+      domain: cookieDomain
     })
   }
 

@@ -13,10 +13,24 @@ import cors from 'cors';
 
 const app = express();
 
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://chainverse.shamveelp.xyz',
+    'https://www.chainverse.shamveelp.xyz',
+    process.env.FRONTEND_URL
+].filter(Boolean) as string[];
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'https://chainverse.shamveelp.xyz',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
-})) 
+}));
 
 app.use(cookieParser());
 app.use(express.json());
@@ -28,7 +42,7 @@ app.use('/api/community-admin', communityAdminRoutes)
 app.use('/api/wallet', walletRoutes)
 app.use('/api/ai-trading', aiTradingRoutes);
 
-app.get("/", (req,res) => {
+app.get("/", (req, res) => {
     res.send("ChainVerse Backend is running!");
 })
 

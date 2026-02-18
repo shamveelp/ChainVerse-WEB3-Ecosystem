@@ -6,6 +6,7 @@ import { ToastAction } from '@/components/ui/toast';
 import { CONTRACTS, ERC20_ABI, DEX_ABI } from '@/lib/dex/contracts';
 import { loadBalances, getExplorerUrl, loadGlobalPoolsData } from '@/lib/dex/utils';
 import { TokenBalance, SwapForm } from '@/types/types-dex';
+import { getStaticProvider, refreshStaticProvider } from '@/lib/web3-provider';
 
 // Reusing the API class from the original file or importing it if it was separate.
 // Since it was defined inside the page, we'll define a service version here or assume it's moved.
@@ -92,9 +93,8 @@ export const useDexSwap = () => {
     });
 
     const loadUserBalances = useCallback(async () => {
-        // We always want to fetch prices, even if no wallet is connected or on wrong network
-        const SEPOLIA_RPC = "https://rpc.ankr.com/eth_sepolia";
-        const staticProvider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
+        // Use central static provider for market prices to avoid "failed to detect network" spam
+        const staticProvider = getStaticProvider();
 
         setRefreshingBalances(true);
         try {
@@ -114,9 +114,15 @@ export const useDexSwap = () => {
                 setError('');
             } catch (poolError) {
                 console.error('Global pools load failure:', poolError);
-                // Fallback attempt if static RPC fails
-                if (browserProvider && currentChainId === 11155111) {
-                    poolsData = await loadGlobalPoolsData(browserProvider);
+                // Try refreshing provider with a different RPC on failure
+                const alternativeProvider = refreshStaticProvider();
+                try {
+                    poolsData = await loadGlobalPoolsData(alternativeProvider);
+                    setError('');
+                } catch (secondError) {
+                    if (browserProvider && currentChainId === 11155111) {
+                        poolsData = await loadGlobalPoolsData(browserProvider);
+                    }
                 }
             }
 
@@ -206,18 +212,17 @@ export const useDexSwap = () => {
 
         try {
             let provider: any;
-            const SEPOLIA_RPC = "https://rpc.ankr.com/eth_sepolia";
 
             if (window.ethereum) {
                 const browserProvider = new ethers.BrowserProvider(window.ethereum);
-                const network = await browserProvider.getNetwork();
-                if (Number(network.chainId) === 11155111) {
+                const network = await browserProvider.getNetwork().catch(() => null);
+                if (network && Number(network.chainId) === 11155111) {
                     provider = browserProvider;
                 } else {
-                    provider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
+                    provider = getStaticProvider();
                 }
             } else {
-                provider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
+                provider = getStaticProvider();
             }
 
             const dexContract = new ethers.Contract(CONTRACTS.dex, DEX_ABI, provider);

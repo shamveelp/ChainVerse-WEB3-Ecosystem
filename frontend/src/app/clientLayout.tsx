@@ -30,9 +30,14 @@ function AuthInitializer({ children, sessionExists }: { children: React.ReactNod
       dispatch(setLoading(false))
 
       // Sync Redux state with cookie presence ONLY when the app first loads
+      // NOTE: We relaxed this for production because cross-domain cookies 
+      // may not be sent to the frontend server, causing false logouts.
+      // The API interceptor will handle actual session expiration.
+      /*
       if (!sessionExists && user) {
         dispatch(logout())
       }
+      */
       isMounted.current = true
     }
   }, [dispatch, sessionExists, user])

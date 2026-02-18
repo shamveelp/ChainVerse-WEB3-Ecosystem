@@ -8,6 +8,7 @@ import { toast } from '@/hooks/use-toast';
 import { CONTRACTS, ERC20_ABI, DEX_ABI } from '@/lib/dex/contracts';
 import { loadBalances, getExplorerUrl } from '@/lib/dex/utils';
 import { TokenBalance, LiquidityForm } from '@/types/types-dex';
+import { getStaticProvider } from '@/lib/web3-provider';
 
 export default function LiquidityInterface() {
   const account = useActiveAccount();
@@ -75,7 +76,6 @@ export default function LiquidityInterface() {
     setRefreshingBalances(true);
     try {
       let provider: any;
-      const SEPOLIA_RPC = "https://rpc.ankr.com/eth_sepolia";
 
       if (window.ethereum) {
         const browserProvider = new ethers.BrowserProvider(window.ethereum);
@@ -83,10 +83,10 @@ export default function LiquidityInterface() {
         if (network && Number(network.chainId) === 11155111) {
           provider = browserProvider;
         } else {
-          provider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
+          provider = getStaticProvider();
         }
       } else {
-        provider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
+        provider = getStaticProvider();
       }
 
       // If we are on wrong network, user balances will be 0 from RPC
