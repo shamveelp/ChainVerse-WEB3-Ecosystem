@@ -104,9 +104,11 @@ export default function HeroSection() {
                   Launch App
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 px-8 text-base border-white/20 text-white hover:bg-white/10 rounded-full backdrop-blur-sm">
-                Explore Docs
-              </Button>
+              <Link href={COMMON_ROUTES.DOCS} className="w-full sm:w-auto">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 px-8 text-base border-white/20 text-white hover:bg-white/10 rounded-full backdrop-blur-sm">
+                  Explore Docs
+                </Button>
+              </Link>
             </div>
 
             <div className="hero-text-line pt-8 flex items-center justify-center lg:justify-start gap-8 text-gray-500">
