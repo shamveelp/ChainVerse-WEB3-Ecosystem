@@ -21,6 +21,7 @@ const allowedOrigins = [
     process.env.FRONTEND_URL
 ].filter(Boolean) as string[];
 
+
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin || allowedOrigins.includes(origin)) {
