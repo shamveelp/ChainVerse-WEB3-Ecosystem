@@ -7,6 +7,7 @@ import { RootState } from "@/redux/store"
 import { CommunityView } from "@/components/community/chat/community-view"
 import { CommunityChatsView } from "@/components/community/chat/community-chats-view"
 import { PillNavigation } from "@/components/community/chat/pill-navigation"
+import { Loader2 } from "lucide-react"
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
 import ChainCastJoinButton from "@/components/chainCast/chainCastJoinButton"
@@ -14,6 +15,7 @@ import CommunityChainCastList from "@/components/chainCast/communityChainCastLis
 import { toast } from "sonner"
 import { communitySocketService } from "@/services/socket/communitySocketService"
 import { communityExploreApiService, type Community } from "@/services/userCommunityServices/communityExploreApiService"
+import { Button } from "@/components/ui/button"
 
 type ViewType = "community" | "chats" | "chaincasts"
 
@@ -39,6 +41,7 @@ export default function CommunityPage({ params }: CommunityPageProps) {
   const [activeView, setActiveView] = useState<ViewType>(getInitialView())
   const [communityData, setCommunityData] = useState<Community | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isJoining, setIsJoining] = useState(false)
 
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
   const token = useSelector((state: RootState) => state.userAuth?.token)
@@ -91,6 +94,38 @@ export default function CommunityPage({ params }: CommunityPageProps) {
     setActiveView(view)
   }
 
+  const handleJoinToggle = async () => {
+    if (!communityData || !currentUser) {
+      if (!currentUser) toast.error("Please login to join communities")
+      return
+    }
+
+    try {
+      setIsJoining(true)
+      if (communityData.isMember) {
+        await communityExploreApiService.leaveCommunity(username)
+        setCommunityData({
+          ...communityData,
+          isMember: false,
+          memberCount: Math.max(0, communityData.memberCount - 1)
+        })
+        toast.success(`You left ${communityData.communityName}`)
+      } else {
+        await communityExploreApiService.joinCommunity(username)
+        setCommunityData({
+          ...communityData,
+          isMember: true,
+          memberCount: communityData.memberCount + 1
+        })
+        toast.success(`You joined ${communityData.communityName}`)
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Action failed")
+    } finally {
+      setIsJoining(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen bg-slate-950">
@@ -125,10 +160,31 @@ export default function CommunityPage({ params }: CommunityPageProps) {
                   {communityData?.memberCount ? `${communityData.memberCount} members` : ''}
                 </p>
               </div>
+
+              {/* Join Button */}
+              {communityData && !communityData.isAdmin && (
+                <Button
+                  onClick={handleJoinToggle}
+                  disabled={isJoining}
+                  variant={communityData.isMember ? "outline" : "default"}
+                  className={communityData.isMember
+                    ? "border-slate-700 text-slate-300 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/50 min-w-[100px]"
+                    : "bg-cyan-600 hover:bg-cyan-700 text-white min-w-[100px]"
+                  }
+                >
+                  {isJoining ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : communityData.isMember ? (
+                    "Member"
+                  ) : (
+                    "Join Community"
+                  )}
+                </Button>
+              )}
             </div>
 
             {/* ChainCast Join Button */}
-            {communityData?._id && (
+            {communityData?._id && (communityData.isMember || communityData.isAdmin) && (
               <div className="mb-4">
                 <ChainCastJoinButton
                   communityId={communityData._id}
@@ -144,8 +200,8 @@ export default function CommunityPage({ params }: CommunityPageProps) {
               <button
                 onClick={() => handleViewChange("community")}
                 className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${activeView === "community"
-                    ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
                   }`}
               >
                 Community
@@ -153,8 +209,8 @@ export default function CommunityPage({ params }: CommunityPageProps) {
               <button
                 onClick={() => handleViewChange("chats")}
                 className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${activeView === "chats"
-                    ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  ? "bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-white border border-cyan-400/30"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
                   }`}
               >
                 Group Chat
@@ -162,8 +218,8 @@ export default function CommunityPage({ params }: CommunityPageProps) {
               <button
                 onClick={() => handleViewChange("chaincasts")}
                 className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${activeView === "chaincasts"
-                    ? "bg-gradient-to-r from-red-500/20 to-pink-500/20 text-white border border-red-400/30"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  ? "bg-gradient-to-r from-red-500/20 to-pink-500/20 text-white border border-red-400/30"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
                   }`}
               >
                 ChainCasts

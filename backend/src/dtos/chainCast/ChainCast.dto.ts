@@ -232,6 +232,8 @@ export class ChainCastResponseDto {
     isParticipant!: boolean;
     userRole?: 'viewer' | 'moderator' | 'admin';
     streamUrl?: string;
+    livekitToken?: string;
+    serverUrl?: string;
     createdAt!: Date;
     updatedAt!: Date;
 

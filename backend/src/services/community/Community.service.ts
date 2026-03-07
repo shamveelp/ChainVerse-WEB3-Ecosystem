@@ -65,10 +65,10 @@ export class CommunityService implements ICommunityService {
                 rules: community.rules || [],
                 socialLinks: (community.socialLinks as unknown) as Record<string, unknown>[] || [],
                 settings: {
-                    allowChainCast: community.settings?.allowChainCast || false,
-                    allowGroupChat: community.settings?.allowGroupChat || true,
-                    allowPosts: community.settings?.allowPosts || true,
-                    allowQuests: community.settings?.allowQuests || false
+                    allowChainCast: community.settings?.allowChainCast !== false,
+                    allowGroupChat: community.settings?.allowGroupChat !== false,
+                    allowPosts: community.settings?.allowPosts !== false,
+                    allowQuests: community.settings?.allowQuests !== false
                 },
                 createdAt: community.createdAt,
                 isMember,

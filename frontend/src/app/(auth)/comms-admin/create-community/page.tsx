@@ -712,11 +712,12 @@ export default function CreateCommunityPage() {
                   >
                     {logoPreviewUrl ? (
                       <div className="space-y-3">
-                        <div className="w-20 h-20 mx-auto rounded-full overflow-hidden bg-gray-800">
+                        <div className="w-20 h-20 mx-auto rounded-full overflow-hidden bg-gray-800 relative">
                           <Image
                             src={logoPreviewUrl}
                             alt="Logo preview"
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                           />
                         </div>
                         <div>
@@ -768,11 +769,12 @@ export default function CreateCommunityPage() {
                   >
                     {bannerPreviewUrl ? (
                       <div className="space-y-3">
-                        <div className="w-full h-24 mx-auto rounded-lg overflow-hidden bg-gray-800">
+                        <div className="w-full h-24 mx-auto rounded-lg overflow-hidden bg-gray-800 relative">
                           <Image
                             src={bannerPreviewUrl}
                             alt="Banner preview"
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                           />
                         </div>
                         <div>

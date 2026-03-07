@@ -19,12 +19,7 @@ const premiumFeatures = [
     description: "Get a verified blue tick to boost your community's credibility",
     status: "available",
   },
-  {
-    icon: Zap,
-    title: "ChainCast Feature",
-    description: "Access exclusive ChainCast features for live community engagement",
-    status: "available",
-  },
+  /* ChainCast removed as it's now free by default */
   {
     icon: Shield,
     title: "Community Boost",
@@ -161,7 +156,7 @@ export default function PremiumPage() {
             dispatch(setSubscription(verifyResponse.data));
             toast({
               title: "Success!",
-              description: "Premium subscription activated successfully! ChainCast and Quests are now enabled.",
+              description: "Premium subscription activated successfully! Blue Tick and Quests are now enabled.",
             });
           } else {
             throw new Error(verifyResponse.error || "Payment verification failed");
@@ -186,8 +181,22 @@ export default function PremiumPage() {
         },
       };
 
+      if (!options.key || options.key === "rzp_test_your_key_id") {
+        throw new Error("Razorpay Key ID is not correctly configured in the frontend environment. Please check your .env file.");
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rzp = new (window as any).Razorpay(options);
+
+      rzp.on('payment.failed', function (response: any) {
+        console.error('Razorpay payment failed:', response.error);
+        toast({
+          variant: "destructive",
+          title: "Payment Internal Failure",
+          description: response.error.description || "The payment gateway failed to start the process. Please try again.",
+        });
+      });
+
       rzp.open();
     } catch (error: unknown) {
       toast({
@@ -229,7 +238,7 @@ export default function PremiumPage() {
             dispatch(setSubscription(verifyResponse.data));
             toast({
               title: "Success!",
-              description: "Premium subscription activated successfully! ChainCast and Quests are now enabled.",
+              description: "Premium subscription activated successfully! Blue Tick and Quests are now enabled.",
             });
           } else {
             throw new Error(verifyResponse.error || "Payment verification failed");
@@ -253,8 +262,22 @@ export default function PremiumPage() {
         },
       };
 
+      if (!options.key || options.key === "rzp_test_your_key_id") {
+        throw new Error("Razorpay Key ID is not correctly configured in the frontend environment. Please check your .env file.");
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rzp = new (window as any).Razorpay(options);
+
+      rzp.on('payment.failed', function (response: any) {
+        console.error('Razorpay payment retry failed:', response.error);
+        toast({
+          variant: "destructive",
+          title: "Payment Internal Failure",
+          description: response.error.description || "The payment gateway failed to start the process. Please try again.",
+        });
+      });
+
       rzp.open();
     } catch (error: unknown) {
       toast({

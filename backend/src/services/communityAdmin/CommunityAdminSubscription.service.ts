@@ -45,10 +45,12 @@ export class CommunityAdminSubscriptionService implements ICommunityAdminSubscri
         throw new CustomError(ErrorMessages.COMMUNITY_NOT_FOUND, StatusCode.NOT_FOUND);
       }
 
-      // Check if community already has ChainCast enabled
+      /* 
+      // Removed restriction: Community admins can now upgrade even if ChainCast is already enabled (since it's now free by default)
       if (community.settings?.allowChainCast) {
         throw new CustomError(ErrorMessages.CHAINCAST_ALREADY_ENABLED, StatusCode.BAD_REQUEST);
       }
+      */
 
       const subscription = await this._subscriptionRepository.findByCommunityId(createDto.communityId);
 
@@ -88,8 +90,11 @@ export class CommunityAdminSubscriptionService implements ICommunityAdminSubscri
         amount: order.amount,
         currency: order.currency,
       };
-    } catch (error) {
-      logger.error(LoggerMessages.CREATE_PAYMENT_ORDER_ERROR, error);
+    } catch (error: any) {
+      logger.error(LoggerMessages.CREATE_PAYMENT_ORDER_ERROR, {
+        message: error.message,
+        error: typeof error === 'object' ? JSON.stringify(error, null, 2) : error,
+      });
       throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_CREATE_SUBSCRIPTION_ORDER, StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
@@ -161,7 +166,7 @@ export class CommunityAdminSubscriptionService implements ICommunityAdminSubscri
 
       logger.info(`ChainCast enabled for community ${admin.communityId} after successful payment`);
 
-      return new SubscriptionResponseDto(updatedSubscription);
+      return new SubscriptionResponseDto(updatedSubscription.toObject());
     } catch (error) {
       logger.error(LoggerMessages.VERIFY_PAYMENT_ERROR, error);
       throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_VERIFY_PAYMENT, StatusCode.INTERNAL_SERVER_ERROR);

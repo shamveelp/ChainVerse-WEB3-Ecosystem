@@ -687,18 +687,14 @@ router.get(
   "/subscription/chaincast-access",
   authMiddleware,
   roleMiddleware(["communityAdmin"]),
-  async (req, res) => {
-    try {
-      const subscription = await communityAdminSubscriptionController.getSubscription(req, res);
-      // This will be handled by the existing getSubscription method
-      // The frontend will check the subscription status to determine access
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        data: { hasAccess: false },
-        error: "Failed to check ChainCast access"
-      });
-    }
+  (req, res) => {
+    res.status(200).json({
+      success: true,
+      data: {
+        hasAccess: true,
+        message: "ChainCast access is now available to all community admins"
+      }
+    });
   }
 );
 

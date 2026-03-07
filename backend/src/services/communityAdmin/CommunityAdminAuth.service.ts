@@ -1052,10 +1052,10 @@ export class CommunityAdminAuthService implements ICommunityAdminAuthService {
         members: [],
         communityAdmins: [],
         settings: {
-          allowChainCast: false,
+          allowChainCast: true, // Enabled by default for all new community admins
           allowGroupChat: true,
           allowPosts: true,
-          allowQuests: false,
+          allowQuests: true, // Enabled by default for all new community admins
         },
       });
 

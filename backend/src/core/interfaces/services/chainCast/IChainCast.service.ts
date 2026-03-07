@@ -31,7 +31,7 @@ export interface IChainCastService {
 
     // User ChainCast participation
     getCommunityChainCasts(communityId: string, userId: string, query: GetChainCastsQueryDto): Promise<ChainCastsListResponseDto>;
-    joinChainCast(userId: string, data: JoinChainCastDto): Promise<{ success: boolean; message: string; streamUrl?: string }>;
+    joinChainCast(userId: string, data: JoinChainCastDto): Promise<{ success: boolean; message: string; streamUrl?: string; livekitToken?: string; serverUrl?: string }>;
     leaveChainCast(userId: string, chainCastId: string): Promise<{ success: boolean; message: string }>;
 
     // Participant management

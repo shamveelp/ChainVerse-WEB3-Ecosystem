@@ -679,7 +679,7 @@ export default function CreateQuestPage() {
                     <div className="mt-2 space-y-3">
                       <div className="h-32 rounded-lg bg-gray-900 border border-gray-700 overflow-hidden relative">
                         {bannerPreview ? (
-                          <Image src={bannerPreview} alt="Quest banner" className="h-full w-full object-cover" />
+                          <Image src={bannerPreview} alt="Quest banner" fill className="object-cover" />
                         ) : (
                           <div className="h-full w-full flex items-center justify-center">
                             <Badge className="bg-white/10 text-white">No Banner</Badge>

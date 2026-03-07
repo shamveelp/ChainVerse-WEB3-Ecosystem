@@ -47,10 +47,10 @@ const CommunitySchema: Schema<ICommunity> = new Schema({
     isVerified: { type: Boolean, default: false },
     communityAdmins: [{ type: Schema.Types.ObjectId, ref: 'CommunityAdmin' }],
     settings: {
-        allowChainCast: { type: Boolean, default: false }, // Changed to false by default
+        allowChainCast: { type: Boolean, default: true }, // Changed to true by default to allow ChainCast for all admins
         allowGroupChat: { type: Boolean, default: true },
         allowPosts: { type: Boolean, default: true },
-        allowQuests: { type: Boolean, default: false },
+        allowQuests: { type: Boolean, default: true }, // Changed to true by default to allow Quests for all admins
     },
 }, {
     timestamps: true

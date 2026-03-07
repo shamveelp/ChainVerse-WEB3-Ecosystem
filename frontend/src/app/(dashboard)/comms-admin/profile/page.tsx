@@ -488,7 +488,8 @@ export default function CommunityAdminProfile() {
                 <Image
                   src={profile.bannerImage}
                   alt="Banner"
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 via-purple-900/70 to-pink-900/70" />

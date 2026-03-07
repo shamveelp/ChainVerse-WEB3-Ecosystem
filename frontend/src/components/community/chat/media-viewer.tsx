@@ -39,7 +39,7 @@ export function MediaViewer({ media, onClose }: MediaViewerProps) {
         <VisuallyHidden>
           <DialogTitle>Media Viewer</DialogTitle>
         </VisuallyHidden>
-        
+
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
@@ -76,13 +76,16 @@ export function MediaViewer({ media, onClose }: MediaViewerProps) {
         {/* Content */}
         <div className="flex-1 flex items-center justify-center p-4 bg-black/5">
           {media.type === 'image' ? (
-            <Image
-              src={media.url}
-              alt={media.filename}
-              className="max-w-full max-h-full object-contain"
-              onLoad={() => setLoading(false)}
-              onError={() => setLoading(false)}
-            />
+            <div className="relative w-full h-full">
+              <Image
+                src={media.url}
+                alt={media.filename}
+                fill
+                className="object-contain"
+                onLoad={() => setLoading(false)}
+                onError={() => setLoading(false)}
+              />
+            </div>
           ) : (
             <video
               src={media.url}

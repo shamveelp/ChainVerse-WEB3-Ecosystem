@@ -182,11 +182,14 @@ export default function CommunityAdminPostCard({ post, onLikeToggle, onPostUpdat
           {post.mediaUrls.length > 0 && post.mediaType !== "none" && (
             <div className="mt-2">
               {post.mediaType === "image" ? (
-                <Image
-                  src={post.mediaUrls[0]}
-                  alt="Post media"
-                  className="w-full max-h-96 object-cover rounded-lg"
-                />
+                <div className="relative w-full h-96 overflow-hidden rounded-lg">
+                  <Image
+                    src={post.mediaUrls[0]}
+                    alt="Post media"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
               ) : (
                 <video
                   src={post.mediaUrls[0]}

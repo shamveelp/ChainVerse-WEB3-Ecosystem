@@ -103,10 +103,10 @@ export class CommunityAdminDashboardService implements ICommunityAdminDashboardS
                 activeMembers,
                 isVerified: community.isVerified,
                 settings: {
-                    allowChainCast: community.settings?.allowChainCast || false,
+                    allowChainCast: community.settings?.allowChainCast !== false, // Default to true now
                     allowGroupChat: community.settings?.allowGroupChat !== false,
                     allowPosts: community.settings?.allowPosts !== false,
-                    allowQuests: community.settings?.allowQuests || false
+                    allowQuests: community.settings?.allowQuests !== false // Default to true now
                 },
                 socialLinks
             };

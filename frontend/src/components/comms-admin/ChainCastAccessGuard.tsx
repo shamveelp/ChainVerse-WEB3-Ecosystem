@@ -23,27 +23,9 @@ export function ChainCastAccessGuard({ children }: ChainCastAccessGuardProps) {
 
   useEffect(() => {
     const checkAccess = async () => {
-      try {
-        // First check Redux state
-        if (chainCastAccess) {
-          setHasAccess(true);
-          setLoading(false);
-          return;
-        }
-
-        // If not in Redux, check with API
-        const response = await communityAdminSubscriptionApiService.checkChainCastAccess();
-        if (response.success && response.data?.hasAccess) {
-          setHasAccess(true);
-        } else {
-          setHasAccess(false);
-        }
-      } catch (error) {
-        console.error("Error checking ChainCast access:", error);
-        setHasAccess(false);
-      } finally {
-        setLoading(false);
-      }
+      // All restrictions removed: always grant access to ChainCast
+      setHasAccess(true);
+      setLoading(false);
     };
 
     checkAccess();

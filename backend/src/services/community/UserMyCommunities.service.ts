@@ -4,7 +4,7 @@ import { ICommunityRepository } from "../../core/interfaces/repositories/ICommun
 import { TYPES } from "../../core/types/types";
 import { CustomError } from "../../utils/customError";
 import { StatusCode } from "../../enums/statusCode.enum";
-import { 
+import {
     MyCommunitiesListResponseDto,
     MyCommunitiesStatsDto,
     MyCommunitiesActivityResponseDto,
@@ -17,7 +17,7 @@ import { Types } from "mongoose";
 export class UserMyCommunitiesService implements IUserMyCommunitiesService {
     constructor(
         @inject(TYPES.ICommunityRepository) private _communityRepository: ICommunityRepository
-    ) {}
+    ) { }
 
     async getMyCommunities(
         userId: string,
@@ -60,10 +60,10 @@ export class UserMyCommunitiesService implements IUserMyCommunitiesService {
                     totalPosts: membership.totalPosts || 0,
                     isActive: membership.isActive,
                     settings: {
-                        allowChainCast: community.settings?.allowChainCast || false,
-                        allowGroupChat: community.settings?.allowGroupChat || true,
-                        allowPosts: community.settings?.allowPosts || true,
-                        allowQuests: community.settings?.allowQuests || false
+                        allowChainCast: community.settings?.allowChainCast !== false,
+                        allowGroupChat: community.settings?.allowGroupChat !== false,
+                        allowPosts: community.settings?.allowPosts !== false,
+                        allowQuests: community.settings?.allowQuests !== false
                     },
                     notifications: membership.notifications || false,
                     createdAt: community.createdAt

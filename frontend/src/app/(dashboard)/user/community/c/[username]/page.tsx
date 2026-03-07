@@ -242,7 +242,8 @@ export default function CommunityProfilePage({ params }: CommunityProfilePagePro
           <Image
             src={community.banner || 'https://images.pexels.com/photos/924824/pexels-photo-924824.jpeg?auto=compress&cs=tinysrgb&w=1200&h=300'}
             alt="Community banner"
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement
               target.src = 'https://images.pexels.com/photos/924824/pexels-photo-924824.jpeg?auto=compress&cs=tinysrgb&w=1200&h=300'

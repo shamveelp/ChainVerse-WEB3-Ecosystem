@@ -116,7 +116,13 @@ export default function CreateCommunityAdminPost({ onPostCreated, onCancel }: Cr
       {mediaPreview && (
         <div className="relative rounded-lg overflow-hidden">
           {mediaFile?.type.startsWith("image/") ? (
-            <Image src={mediaPreview} alt="Preview" className="w-full h-48 object-cover" />
+            <Image
+              src={mediaPreview}
+              alt="Preview"
+              width={500}
+              height={300}
+              className="w-full h-48 object-cover"
+            />
           ) : (
             <video src={mediaPreview} controls className="w-full h-48 object-cover" />
           )}

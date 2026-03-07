@@ -303,7 +303,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           <Image
             src={displayProfile.bannerImage || 'https://images.pexels.com/photos/924824/pexels-photo-924824.jpeg?auto=compress&cs=tinysrgb&w=1200&h=300'}
             alt="Profile banner"
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement
               target.src = 'https://images.pexels.com/photos/924824/pexels-photo-924824.jpeg?auto=compress&cs=tinysrgb&w=1200&h=300'
@@ -489,8 +490,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
               <TabsContent value="media" className="mt-0">
                 <div className="text-center py-12 px-4">
-                  <div className="w-[300px] h-[150px] mx-auto bg-slate-800/50 rounded-xl mb-6 flex items-center justify-center">
-                    <Image src="https://abs.twimg.com/sticky/illustrations/empty-states/yellow-birds-power-line-800x400.v1.png" alt="No media" className="opacity-50 h-full w-auto p-4" />
+                  <div className="relative w-[300px] h-[150px] mx-auto bg-slate-800/50 rounded-xl mb-6 flex items-center justify-center overflow-hidden">
+                    <Image src="https://abs.twimg.com/sticky/illustrations/empty-states/yellow-birds-power-line-800x400.v1.png" alt="No media" fill className="opacity-50 object-contain p-4" />
                   </div>
                   <p className="text-2xl font-bold text-white mb-2">Lights, camera ... attachment!</p>
                   <p className="text-slate-500">When you send tweets with photos or videos, they will show up here.</p>

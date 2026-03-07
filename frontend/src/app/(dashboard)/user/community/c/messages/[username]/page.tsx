@@ -10,7 +10,7 @@ import { PillNavigation } from "@/components/community/chat/pill-navigation"
 import CommunityChainCastList from "@/components/chainCast/communityChainCastList"
 import { toast } from "sonner"
 import { communitySocketService } from "@/services/socket/communitySocketService"
-import { communityApiService } from "@/services/communityApiService"
+import { communityExploreApiService } from "@/services/userCommunityServices/communityExploreApiService"
 import { Loader2 } from "lucide-react"
 
 type ViewType = "community" | "chats" | "chaincast"
@@ -48,9 +48,9 @@ export default function CommunityPage({ params }: CommunityPageProps) {
 
       try {
         setIsLoadingCommunity(true);
-        const response = await communityApiService.getCommunityProfileByUsername(username);
-        if (response.data && response.data._id) {
-          setCommunityId(response.data._id);
+        const data = await communityExploreApiService.getCommunityProfile(username);
+        if (data && data._id) {
+          setCommunityId(data._id);
         }
       } catch (error) {
         console.error("Failed to fetch community details:", error);

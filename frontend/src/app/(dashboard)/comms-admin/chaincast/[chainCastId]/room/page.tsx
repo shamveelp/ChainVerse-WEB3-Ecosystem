@@ -8,9 +8,10 @@ import {
   communityAdminChainCastApiService
 } from '@/services/chainCast/communityAdminChainCastApiService'
 import type { ChainCast } from '@/types/comms-admin/chaincast.types'
-import ChainCastRoom from '@/components/chainCast/chainCastRoom'
+import LiveKitChainCastRoom from '@/components/chainCast/LiveKitChainCastRoom'
 import { toast } from 'sonner'
 import { Loader2, AlertCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 interface AdminChainCastRoomPageProps {
   params: Promise<{
@@ -23,16 +24,15 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
   const resolvedParams = use(params)
   const { chainCastId } = resolvedParams
 
-  const currentAdmin = useSelector((state: RootState) => state.communityAdminAuth?.communityAdmin)
   const isAuthenticated = useSelector((state: RootState) => state.communityAdminAuth?.isAuthenticated)
 
   const [chainCast, setChainCast] = useState<ChainCast | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Load ChainCast data
+  // Load ChainCast data and Start it
   useEffect(() => {
-    const loadChainCast = async () => {
+    const startAndLoadChainCast = async () => {
       if (!chainCastId || !isAuthenticated) {
         setLoading(false)
         return
@@ -42,32 +42,22 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
         setLoading(true)
         setError(null)
 
-        const chainCastData = await communityAdminChainCastApiService.getChainCast(chainCastId)
-
-        // Convert to match ChainCast interface expected by ChainCastRoom
-        const adaptedChainCast = {
-          ...chainCastData,
-          userRole: 'admin', // Community admin is always admin in the chaincast
-          canJoin: true,
-          canModerate: true,
-          isParticipant: true,
-          // Ensure admin has all permissions
-          permissions: {
-            canStream: true,
-            canModerate: true,
-            canReact: true,
-            canChat: true
-          },
-          // Admin stream settings
-          streamData: {
-            hasVideo: true,
-            hasAudio: true,
-            isMuted: false,
-            isVideoOff: false
-          }
+        // First try to start it (which now returns the LiveKit token)
+        let chainCastData: ChainCast
+        try {
+          chainCastData = await communityAdminChainCastApiService.startChainCast(chainCastId)
+        } catch (startErr: any) {
+          // If already started, just get it
+          console.log("ChainCast might already be started, fetching data...")
+          chainCastData = await communityAdminChainCastApiService.getChainCast(chainCastId)
         }
 
-        setChainCast(adaptedChainCast as unknown as ChainCast)
+        if (!chainCastData.livekitToken) {
+          // If we don't have a token, it means the start failed or it's not live
+          throw new Error("Could not obtain LiveKit token. Ensure the ChainCast is live.")
+        }
+
+        setChainCast(chainCastData)
 
       } catch (err: unknown) {
         console.error('Failed to load ChainCast:', err)
@@ -81,37 +71,12 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
       }
     }
 
-    loadChainCast()
+    startAndLoadChainCast()
   }, [chainCastId, isAuthenticated])
 
-  // Handle leave (admin leaves but chaincast continues)
-  const handleLeave = async () => {
-    try {
-      toast.success('Left ChainCast (still running)')
-      router.push('/comms-admin/chaincast')
-    } catch (err: unknown) {
-      console.error('Failed to leave ChainCast:', err)
-      toast.error('Failed to leave ChainCast')
-      // Navigate back anyway
-      router.push('/comms-admin/chaincast')
-    }
-  }
-
-  // Handle hang up (admin ends the chaincast for everyone)
-  const handleHangUp = async () => {
-    try {
-      if (chainCast?.status === 'live') {
-        await communityAdminChainCastApiService.endChainCast(chainCastId)
-        toast.success('ChainCast ended successfully')
-      }
-
-      router.push('/comms-admin/chaincast')
-    } catch (err: unknown) {
-      console.error('Failed to end ChainCast:', err)
-      toast.error('Failed to end ChainCast')
-      // Navigate back anyway
-      router.push('/comms-admin/chaincast')
-    }
+  // Handle leave
+  const handleLeave = () => {
+    router.push('/comms-admin/chaincast')
   }
 
   // Show loading
@@ -119,8 +84,13 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-red-500 mx-auto" />
-          <p className="text-white text-lg">Loading ChainCast Room...</p>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          >
+            <Loader2 className="h-12 w-12 text-red-500 mx-auto" />
+          </motion.div>
+          <p className="text-white text-lg font-medium">Initializing Live Room...</p>
         </div>
       </div>
     )
@@ -148,7 +118,7 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
           <p className="text-slate-400">{error || 'This ChainCast may have ended or been removed.'}</p>
           <button
             onClick={() => router.push('/comms-admin/chaincast')}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-all shadow-lg shadow-red-900/20"
           >
             Back to ChainCasts
           </button>
@@ -157,5 +127,12 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
     )
   }
 
-  return <ChainCastRoom chainCast={chainCast} onLeave={handleLeave} onHangUp={handleHangUp} />
+  return (
+    <LiveKitChainCastRoom
+      token={chainCast.livekitToken!}
+      serverUrl={chainCast.serverUrl!}
+      chainCast={chainCast}
+      onLeave={handleLeave}
+    />
+  )
 }

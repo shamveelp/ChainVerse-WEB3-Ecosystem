@@ -27,7 +27,9 @@ export interface AddReactionRequest {
 export interface JoinChainCastResponse {
     success: boolean;
     message: string;
-    streamUrl?: string;
+    streamUrl?: string; // legacy
+    livekitToken?: string;
+    serverUrl?: string;
 }
 
 export interface CanJoinResponse {

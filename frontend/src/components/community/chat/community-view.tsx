@@ -344,6 +344,8 @@ export function CommunityView() {
                                 <Image
                                   src={media.url}
                                   alt={media.filename}
+                                  width={800}
+                                  height={450}
                                   className="w-full h-auto max-h-96 object-cover"
                                   loading="lazy"
                                 />

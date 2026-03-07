@@ -9,6 +9,7 @@ import { IChainCastRepository } from "../../core/interfaces/repositories/chainCa
 import { ICommunityAdminRepository } from "../../core/interfaces/repositories/ICommunityAdminRepository";
 import { IUserRepository } from "../../core/interfaces/repositories/IUser.repository";
 import CommunityMemberModel from "../../models/communityMember.model";
+import { ILiveKitService } from "../../core/interfaces/services/livekit/ILiveKit.service";
 import { ErrorMessages, SuccessMessages, LoggerMessages } from "../../enums/messages.enum";
 import {
   CreateChainCastDto,
@@ -44,7 +45,8 @@ export class ChainCastService implements IChainCastService {
     private _chainCastRepository: IChainCastRepository,
     @inject(TYPES.ICommunityAdminRepository)
     private _adminRepository: ICommunityAdminRepository,
-    @inject(TYPES.IUserRepository) private _userRepository: IUserRepository
+    @inject(TYPES.IUserRepository) private _userRepository: IUserRepository,
+    @inject(TYPES.ILiveKitService) private _liveKitService: ILiveKitService
   ) { }
 
   // Admin ChainCast management
@@ -248,13 +250,41 @@ export class ChainCastService implements IChainCastService {
       }
 
       const populatedAdmin = chainCast.adminId as unknown as PopulatedAdmin;
-      return new ChainCastResponseDto(
+      const response = new ChainCastResponseDto(
         chainCast,
         populatedAdmin,
         userRole,
         canJoin,
         canModerate
       );
+
+      // If live and user is authenticated, provide a token
+      if (chainCast.status === "live" && userId) {
+        const roomName = `chaincast_${chainCastId}`;
+        const isHost = userRole === "admin";
+
+        let identityName = "Guest";
+        if (isHost) {
+          identityName = populatedAdmin.name || "Host";
+        } else {
+          try {
+            const user = await this._userRepository.findById(userId);
+            identityName = user?.name || user?.username || `Guest_${userId.substring(0, 4)}`;
+          } catch (e) {
+            identityName = `Guest_${userId.substring(0, 4)}`;
+          }
+        }
+
+        response.livekitToken = await this._generateLiveKitToken(
+          roomName,
+          userId,
+          identityName,
+          isHost
+        );
+        response.serverUrl = process.env.LIVE_KIT_WEBSOCKET_URL || process.env.LIVE_KIT_URL || process.env.LIVEKIT_URL;
+      }
+
+      return response;
     } catch (error) {
       logger.error(LoggerMessages.GET_CHAINCAST_BY_ID_ERROR, error);
       if (error instanceof CustomError) {
@@ -440,6 +470,29 @@ export class ChainCastService implements IChainCastService {
         );
       }
 
+      if (chainCast.status === "live") {
+        // Already live, just return with a fresh token
+        const admin = await this._adminRepository.findById(adminId);
+        const roomName = `chaincast_${chainCastId}`;
+        const token = await this._generateLiveKitToken(
+          roomName,
+          adminId,
+          admin?.name || 'Host',
+          true
+        );
+
+        const response = new ChainCastResponseDto(
+          chainCast,
+          admin!,
+          "admin",
+          true,
+          true
+        );
+        response.livekitToken = token;
+        response.serverUrl = process.env.LIVE_KIT_WEBSOCKET_URL || process.env.LIVE_KIT_URL || process.env.LIVEKIT_URL;
+        return response;
+      }
+
       if (chainCast.status !== "scheduled") {
         throw new CustomError(
           ErrorMessages.CHAINCAST_NOT_SCHEDULED,
@@ -472,13 +525,27 @@ export class ChainCastService implements IChainCastService {
       await this._createAdminParticipant(chainCastId, adminId);
 
       const admin = await this._adminRepository.findById(adminId);
-      return new ChainCastResponseDto(
+
+      // Generate LiveKit token for host
+      const roomName = `chaincast_${chainCastId}`;
+      const token = await this._generateLiveKitToken(
+        roomName,
+        adminId,
+        admin?.name || 'Host',
+        true
+      );
+
+      const response = new ChainCastResponseDto(
         updatedChainCast,
         admin,
         "admin",
         true,
         true
       );
+      response.livekitToken = token;
+      response.serverUrl = process.env.LIVE_KIT_WEBSOCKET_URL || process.env.LIVE_KIT_URL || process.env.LIVEKIT_URL;
+
+      return response;
     } catch (error) {
       logger.error(LoggerMessages.START_CHAINCAST_ERROR, error);
       if (error instanceof CustomError) {
@@ -645,12 +712,12 @@ export class ChainCastService implements IChainCastService {
    * Joins a ChainCast.
    * @param {string} userId - User ID.
    * @param {JoinChainCastDto} data - Join data.
-   * @returns {Promise<{ success: boolean; message: string; streamUrl?: string }>} Join result.
+   * @returns {Promise<{ success: boolean; message: string; streamUrl?: string; livekitToken?: string; serverUrl?: string }>} Join result.
    */
   async joinChainCast(
     userId: string,
     data: JoinChainCastDto
-  ): Promise<{ success: boolean; message: string; streamUrl?: string }> {
+  ): Promise<{ success: boolean; message: string; streamUrl?: string; livekitToken?: string; serverUrl?: string }> {
     try {
       const chainCast = await this._chainCastRepository.findChainCastById(
         data.chainCastId
@@ -742,10 +809,22 @@ export class ChainCastService implements IChainCastService {
       };
       await this._chainCastRepository.updateChainCast(data.chainCastId, updateDataForStats as Partial<IChainCast>);
 
+      // Generate LiveKit token for user
+      const user = await this._userRepository.findById(userId);
+      const roomName = `chaincast_${data.chainCastId}`;
+      const token = await this._generateLiveKitToken(
+        roomName,
+        userId,
+        user?.name || user?.username || "Participant",
+        false
+      );
+
       return {
         success: true,
         message: SuccessMessages.JOIN_CHAINCAST_SUCCESS,
-        streamUrl: chainCast.streamData.streamUrl,
+        streamUrl: chainCast.streamData.streamUrl, // legacy
+        livekitToken: token,
+        serverUrl: process.env.LIVE_KIT_WEBSOCKET_URL || process.env.LIVE_KIT_URL || process.env.LIVEKIT_URL,
       };
     } catch (error) {
       logger.error(LoggerMessages.JOIN_CHAINCAST_ERROR, error);
@@ -1543,5 +1622,21 @@ export class ChainCastService implements IChainCastService {
     // Mark all participants as inactive
     // This would be done with a bulk update in MongoDB
     // For now, we'll leave this as a placeholder
+  }
+  private async _generateLiveKitToken(
+    roomName: string,
+    identity: string,
+    username: string,
+    isHost: boolean = false
+  ): Promise<string> {
+    const grants = {
+      roomJoin: true,
+      canPublish: isHost,
+      canSubscribe: true,
+      canPublishData: true,
+      roomAdmin: isHost,
+    };
+
+    return this._liveKitService.generateToken(roomName, identity, username, grants);
   }
 }
