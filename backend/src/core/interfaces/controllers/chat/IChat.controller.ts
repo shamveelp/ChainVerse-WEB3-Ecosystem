@@ -8,4 +8,5 @@ export interface IChatController {
   editMessage(req: Request, res: Response): Promise<void>;
   deleteMessage(req: Request, res: Response): Promise<void>;
   markMessagesAsRead(req: Request, res: Response): Promise<void>;
+  getLiveKitToken(req: Request, res: Response): Promise<void>;
 }

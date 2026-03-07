@@ -605,6 +605,13 @@ router.post(
   chatController.markMessagesAsRead.bind(chatController)
 );
 
+router.get(
+  "/chat/livekit-token",
+  authMiddleware,
+  roleMiddleware(["user"]),
+  chatController.getLiveKitToken.bind(chatController)
+);
+
 // Referral Routes (protected)
 router.get(
   "/referrals/history",

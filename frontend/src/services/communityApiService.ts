@@ -592,6 +592,27 @@ export const communityApiService = {
     }
   },
 
+  // Get LiveKit token
+  getLiveKitToken: async (receiverId: string): Promise<{ token: string; roomName: string; serverUrl: string }> => {
+    if (!receiverId) {
+      throw new Error("Receiver ID is required");
+    }
+
+    try {
+      const response = await API.get(`${USER_API_ROUTES.CHAT_LIVEKIT_TOKEN}?receiverId=${receiverId}`);
+
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      }
+
+      throw new Error(response.data?.error || response.data?.message || "Failed to get LiveKit token");
+    } catch (error) {
+      console.error('API: Get LiveKit token failed:', error);
+      handleApiError(error as AxiosError, "Failed to get LiveKit token");
+      throw error;
+    }
+  },
+
   // Helper function to format stats for display
   formatStats: (count: number): string => {
     if (typeof count !== 'number' || count < 0) return '0';

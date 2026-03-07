@@ -41,21 +41,25 @@ export default function CommunityLayout({
   const isMessagesPage = pathname?.includes("/messages");
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className={cn(
+      "bg-slate-950",
+      isMessagesPage ? "h-screen overflow-hidden flex flex-col" : "min-h-screen"
+    )}>
       <Navbar />
 
       <Sidebar />
-      <RightSidebar />
+      {!isMessagesPage && <RightSidebar />}
 
       {/* Main Content Area */}
       <div className={cn(
-        "pt-[4.5rem] min-h-screen pb-20 lg:pb-0",
+        "pt-[4.5rem] lg:pb-0 font-sans",
+        isMessagesPage ? "h-[100dvh] overflow-hidden flex flex-col min-h-0" : "min-h-screen pb-20",
         "lg:ml-[88px] xl:ml-[275px]",
-        "xl:mr-80"
+        !isMessagesPage && "xl:mr-80"
       )}>
         <div className={cn(
-          "min-h-screen border-slate-800",
-          isMessagesPage ? "w-full border-0" : "mx-auto max-w-[600px] w-full border-x mb-20 md:mb-0"
+          "border-slate-800 transition-all",
+          isMessagesPage ? "w-full h-full border-0 flex flex-col min-h-0 relative" : "min-h-screen mx-auto max-w-[600px] w-full border-x mb-20 md:mb-0"
         )}>
           {children}
         </div>

@@ -266,6 +266,7 @@ export const USER_API_ROUTES = {
     CHAT_CONVERSATION_BY_USERNAME: (username: string) => `/api/user/chat/conversation/${username}`,
     CHAT_MESSAGE_BY_ID: (id: string) => `/api/user/chat/messages/${id}`,
     CHAT_MESSAGES_READ: '/api/user/chat/messages/read',
+    CHAT_LIVEKIT_TOKEN: '/api/user/chat/livekit-token',
 
     // ChainCast
     CHAINCAST_COMMUNITY: (id: string) => `/api/user/community/${id}/chaincasts`,

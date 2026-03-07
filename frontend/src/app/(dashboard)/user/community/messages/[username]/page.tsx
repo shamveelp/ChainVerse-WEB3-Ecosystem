@@ -27,6 +27,8 @@ import { cn } from "@/lib/utils"
 import Sidebar from "@/components/community/sidebar"
 import RightSidebar from "@/components/community/right-sidebar"
 import { useChat } from '@/hooks/useChat'
+import { useLiveKit } from '@/hooks/useLiveKit'
+import { RoomEvent } from 'livekit-client'
 import { communityApiService, ConversationResponse, MessageResponse } from '@/services/communityApiService'
 import { toast } from 'sonner'
 import { useInView } from 'react-intersection-observer'
@@ -51,7 +53,7 @@ export default function ChatPage({ params }: ChatPageProps) {
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string } | null>(null)
   const [editContent, setEditContent] = useState('')
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null)
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
@@ -64,7 +66,9 @@ export default function ChatPage({ params }: ChatPageProps) {
     sendingMessage,
     error,
     hasMoreMessages,
+    typingUsers,
     socketConnected,
+    lkConnected,
     fetchMessages,
     sendMessage,
     editMessage,
@@ -73,9 +77,14 @@ export default function ChatPage({ params }: ChatPageProps) {
     getOrCreateConversation,
     joinConversation,
     leaveConversation,
+    connectLiveKit,
+    disconnectLiveKit,
     loadMoreMessages,
+    sendTypingStatus,
     clearError
   } = useChat()
+
+  // Intersection observer for infinite scroll (load older messages)
 
   // Intersection observer for infinite scroll (load older messages)
   const { ref: loadMoreRef, inView } = useInView({
@@ -98,10 +107,20 @@ export default function ChatPage({ params }: ChatPageProps) {
 
         if (!mounted) return
 
+        if (!conv) {
+          throw new Error('Conversation could not be loaded')
+        }
+
         setConversation(conv)
 
         // Join socket room
         joinConversation(conv._id)
+
+        // Connect to LiveKit for perfect real-time
+        const participant = conv.participants[0]
+        if (participant?._id) {
+          connectLiveKit(participant._id)
+        }
 
         // Fetch messages
         await fetchMessages(conv._id)
@@ -125,9 +144,10 @@ export default function ChatPage({ params }: ChatPageProps) {
       mounted = false
       if (currentConversation) {
         leaveConversation(currentConversation._id)
+        disconnectLiveKit()
       }
     }
-  }, [username, getOrCreateConversation, joinConversation, leaveConversation, fetchMessages, markMessagesAsRead])
+  }, [username, getOrCreateConversation, joinConversation, leaveConversation, fetchMessages, markMessagesAsRead, connectLiveKit, disconnectLiveKit])
 
   // Sync local conversation state with global conversations list
   useEffect(() => {
@@ -148,6 +168,18 @@ export default function ChatPage({ params }: ChatPageProps) {
     }
   }, [currentMessages, loading])
 
+  // Mark new messages as read automatically
+  useEffect(() => {
+    if (currentConversation && currentMessages.length > 0) {
+      const lastMessage = currentMessages[currentMessages.length - 1]
+      const isUnread = !lastMessage.isOwnMessage && !lastMessage.readBy?.some(r => r.user === currentUser?._id)
+
+      if (isUnread) {
+        markMessagesAsRead(currentConversation._id)
+      }
+    }
+  }, [currentMessages, currentConversation?._id, currentUser?._id, markMessagesAsRead])
+
   // Load more messages when scrolling up
   useEffect(() => {
     if (inView && currentConversation && hasMoreMessages[currentConversation._id] && !loading) {
@@ -164,6 +196,21 @@ export default function ChatPage({ params }: ChatPageProps) {
     }
   }, [inView, currentConversation, hasMoreMessages, loading, loadMoreMessages])
 
+  // Handle typing status
+  const handleTyping = useCallback(() => {
+    if (!currentConversation) return
+
+    sendTypingStatus(currentConversation._id, true)
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+    typingTimeoutRef.current = setTimeout(() => {
+      if (currentConversation) {
+        sendTypingStatus(currentConversation._id, false)
+      }
+      typingTimeoutRef.current = null
+    }, 3000)
+  }, [currentConversation, sendTypingStatus])
+
   // Handle send message
   const handleSendMessage = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
@@ -173,8 +220,17 @@ export default function ChatPage({ params }: ChatPageProps) {
     const messageContent = newMessage.trim()
     setNewMessage('') // Clear input immediately for better UX
 
+    // Stop typing status immediately
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+    if (currentConversation) {
+      sendTypingStatus(currentConversation._id, false)
+    }
+
     try {
-      await sendMessage(username, messageContent)
+      await sendMessage(username, messageContent, conversation?._id)
 
       // Scroll to bottom
       setTimeout(() => {
@@ -184,7 +240,7 @@ export default function ChatPage({ params }: ChatPageProps) {
       // Restore message on error
       setNewMessage(messageContent)
     }
-  }, [newMessage, sendingMessage, sendMessage, username])
+  }, [newMessage, sendingMessage, sendMessage, username, currentConversation, sendTypingStatus])
 
   // Handle key press in message input
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -323,8 +379,8 @@ export default function ChatPage({ params }: ChatPageProps) {
   }
 
   return (
-    <div className="w-full min-h-screen bg-slate-950 flex justify-center">
-      <div className="w-full max-w-2xl border-x border-slate-800 h-screen flex flex-col bg-slate-950">
+    <div className="w-full h-full flex justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950">
+      <div className="w-full max-w-5xl border-x border-slate-800/50 shadow-2xl h-full flex flex-col bg-slate-950/40 relative backdrop-blur-sm">
         {/* Chat Header - Sticky */}
         <div className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/50 p-4">
           <div className="flex items-center justify-between">
@@ -366,7 +422,7 @@ export default function ChatPage({ params }: ChatPageProps) {
                         <p className="text-sm text-slate-400">
                           {participant?.isOnline ? 'Online now' : 'Offline'}
                         </p>
-                        <ConnectionStatus isConnected={socketConnected} className="text-xs" />
+                        <ConnectionStatus isConnected={socketConnected || lkConnected} className="text-xs" />
                       </div>
                     </div>
                   </button>
@@ -421,7 +477,7 @@ export default function ChatPage({ params }: ChatPageProps) {
         </div>
 
         {/* Messages Area */}
-        <ScrollArea className="flex-1" ref={messagesContainerRef}>
+        <ScrollArea className="flex-1 min-h-0" ref={messagesContainerRef}>
           <div className="p-4 space-y-4">
             {/* Load More Trigger */}
             {currentConversation && hasMoreMessages[currentConversation._id] && (
@@ -454,12 +510,21 @@ export default function ChatPage({ params }: ChatPageProps) {
                   {!isOwnMessage && (
                     <div className="w-8 flex justify-center flex-shrink-0">
                       {showAvatar ? (
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={message.sender.profilePic} alt={message.sender.name} />
-                          <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-sm">
-                            {message.sender.name?.charAt(0)?.toUpperCase() || message.sender.username?.charAt(0)?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={message.sender.profilePic} alt={message.sender.name} />
+                            <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-sm">
+                              {message.sender.name?.charAt(0)?.toUpperCase() || message.sender.username?.charAt(0)?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          {message.sender.isVerified && (
+                            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full border-2 border-slate-950 flex items-center justify-center z-10">
+                              <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
                       ) : null}
                     </div>
                   )}
@@ -510,10 +575,10 @@ export default function ChatPage({ params }: ChatPageProps) {
                         <DropdownMenuTrigger asChild>
                           <div
                             className={cn(
-                              "relative rounded-2xl px-4 py-3 cursor-pointer transition-all duration-200",
+                              "relative px-5 py-3.5 cursor-pointer transition-all duration-300 transform hover:scale-[1.02] shadow-md",
                               isOwnMessage
-                                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-400 hover:to-blue-500"
-                                : "bg-slate-800 text-white hover:bg-slate-700"
+                                ? "bg-gradient-to-br from-cyan-600 to-blue-600 text-white rounded-2xl rounded-tr-sm shadow-cyan-900/30 border border-cyan-500/20"
+                                : "bg-slate-800/80 backdrop-blur-md text-white rounded-2xl rounded-tl-sm border border-slate-700/50 shadow-slate-950/50"
                             )}
                           >
                             {message.isDeleted ? (
@@ -582,22 +647,35 @@ export default function ChatPage({ params }: ChatPageProps) {
               )
             })}
 
-            {/* Scroll target */}
+            {currentConversation && typingUsers[currentConversation._id]?.length > 0 && (
+              <div className="flex items-center gap-2 text-slate-400 text-xs px-2 animate-pulse">
+                <div className="flex gap-1">
+                  <span className="w-1 h-1 bg-slate-400 rounded-full animate-bounce"></span>
+                  <span className="w-1 h-1 bg-slate-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                  <span className="w-1 h-1 bg-slate-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                </div>
+                <span>{typingUsers[currentConversation._id][0]} is typing...</span>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
         {/* Message Input Area - Bottom */}
-        <div className="bg-slate-900/50 border-t border-slate-700/50 p-4 sticky bottom-0 z-20 backdrop-blur-sm">
-          <form onSubmit={handleSendMessage} className="w-full">
-            <div className="flex items-end gap-3">
-              <div className="flex-1 relative">
+        <div className="bg-slate-950/80 border-t border-slate-800/60 p-4 sm:p-5 sticky bottom-0 z-20 backdrop-blur-xl">
+          <form onSubmit={handleSendMessage} className="w-full max-w-4xl mx-auto">
+            <div className="flex items-end gap-3 relative">
+              <div className="flex-1 relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10" />
                 <Textarea
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value)
+                    handleTyping()
+                  }}
                   onKeyDown={handleKeyPress}
                   placeholder={`Message ${participant?.name || participant?.username || username}...`}
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 resize-none min-h-[44px] max-h-[120px] py-3"
+                  className="bg-slate-900/80 mt-1 border border-slate-700/50 focus-visible:ring-1 focus-visible:ring-cyan-500/50 focus-visible:border-cyan-500/50 rounded-2xl text-white placeholder:text-slate-500 resize-none min-h-[50px] max-h-[120px] py-3.5 px-4 shadow-inner"
                   maxLength={2000}
                   disabled={sendingMessage}
                 />
@@ -609,12 +687,12 @@ export default function ChatPage({ params }: ChatPageProps) {
               <Button
                 type="submit"
                 disabled={!newMessage.trim() || sendingMessage}
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed px-6"
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed px-6 rounded-2xl h-[50px] shadow-lg shadow-cyan-900/20 mb-1"
               >
                 {sendingMessage ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  <Send className="h-4 w-4" />
+                  <Send className="h-5 w-5" />
                 )}
               </Button>
             </div>

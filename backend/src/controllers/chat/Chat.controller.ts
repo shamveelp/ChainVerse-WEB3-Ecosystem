@@ -9,10 +9,13 @@ import { StatusCode } from "../../enums/statusCode.enum";
 import { SuccessMessages, ErrorMessages, LoggerMessages } from "../../enums/messages.enum";
 import logger from "../../utils/logger";
 
+import { ILiveKitService } from "../../core/interfaces/services/livekit/ILiveKit.service";
+
 @injectable()
 export class ChatController implements IChatController {
   constructor(
-    @inject(TYPES.IChatService) private _chatService: IChatService
+    @inject(TYPES.IChatService) private _chatService: IChatService,
+    @inject(TYPES.ILiveKitService) private _liveKitService: ILiveKitService
   ) { }
 
   /**
@@ -419,6 +422,63 @@ export class ChatController implements IChatController {
       res.status(statusCode).json({
         success: false,
         error: message
+      });
+    }
+  }
+
+  /**
+   * Generates a LiveKit token for a 1:1 chat room.
+   * @param req - Express Request object containing receiverId in query.
+   * @param res - Express Response object.
+   */
+  async getLiveKitToken(req: Request, res: Response): Promise<void> {
+    try {
+      const user = req.user as { id: string; role: string; username: string };
+      const { receiverId } = req.query;
+
+      if (!user || !user.id) {
+        res.status(StatusCode.UNAUTHORIZED).json({
+          success: false,
+          error: ErrorMessages.USER_NOT_AUTHENTICATED
+        });
+        return;
+      }
+
+      if (!receiverId || typeof receiverId !== 'string') {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          error: "Receiver ID is required"
+        });
+        return;
+      }
+
+      const participants = [user.id, receiverId].sort();
+      const roomName = `chat_${participants[0]}_${participants[1]}`;
+
+      const token = await this._liveKitService.generateToken(
+        roomName,
+        user.id,
+        user.username || "User"
+      );
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        data: {
+          token,
+          roomName,
+          serverUrl: process.env.LIVE_KIT_WEBSOCKET_URL
+        }
+      });
+    } catch (error) {
+      const err = error as Error;
+      logger.error("LiveKit token generation error", {
+        message: err.message,
+        userId: (req as AuthenticatedRequest).user?.id || 'unknown'
+      });
+
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        error: "Failed to generate video/chat token"
       });
     }
   }

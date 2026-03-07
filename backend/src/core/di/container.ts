@@ -108,6 +108,8 @@ import type { IOTPService } from "../interfaces/services/IOTP.service"
 import { OtpService } from "../../services/otp.service"
 import type { IMailService } from "../interfaces/services/IMail.service"
 import { MailService } from "../../services/mail.service"
+import { ILiveKitService } from "../interfaces/services/livekit/ILiveKit.service";
+import { LiveKitService } from "../../services/livekit/LiveKit.service";
 
 // Repositories
 import type { IUserRepository } from "../interfaces/repositories/IUser.repository"
@@ -466,5 +468,6 @@ container.bind<IAdminCommunityManagementService>(TYPES.IAdminCommunityManagement
 container.bind<INotificationRepository>(TYPES.INotificationRepository).to(NotificationRepository);
 container.bind<INotificationService>(TYPES.INotificationService).to(NotificationService);
 container.bind<INotificationController>(TYPES.INotificationController).to(NotificationController);
+container.bind<ILiveKitService>(TYPES.ILiveKitService).to(LiveKitService);
 
 export default container

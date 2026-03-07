@@ -59,6 +59,7 @@
     "inversify": "^7.6.1",
     "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
+    "livekit-server-sdk": "^2.15.0",
     "mongodb": "^6.18.0",
     "mongoose": "^8.16.4",
     "multer": "^2.0.2",
