@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Chrome as Home, Search, Users, MessageCircle, User, Settings, LogOut, Bell, Shield, PenSquare, MoreHorizontal } from 'lucide-react'
+import { Chrome as Home, Search, Users, MessageCircle, User, Settings, LogOut, Bell, Shield, PenSquare, MoreHorizontal, X } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { useCommunityProfile } from '@/hooks/useCommunityProfile'
 import { useSelector, useDispatch } from 'react-redux'
@@ -256,6 +256,64 @@ export default function Sidebar() {
     </div>
   )
 
+  const isChatScreen = pathname?.startsWith(USER_ROUTES.COMMUNITY_MESSAGES + '/') && pathname !== USER_ROUTES.COMMUNITY_MESSAGES;
+
+  const DraggableMobileNav = () => {
+    const [isOpen, setIsOpen] = useState(false)
+    const constraintsRef = useRef(null)
+
+    return (
+      <div className="fixed inset-0 z-50 pointer-events-none" ref={constraintsRef}>
+        <motion.div
+          drag
+          dragConstraints={constraintsRef}
+          dragMomentum={false}
+          dragElastic={0.1}
+          initial={{ x: 0, y: 0 }}
+          className="absolute right-4 bottom-24 pointer-events-auto flex flex-col items-end gap-3"
+        >
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: 20, originX: 1, originY: 1 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="bg-slate-900/95 backdrop-blur-2xl border border-slate-700/50 p-2.5 rounded-[2.5rem] shadow-2xl flex flex-col gap-2"
+            >
+              {[...navigationItems].reverse().map(item => {
+                const Icon = item.icon
+                const isActive = pathname === item.path
+
+                if (item.id === 'profile') {
+                  return (
+                    <div key="profile" onClick={() => { handleProfileClick(); setIsOpen(false); }} className="w-12 h-12 flex justify-center items-center rounded-full bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer text-slate-300 hover:text-white border border-slate-700/50 shadow-sm relative group">
+                      <User className="h-5 w-5" />
+                    </div>
+                  )
+                }
+
+                return (
+                  <Link key={item.id} href={item.path} onClick={() => setIsOpen(false)} className={cn("w-12 h-12 flex justify-center items-center rounded-full bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700/50 shadow-sm relative group", isActive && "bg-slate-700 ring-1 ring-cyan-500/50")}>
+                    <Icon className={cn("h-5 w-5", isActive ? "text-cyan-400" : "text-slate-300")} />
+                    {(item.id === 'notifications' || item.id === 'messages') && (
+                      <div className="absolute top-2.5 right-2.5 w-2 h-2 bg-cyan-500 rounded-full border-2 border-slate-800" />
+                    )}
+                  </Link>
+                )
+              })}
+            </motion.div>
+          )}
+
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsOpen(!isOpen)}
+            className="h-14 w-14 rounded-full bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 shadow-xl shadow-black/50 flex items-center justify-center text-white cursor-grab active:cursor-grabbing shrink-0 z-10 hover:bg-slate-800 transition-colors"
+          >
+            {isOpen ? <X className="h-6 w-6" /> : <MoreHorizontal className="h-6 w-6" />}
+          </motion.button>
+        </motion.div>
+      </div>
+    )
+  }
+
   return (
     <>
       <aside className="hidden lg:flex flex-col fixed left-0 top-[4.5rem] h-[calc(100vh-4.5rem)] w-[88px] xl:w-[275px] border-r border-white/5 bg-slate-950/50 backdrop-blur-xl z-40">
@@ -263,7 +321,7 @@ export default function Sidebar() {
       </aside>
 
       <div className="lg:hidden">
-        <MobileBottomNav />
+        {isChatScreen ? <DraggableMobileNav /> : <MobileBottomNav />}
       </div>
     </>
   )

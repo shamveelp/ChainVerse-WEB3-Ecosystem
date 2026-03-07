@@ -677,7 +677,7 @@ export default function ChatPage({ params }: ChatPageProps) {
         </ScrollArea>
 
         {/* Message Input Area - Bottom */}
-        <div className="bg-slate-950/80 border-t border-slate-800/60 p-4 pb-[110px] lg:p-5 lg:pb-5 sticky bottom-0 z-20 backdrop-blur-xl shrink-0">
+        <div className="bg-slate-950/80 border-t border-slate-800/60 p-4 sm:p-5 sticky bottom-0 z-20 backdrop-blur-xl shrink-0">
           <form onSubmit={handleSendMessage} className="w-full max-w-4xl mx-auto">
             <div className="flex items-end gap-3 relative">
               <div className="flex-1 relative group">
