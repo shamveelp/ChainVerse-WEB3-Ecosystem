@@ -200,6 +200,26 @@ export const useChat = (receiverId?: string) => {
       const isOwnMessage = message.sender._id === currentUser._id;
       const msg = { ...message, isOwnMessage };
 
+      // 🔔 Global Toast Notification Logic (Only for incoming messages)
+      if (!isOwnMessage) {
+        const sender = message.sender;
+        const chatUrlPattern = `/user/community/messages/${sender.username}`;
+
+        // If they are not currently looking at this active chat window, alert them!
+        if (typeof window !== 'undefined' && !window.location.pathname.includes(chatUrlPattern)) {
+          toast(sender.name || sender.username, {
+            id: `msg-${message._id}`, // Prevents duplicate toasts physically
+            description: message.content.length > 50 ? message.content.substring(0, 50) + '...' : message.content,
+            action: {
+              label: 'Reply',
+              onClick: () => { window.location.href = chatUrlPattern; }
+            },
+            duration: 5000,
+            icon: '💬',
+          });
+        }
+      }
+
       setMessages(prev => {
         const existing = prev[conversation._id] || [];
         // Deduplicate LiveKit temporary messages

@@ -340,6 +340,7 @@ export class UserAuthController implements IUserAuthController {
 
       return res.status(StatusCode.OK).json({
         success: true,
+        accessToken,
       });
     } catch (error) {
       logger.error(LoggerMessages.REFRESH_TOKEN_ERROR, error);
