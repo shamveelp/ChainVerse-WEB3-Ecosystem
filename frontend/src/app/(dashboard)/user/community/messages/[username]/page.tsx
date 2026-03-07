@@ -57,6 +57,7 @@ export default function ChatPage({ params }: ChatPageProps) {
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const messageInputRef = useRef<HTMLTextAreaElement>(null)
   const currentUser = useSelector((state: RootState) => state.userAuth?.user)
 
   const {
@@ -161,12 +162,21 @@ export default function ChatPage({ params }: ChatPageProps) {
     }
   }, [conversations, conversation?._id]) // Only run when conversations list changes or ID changes
 
-  // Auto-scroll to bottom when new messages arrive
+  const [isFirstLoad, setIsFirstLoad] = useState(true)
+
+  // Auto-scroll to bottom seamlessly on new messages or initial load
   useEffect(() => {
     if (messagesEndRef.current && !loading) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+      if (isFirstLoad) {
+        // Instant non-animated snap on first load to prevent jumping
+        messagesEndRef.current.scrollIntoView()
+        setTimeout(() => setIsFirstLoad(false), 50)
+      } else {
+        // Smooth scroll for new messages
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+      }
     }
-  }, [currentMessages, loading])
+  }, [currentMessages, loading, isFirstLoad])
 
   // Mark new messages as read automatically
   useEffect(() => {
@@ -182,19 +192,21 @@ export default function ChatPage({ params }: ChatPageProps) {
 
   // Load more messages when scrolling up
   useEffect(() => {
-    if (inView && currentConversation && hasMoreMessages[currentConversation._id] && !loading) {
-      const scrollContainer = messagesContainerRef.current
+    if (inView && currentConversation && hasMoreMessages[currentConversation._id] && !loading && !isFirstLoad) {
+      const scrollContainer = messagesContainerRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement || messagesContainerRef.current
       const previousScrollHeight = scrollContainer?.scrollHeight || 0
 
       loadMoreMessages(currentConversation._id).then(() => {
-        // Maintain scroll position after loading older messages
+        // Maintain exact scroll position after prepend without jumping
         if (scrollContainer) {
-          const newScrollHeight = scrollContainer.scrollHeight
-          scrollContainer.scrollTop = newScrollHeight - previousScrollHeight
+          requestAnimationFrame(() => {
+            const newScrollHeight = scrollContainer.scrollHeight
+            scrollContainer.scrollTop = newScrollHeight - previousScrollHeight
+          })
         }
       })
     }
-  }, [inView, currentConversation, hasMoreMessages, loading, loadMoreMessages])
+  }, [inView, currentConversation, hasMoreMessages, loading, loadMoreMessages, isFirstLoad])
 
   // Handle typing status
   const handleTyping = useCallback(() => {
@@ -235,7 +247,8 @@ export default function ChatPage({ params }: ChatPageProps) {
       // Scroll to bottom
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-      }, 100)
+        messageInputRef.current?.focus()
+      }, 50)
     } catch (error) {
       // Restore message on error
       setNewMessage(messageContent)
@@ -477,26 +490,26 @@ export default function ChatPage({ params }: ChatPageProps) {
         </div>
 
         {/* Messages Area */}
-        <ScrollArea className="flex-1 min-h-0" ref={messagesContainerRef}>
+        <ScrollArea className={cn("flex-1 min-h-0 transition-opacity duration-300", isFirstLoad && currentMessages.length > 0 ? "opacity-0" : "opacity-100")} ref={messagesContainerRef}>
           <div className="p-4 space-y-4">
-            {/* Load More Trigger */}
+            {/* Load More Trigger (Visually at the top) */}
             {currentConversation && hasMoreMessages[currentConversation._id] && (
-              <div ref={loadMoreRef} className="flex justify-center py-2">
+              <div ref={loadMoreRef} className="flex justify-center py-4 shrink-0 mt-4">
                 {loading && (
                   <div className="flex items-center gap-2 text-slate-400">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">Loading older messages...</span>
+                    <span className="text-sm font-medium">Loading older messages...</span>
                   </div>
                 )}
               </div>
             )}
 
-            {currentMessages.map((message, index) => {
+            {currentMessages.map((message, index, arr) => {
               const isOwnMessage = message.isOwnMessage
               const showAvatar = !isOwnMessage && (
                 index === 0 ||
-                currentMessages[index - 1]?.isOwnMessage ||
-                currentMessages[index - 1]?.sender._id !== message.sender._id
+                arr[index - 1]?.isOwnMessage ||
+                arr[index - 1]?.sender._id !== message.sender._id
               )
 
               return (
@@ -648,7 +661,7 @@ export default function ChatPage({ params }: ChatPageProps) {
             })}
 
             {currentConversation && typingUsers[currentConversation._id]?.length > 0 && (
-              <div className="flex items-center gap-2 text-slate-400 text-xs px-2 animate-pulse">
+              <div className="flex items-center gap-2 text-slate-400 text-xs px-2 animate-pulse mt-2">
                 <div className="flex gap-1">
                   <span className="w-1 h-1 bg-slate-400 rounded-full animate-bounce"></span>
                   <span className="w-1 h-1 bg-slate-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
@@ -657,17 +670,20 @@ export default function ChatPage({ params }: ChatPageProps) {
                 <span>{typingUsers[currentConversation._id][0]} is typing...</span>
               </div>
             )}
-            <div ref={messagesEndRef} />
+
+            {/* Bottom Anchor */}
+            <div ref={messagesEndRef} className="h-px shrink-0 w-full" />
           </div>
         </ScrollArea>
 
         {/* Message Input Area - Bottom */}
-        <div className="bg-slate-950/80 border-t border-slate-800/60 p-4 sm:p-5 sticky bottom-0 z-20 backdrop-blur-xl">
+        <div className="bg-slate-950/80 border-t border-slate-800/60 p-4 pb-[110px] lg:p-5 lg:pb-5 sticky bottom-0 z-20 backdrop-blur-xl shrink-0">
           <form onSubmit={handleSendMessage} className="w-full max-w-4xl mx-auto">
             <div className="flex items-end gap-3 relative">
               <div className="flex-1 relative group">
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10" />
                 <Textarea
+                  ref={messageInputRef}
                   value={newMessage}
                   onChange={(e) => {
                     setNewMessage(e.target.value)

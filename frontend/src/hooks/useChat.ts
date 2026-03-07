@@ -332,7 +332,7 @@ export const useChat = (receiverId?: string) => {
   const fetchMessages = useCallback(async (conversationId: string, cursor?: string) => {
     try {
       setLoading(true);
-      const res = await communityApiService.getConversationMessages(conversationId, cursor, 50);
+      const res = await communityApiService.getConversationMessages(conversationId, cursor, 10);
       setMessages(prev => ({
         ...prev,
         [conversationId]: cursor ? [...res.messages, ...(prev[conversationId] || [])] : res.messages
