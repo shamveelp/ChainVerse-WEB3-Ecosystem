@@ -46,13 +46,6 @@ function CollapsibleMenu({ title, onItemClick }: { title: string; onItemClick: (
             Liquidity
           </Link>
           <Link
-            href={COMMON_ROUTES.BRIDGE}
-            className="block text-gray-400 hover:text-white text-lg py-2 pl-4 rounded-lg hover:bg-white/5 transition-colors"
-            onClick={onItemClick}
-          >
-            Bridge
-          </Link>
-          <Link
             href={COMMON_ROUTES.BUY}
             className="block text-gray-400 hover:text-white text-lg py-2 pl-4 rounded-lg hover:bg-white/5 transition-colors"
             onClick={onItemClick}
@@ -161,9 +154,9 @@ export default function Navbar() {
                     <DropdownMenuItem className="focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
                       <Link href={COMMON_ROUTES.LIQUIDITY} className="w-full">Liquidity</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
+                    {/* <DropdownMenuItem className="focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
                       <Link href={COMMON_ROUTES.BRIDGE} className="w-full">Bridge</Link>
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem className="focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
                       <Link href={COMMON_ROUTES.BUY} className="w-full">Buy</Link>
                     </DropdownMenuItem>
@@ -193,12 +186,12 @@ export default function Navbar() {
                 >
                   Docs
                 </Link>
-                <Link
+                {/* <Link
                   href={COMMON_ROUTES.ABOUT}
                   className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 whitespace-nowrap"
                 >
                   About Us
-                </Link>
+                </Link> */}
               </div>
             </div>
 

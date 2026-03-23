@@ -5,6 +5,8 @@ import logger from '../utils/logger';
 import container from '../core/di/container';
 import { IChatService } from '../core/interfaces/services/chat/IChat.service';
 import { TYPES } from '../core/types/types';
+import { AdminModel } from '../models/admin.model';
+import CommunityAdminModel from '../models/communityAdmin.model';
 import { SendMessageResponseDto } from '../dtos/chat/Chat.dto';
 
 interface AuthenticatedSocket extends Socket {
@@ -88,48 +90,104 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
       }
 
       // Verify user exists and is active
-      let user;
+      let userDetails;
       try {
-        user = await UserModel.findById(decoded.id)
-          .select('_id username isBlocked isBanned')
-          .lean()
-          .exec();
+        if (decoded.role === 'admin') {
+          const admin = await AdminModel.findById(decoded.id)
+            .select('_id name isActive')
+            .lean()
+            .exec();
+
+          if (!admin) {
+            logger.warn('Socket connection attempted for non-existent admin', {
+              socketId: socket.id,
+              userId: decoded.id
+            });
+            return next(new Error('User not found'));
+          }
+
+          if (!admin.isActive) {
+            return next(new Error('User account is suspended'));
+          }
+
+          userDetails = {
+            _id: admin._id,
+            username: admin.name,
+            role: 'admin'
+          };
+        } else if (decoded.role === 'communityAdmin') {
+          const communityAdmin = await CommunityAdminModel.findById(decoded.id)
+            .select('_id name isActive')
+            .lean()
+            .exec();
+
+          if (!communityAdmin) {
+            logger.warn('Socket connection attempted for non-existent communityAdmin', {
+              socketId: socket.id,
+              userId: decoded.id
+            });
+            return next(new Error('User not found'));
+          }
+
+          if (!communityAdmin.isActive) {
+            return next(new Error('User account is suspended'));
+          }
+
+          userDetails = {
+            _id: communityAdmin._id,
+            username: communityAdmin.name,
+            role: 'communityAdmin'
+          };
+        } else {
+          // Default to regular user
+          const user = await UserModel.findById(decoded.id)
+            .select('_id username isBlocked isBanned')
+            .lean()
+            .exec();
+
+          if (!user) {
+            logger.warn('Socket connection attempted for non-existent user', {
+              socketId: socket.id,
+              userId: decoded.id
+            });
+            return next(new Error('User not found'));
+          }
+
+          if (user.isBlocked || user.isBanned) {
+            logger.warn('Socket connection attempted for blocked/banned user', {
+              socketId: socket.id,
+              userId: decoded.id,
+              username: user.username,
+              isBlocked: user.isBlocked,
+              isBanned: user.isBanned
+            });
+            return next(new Error('User account is suspended'));
+          }
+
+          userDetails = {
+            _id: user._id,
+            username: user.username,
+            role: 'user'
+          };
+        }
       } catch (dbError) {
         const error = dbError as Error;
         logger.error('Database error during socket authentication', {
           socketId: socket.id,
           userId: decoded.id,
+          role: decoded.role,
           error: error.message
         });
         return next(new Error('Authentication failed'));
       }
 
-      if (!user) {
-        logger.warn('Socket connection attempted for non-existent user', {
-          socketId: socket.id,
-          userId: decoded.id
-        });
-        return next(new Error('User not found'));
-      }
-
-      if (user.isBlocked || user.isBanned) {
-        logger.warn('Socket connection attempted for blocked/banned user', {
-          socketId: socket.id,
-          userId: decoded.id,
-          username: user.username,
-          isBlocked: user.isBlocked,
-          isBanned: user.isBanned
-        });
-        return next(new Error('User account is suspended'));
-      }
-
-      socket.userId = user._id.toString();
-      socket.username = user.username;
+      socket.userId = userDetails._id.toString();
+      socket.username = userDetails.username;
 
       logger.info('Socket authentication successful', {
         socketId: socket.id,
-        userId: user._id,
-        username: user.username
+        userId: userDetails._id,
+        username: userDetails.username
       });
       next();
     } catch (error) {

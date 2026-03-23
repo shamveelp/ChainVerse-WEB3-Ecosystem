@@ -19,18 +19,26 @@ export class UserDexService implements IUserDexService {
     @inject(TYPES.IPaymentRepository) private _paymentRepository: IPaymentRepository
   ) {
     // Initialize Razorpay with proper error handling
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const keyId = process.env.RAZORPAY_KEY_ID?.trim();
+    const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
 
     if (!keyId || !keySecret) {
       logger.error("Razorpay configuration missing");
       throw new Error("Razorpay configuration is missing. Please check environment variables.");
     }
 
-    this.razorpay = new Razorpay({
-      key_id: keyId,
-      key_secret: keySecret
-    });
+    logger.info(`Initializing Razorpay with keyId: ${keyId.slice(0, 8)}...`);
+
+    try {
+      this.razorpay = new Razorpay({
+        key_id: keyId,
+        key_secret: keySecret
+      });
+      logger.info("Razorpay initialization successful");
+    } catch (error) {
+      logger.error("Razorpay initialization failed:", error);
+      throw error;
+    }
 
     logger.info("Razorpay initialized successfully");
   }
@@ -211,11 +219,16 @@ export class UserDexService implements IUserDexService {
         currency: razorpayOrder.currency,
         paymentId: payment._id.toString(),
       };
-    } catch (error) {
-      logger.error("Error creating payment order:", error);
-      throw error instanceof CustomError
-        ? error
-        : new CustomError("Failed to create payment order", StatusCode.INTERNAL_SERVER_ERROR);
+    } catch (error: any) {
+      console.error("DEBUG: Razorpay Order Creation Error:", error);
+      logger.error("Error creating payment order:", JSON.stringify(error, null, 2));
+      if (error.stack) {
+        logger.error("Error stack:", error.stack);
+      }
+      throw new CustomError(
+        error.message || "Failed to create payment order",
+        error.statusCode || StatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   }
 

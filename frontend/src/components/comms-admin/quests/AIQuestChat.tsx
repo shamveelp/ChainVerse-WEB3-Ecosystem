@@ -452,6 +452,8 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
                                     <Image
                                       src={(result.logo || result.profilePic) || ''}
                                       alt=""
+                                      width={24}
+                                      height={24}
                                       className="w-6 h-6 rounded-full"
                                     />
                                   )}
@@ -487,7 +489,7 @@ export function AIQuestChat({ onQuestGenerated, onSaveAndCreate, onClose }: AIQu
                 {/* Banner Preview */}
                 {bannerPreview && (
                   <div className="h-24 rounded-lg bg-gray-900 border border-gray-700 overflow-hidden">
-                    <Image src={bannerPreview} alt="Banner preview" className="h-full w-full object-cover" />
+                    <Image src={bannerPreview} alt="Banner preview" width={400} height={100} className="h-full w-full object-cover" />
                   </div>
                 )}
 

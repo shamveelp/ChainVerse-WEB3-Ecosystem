@@ -24,7 +24,13 @@ export class UserAuthService implements IUserAuthService {
     @inject(TYPES.IPointsHistoryRepository) private _pointsHistoryRepository: IPointsHistoryRepository,
     @inject(TYPES.IJwtService) private _jwtService: IJwtService
   ) {
-    this._googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim();
+    if (!googleClientId) {
+      logger.error("GOOGLE_CLIENT_ID is missing in environment variables");
+    } else {
+      logger.info(`Initializing Google OAuth client with ID: ${googleClientId.slice(0, 10)}...`);
+    }
+    this._googleClient = new OAuth2Client(googleClientId);
   }
 
   async registerUser(username: string, email: string, password: string, name: string, referralCode?: string): Promise<void> {
@@ -286,9 +292,10 @@ export class UserAuthService implements IUserAuthService {
 
   async loginWithGoogle(idToken: string, referralCode?: string): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
     try {
+      const audience = process.env.GOOGLE_CLIENT_ID?.trim();
       const ticket = await this._googleClient.verifyIdToken({
         idToken,
-        audience: process.env.GOOGLE_CLIENT_ID,
+        audience,
       });
 
       const payload = ticket.getPayload();
@@ -372,9 +379,13 @@ export class UserAuthService implements IUserAuthService {
 
       logger.info(`Google login successful for: ${email}`);
       return { user, accessToken, refreshToken };
-    } catch (error) {
-      logger.error("Error in Google login:", error);
-      throw error instanceof CustomError ? error : new CustomError("Google login failed", StatusCode.INTERNAL_SERVER_ERROR);
+    } catch (error: any) {
+      console.error("DEBUG: Google Login Error:", error);
+      logger.error("Error in Google login:", JSON.stringify(error, null, 2));
+      if (error.stack) {
+        logger.error("Google login error stack:", error.stack);
+      }
+      throw error instanceof CustomError ? error : new CustomError(error.message || "Google login failed", StatusCode.INTERNAL_SERVER_ERROR);
     }
   }
 }

@@ -275,7 +275,7 @@ export function TaskConfiguration({ taskType, config, onChange }: TaskConfigurat
                           >
                             <div className="flex items-center gap-2">
                               {user.profilePic && (
-                                <Image src={user.profilePic} alt="" className="w-6 h-6 rounded-full" />
+                                <Image src={user.profilePic} alt="" width={24} height={24} className="w-12 h-12 rounded-full" />
                               )}
                               <div>
                                 <p className="font-medium">{user.name || user.username}</p>
