@@ -119,8 +119,9 @@ export default function CommunityPage({ params }: CommunityPageProps) {
         })
         toast.success(`You joined ${communityData.communityName}`)
       }
-    } catch (error: any) {
-      toast.error(error.message || "Action failed")
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Action failed";
+      toast.error(errorMessage)
     } finally {
       setIsJoining(false)
     }

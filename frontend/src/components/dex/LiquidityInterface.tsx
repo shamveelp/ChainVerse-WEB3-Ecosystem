@@ -42,8 +42,9 @@ export default function LiquidityInterface() {
           params: [{ chainId: '0xaa36a7' }], // 11155111 in hex
         });
         return true;
-      } catch (switchError: any) {
-        if (switchError.code === 4902) {
+      } catch (switchError: unknown) {
+        const err = switchError as { code?: number; message?: string };
+        if (err.code === 4902) {
           try {
             await window.ethereum.request({
               method: 'wallet_addEthereumChain',
@@ -75,7 +76,7 @@ export default function LiquidityInterface() {
 
     setRefreshingBalances(true);
     try {
-      let provider: any;
+      let provider: ethers.Provider;
 
       if (window.ethereum) {
         const browserProvider = new ethers.BrowserProvider(window.ethereum);

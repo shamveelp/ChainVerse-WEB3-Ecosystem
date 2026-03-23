@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { CONTRACTS, ERC20_ABI, DEX_ABI } from './contracts';
 import { TokenBalance, PoolData } from '@/types/types-dex';
 
-export const loadBalances = async (provider: any, address: string): Promise<{
+export const loadBalances = async (provider: ethers.Provider, address: string): Promise<{
   balances: TokenBalance;
   poolsData: { [key: string]: PoolData };
 }> => {
@@ -63,7 +63,7 @@ export const loadBalances = async (provider: any, address: string): Promise<{
 };
 
 export const calculateSwapOutput = async (
-  provider: any,
+  provider: ethers.Provider,
   fromToken: string,
   toToken: string,
   fromAmount: string
@@ -121,7 +121,7 @@ export const calculateSwapOutput = async (
   }
 };
 
-export const loadGlobalPoolsData = async (provider: any): Promise<{ [key: string]: PoolData }> => {
+export const loadGlobalPoolsData = async (provider: ethers.Provider): Promise<{ [key: string]: PoolData }> => {
   try {
     const dexContract = new ethers.Contract(CONTRACTS.dex, DEX_ABI, provider);
 

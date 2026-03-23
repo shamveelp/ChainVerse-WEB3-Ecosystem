@@ -33,6 +33,7 @@ import { NFTWithMetadata, SaleDetails } from '@/types/types-nft';
 import { LoadingSpinner } from '@/components/nft/loading-skeleton';
 import { toast } from 'sonner';
 import { ethers } from 'ethers';
+import Image from 'next/image';
 
 export default function NFTDetailPage() {
   const params = useParams();
@@ -91,7 +92,7 @@ export default function NFTDetailPage() {
         setSaleDetails(details);
       }
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error loading NFT details:', error);
       toast.error('Failed to load NFT details');
     } finally {
@@ -205,11 +206,13 @@ export default function NFTDetailPage() {
               <Card className="overflow-hidden bg-gradient-to-br from-background/95 to-muted/20">
                 <div className="aspect-square relative">
                   {!imageError && nft.imageUrl ? (
-                    <img
+                    <Image
                       src={nft.imageUrl}
                       alt={nft.metadata?.name || `NFT #${nft.tokenId}`}
+                      fill
                       className="object-cover w-full h-full absolute inset-0"
                       onError={() => setImageError(true)}
+                      unoptimized
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">

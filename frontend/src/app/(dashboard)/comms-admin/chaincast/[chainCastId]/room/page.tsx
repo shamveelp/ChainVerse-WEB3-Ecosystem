@@ -46,7 +46,7 @@ export default function AdminChainCastRoomPage({ params }: AdminChainCastRoomPag
         let chainCastData: ChainCast
         try {
           chainCastData = await communityAdminChainCastApiService.startChainCast(chainCastId)
-        } catch (startErr: any) {
+        } catch (startErr: unknown) {
           // If already started, just get it
           console.log("ChainCast might already be started, fetching data...")
           chainCastData = await communityAdminChainCastApiService.getChainCast(chainCastId)

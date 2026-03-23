@@ -44,15 +44,25 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { Id } from "../../../../../../convex/_generated/dataModel";
+
+interface NFTReport {
+    _id: Id<"nftReports">;
+    tokenId: string;
+    reason: string;
+    detailedReason?: string;
+    status: string;
+    createdAt: number;
+}
 
 export default function NFTMarketplaceEnquiries() {
-    const reports = useQuery(api.nftReports.getReports);
+    const reports = useQuery(api.nftReports.getReports) as NFTReport[] | undefined;
     const resolveReport = useMutation(api.nftReports.resolveReport);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all'); // all, pending, solved
-    const [selectedReport, setSelectedReport] = useState<any>(null); // For details dialog
-    const [resolvingId, setResolvingId] = useState<string | null>(null);
+    const [selectedReport, setSelectedReport] = useState<NFTReport | null>(null); // For details dialog
+    const [resolvingId, setResolvingId] = useState<Id<"nftReports"> | null>(null);
 
     // Filtering logic
     const filteredReports = reports?.filter(report => {
@@ -66,7 +76,7 @@ export default function NFTMarketplaceEnquiries() {
         return matchesSearch && matchesStatus;
     }) || [];
 
-    const handleResolve = async (id: any) => {
+    const handleResolve = async (id: Id<"nftReports">) => {
         try {
             setResolvingId(id);
             await resolveReport({ id });

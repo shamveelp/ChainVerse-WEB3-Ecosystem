@@ -35,8 +35,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useNFTContract } from '@/hooks/nft/useNFTContract';
 import { NFTWithMetadata } from '@/types/types-nft';
 import { LoadingSpinner } from '@/components/nft/loading-skeleton';
-import { toast } from 'sonner';
 import { ethers } from 'ethers';
+import Image from 'next/image';
 
 const NFT_MARKETPLACE_ADDRESS = "0xe349f285223EfB570997f7D40632860714E29054";
 
@@ -79,7 +79,7 @@ export default function AdminNFTDetailPage() {
             };
 
             setNft(enrichedNFT);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error loading details:', error);
             toast.error('Sync failed');
         } finally {
@@ -152,11 +152,13 @@ export default function AdminNFTDetailPage() {
                             <Card className="overflow-hidden bg-gradient-to-br from-background/95 to-muted/20 border-border">
                                 <div className="aspect-square relative flex items-center justify-center bg-muted/10">
                                     {!imageError && nft.imageUrl ? (
-                                        <img
+                                        <Image
                                             src={nft.imageUrl}
                                             alt={nft.metadata?.name || `NFT #${nft.tokenId}`}
+                                            fill
                                             className="object-cover w-full h-full absolute inset-0"
                                             onError={() => setImageError(true)}
+                                            unoptimized
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">

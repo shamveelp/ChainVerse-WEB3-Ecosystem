@@ -193,8 +193,8 @@ export const useChat = (receiverId?: string) => {
   useEffect(() => {
     if (!currentUser || !socketConnected) return;
 
-    const handleNewMessage = (data: any) => {
-      const { message, conversation } = data;
+    const handleNewMessage = (data: unknown) => {
+      const { message, conversation } = data as { message: MessageResponse; conversation: ConversationResponse };
       if (isMessageProcessed(message._id)) return;
 
       const isOwnMessage = message.sender._id === currentUser._id;
@@ -244,8 +244,8 @@ export const useChat = (receiverId?: string) => {
       });
     };
 
-    const handleMessageEdited = (data: any) => {
-      const { message } = data;
+    const handleMessageEdited = (data: unknown) => {
+      const { message } = data as { message: MessageResponse };
       const isOwnMessage = message.sender._id === currentUser._id;
       const msg = { ...message, isOwnMessage };
 
@@ -255,8 +255,8 @@ export const useChat = (receiverId?: string) => {
       }));
     };
 
-    const handleMessageDeleted = (data: any) => {
-      const { messageId } = data;
+    const handleMessageDeleted = (data: unknown) => {
+      const { messageId } = data as { messageId: string };
       setMessages(prev => {
         const updated = { ...prev };
         Object.keys(updated).forEach(cid => {
@@ -266,8 +266,8 @@ export const useChat = (receiverId?: string) => {
       });
     };
 
-    const handleMessagesRead = (data: any) => {
-      const { userId, conversationId, readAt } = data;
+    const handleMessagesRead = (data: unknown) => {
+      const { userId, conversationId, readAt } = data as { userId: string, conversationId: string, readAt: Date };
       setMessages(prev => ({
         ...prev,
         [conversationId]: (prev[conversationId] || []).map(m => ({
@@ -277,8 +277,8 @@ export const useChat = (receiverId?: string) => {
       }));
     };
 
-    const handleUserStatusChanged = (data: any) => {
-      const { userId, isOnline } = data;
+    const handleUserStatusChanged = (data: unknown) => {
+      const { userId, isOnline } = data as { userId: string, isOnline: boolean };
       setOnlineUsers(prev => {
         const next = new Set(prev);
         if (isOnline) next.add(userId);
@@ -287,18 +287,20 @@ export const useChat = (receiverId?: string) => {
       });
     };
 
-    const handleUserTypingStart = (data: any) => {
+    const handleUserTypingStart = (data: unknown) => {
+      const { user, conversationId } = data as { conversationId: string, user: { username: string } };
       setTypingUsers(prev => {
-        const current = prev[data.conversationId] || [];
-        if (current.includes(data.user?.username)) return prev;
-        return { ...prev, [data.conversationId]: [...current, data.user?.username] };
+        const current = prev[conversationId] || [];
+        if (current.includes(user?.username)) return prev;
+        return { ...prev, [conversationId]: [...current, user?.username] };
       });
     };
 
-    const handleUserTypingStop = (data: any) => {
+    const handleUserTypingStop = (data: unknown) => {
+      const { user, conversationId } = data as { conversationId: string, user: { username: string } };
       setTypingUsers(prev => {
-        const current = prev[data.conversationId] || [];
-        return { ...prev, [data.conversationId]: current.filter(u => u !== data.user?.username) };
+        const current = prev[conversationId] || [];
+        return { ...prev, [conversationId]: current.filter(u => u !== user?.username) };
       });
     };
 
@@ -317,12 +319,8 @@ export const useChat = (receiverId?: string) => {
       socketService.offMessagesRead(handleMessagesRead);
       socketService.offUserStatusChanged(handleUserStatusChanged);
 
-      // Remove typing listeners
-      const anySocket = socketService as any;
-      if (anySocket.socket) {
-        anySocket.socket.off('user_typing_start', handleUserTypingStart);
-        anySocket.socket.off('user_typing_stop', handleUserTypingStop);
-      }
+      socketService.offUserTypingStart(handleUserTypingStart);
+      socketService.offUserTypingStop(handleUserTypingStop);
     };
   }, [currentUser, socketConnected, isMessageProcessed]);
 
@@ -341,8 +339,9 @@ export const useChat = (receiverId?: string) => {
           socketService.joinConversation(c._id);
         }
       });
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
       toast.error('Failed to load conversations');
     } finally {
       setLoading(false);
@@ -359,8 +358,9 @@ export const useChat = (receiverId?: string) => {
       }));
       setHasMoreMessages(prev => ({ ...prev, [conversationId]: res.hasMore }));
       setNextCursorMessages(prev => ({ ...prev, [conversationId]: res.nextCursor }));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
       toast.error('Failed to load messages');
     } finally {
       setLoading(false);
@@ -380,7 +380,7 @@ export const useChat = (receiverId?: string) => {
           username: currentUser?.username || 'You',
           name: currentUser?.name || 'You',
           profilePic: currentUser?.profilePic || '',
-          isVerified: (currentUser as any)?.isVerified || false
+          isVerified: (currentUser as { isVerified?: boolean })?.isVerified || false
         },
         content: content.trim(),
         messageType: 'text',
@@ -441,15 +441,16 @@ export const useChat = (receiverId?: string) => {
         return [updatedConv, ...prev];
       });
       setSendingMessage(false);
-    } catch (err: any) {
-      if (!navigator.onLine || err.message?.toLowerCase().includes('network') || err.message?.toLowerCase().includes('fetch')) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      if (!navigator.onLine || errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('fetch')) {
         setOfflineQueue(prev => {
           if (prev.some(q => q.tempId === tempId)) return prev;
           return [...prev, { receiverUsername, content, conversationId, tempId }];
         });
         toast.info('Network dropped. Message queued for automatic retry.');
       } else {
-        setError(err.message);
+        setError(errorMessage);
         toast.error('Failed to send message');
       }
       setSendingMessage(false);
@@ -478,7 +479,7 @@ export const useChat = (receiverId?: string) => {
         ...prev,
         [conversationId]: (prev[conversationId] || []).map(m => m._id === messageId ? updated : m)
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error('Failed to edit message');
     }
   }, []);
@@ -500,7 +501,7 @@ export const useChat = (receiverId?: string) => {
       // 3. Persistent API sync
       await communityApiService.deleteMessage(messageId);
       toast.success('Message deleted');
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error('Failed to delete message');
     }
   }, []);
@@ -518,7 +519,7 @@ export const useChat = (receiverId?: string) => {
   const getOrCreateConversation = useCallback(async (username: string) => {
     try {
       return await communityApiService.getOrCreateConversation(username);
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error('Failed to get conversation');
       return null;
     }

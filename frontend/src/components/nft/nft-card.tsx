@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useNFTContract } from '@/hooks/nft/useNFTContract';
 import { NFTWithMetadata } from '../../types/types-nft';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useActiveAccount } from 'thirdweb/react';
 
 interface NFTCardProps {
@@ -68,11 +70,13 @@ export function NFTCard({
             {/* NFT Image */}
             <div className="relative aspect-square overflow-hidden">
               {!imageError && nft.imageUrl ? (
-                <img
+                <Image
                   src={nft.imageUrl}
                   alt={nft.metadata?.name || `NFT #${nft.tokenId}`}
+                  fill
                   className="object-cover w-full h-full absolute inset-0 transition-transform duration-700 group-hover:scale-110"
                   onError={() => setImageError(true)}
+                  unoptimized
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">

@@ -178,9 +178,10 @@ export const useDexSwap = () => {
                     params: [{ chainId: '0xaa36a7' }], // 11155111 in hex
                 });
                 return true;
-            } catch (switchError: any) {
+            } catch (switchError: unknown) {
+                const err = switchError as { code?: number; message?: string };
                 // This error code indicates that the chain has not been added to MetaMask.
-                if (switchError.code === 4902) {
+                if (err.code === 4902) {
                     try {
                         await window.ethereum.request({
                             method: 'wallet_addEthereumChain',
@@ -211,7 +212,7 @@ export const useDexSwap = () => {
         if (!swapForm.fromAmount) return;
 
         try {
-            let provider: any;
+            let provider: ethers.Provider;
 
             if (window.ethereum) {
                 const browserProvider = new ethers.BrowserProvider(window.ethereum);

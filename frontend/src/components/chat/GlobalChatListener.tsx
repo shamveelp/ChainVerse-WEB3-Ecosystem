@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { toast } from "sonner"
 import { socketService } from "@/services/socketService"
 import { RootState } from "@/redux/store"
+import { MessageResponse, ConversationResponse } from "@/types/user/community.types"
 
 export function GlobalChatListener() {
     const router = useRouter()
@@ -50,10 +51,10 @@ export function GlobalChatListener() {
             return false;
         };
 
-        const showGlobalToast = (message: any, conversationId: string) => {
+        const showGlobalToast = (message: MessageResponse, conversationId: string) => {
             if (!message || !message.sender) return;
 
-            const sender = message.sender;
+            const sender = message.sender as { _id: string; username?: string; name?: string } | string;
             const senderId = typeof sender === 'object' ? sender._id : sender;
             const senderUsername = typeof sender === 'object' ? (sender.username || sender.name) : 'User';
             const senderName = typeof sender === 'object' ? (sender.name || sender.username) : 'User';
@@ -80,20 +81,20 @@ export function GlobalChatListener() {
             });
         };
 
-        const handleNewMessage = (data: any) => {
-            const { message, conversation } = data;
+        const handleNewMessage = (data: unknown) => {
+            const { message, conversation } = data as { message: MessageResponse, conversation: ConversationResponse };
             showGlobalToast(message, conversation?._id || message.conversationId);
         };
 
-        const handleConversationUpdated = (data: any) => {
-            const { conversation } = data;
+        const handleConversationUpdated = (data: unknown) => {
+            const { conversation } = data as { conversation: ConversationResponse };
             if (conversation?.lastMessage) {
                 showGlobalToast(conversation.lastMessage, conversation._id);
             }
         };
 
-        const handleCommunityNotification = (data: any) => {
-            const { title, message, link, messageId } = data;
+        const handleCommunityNotification = (data: unknown) => {
+            const { title, message, link, messageId } = data as { title: string, message: string, link: string, messageId: string };
             if (messageId && isMessageProcessed(messageId)) return;
             if (link && pathname === link) return;
 

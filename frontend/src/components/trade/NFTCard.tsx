@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { NFTItem } from '@/hooks/useMarketplace';
 import { formatEther } from 'viem';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Eye, ShoppingCart, Tag, ExternalLink } from 'lucide-react';
@@ -47,14 +48,15 @@ export function NFTCard({
             </div>
           )}
           {!imageError && nft.metadata?.image ? (
-            <img
+            <Image
               src={nft.metadata.image}
               alt={nft.metadata.name || 'NFT'}
+              fill
               className={`w-full h-full object-cover transition-all duration-500 ${imageLoading ? 'opacity-0 scale-110' : 'opacity-100 scale-100 group-hover:scale-110'
                 }`}
-              onLoad={handleImageLoad}
+              onLoadingComplete={handleImageLoad}
               onError={handleImageError}
-              loading="lazy"
+              unoptimized
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-purple-400/20 to-blue-400/20 flex items-center justify-center">

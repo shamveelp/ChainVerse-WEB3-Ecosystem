@@ -168,10 +168,13 @@ export default function CreatePage() {
                 <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-muted-foreground/50 transition-colors">
                   {preview ? (
                     <div className="space-y-4">
-                      <img
+                      <Image
                         src={preview}
                         alt="Preview"
-                        className="mx-auto max-h-64 rounded-lg"
+                        width={400}
+                        height={400}
+                        className="mx-auto max-h-64 rounded-lg object-contain"
+                        unoptimized
                       />
                       <Button
                         type="button"

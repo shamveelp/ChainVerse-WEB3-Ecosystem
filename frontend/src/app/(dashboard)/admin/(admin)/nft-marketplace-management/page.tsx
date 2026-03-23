@@ -48,6 +48,7 @@ import { NFT_MARKETPLACE_ADDRESS } from '@/lib/nft/contracts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ethers } from 'ethers';
 import Link from 'next/link'; // Added Link import
+import Image from 'next/image';
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
 
@@ -56,7 +57,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, gradient }: {
     title: string,
     value: string | number,
     subtitle: string,
-    icon: any,
+    icon: React.ElementType,
     gradient: string
 }) => (
     <Card className={`bg-gradient-to-br ${gradient} backdrop-blur-md border-white/10 overflow-hidden relative group`}>
@@ -111,7 +112,7 @@ export default function NFTMarketplaceManagement() {
                 hidden: !currentlyHidden
             });
             toast.success(`NFT ${!currentlyHidden ? 'Hidden' : 'Visible'}`);
-        } catch (err) {
+        } catch (err: unknown) {
             console.error(err);
             toast.error("Failed to update visibility");
         }
@@ -145,7 +146,7 @@ export default function NFTMarketplaceManagement() {
             } else {
                 setEnrichedNFTs([]);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error fetching admin NFT data:', error);
             toast.error('Failed to load marketplace data');
         } finally {
@@ -442,10 +443,12 @@ export default function NFTMarketplaceManagement() {
                                                     {/* Image Container */}
                                                     <div className="relative aspect-square overflow-hidden">
                                                         {token.imageUrl ? (
-                                                            <img
+                                                            <Image
                                                                 src={token.imageUrl}
                                                                 alt={token.metadata?.name || 'NFT'}
+                                                                fill
                                                                 className="object-cover w-full h-full absolute inset-0 transition-transform duration-700 group-hover:scale-110"
+                                                                unoptimized
                                                             />
                                                         ) : (
                                                             <div className="h-full w-full flex items-center justify-center bg-slate-900/50">
@@ -541,7 +544,7 @@ export default function NFTMarketplaceManagement() {
                                                         <div className="flex items-center gap-5">
                                                             <div className="relative h-14 w-14 rounded-2xl overflow-hidden border border-white/10 shadow-xl">
                                                                 {token.imageUrl ? (
-                                                                    <img src={token.imageUrl} alt="NFT" className="object-cover w-full h-full absolute inset-0" />
+                                                                    <Image src={token.imageUrl} alt="NFT" fill className="object-cover w-full h-full absolute inset-0" unoptimized />
                                                                 ) : (
                                                                     <div className="h-full w-full bg-slate-800 flex items-center justify-center">
                                                                         <ImageIcon className="h-6 w-6 text-slate-600" />

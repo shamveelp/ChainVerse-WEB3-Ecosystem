@@ -90,10 +90,11 @@ export class CommunityAdminSubscriptionService implements ICommunityAdminSubscri
         amount: order.amount,
         currency: order.currency,
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       logger.error(LoggerMessages.CREATE_PAYMENT_ORDER_ERROR, {
-        message: error.message,
-        error: typeof error === 'object' ? JSON.stringify(error, null, 2) : error,
+        message: errorMessage,
+        error: typeof error === "object" ? JSON.stringify(error, null, 2) : error,
       });
       throw error instanceof CustomError ? error : new CustomError(ErrorMessages.FAILED_CREATE_SUBSCRIPTION_ORDER, StatusCode.INTERNAL_SERVER_ERROR);
     }

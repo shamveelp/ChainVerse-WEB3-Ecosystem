@@ -12,6 +12,38 @@ import { RootState } from "@/redux/store";
 import { setSubscription } from "@/redux/slices/communityAdminAuthSlice";
 import { toast } from "@/components/ui/use-toast";
 
+interface RazorpayOptions {
+  key: string;
+  amount: number | string;
+  currency: string;
+  name: string;
+  description: string;
+  image: string;
+  order_id: string;
+  handler: (response: {
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+  }) => Promise<void> | void;
+  modal?: {
+    ondismiss?: () => Promise<void> | void;
+  };
+  prefill?: {
+    name?: string;
+    email?: string;
+    contact?: string;
+  };
+  notes?: Record<string, string>;
+  theme?: {
+    color?: string;
+  };
+}
+
+interface RazorpayInstance {
+  on: (event: string, handler: (response: { error: { description: string } }) => void) => void;
+  open: () => void;
+}
+
 const premiumFeatures = [
   {
     icon: Crown,
@@ -186,9 +218,9 @@ export default function PremiumPage() {
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rzp = new (window as any).Razorpay(options);
+      const rzp = new (window as any).Razorpay(options as RazorpayOptions) as RazorpayInstance;
 
-      rzp.on('payment.failed', function (response: any) {
+      rzp.on('payment.failed', function (response: { error: { description: string } }) {
         console.error('Razorpay payment failed:', response.error);
         toast({
           variant: "destructive",
@@ -267,9 +299,9 @@ export default function PremiumPage() {
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rzp = new (window as any).Razorpay(options);
+      const rzp = new (window as any).Razorpay(options as RazorpayOptions) as RazorpayInstance;
 
-      rzp.on('payment.failed', function (response: any) {
+      rzp.on('payment.failed', function (response: { error: { description: string } }) {
         console.error('Razorpay payment retry failed:', response.error);
         toast({
           variant: "destructive",
