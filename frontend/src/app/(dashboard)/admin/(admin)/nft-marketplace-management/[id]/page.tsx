@@ -35,6 +35,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useNFTContract } from '@/hooks/nft/useNFTContract';
 import { NFTWithMetadata } from '@/types/types-nft';
 import { LoadingSpinner } from '@/components/nft/loading-skeleton';
+import { toast } from 'sonner';
 import { ethers } from 'ethers';
 import Image from 'next/image';
 
