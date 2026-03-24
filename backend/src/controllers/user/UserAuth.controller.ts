@@ -114,8 +114,8 @@ export class UserAuthController implements IUserAuthController {
       );
 
       this._jwtService.setTokens(res, accessToken, refreshToken);
-
-      const response = new LoginResponseDto(user, SuccessMessages.USER_REGISTERED);
+ 
+      const response = new LoginResponseDto(user, SuccessMessages.USER_REGISTERED, accessToken);
       res.status(StatusCode.CREATED).json(response);
     } catch (error) {
       logger.error(LoggerMessages.VERIFY_OTP_ERROR, error);
@@ -265,8 +265,8 @@ export class UserAuthController implements IUserAuthController {
       const { user, accessToken, refreshToken } = await this._userAuthService.loginUser(email!, password!);
 
       this._jwtService.setTokens(res, accessToken, refreshToken);
-
-      const response = new LoginResponseDto(user, SuccessMessages.USER_LOGGED_IN);
+ 
+      const response = new LoginResponseDto(user, SuccessMessages.USER_LOGGED_IN, accessToken);
       res.status(StatusCode.OK).json(response);
     } catch (error) {
       logger.error(LoggerMessages.LOGIN_ERROR, error);
@@ -371,8 +371,8 @@ export class UserAuthController implements IUserAuthController {
 
       const { user, accessToken, refreshToken } = await this._userAuthService.loginWithGoogle(idToken, referralCode);
       this._jwtService.setTokens(res, accessToken, refreshToken);
-
-      const response = new LoginResponseDto(user, SuccessMessages.GOOGLE_LOGIN_SUCCESS);
+ 
+      const response = new LoginResponseDto(user, SuccessMessages.GOOGLE_LOGIN_SUCCESS, accessToken);
       res.status(StatusCode.OK).json(response);
     } catch (error) {
       logger.error(LoggerMessages.GOOGLE_LOGIN_ERROR, error);

@@ -209,10 +209,12 @@ export class UserResponseDto {
 
 export class LoginResponseDto extends BaseResponseDto {
   user: UserResponseDto;
+  accessToken?: string;
 
-  constructor(user: IUser, message: string = 'Login successful') {
+  constructor(user: IUser, message: string = 'Login successful', accessToken?: string) {
     super(true, message);
     this.user = new UserResponseDto(user);
+    this.accessToken = accessToken;
   }
 }
 

@@ -54,7 +54,7 @@ export default function ClientLayout({ children, sessionExists }: Readonly<{ chi
   }, [])
 
   // Ensure NEXT_PUBLIC_GOOGLE_CLIENT_ID is defined
-  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim()
 
   if (!googleClientId) {
     console.error("NEXT_PUBLIC_GOOGLE_CLIENT_ID is not defined. Google OAuth will not work.")

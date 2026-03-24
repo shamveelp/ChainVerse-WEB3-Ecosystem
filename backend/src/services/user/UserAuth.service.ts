@@ -325,7 +325,23 @@ export class UserAuthService implements IUserAuthService {
       }
 
       if (!user) {
-        const username = email.split("@")[0] + Math.floor(Math.random() * 1000);
+        let username: string;
+        try {
+          // Try generating a username based on email prefix, falling back to standard gen
+          const emailPrefix = email.split("@")[0].substring(0, 15).replace(/[^a-zA-Z0-9]/g, "");
+          const suffix = Math.floor(Math.random() * 10000);
+          const candidate = `${emailPrefix}_${suffix}`;
+          
+          const existing = await this._userRepository.findByUsername(candidate);
+          if (!existing) {
+            username = candidate;
+          } else {
+            username = await this.generateUsername();
+          }
+        } catch (genError) {
+          username = await this.generateUsername();
+        }
+        
         const userReferralCode = await ReferralCodeService.generateUniqueReferralCode();
 
         user = await this._userRepository.create({
@@ -381,7 +397,7 @@ export class UserAuthService implements IUserAuthService {
       return { user, accessToken, refreshToken };
     } catch (error: any) {
       console.error("DEBUG: Google Login Error:", error);
-      logger.error("Error in Google login:", JSON.stringify(error, null, 2));
+      logger.error("Error in Google login:", error);
       if (error.stack) {
         logger.error("Google login error stack:", error.stack);
       }

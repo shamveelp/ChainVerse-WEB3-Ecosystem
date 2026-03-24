@@ -135,7 +135,8 @@ export function LoginForm() {
               theme="filled_black"
               size="large"
               text="continue_with"
-              width="1000" // Force large width to fill container
+              width="auto"
+              use_fedcm_for_prompt={true}
             />
           </div>
         </div>
