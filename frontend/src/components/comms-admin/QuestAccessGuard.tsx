@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
+import { setQuestAccess } from "@/redux/slices/communityAdminAuthSlice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Crown, Lock, Trophy, ArrowRight, Target, Award, Coins } from "lucide-react";
@@ -17,6 +18,7 @@ interface QuestAccessGuardProps {
 
 export function QuestAccessGuard({ children }: QuestAccessGuardProps) {
   const router = useRouter();
+  const dispatch = useDispatch();
   const { questAccess, subscription, communityAdmin } = useSelector((state: RootState) => state.communityAdminAuth);
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
@@ -42,6 +44,8 @@ export function QuestAccessGuard({ children }: QuestAccessGuardProps) {
         const response = await communityAdminSubscriptionApiService.checkChainCastAccess();
         if (response.success && response.data?.hasAccess) {
           setHasAccess(true);
+          // Sync with Redux for other components
+          dispatch(setQuestAccess(true));
         } else {
           setHasAccess(false);
         }

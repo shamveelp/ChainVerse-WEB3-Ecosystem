@@ -229,8 +229,10 @@ export class CommunityAdminQuestService implements ICommunityAdminQuestService {
       // Ensure admin can only access their community's quests
       let questCommunityId: string;
       if (quest.communityId && typeof quest.communityId === 'object' && '_id' in quest.communityId) {
-        questCommunityId = quest.communityId.toString();
+        // If populated (lean object), use the _id field
+        questCommunityId = (quest.communityId as any)._id.toString();
       } else {
+        // If not populated, it's a Types.ObjectId
         questCommunityId = (quest.communityId as mongoose.Types.ObjectId).toString();
       }
 
